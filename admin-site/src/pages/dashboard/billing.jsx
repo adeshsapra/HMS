@@ -1,0 +1,225 @@
+import { useState } from "react";
+import { DataTable, FormModal, ViewModal, DeleteConfirmModal } from "@/components";
+import { billingData, patientsData } from "@/data/hms-data";
+import { Button } from "@material-tailwind/react";
+import { CurrencyDollarIcon } from "@heroicons/react/24/outline";
+
+export default function Billing() {
+  const [bills, setBills] = useState(billingData);
+  const [openModal, setOpenModal] = useState(false);
+  const [openViewModal, setOpenViewModal] = useState(false);
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [selectedBill, setSelectedBill] = useState(null);
+
+  const columns = [
+    { 
+      key: "invoiceNo", 
+      label: "Invoice No",
+      render: (value) => (
+        <span className="font-bold text-blue-gray-800">{value}</span>
+      ),
+    },
+    { 
+      key: "patientName", 
+      label: "Patient",
+      render: (value) => (
+        <span className="font-semibold text-blue-gray-700">{value}</span>
+      ),
+    },
+    { 
+      key: "date", 
+      label: "Date",
+      render: (value) => (
+        <span className="text-sm font-medium text-blue-gray-700">
+          {new Date(value).toLocaleDateString()}
+        </span>
+      ),
+    },
+    {
+      key: "amount",
+      label: "Amount",
+      render: (value) => (
+        <span className="font-bold text-green-600 text-base">
+          ${value.toFixed(2)}
+        </span>
+      ),
+    },
+    { key: "status", label: "Status", type: "status" },
+    { key: "paymentMethod", label: "Payment Method" },
+  ];
+
+  const viewFields = [
+    { key: "invoiceNo", label: "Invoice Number", type: "text" },
+    { key: "patientName", label: "Patient Name", type: "text" },
+    { key: "date", label: "Date", type: "date" },
+    { key: "amount", label: "Amount", type: "currency" },
+    { key: "status", label: "Status", type: "status" },
+    { key: "paymentMethod", label: "Payment Method", type: "text" },
+  ];
+
+  const formFields = [
+    {
+      name: "patientName",
+      label: "Patient",
+      type: "select",
+      required: true,
+      options: patientsData.map((p) => ({ value: p.name, label: p.name })),
+    },
+    {
+      name: "date",
+      label: "Date",
+      type: "date",
+      required: true,
+    },
+    {
+      name: "amount",
+      label: "Amount ($)",
+      type: "number",
+      required: true,
+      min: 0,
+      placeholder: "Enter amount",
+    },
+    {
+      name: "status",
+      label: "Status",
+      type: "select",
+      required: true,
+      options: [
+        { value: "paid", label: "Paid" },
+        { value: "pending", label: "Pending" },
+        { value: "overdue", label: "Overdue" },
+      ],
+    },
+    {
+      name: "paymentMethod",
+      label: "Payment Method",
+      type: "select",
+      required: true,
+      options: [
+        { value: "Cash", label: "Cash" },
+        { value: "Credit Card", label: "Credit Card" },
+        { value: "Debit Card", label: "Debit Card" },
+        { value: "Insurance", label: "Insurance" },
+        { value: "Online", label: "Online" },
+      ],
+    },
+  ];
+
+  const handleAdd = () => {
+    setSelectedBill(null);
+    setOpenModal(true);
+  };
+
+  const handleEdit = (bill) => {
+    setSelectedBill(bill);
+    setOpenModal(true);
+  };
+
+  const handleDelete = (bill) => {
+    setSelectedBill(bill);
+    setOpenDeleteModal(true);
+  };
+
+  const confirmDelete = () => {
+    if (selectedBill) {
+      setBills(bills.filter((b) => b.id !== selectedBill.id));
+      setOpenDeleteModal(false);
+      setSelectedBill(null);
+    }
+  };
+
+  const handleView = (bill) => {
+    setSelectedBill(bill);
+    setOpenViewModal(true);
+  };
+
+  const handleSubmit = (data) => {
+    if (selectedBill) {
+      setBills(
+        bills.map((b) =>
+          b.id === selectedBill.id ? { ...b, ...data, invoiceNo: b.invoiceNo } : b
+        )
+      );
+    } else {
+      const newBill = {
+        id: bills.length + 1,
+        ...data,
+        invoiceNo: `INV-2024-${String(bills.length + 1).padStart(3, "0")}`,
+      };
+      setBills([...bills, newBill]);
+    }
+    setOpenModal(false);
+    setSelectedBill(null);
+  };
+
+  return (
+    <div className="mt-12 mb-8">
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h2 className="text-4xl font-bold text-blue-gray-800 mb-2">Billing & Finance</h2>
+          <p className="text-blue-gray-600 text-base">Manage patient billing, invoices, and payments</p>
+        </div>
+        <Button
+          variant="gradient"
+          color="blue"
+          className="flex items-center gap-2 shadow-lg hover:shadow-xl transition-all"
+          onClick={handleAdd}
+        >
+          <CurrencyDollarIcon className="h-5 w-5" />
+          Create Invoice
+        </Button>
+      </div>
+
+      <DataTable
+        title="Billing Management"
+        data={bills}
+        columns={columns}
+        onAdd={handleAdd}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        onView={handleView}
+        searchable={true}
+        filterable={true}
+        exportable={true}
+        addButtonLabel="Create Invoice"
+        searchPlaceholder="Search invoices..."
+      />
+
+      <FormModal
+        open={openModal}
+        onClose={() => {
+          setOpenModal(false);
+          setSelectedBill(null);
+        }}
+        title={selectedBill ? "Edit Invoice" : "Create New Invoice"}
+        formFields={formFields}
+        initialData={selectedBill || {}}
+        onSubmit={handleSubmit}
+        submitLabel={selectedBill ? "Update Invoice" : "Create Invoice"}
+      />
+
+      <ViewModal
+        open={openViewModal}
+        onClose={() => {
+          setOpenViewModal(false);
+          setSelectedBill(null);
+        }}
+        title="Invoice Details"
+        data={selectedBill || {}}
+        fields={viewFields}
+      />
+
+      <DeleteConfirmModal
+        open={openDeleteModal}
+        onClose={() => {
+          setOpenDeleteModal(false);
+          setSelectedBill(null);
+        }}
+        onConfirm={confirmDelete}
+        title="Delete Invoice"
+        message="Are you sure you want to delete this invoice?"
+        itemName={selectedBill?.invoiceNo}
+      />
+    </div>
+  );
+}

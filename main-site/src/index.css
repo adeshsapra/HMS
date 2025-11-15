@@ -1,0 +1,52 @@
+/* Base styles - will be overridden by main.css */
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Remove underlines from all links globally */
+a,
+a:hover,
+a:focus,
+a:active,
+a:visited {
+  text-decoration: none !important;
+}
+
+/* Header and navigation links - no underlines */
+.header a,
+.navmenu a,
+.navmenu ul li a,
+.navmenu .dropdown ul a {
+  text-decoration: none !important;
+}
+
+/* Hero section and background sections - no underlines */
+.hero a,
+.hero-content a,
+section a,
+.content-box a,
+.cta-group a,
+.info-badges a {
+  text-decoration: none !important;
+}
+
+/* All button links - no underlines */
+.btn,
+.btn-primary,
+.btn-outline,
+.btn-getstarted,
+.btn-appointment,
+.btn-learn-more,
+.service-btn {
+  text-decoration: none !important;
+}
+
