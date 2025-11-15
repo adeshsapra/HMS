@@ -1,0 +1,30 @@
+import React from "react";
+import { Routes, Route } from "react-router-dom";
+import {
+  ChartPieIcon,
+  UserIcon,
+  UserPlusIcon,
+  ArrowRightOnRectangleIcon,
+} from "@heroicons/react/24/solid";
+import routes from "@/routes";
+
+export function Auth(): JSX.Element {
+  return (
+    <div className="relative min-h-screen w-full">
+      <Routes>
+        {routes.map(
+          ({ layout, pages }) =>
+            layout === "auth" &&
+            pages.map(({ path, element }) => (
+              <Route key={path} path={path} element={element} />
+            ))
+        )}
+      </Routes>
+    </div>
+  );
+}
+
+Auth.displayName = "/src/layout/Auth.tsx";
+
+export default Auth;
+
