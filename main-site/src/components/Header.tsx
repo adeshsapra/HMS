@@ -15,19 +15,70 @@ const Header = () => {
     window.addEventListener("scroll", handleScroll);
     handleScroll();
 
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      // Cleanup: remove mobile nav class on unmount
+      document.body.classList.remove("mobile-nav-active");
+      document.body.style.overflow = "";
+    };
   }, []);
 
   const toggleMobileNav = () => {
-    setIsMobileNavActive(!isMobileNavActive);
+    const newState = !isMobileNavActive;
+    setIsMobileNavActive(newState);
+
+    // Add/remove class on body for CSS styling
+    if (newState) {
+      document.body.classList.add("mobile-nav-active");
+    } else {
+      document.body.classList.remove("mobile-nav-active");
+      setActiveDropdown(null); // Close all dropdowns when closing menu
+    }
   };
 
   const closeMobileNav = () => {
     setIsMobileNavActive(false);
+    document.body.classList.remove("mobile-nav-active");
+    setActiveDropdown(null); // Close all dropdowns
   };
+
+  // Close mobile nav when clicking outside and manage body scroll
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      const navmenu = document.getElementById("navmenu");
+      const toggle = document.querySelector(".mobile-nav-toggle");
+
+      if (
+        isMobileNavActive &&
+        navmenu &&
+        toggle &&
+        !navmenu.contains(target) &&
+        !toggle.contains(target)
+      ) {
+        setIsMobileNavActive(false);
+        document.body.classList.remove("mobile-nav-active");
+        setActiveDropdown(null);
+      }
+    };
+
+    if (isMobileNavActive) {
+      document.addEventListener("mousedown", handleClickOutside);
+      // Prevent body scroll when menu is open
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.body.style.overflow = "";
+    };
+  }, [isMobileNavActive]);
 
   const toggleDropdown = (e: React.MouseEvent, dropdownName: string) => {
     e.preventDefault();
+    e.stopPropagation();
     setActiveDropdown(activeDropdown === dropdownName ? null : dropdownName);
   };
 
@@ -156,18 +207,24 @@ const Header = () => {
       }`}
     >
       <div className="header-container container-fluid container-xl position-relative d-flex align-items-center justify-content-between">
+        {/* Logo - Left Side */}
         <Link
           to="/"
-          className="logo d-flex align-items-center me-auto me-xl-0"
+          className="logo d-flex align-items-center"
           onClick={closeMobileNav}
         >
           <LogoIcon />
           <h1 className="sitename">MediTrust</h1>
         </Link>
 
+        {/* Navigation Menu - Center */}
         <nav
           id="navmenu"
           className={`navmenu ${isMobileNavActive ? "mobile-nav-active" : ""}`}
+          onClick={(e) => {
+            // Prevent closing when clicking inside the nav
+            e.stopPropagation();
+          }}
         >
           <ul>
             <li>
@@ -213,14 +270,16 @@ const Header = () => {
             </li>
             <li
               className={`dropdown ${
-                activeDropdown === "more" ? "active" : ""
+                activeDropdown === "more" ? "active dropdown-active" : ""
               }`}
             >
               <a href="#" onClick={(e) => toggleDropdown(e, "more")}>
                 <span>More Pages</span>{" "}
                 <i className="bi bi-chevron-down toggle-dropdown"></i>
               </a>
-              <ul>
+              <ul
+                className={activeDropdown === "more" ? "dropdown-active" : ""}
+              >
                 <li>
                   <Link to="/department-details" onClick={closeMobileNav}>
                     Department Details
@@ -262,6 +321,16 @@ const Header = () => {
                   </Link>
                 </li>
                 <li>
+                  <Link to="/sign-in" onClick={closeMobileNav}>
+                    <i className="bi bi-box-arrow-in-right me-2"></i>Sign In
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/sign-up" onClick={closeMobileNav}>
+                    <i className="bi bi-person-plus me-2"></i>Sign Up
+                  </Link>
+                </li>
+                <li>
                   <Link to="/404" onClick={closeMobileNav}>
                     404
                   </Link>
@@ -270,14 +339,16 @@ const Header = () => {
             </li>
             <li
               className={`dropdown ${
-                activeDropdown === "main" ? "active" : ""
+                activeDropdown === "main" ? "active dropdown-active" : ""
               }`}
             >
               <a href="#" onClick={(e) => toggleDropdown(e, "main")}>
                 <span>Dropdown</span>{" "}
                 <i className="bi bi-chevron-down toggle-dropdown"></i>
               </a>
-              <ul>
+              <ul
+                className={activeDropdown === "main" ? "dropdown-active" : ""}
+              >
                 <li>
                   <a href="#">Dropdown 1</a>
                 </li>
@@ -335,16 +406,321 @@ const Header = () => {
               isMobileNavActive ? "bi-x" : "bi-list"
             }`}
             onClick={toggleMobileNav}
+            aria-label="Toggle mobile menu"
           ></i>
         </nav>
 
-        <Link
-          className="btn-getstarted"
-          to="/appointment"
-          onClick={closeMobileNav}
-        >
-          Appointment
-        </Link>
+        {/* Auth Buttons - Right Side */}
+        <div className="d-flex align-items-center header-auth-buttons">
+          <Link
+            to="/sign-in"
+            className="btn-signin d-none d-md-flex align-items-center"
+            onClick={closeMobileNav}
+          >
+            <i className="bi bi-box-arrow-in-right"></i>
+            <span className="d-flex flex-column">
+              <span>Sign</span>
+              <span>In</span>
+            </span>
+          </Link>
+          <Link
+            to="/sign-up"
+            className="btn-signup d-none d-md-flex align-items-center"
+            onClick={closeMobileNav}
+          >
+            <i className="bi bi-person-plus"></i>
+            <span className="d-flex flex-column">
+              <span>Sign</span>
+              <span>Up</span>
+            </span>
+          </Link>
+          <Link
+            className="btn-getstarted"
+            to="/appointment"
+            onClick={closeMobileNav}
+          >
+            Appointment
+          </Link>
+        </div>
+
+        <style>{`
+          .header-container {
+            gap: 20px;
+            position: relative;
+          }
+          
+          .header .logo {
+            flex-shrink: 0;
+            z-index: 10;
+          }
+          
+          @media (min-width: 1200px) {
+            .header .navmenu {
+              position: absolute;
+              left: 50%;
+              transform: translateX(-50%);
+              z-index: 5;
+            }
+          }
+          
+          .header-auth-buttons {
+            gap: 10px;
+            flex-shrink: 0;
+            z-index: 10;
+          }
+          
+          .header-auth-buttons .btn-signin {
+            background: #ffffff;
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            line-height: 1;
+            white-space: nowrap;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+          }
+          
+          .header-auth-buttons .btn-signin i {
+            font-size: 18px;
+            color: var(--accent-color);
+            flex-shrink: 0;
+          }
+          
+          .header-auth-buttons .btn-signin span {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.1;
+            gap: 0;
+          }
+          
+          .header-auth-buttons .btn-signin span span {
+            font-size: 12px;
+            line-height: 1.2;
+            font-weight: 600;
+            color: var(--accent-color);
+          }
+          
+          .header-auth-buttons .btn-signin:hover {
+            background: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(4, 158, 187, 0.25);
+          }
+          
+          .header-auth-buttons .btn-signin:hover i,
+          .header-auth-buttons .btn-signin:hover span span {
+            color: white;
+          }
+          
+          .header-auth-buttons .btn-signup {
+            background: var(--accent-color);
+            border: 1px solid var(--accent-color);
+            color: white;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            line-height: 1;
+            white-space: nowrap;
+            box-shadow: 0 1px 3px rgba(4, 158, 187, 0.2);
+          }
+          
+          .header-auth-buttons .btn-signup i {
+            font-size: 18px;
+            color: white;
+            flex-shrink: 0;
+          }
+          
+          .header-auth-buttons .btn-signup span {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.1;
+            gap: 0;
+          }
+          
+          .header-auth-buttons .btn-signup span span {
+            font-size: 12px;
+            line-height: 1.2;
+            font-weight: 600;
+            color: white;
+          }
+          
+          .header-auth-buttons .btn-signup:hover {
+            background: color-mix(in srgb, var(--accent-color) 90%, black 10%);
+            border-color: color-mix(in srgb, var(--accent-color) 90%, black 10%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(4, 158, 187, 0.3);
+          }
+          
+          .header-auth-buttons .btn-getstarted {
+            background: var(--accent-color);
+            border: none;
+            color: white;
+            border-radius: 50px;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            box-shadow: 0 1px 3px rgba(4, 158, 187, 0.2);
+            margin: 0;
+          }
+          
+          .header-auth-buttons .btn-getstarted:hover {
+            background: color-mix(in srgb, var(--accent-color) 90%, black 10%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(4, 158, 187, 0.3);
+            color: white;
+          }
+          
+          @media (max-width: 1199px) {
+            .header-container {
+              flex-wrap: nowrap;
+              gap: 10px;
+            }
+            
+            .header .logo {
+              margin-right: 0;
+              flex-shrink: 0;
+            }
+            
+            .header .navmenu {
+              flex: 0 0 auto;
+              order: 3;
+            }
+            
+            .header-auth-buttons {
+              order: 2;
+              margin-left: auto;
+              margin-right: 10px;
+            }
+            
+            .header-auth-buttons .btn-signin,
+            .header-auth-buttons .btn-signup {
+              display: none !important;
+            }
+            
+            .header-auth-buttons .btn-getstarted {
+              padding: 8px 18px;
+              font-size: 13px;
+              white-space: nowrap;
+            }
+          }
+          
+          @media (max-width: 768px) {
+            .header-auth-buttons {
+              margin-right: 8px;
+            }
+            
+            .header-auth-buttons .btn-getstarted {
+              padding: 7px 16px;
+              font-size: 12px;
+            }
+          }
+          
+          @media (max-width: 576px) {
+            .header-auth-buttons .btn-getstarted {
+              padding: 6px 14px;
+              font-size: 11px;
+            }
+            
+            .header-container {
+              padding-left: 15px !important;
+              padding-right: 15px !important;
+            }
+          }
+          
+          @media (min-width: 768px) and (max-width: 991px) {
+            .header-auth-buttons .btn-signin,
+            .header-auth-buttons .btn-signup {
+              padding: 8px 12px;
+              font-size: 12px;
+              gap: 8px;
+            }
+            
+            .header-auth-buttons .btn-signin i,
+            .header-auth-buttons .btn-signup i {
+              font-size: 16px;
+            }
+            
+            .header-auth-buttons .btn-signin span span,
+            .header-auth-buttons .btn-signup span span {
+              font-size: 11px;
+            }
+          }
+          
+          /* Mobile menu improvements */
+          @media (max-width: 1199px) {
+            .mobile-nav-toggle {
+              display: flex !important;
+              align-items: center;
+              justify-content: center;
+              width: 40px;
+              height: 40px;
+              border-radius: 8px;
+              background: rgba(4, 158, 187, 0.1);
+              transition: all 0.3s ease;
+            }
+            
+            .mobile-nav-toggle:hover {
+              background: rgba(4, 158, 187, 0.2);
+            }
+            
+            .navmenu.mobile-nav-active .mobile-nav-toggle {
+              background: rgba(255, 255, 255, 0.2);
+              color: white;
+            }
+            
+            .navmenu.mobile-nav-active .mobile-nav-toggle:hover {
+              background: rgba(255, 255, 255, 0.3);
+            }
+            
+            .navmenu ul {
+              animation: slideInRight 0.3s ease-out;
+            }
+            
+            @keyframes slideInRight {
+              from {
+                transform: translateX(100%);
+                opacity: 0;
+              }
+              to {
+                transform: translateX(0);
+                opacity: 1;
+              }
+            }
+            
+            .navmenu .dropdown.active > ul {
+              display: block !important;
+              animation: slideDown 0.3s ease-out;
+            }
+            
+            @keyframes slideDown {
+              from {
+                opacity: 0;
+                transform: translateY(-10px);
+              }
+              to {
+                opacity: 1;
+                transform: translateY(0);
+              }
+            }
+          }
+        `}</style>
       </div>
     </header>
   );

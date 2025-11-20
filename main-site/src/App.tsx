@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
 import Header from './components/Header'
 import Footer from './components/Footer'
@@ -20,9 +20,14 @@ import FAQ from './pages/FAQ'
 import Gallery from './pages/Gallery'
 import Terms from './pages/Terms'
 import Privacy from './pages/Privacy'
+import SignIn from './pages/SignIn'
+import SignUp from './pages/SignUp'
 import NotFound from './pages/NotFound'
 
 function App() {
+  const location = useLocation()
+  const isAuthPage = location.pathname === '/sign-in' || location.pathname === '/sign-up'
+
   useEffect(() => {
     // Initialize AOS
     import('aos').then((AOS) => {
@@ -34,31 +39,33 @@ function App() {
       })
     })
 
-    // Initialize PureCounter
-    const script = document.createElement('script')
-    script.src = '/assets/vendor/purecounter/purecounter_vanilla.js'
-    script.async = true
-    
-    script.onload = () => {
-      if ((window as any).PureCounter) {
-        new (window as any).PureCounter()
+    // Initialize PureCounter only for non-auth pages
+    if (!isAuthPage) {
+      const script = document.createElement('script')
+      script.src = '/assets/vendor/purecounter/purecounter_vanilla.js'
+      script.async = true
+      
+      script.onload = () => {
+        if ((window as any).PureCounter) {
+          new (window as any).PureCounter()
+        }
+      }
+
+      document.body.appendChild(script)
+
+      return () => {
+        if (document.body.contains(script)) {
+          document.body.removeChild(script)
+        }
       }
     }
-
-    document.body.appendChild(script)
-
-    return () => {
-      if (document.body.contains(script)) {
-        document.body.removeChild(script)
-      }
-    }
-  }, [])
+  }, [isAuthPage])
 
   return (
     <>
-      <Preloader />
-      <Header />
-      <main className="main">
+      {!isAuthPage && <Preloader />}
+      {!isAuthPage && <Header />}
+      <main className={isAuthPage ? "main-auth" : "main"}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
@@ -74,11 +81,13 @@ function App() {
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
+          <Route path="/sign-in" element={<SignIn />} />
+          <Route path="/sign-up" element={<SignUp />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
-      <Footer />
-      <ScrollTop />
+      {!isAuthPage && <Footer />}
+      {!isAuthPage && <ScrollTop />}
     </>
   )
 }

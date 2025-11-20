@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { DataTable, FormModal, ViewModal, DeleteConfirmModal, Column, FormField, ViewField } from "@/components";
+import { DataTable, FormModal, ViewModal, DeleteConfirmModal, Column, FormField, ViewField, AppointmentCalendar } from "@/components";
 import { appointmentsData, patientsData, doctorsData } from "@/data/hms-data";
 import { Button } from "@material-tailwind/react";
 import { CalendarDaysIcon } from "@heroicons/react/24/outline";
@@ -239,17 +239,10 @@ export default function Appointments(): JSX.Element {
           searchPlaceholder="Search appointments..."
         />
       ) : (
-        <div className="bg-white rounded-xl border border-blue-gray-100 shadow-lg p-16">
-          <div className="text-center">
-            <CalendarDaysIcon className="h-20 w-20 mx-auto text-blue-gray-300 mb-4" />
-            <p className="text-xl font-bold text-blue-gray-700 mb-2">
-              Calendar View
-            </p>
-            <p className="text-blue-gray-500 text-base">
-              Calendar view coming soon. Please use list view for now.
-            </p>
-          </div>
-        </div>
+        <AppointmentCalendar
+          appointments={appointments}
+          onAppointmentClick={handleView}
+        />
       )}
 
       <FormModal

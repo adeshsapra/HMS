@@ -2,6 +2,7 @@ import React, { createContext, useContext, useReducer, useMemo, ReactNode } from
 
 interface MaterialTailwindState {
   openSidenav: boolean;
+  sidenavCollapsed: boolean;
   sidenavColor: string;
   sidenavType: string;
   transparentNavbar: boolean;
@@ -11,6 +12,7 @@ interface MaterialTailwindState {
 
 type MaterialTailwindAction =
   | { type: "OPEN_SIDENAV"; value: boolean }
+  | { type: "SIDENAV_COLLAPSED"; value: boolean }
   | { type: "SIDENAV_TYPE"; value: string }
   | { type: "SIDENAV_COLOR"; value: string }
   | { type: "TRANSPARENT_NAVBAR"; value: boolean }
@@ -31,6 +33,9 @@ export function reducer(
   switch (action.type) {
     case "OPEN_SIDENAV": {
       return { ...state, openSidenav: action.value };
+    }
+    case "SIDENAV_COLLAPSED": {
+      return { ...state, sidenavCollapsed: action.value };
     }
     case "SIDENAV_TYPE": {
       return { ...state, sidenavType: action.value };
@@ -61,7 +66,8 @@ export function MaterialTailwindControllerProvider({
   children,
 }: MaterialTailwindControllerProviderProps): JSX.Element {
   const initialState: MaterialTailwindState = {
-    openSidenav: false,
+    openSidenav: true,
+    sidenavCollapsed: false,
     sidenavColor: "dark",
     sidenavType: "white",
     transparentNavbar: true,
@@ -98,6 +104,8 @@ MaterialTailwindControllerProvider.displayName = "/src/context/index.tsx";
 
 export const setOpenSidenav = (dispatch: MaterialTailwindDispatch, value: boolean): void =>
   dispatch({ type: "OPEN_SIDENAV", value });
+export const setSidenavCollapsed = (dispatch: MaterialTailwindDispatch, value: boolean): void =>
+  dispatch({ type: "SIDENAV_COLLAPSED", value });
 export const setSidenavType = (dispatch: MaterialTailwindDispatch, value: string): void =>
   dispatch({ type: "SIDENAV_TYPE", value });
 export const setSidenavColor = (dispatch: MaterialTailwindDispatch, value: string): void =>

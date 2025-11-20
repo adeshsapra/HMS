@@ -1,16 +1,16 @@
-import { useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import AOS from 'aos'
+import { useEffect } from "react";
+import { Link } from "react-router-dom";
+import AOS from "aos";
 
 const Home = () => {
   useEffect(() => {
     AOS.init({
       duration: 600,
-      easing: 'ease-in-out',
+      easing: "ease-in-out",
       once: true,
-      mirror: false
-    })
-  }, [])
+      mirror: false,
+    });
+  }, []);
 
   return (
     <div className="index-page">
@@ -19,24 +19,56 @@ const Home = () => {
         <div className="container-fluid p-0">
           <div className="hero-wrapper">
             <div className="hero-image">
-              <img src="/assets/img/health/showcase-1.webp" alt="Advanced Healthcare" className="img-fluid" />
+              <img
+                src="/assets/img/health/showcase-1.webp"
+                alt="Advanced Healthcare"
+                className="img-fluid"
+              />
             </div>
 
             <div className="hero-content">
               <div className="container">
                 <div className="row">
-                  <div className="col-lg-7 col-md-10" data-aos="fade-right" data-aos-delay="100">
+                  <div
+                    className="col-lg-7 col-md-10"
+                    data-aos="fade-right"
+                    data-aos-delay="100"
+                  >
                     <div className="content-box">
-                      <span className="badge-accent" data-aos="fade-up" data-aos-delay="150">Leading Healthcare Specialists</span>
-                      <h1 data-aos="fade-up" data-aos-delay="200">Advanced Medical Care for Your Family's Health</h1>
-                      <p data-aos="fade-up" data-aos-delay="250">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut elit tellus, luctus nec ullamcorper mattis, pulvinar dapibus leo.</p>
+                      <span
+                        className="badge-accent"
+                        data-aos="fade-up"
+                        data-aos-delay="150"
+                      >
+                        Leading Healthcare Specialists
+                      </span>
+                      <h1 data-aos="fade-up" data-aos-delay="200">
+                        Advanced Medical Care for Your Family's Health
+                      </h1>
+                      <p data-aos="fade-up" data-aos-delay="250">
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                        Ut elit tellus, luctus nec ullamcorper mattis, pulvinar
+                        dapibus leo.
+                      </p>
 
-                      <div className="cta-group" data-aos="fade-up" data-aos-delay="300">
-                        <Link to="/appointment" className="btn btn-primary">Book Appointment</Link>
-                        <Link to="/services" className="btn btn-outline">Explore Services</Link>
+                      <div
+                        className="cta-group"
+                        data-aos="fade-up"
+                        data-aos-delay="300"
+                      >
+                        <Link to="/appointment" className="btn btn-primary">
+                          Book Appointment
+                        </Link>
+                        <Link to="/services" className="btn btn-outline">
+                          Explore Services
+                        </Link>
                       </div>
 
-                      <div className="info-badges" data-aos="fade-up" data-aos-delay="350">
+                      <div
+                        className="info-badges"
+                        data-aos="fade-up"
+                        data-aos-delay="350"
+                      >
                         <div className="badge-item">
                           <i className="bi bi-telephone-fill"></i>
                           <div className="badge-content">
@@ -59,37 +91,58 @@ const Home = () => {
                 <div className="features-wrapper">
                   <div className="row gy-4">
                     <div className="col-lg-4">
-                      <div className="feature-item" data-aos="fade-up" data-aos-delay="450">
+                      <div
+                        className="feature-item"
+                        data-aos="fade-up"
+                        data-aos-delay="450"
+                      >
                         <div className="feature-icon">
                           <i className="bi bi-heart-pulse-fill"></i>
                         </div>
                         <div className="feature-text">
                           <h3>Cardiology</h3>
-                          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                          <p>
+                            Lorem ipsum dolor sit amet, consectetur adipiscing
+                            elit.
+                          </p>
                         </div>
                       </div>
                     </div>
 
                     <div className="col-lg-4">
-                      <div className="feature-item" data-aos="fade-up" data-aos-delay="500">
+                      <div
+                        className="feature-item"
+                        data-aos="fade-up"
+                        data-aos-delay="500"
+                      >
                         <div className="feature-icon">
                           <i className="bi bi-lungs-fill"></i>
                         </div>
                         <div className="feature-text">
                           <h3>Pulmonology</h3>
-                          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                          <p>
+                            Lorem ipsum dolor sit amet, consectetur adipiscing
+                            elit.
+                          </p>
                         </div>
                       </div>
                     </div>
 
                     <div className="col-lg-4">
-                      <div className="feature-item" data-aos="fade-up" data-aos-delay="550">
+                      <div
+                        className="feature-item"
+                        data-aos="fade-up"
+                        data-aos-delay="550"
+                      >
                         <div className="feature-icon">
                           <i className="bi bi-capsule"></i>
                         </div>
                         <div className="feature-text">
                           <h3>Diagnostics</h3>
-                          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                          <p>
+                            Lorem ipsum dolor sit amet, consectetur adipiscing
+                            elit.
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -105,9 +158,17 @@ const Home = () => {
       <section id="home-about" className="home-about section">
         <div className="container" data-aos="fade-up" data-aos-delay="100">
           <div className="row gy-5 align-items-center">
-            <div className="col-lg-6" data-aos="fade-right" data-aos-delay="200">
+            <div
+              className="col-lg-6"
+              data-aos="fade-right"
+              data-aos-delay="200"
+            >
               <div className="about-image">
-                <img src="/assets/img/health/facilities-1.webp" alt="Modern Healthcare Facility" className="img-fluid rounded-3 mb-4" />
+                <img
+                  src="/assets/img/health/facilities-1.webp"
+                  alt="Modern Healthcare Facility"
+                  className="img-fluid rounded-3 mb-4"
+                />
                 <div className="experience-badge">
                   <span className="years">25+</span>
                   <span className="text">Years of Excellence</span>
@@ -118,56 +179,113 @@ const Home = () => {
             <div className="col-lg-6" data-aos="fade-left" data-aos-delay="300">
               <div className="about-content">
                 <h2>Committed to Exceptional Patient Care</h2>
-                <p className="lead">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut elit tellus, luctus nec ullamcorper mattis, pulvinar dapibus leo.</p>
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin consequat magna eu accumsan mattis. Duis non augue in tortor facilisis tincidunt ac sit amet sapien. Suspendisse id risus non nisi sodales condimentum.</p>
+                <p className="lead">
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut
+                  elit tellus, luctus nec ullamcorper mattis, pulvinar dapibus
+                  leo.
+                </p>
+                <p>
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin
+                  consequat magna eu accumsan mattis. Duis non augue in tortor
+                  facilisis tincidunt ac sit amet sapien. Suspendisse id risus
+                  non nisi sodales condimentum.
+                </p>
 
                 <div className="row g-4 mt-4">
-                  <div className="col-md-6" data-aos="fade-up" data-aos-delay="400">
+                  <div
+                    className="col-md-6"
+                    data-aos="fade-up"
+                    data-aos-delay="400"
+                  >
                     <div className="feature-item">
                       <div className="icon">
                         <i className="bi bi-heart-pulse"></i>
                       </div>
                       <h4>Compassionate Care</h4>
-                      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                      <p>
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                      </p>
                     </div>
                   </div>
 
-                  <div className="col-md-6" data-aos="fade-up" data-aos-delay="500">
+                  <div
+                    className="col-md-6"
+                    data-aos="fade-up"
+                    data-aos-delay="500"
+                  >
                     <div className="feature-item">
                       <div className="icon">
                         <i className="bi bi-star"></i>
                       </div>
                       <h4>Medical Excellence</h4>
-                      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                      <p>
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                      </p>
                     </div>
                   </div>
                 </div>
 
                 <div className="cta-wrapper mt-4">
-                  <Link to="/about" className="btn btn-primary">Learn More About Us</Link>
-                  <Link to="/doctors" className="btn btn-outline">Meet Our Team</Link>
+                  <Link to="/about" className="btn btn-primary">
+                    Learn More About Us
+                  </Link>
+                  <Link to="/doctors" className="btn btn-outline">
+                    Meet Our Team
+                  </Link>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="row mt-5 pt-4 certifications-row" data-aos="fade-up" data-aos-delay="600">
+          <div
+            className="row mt-5 pt-4 certifications-row"
+            data-aos="fade-up"
+            data-aos-delay="600"
+          >
             <div className="col-12 text-center mb-4">
               <h4 className="certification-title">Our Accreditations</h4>
             </div>
             <div className="col-12">
               <div className="certifications">
-                <div className="certification-item" data-aos="zoom-in" data-aos-delay="700">
-                  <img src="/assets/img/clients/clients-1.webp" alt="Certification" />
+                <div
+                  className="certification-item"
+                  data-aos="zoom-in"
+                  data-aos-delay="700"
+                >
+                  <img
+                    src="/assets/img/clients/clients-1.webp"
+                    alt="Certification"
+                  />
                 </div>
-                <div className="certification-item" data-aos="zoom-in" data-aos-delay="800">
-                  <img src="/assets/img/clients/clients-2.webp" alt="Certification" />
+                <div
+                  className="certification-item"
+                  data-aos="zoom-in"
+                  data-aos-delay="800"
+                >
+                  <img
+                    src="/assets/img/clients/clients-2.webp"
+                    alt="Certification"
+                  />
                 </div>
-                <div className="certification-item" data-aos="zoom-in" data-aos-delay="900">
-                  <img src="/assets/img/clients/clients-3.webp" alt="Certification" />
+                <div
+                  className="certification-item"
+                  data-aos="zoom-in"
+                  data-aos-delay="900"
+                >
+                  <img
+                    src="/assets/img/clients/clients-3.webp"
+                    alt="Certification"
+                  />
                 </div>
-                <div className="certification-item" data-aos="zoom-in" data-aos-delay="1000">
-                  <img src="/assets/img/clients/clients-4.webp" alt="Certification" />
+                <div
+                  className="certification-item"
+                  data-aos="zoom-in"
+                  data-aos-delay="1000"
+                >
+                  <img
+                    src="/assets/img/clients/clients-4.webp"
+                    alt="Certification"
+                  />
                 </div>
               </div>
             </div>
@@ -176,26 +294,71 @@ const Home = () => {
       </section>
 
       {/* Featured Departments Section */}
-      <section id="featured-departments" className="featured-departments section">
+      <section
+        id="featured-departments"
+        className="featured-departments section"
+      >
         <div className="container section-title" data-aos="fade-up">
           <h2>Featured Departments</h2>
-          <p>Necessitatibus eius consequatur ex aliquid fuga eum quidem sint consectetur velit</p>
+          <p>
+            Necessitatibus eius consequatur ex aliquid fuga eum quidem sint
+            consectetur velit
+          </p>
         </div>
 
         <div className="container" data-aos="fade-up" data-aos-delay="100">
           <div className="row gy-4">
             {[
-              { img: 'cardiology-3.webp', icon: 'fa-heartbeat', title: 'Cardiology', desc: 'Comprehensive cardiovascular care with advanced diagnostic techniques and treatment options for heart conditions, ensuring optimal cardiac health for all patients.' },
-              { img: 'neurology-2.webp', icon: 'fa-brain', title: 'Neurology', desc: 'Expert neurological care specializing in brain and nervous system disorders, providing cutting-edge treatments and compassionate support for neurological conditions.' },
-              { img: 'orthopedics-4.webp', icon: 'fa-bone', title: 'Orthopedics', desc: 'Advanced musculoskeletal care focusing on bones, joints, and muscles with innovative surgical and non-surgical treatment approaches for mobility restoration.' },
-              { img: 'pediatrics-3.webp', icon: 'fa-baby', title: 'Pediatrics', desc: 'Specialized healthcare for children from infancy through adolescence, offering comprehensive medical care in a child-friendly environment with experienced pediatric specialists.' },
-              { img: 'oncology-4.webp', icon: 'fa-shield-alt', title: 'Oncology', desc: 'Comprehensive cancer care with multidisciplinary approach, offering advanced treatment options, clinical trials, and compassionate support throughout the cancer journey.' },
-              { img: 'emergency-2.webp', icon: 'fa-ambulance', title: 'Emergency Care', desc: 'Round-the-clock emergency medical services with rapid response capabilities, state-of-the-art equipment, and experienced emergency physicians for critical care.' }
+              {
+                img: "cardiology-3.webp",
+                icon: "fa-heartbeat",
+                title: "Cardiology",
+                desc: "Comprehensive cardiovascular care with advanced diagnostic techniques and treatment options for heart conditions, ensuring optimal cardiac health for all patients.",
+              },
+              {
+                img: "neurology-2.webp",
+                icon: "fa-brain",
+                title: "Neurology",
+                desc: "Expert neurological care specializing in brain and nervous system disorders, providing cutting-edge treatments and compassionate support for neurological conditions.",
+              },
+              {
+                img: "orthopedics-4.webp",
+                icon: "fa-bone",
+                title: "Orthopedics",
+                desc: "Advanced musculoskeletal care focusing on bones, joints, and muscles with innovative surgical and non-surgical treatment approaches for mobility restoration.",
+              },
+              {
+                img: "pediatrics-3.webp",
+                icon: "fa-baby",
+                title: "Pediatrics",
+                desc: "Specialized healthcare for children from infancy through adolescence, offering comprehensive medical care in a child-friendly environment with experienced pediatric specialists.",
+              },
+              {
+                img: "oncology-4.webp",
+                icon: "fa-shield-alt",
+                title: "Oncology",
+                desc: "Comprehensive cancer care with multidisciplinary approach, offering advanced treatment options, clinical trials, and compassionate support throughout the cancer journey.",
+              },
+              {
+                img: "emergency-2.webp",
+                icon: "fa-ambulance",
+                title: "Emergency Care",
+                desc: "Round-the-clock emergency medical services with rapid response capabilities, state-of-the-art equipment, and experienced emergency physicians for critical care.",
+              },
             ].map((dept, idx) => (
-              <div key={idx} className="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay={100 + idx * 100}>
+              <div
+                key={idx}
+                className="col-lg-4 col-md-6"
+                data-aos="fade-up"
+                data-aos-delay={100 + idx * 100}
+              >
                 <div className="department-card">
                   <div className="department-image">
-                    <img src={`/assets/img/health/${dept.img}`} alt={`${dept.title} Department`} className="img-fluid" />
+                    <img
+                      src={`/assets/img/health/${dept.img}`}
+                      alt={`${dept.title} Department`}
+                      className="img-fluid"
+                    />
                   </div>
                   <div className="department-content">
                     <div className="department-icon">
@@ -216,21 +379,68 @@ const Home = () => {
       </section>
 
       {/* Featured Services Section */}
-      <section id="featured-services" className="featured-services section light-background">
+      <section
+        id="featured-services"
+        className="featured-services section light-background"
+      >
         <div className="container section-title" data-aos="fade-up">
           <h2>Featured Services</h2>
-          <p>Necessitatibus eius consequatur ex aliquid fuga eum quidem sint consectetur velit</p>
+          <p>
+            Necessitatibus eius consequatur ex aliquid fuga eum quidem sint
+            consectetur velit
+          </p>
         </div>
 
         <div className="container" data-aos="fade-up" data-aos-delay="100">
           <div className="row gy-4">
             {[
-              { icon: 'fa-heartbeat', title: 'Cardiology Excellence', desc: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation.', features: ['Advanced Heart Surgery', '24/7 Emergency Care', 'Preventive Screenings'] },
-              { icon: 'fa-brain', title: 'Neurology & Brain Health', desc: 'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse.', features: ['Brain Imaging & Diagnostics', 'Stroke Treatment Center', 'Neurological Rehabilitation'] },
-              { icon: 'fa-bone', title: 'Orthopedic Surgery', desc: 'Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error.', features: ['Joint Replacement Surgery', 'Sports Medicine', 'Minimally Invasive Procedures'] },
-              { icon: 'fa-ambulance', title: 'Emergency & Trauma Care', desc: 'Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.', features: ['24/7 Emergency Department', 'Level 1 Trauma Center', 'Critical Care Units'] }
+              {
+                icon: "fa-heartbeat",
+                title: "Cardiology Excellence",
+                desc: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation.",
+                features: [
+                  "Advanced Heart Surgery",
+                  "24/7 Emergency Care",
+                  "Preventive Screenings",
+                ],
+              },
+              {
+                icon: "fa-brain",
+                title: "Neurology & Brain Health",
+                desc: "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse.",
+                features: [
+                  "Brain Imaging & Diagnostics",
+                  "Stroke Treatment Center",
+                  "Neurological Rehabilitation",
+                ],
+              },
+              {
+                icon: "fa-bone",
+                title: "Orthopedic Surgery",
+                desc: "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error.",
+                features: [
+                  "Joint Replacement Surgery",
+                  "Sports Medicine",
+                  "Minimally Invasive Procedures",
+                ],
+              },
+              {
+                icon: "fa-ambulance",
+                title: "Emergency & Trauma Care",
+                desc: "Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.",
+                features: [
+                  "24/7 Emergency Department",
+                  "Level 1 Trauma Center",
+                  "Critical Care Units",
+                ],
+              },
             ].map((service, idx) => (
-              <div key={idx} className="col-lg-6" data-aos="fade-up" data-aos-delay={200 + idx * 100}>
+              <div
+                key={idx}
+                className="col-lg-6"
+                data-aos="fade-up"
+                data-aos-delay={200 + idx * 100}
+              >
                 <div className="service-card">
                   <div className="service-icon">
                     <i className={`fas ${service.icon}`}></i>
@@ -240,7 +450,10 @@ const Home = () => {
                     <p>{service.desc}</p>
                     <ul className="service-features">
                       {service.features.map((feature, fIdx) => (
-                        <li key={fIdx}><i className="fas fa-check-circle"></i>{feature}</li>
+                        <li key={fIdx}>
+                          <i className="fas fa-check-circle"></i>
+                          {feature}
+                        </li>
                       ))}
                     </ul>
                     <Link to="/services" className="service-btn">
@@ -259,20 +472,39 @@ const Home = () => {
       <section id="find-a-doctor" className="find-a-doctor section">
         <div className="container section-title" data-aos="fade-up">
           <h2>Find A Doctor</h2>
-          <p>Necessitatibus eius consequatur ex aliquid fuga eum quidem sint consectetur velit</p>
+          <p>
+            Necessitatibus eius consequatur ex aliquid fuga eum quidem sint
+            consectetur velit
+          </p>
         </div>
 
         <div className="container" data-aos="fade-up" data-aos-delay="100">
-          <div className="row justify-content-center" data-aos="fade-up" data-aos-delay="200">
+          <div
+            className="row justify-content-center"
+            data-aos="fade-up"
+            data-aos-delay="200"
+          >
             <div className="col-lg-12">
               <div className="search-container">
-                <form className="search-form" onSubmit={(e) => e.preventDefault()}>
+                <form
+                  className="search-form"
+                  onSubmit={(e) => e.preventDefault()}
+                >
                   <div className="row g-3">
                     <div className="col-md-4">
-                      <input type="text" className="form-control" name="doctor_name" placeholder="Doctor name or keyword" />
+                      <input
+                        type="text"
+                        className="form-control"
+                        name="doctor_name"
+                        placeholder="Doctor name or keyword"
+                      />
                     </div>
                     <div className="col-md-4">
-                      <select className="form-select" name="specialty" id="specialty-select">
+                      <select
+                        className="form-select"
+                        name="specialty"
+                        id="specialty-select"
+                      >
                         <option value="">Select Specialty</option>
                         <option value="cardiology">Cardiology</option>
                         <option value="neurology">Neurology</option>
@@ -297,18 +529,78 @@ const Home = () => {
 
           <div className="row" data-aos="fade-up" data-aos-delay="400">
             {[
-              { img: 'staff-3.webp', name: 'Dr. Sarah Mitchell', specialty: 'Cardiology', exp: '15+ years experience', rating: 4.9, stars: 5, badge: 'Available', badgeClass: 'online' },
-              { img: 'staff-7.webp', name: 'Dr. Michael Rodriguez', specialty: 'Neurology', exp: '12+ years experience', rating: 4.7, stars: 4.5, badge: 'In Surgery', badgeClass: 'busy' },
-              { img: 'staff-1.webp', name: 'Dr. Emily Chen', specialty: 'Pediatrics', exp: '8+ years experience', rating: 5.0, stars: 5, badge: 'Available', badgeClass: 'online' },
-              { img: 'staff-9.webp', name: 'Dr. James Thompson', specialty: 'Orthopedics', exp: '20+ years experience', rating: 4.8, stars: 4.5, badge: 'Next: Tomorrow 9AM', badgeClass: 'offline' },
-              { img: 'staff-5.webp', name: 'Dr. Lisa Anderson', specialty: 'Dermatology', exp: '10+ years experience', rating: 4.6, stars: 4, badge: 'Available', badgeClass: 'online' },
-              { img: 'staff-12.webp', name: 'Dr. Robert Kim', specialty: 'Oncology', exp: '18+ years experience', rating: 4.9, stars: 5, badge: 'Available', badgeClass: 'online' }
+              {
+                img: "staff-3.webp",
+                name: "Dr. Sarah Mitchell",
+                specialty: "Cardiology",
+                exp: "15+ years experience",
+                rating: 4.9,
+                stars: 5,
+                badge: "Available",
+                badgeClass: "online",
+              },
+              {
+                img: "staff-7.webp",
+                name: "Dr. Michael Rodriguez",
+                specialty: "Neurology",
+                exp: "12+ years experience",
+                rating: 4.7,
+                stars: 4.5,
+                badge: "In Surgery",
+                badgeClass: "busy",
+              },
+              {
+                img: "staff-1.webp",
+                name: "Dr. Emily Chen",
+                specialty: "Pediatrics",
+                exp: "8+ years experience",
+                rating: 5.0,
+                stars: 5,
+                badge: "Available",
+                badgeClass: "online",
+              },
+              {
+                img: "staff-9.webp",
+                name: "Dr. James Thompson",
+                specialty: "Orthopedics",
+                exp: "20+ years experience",
+                rating: 4.8,
+                stars: 4.5,
+                badge: "Next: Tomorrow 9AM",
+                badgeClass: "offline",
+              },
+              {
+                img: "staff-5.webp",
+                name: "Dr. Lisa Anderson",
+                specialty: "Dermatology",
+                exp: "10+ years experience",
+                rating: 4.6,
+                stars: 4,
+                badge: "Available",
+                badgeClass: "online",
+              },
+              {
+                img: "staff-12.webp",
+                name: "Dr. Robert Kim",
+                specialty: "Oncology",
+                exp: "18+ years experience",
+                rating: 4.9,
+                stars: 5,
+                badge: "Available",
+                badgeClass: "online",
+              },
             ].map((doctor, idx) => (
               <div key={idx} className="col-lg-4 col-md-6 mb-4">
                 <div className="doctor-card">
                   <div className="doctor-image">
-                    <img src={`/assets/img/health/${doctor.img}`} alt={doctor.name} className="img-fluid" />
-                    <div className={`availability-badge ${doctor.badgeClass}`}>{doctor.badge}</div>
+                    <img
+                      src={`/assets/img/health/${doctor.img}`}
+                      alt={doctor.name}
+                      className="img-fluid"
+                    />
+                    <div className={`availability-badge ${doctor.badgeClass}`}>
+                      {doctor.badge}
+                    </div>
                   </div>
                   <div className="doctor-info">
                     <h5>{doctor.name}</h5>
@@ -316,13 +608,29 @@ const Home = () => {
                     <p className="experience">{doctor.exp}</p>
                     <div className="rating">
                       {[...Array(5)].map((_, i) => (
-                        <i key={i} className={`bi bi-star${i < Math.floor(doctor.stars) ? '-fill' : i < doctor.stars ? '-half' : ''}`}></i>
+                        <i
+                          key={i}
+                          className={`bi bi-star${
+                            i < Math.floor(doctor.stars)
+                              ? "-fill"
+                              : i < doctor.stars
+                              ? "-half"
+                              : ""
+                          }`}
+                        ></i>
                       ))}
                       <span className="rating-text">({doctor.rating})</span>
                     </div>
                     <div className="appointment-actions">
-                      <a href="#" className="btn btn-outline-primary btn-sm">View Profile</a>
-                      <Link to="/appointment" className="btn btn-primary btn-sm">Book Appointment</Link>
+                      <a href="#" className="btn btn-outline-primary btn-sm">
+                        View Profile
+                      </a>
+                      <Link
+                        to="/appointment"
+                        className="btn btn-primary btn-sm"
+                      >
+                        Book Appointment
+                      </Link>
                     </div>
                   </div>
                 </div>
@@ -337,21 +645,54 @@ const Home = () => {
         <div className="container" data-aos="fade-up" data-aos-delay="100">
           <div className="row justify-content-center">
             <div className="col-lg-8 text-center">
-              <h2 data-aos="fade-up" data-aos-delay="200">Your Health is Our Priority</h2>
-              <p data-aos="fade-up" data-aos-delay="250">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.</p>
+              <h2 data-aos="fade-up" data-aos-delay="200">
+                Your Health is Our Priority
+              </h2>
+              <p data-aos="fade-up" data-aos-delay="250">
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
+                eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
+                enim ad minim veniam, quis nostrud exercitation ullamco laboris.
+              </p>
 
-              <div className="cta-buttons" data-aos="fade-up" data-aos-delay="300">
-                <Link to="/appointment" className="btn-primary">Book Appointment</Link>
-                <Link to="/doctors" className="btn-secondary">Find a Doctor</Link>
+              <div
+                className="cta-buttons"
+                data-aos="fade-up"
+                data-aos-delay="300"
+              >
+                <Link to="/appointment" className="btn-primary">
+                  Book Appointment
+                </Link>
+                <Link to="/doctors" className="btn-secondary">
+                  Find a Doctor
+                </Link>
               </div>
             </div>
           </div>
 
-          <div className="row features-row" data-aos="fade-up" data-aos-delay="400">
+          <div
+            className="row features-row"
+            data-aos="fade-up"
+            data-aos-delay="400"
+          >
             {[
-              { icon: 'bi-heart-pulse', title: '24/7 Emergency Care', desc: 'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo.', link: 'Learn More' },
-              { icon: 'bi-calendar-check', title: 'Easy Online Booking', desc: 'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.', link: 'Book Now' },
-              { icon: 'bi-people', title: 'Expert Medical Team', desc: 'Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim.', link: 'Meet Our Doctors' }
+              {
+                icon: "bi-heart-pulse",
+                title: "24/7 Emergency Care",
+                desc: "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo.",
+                link: "Learn More",
+              },
+              {
+                icon: "bi-calendar-check",
+                title: "Easy Online Booking",
+                desc: "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.",
+                link: "Book Now",
+              },
+              {
+                icon: "bi-people",
+                title: "Expert Medical Team",
+                desc: "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim.",
+                link: "Meet Our Doctors",
+              },
             ].map((feature, idx) => (
               <div key={idx} className="col-lg-4 col-md-6 mb-4">
                 <div className="feature-card">
@@ -369,7 +710,11 @@ const Home = () => {
             ))}
           </div>
 
-          <div className="emergency-alert" data-aos="zoom-in" data-aos-delay="500">
+          <div
+            className="emergency-alert"
+            data-aos="zoom-in"
+            data-aos-delay="500"
+          >
             <div className="row align-items-center">
               <div className="col-lg-8">
                 <div className="emergency-content">
@@ -378,7 +723,9 @@ const Home = () => {
                   </div>
                   <div className="emergency-text">
                     <h4>Medical Emergency?</h4>
-                    <p>Call our 24/7 emergency hotline for immediate assistance</p>
+                    <p>
+                      Call our 24/7 emergency hotline for immediate assistance
+                    </p>
                   </div>
                 </div>
               </div>
@@ -397,19 +744,29 @@ const Home = () => {
       <section id="emergency-info" className="emergency-info section">
         <div className="container section-title" data-aos="fade-up">
           <h2>Emergency Info</h2>
-          <p>Necessitatibus eius consequatur ex aliquid fuga eum quidem sint consectetur velit</p>
+          <p>
+            Necessitatibus eius consequatur ex aliquid fuga eum quidem sint
+            consectetur velit
+          </p>
         </div>
 
         <div className="container" data-aos="fade-up" data-aos-delay="100">
           <div className="row">
             <div className="col-lg-8 col-md-10 mx-auto">
-              <div className="emergency-alert" data-aos="zoom-in" data-aos-delay="100">
+              <div
+                className="emergency-alert"
+                data-aos="zoom-in"
+                data-aos-delay="100"
+              >
                 <div className="alert-icon">
                   <i className="bi bi-exclamation-triangle-fill"></i>
                 </div>
                 <div className="alert-content">
                   <h3>Medical Emergency?</h3>
-                  <p>If you are experiencing a life-threatening emergency, call 911 immediately or go to your nearest emergency room.</p>
+                  <p>
+                    If you are experiencing a life-threatening emergency, call
+                    911 immediately or go to your nearest emergency room.
+                  </p>
                 </div>
                 <div className="alert-action">
                   <a href="tel:911" className="btn btn-emergency">
@@ -419,15 +776,48 @@ const Home = () => {
                 </div>
               </div>
 
-              <div className="row emergency-contacts" data-aos="fade-up" data-aos-delay="200">
+              <div
+                className="row emergency-contacts"
+                data-aos="fade-up"
+                data-aos-delay="200"
+              >
                 {[
-                  { icon: 'bi-hospital', title: 'Emergency Room', phone: '+1 (555) 123-4567', address: '1245 Healthcare Blvd, Medical City, CA 90210', hours: 'Open 24/7', urgent: true },
-                  { icon: 'bi-clock', title: 'Urgent Care', phone: '+1 (555) 987-6543', address: '892 Wellness Ave, Health District, CA 90211', hours: 'Mon-Sun: 7:00 AM - 10:00 PM' },
-                  { icon: 'bi-headset', title: 'Nurse Helpline', phone: '+1 (555) 456-7890', desc: '24/7 medical advice and guidance', hours: 'Available 24/7' },
-                  { icon: 'bi-heart-pulse', title: 'Poison Control', phone: '1-800-222-1222', desc: 'National poison control hotline', hours: 'Available 24/7' }
+                  {
+                    icon: "bi-hospital",
+                    title: "Emergency Room",
+                    phone: "+1 (555) 123-4567",
+                    address: "1245 Healthcare Blvd, Medical City, CA 90210",
+                    hours: "Open 24/7",
+                    urgent: true,
+                  },
+                  {
+                    icon: "bi-clock",
+                    title: "Urgent Care",
+                    phone: "+1 (555) 987-6543",
+                    address: "892 Wellness Ave, Health District, CA 90211",
+                    hours: "Mon-Sun: 7:00 AM - 10:00 PM",
+                  },
+                  {
+                    icon: "bi-headset",
+                    title: "Nurse Helpline",
+                    phone: "+1 (555) 456-7890",
+                    desc: "24/7 medical advice and guidance",
+                    hours: "Available 24/7",
+                  },
+                  {
+                    icon: "bi-heart-pulse",
+                    title: "Poison Control",
+                    phone: "1-800-222-1222",
+                    desc: "National poison control hotline",
+                    hours: "Available 24/7",
+                  },
                 ].map((contact, idx) => (
                   <div key={idx} className="col-md-6 mb-4">
-                    <div className={`contact-card ${contact.urgent ? 'urgent' : ''}`}>
+                    <div
+                      className={`contact-card ${
+                        contact.urgent ? "urgent" : ""
+                      }`}
+                    >
                       <div className="card-icon">
                         <i className={contact.icon}></i>
                       </div>
@@ -443,25 +833,36 @@ const Home = () => {
                             {contact.address}
                           </p>
                         )}
-                        {contact.desc && <p className="description">{contact.desc}</p>}
+                        {contact.desc && (
+                          <p className="description">{contact.desc}</p>
+                        )}
                         <p className="hours">{contact.hours}</p>
                       </div>
                       <div className="card-action">
-                        <a href={`tel:${contact.phone.replace(/\D/g, '')}`} className="btn btn-contact">Call Now</a>
+                        <a
+                          href={`tel:${contact.phone.replace(/\D/g, "")}`}
+                          className="btn btn-contact"
+                        >
+                          Call Now
+                        </a>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="quick-actions" data-aos="fade-up" data-aos-delay="300">
+              <div
+                className="quick-actions"
+                data-aos="fade-up"
+                data-aos-delay="300"
+              >
                 <h4>Quick Actions</h4>
                 <div className="row">
                   {[
-                    { icon: 'bi-geo-alt-fill', text: 'Get Directions' },
-                    { icon: 'bi-calendar-check', text: 'Book Appointment' },
-                    { icon: 'bi-person-badge', text: 'Find a Doctor' },
-                    { icon: 'bi-chat-dots', text: 'Live Chat' }
+                    { icon: "bi-geo-alt-fill", text: "Get Directions" },
+                    { icon: "bi-calendar-check", text: "Book Appointment" },
+                    { icon: "bi-person-badge", text: "Find a Doctor" },
+                    { icon: "bi-chat-dots", text: "Live Chat" },
                   ].map((action, idx) => (
                     <div key={idx} className="col-sm-6 col-lg-3">
                       <a href="#" className="action-link">
@@ -473,23 +874,51 @@ const Home = () => {
                 </div>
               </div>
 
-              <div className="emergency-tips" data-aos="fade-up" data-aos-delay="400">
+              <div
+                className="emergency-tips"
+                data-aos="fade-up"
+                data-aos-delay="400"
+              >
                 <h4>When to Seek Emergency Care</h4>
                 <div className="row">
                   <div className="col-md-6">
                     <ul className="emergency-list">
-                      <li><i className="bi bi-check-circle"></i> Chest pain or difficulty breathing</li>
-                      <li><i className="bi bi-check-circle"></i> Severe allergic reactions</li>
-                      <li><i className="bi bi-check-circle"></i> Major trauma or injuries</li>
-                      <li><i className="bi bi-check-circle"></i> Signs of stroke or heart attack</li>
+                      <li>
+                        <i className="bi bi-check-circle"></i> Chest pain or
+                        difficulty breathing
+                      </li>
+                      <li>
+                        <i className="bi bi-check-circle"></i> Severe allergic
+                        reactions
+                      </li>
+                      <li>
+                        <i className="bi bi-check-circle"></i> Major trauma or
+                        injuries
+                      </li>
+                      <li>
+                        <i className="bi bi-check-circle"></i> Signs of stroke
+                        or heart attack
+                      </li>
                     </ul>
                   </div>
                   <div className="col-md-6">
                     <ul className="emergency-list">
-                      <li><i className="bi bi-check-circle"></i> Severe burns or bleeding</li>
-                      <li><i className="bi bi-check-circle"></i> Loss of consciousness</li>
-                      <li><i className="bi bi-check-circle"></i> Severe abdominal pain</li>
-                      <li><i className="bi bi-check-circle"></i> High fever with confusion</li>
+                      <li>
+                        <i className="bi bi-check-circle"></i> Severe burns or
+                        bleeding
+                      </li>
+                      <li>
+                        <i className="bi bi-check-circle"></i> Loss of
+                        consciousness
+                      </li>
+                      <li>
+                        <i className="bi bi-check-circle"></i> Severe abdominal
+                        pain
+                      </li>
+                      <li>
+                        <i className="bi bi-check-circle"></i> High fever with
+                        confusion
+                      </li>
                     </ul>
                   </div>
                 </div>
@@ -499,8 +928,7 @@ const Home = () => {
         </div>
       </section>
     </div>
-  )
-}
+  );
+};
 
-export default Home
-
+export default Home;
