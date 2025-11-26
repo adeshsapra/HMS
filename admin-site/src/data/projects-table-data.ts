@@ -1,7 +1,4 @@
-export interface ProjectMember {
-  img: string;
-  name: string;
-}
+import { ProjectMember } from "./projects-data";
 
 export interface ProjectTableData {
   img: string;

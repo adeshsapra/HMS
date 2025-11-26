@@ -787,29 +787,6 @@ export const faqData: FAQ[] = [
   },
 ];
 
-export const contactInquiriesData: ContactInquiry[] = [
-  {
-    id: 1,
-    name: "David Wilson",
-    email: "david.w@email.com",
-    phone: "+1 234-567-8904",
-    subject: "General Inquiry",
-    message: "I would like to know more about your services.",
-    date: "2024-01-22",
-    status: "new",
-  },
-  {
-    id: 2,
-    name: "Maria Garcia",
-    email: "maria.g@email.com",
-    phone: "+1 234-567-8905",
-    subject: "Appointment Question",
-    message: "Can I reschedule my appointment?",
-    date: "2024-01-23",
-    status: "in_progress",
-  },
-];
-
 export const roomsData: Room[] = [
   {
     id: 1,
@@ -837,6 +814,145 @@ export const roomsData: Room[] = [
     occupiedBeds: 1,
     status: "available",
     floor: 3,
+  },
+];
+
+export interface Prescription {
+  id: number;
+  patientName: string;
+  doctorName: string;
+  date: string;
+  medicines: string;
+  status: string;
+}
+
+export const prescriptionsData: Prescription[] = [
+  {
+    id: 1,
+    patientName: "John Doe",
+    doctorName: "Dr. Sarah Mitchell",
+    date: "2024-01-20",
+    medicines: "Amoxicillin (500mg), Paracetamol (650mg)",
+    status: "active",
+  },
+  {
+    id: 2,
+    patientName: "Jane Smith",
+    doctorName: "Dr. Emily Chen",
+    date: "2024-01-21",
+    medicines: "Ibuprofen (400mg), Vitamin C",
+    status: "completed",
+  },
+  {
+    id: 3,
+    patientName: "Robert Johnson",
+    doctorName: "Dr. Michael Rodriguez",
+    date: "2024-01-22",
+    medicines: "Metformin (500mg), Atorvastatin (10mg)",
+    status: "active",
+  },
+];
+
+export interface MedicalRecord {
+  id: number;
+  patientName: string;
+  doctorName: string;
+  diagnosis: string;
+  treatment: string;
+  date: string;
+  status: string;
+}
+
+export const medicalRecordsData: MedicalRecord[] = [
+  {
+    id: 1,
+    patientName: "John Doe",
+    doctorName: "Dr. Sarah Mitchell",
+    diagnosis: "Hypertension",
+    treatment: "Lifestyle changes, Medication",
+    date: "2024-01-15",
+    status: "ongoing",
+  },
+  {
+    id: 2,
+    patientName: "Jane Smith",
+    doctorName: "Dr. Emily Chen",
+    diagnosis: "Common Cold",
+    treatment: "Rest, Fluids",
+    date: "2024-01-18",
+    status: "resolved",
+  },
+  {
+    id: 3,
+    patientName: "Robert Johnson",
+    doctorName: "Dr. Michael Rodriguez",
+    diagnosis: "Migraine",
+    treatment: "Pain management",
+    date: "2024-01-20",
+    status: "ongoing",
+  },
+];
+
+export interface PatientReport {
+  id: number;
+  patientName: string;
+  reportType: string;
+  date: string;
+  doctorName: string;
+  status: string;
+  fileUrl: string;
+}
+
+export const patientReportsData: PatientReport[] = [
+  {
+    id: 1,
+    patientName: "John Doe",
+    reportType: "Blood Test",
+    date: "2024-01-20",
+    doctorName: "Dr. Sarah Mitchell",
+    status: "available",
+    fileUrl: "#",
+  },
+  {
+    id: 2,
+    patientName: "Jane Smith",
+    reportType: "X-Ray",
+    date: "2024-01-21",
+    doctorName: "Dr. James Thompson",
+    status: "available",
+    fileUrl: "#",
+  },
+  {
+    id: 3,
+    patientName: "Robert Johnson",
+    reportType: "MRI Scan",
+    date: "2024-01-22",
+    doctorName: "Dr. Michael Rodriguez",
+    status: "processing",
+    fileUrl: "#",
+  },
+];
+
+export const contactInquiriesData: ContactInquiry[] = [
+  {
+    id: 1,
+    name: "Alice Johnson",
+    email: "alice@example.com",
+    phone: "123-456-7890",
+    subject: "Appointment Inquiry",
+    message: "I would like to know if Dr. Smith is available next week.",
+    date: "2024-01-25",
+    status: "new",
+  },
+  {
+    id: 2,
+    name: "Bob Williams",
+    email: "bob@example.com",
+    phone: "987-654-3210",
+    subject: "Billing Question",
+    message: "I have a question about my last bill.",
+    date: "2024-01-24",
+    status: "in_progress",
   },
 ];
 

@@ -202,9 +202,8 @@ const Header = () => {
   return (
     <header
       id="header"
-      className={`header d-flex align-items-center fixed-top ${
-        scrolled ? "scrolled" : ""
-      }`}
+      className={`header d-flex align-items-center fixed-top ${scrolled ? "scrolled" : ""
+        }`}
     >
       <div className="header-container container-fluid container-xl position-relative d-flex align-items-center justify-content-between">
         {/* Logo - Left Side */}
@@ -269,9 +268,8 @@ const Header = () => {
               </Link>
             </li>
             <li
-              className={`dropdown ${
-                activeDropdown === "more" ? "active dropdown-active" : ""
-              }`}
+              className={`dropdown ${activeDropdown === "more" ? "active dropdown-active" : ""
+                }`}
             >
               <a href="#" onClick={(e) => toggleDropdown(e, "more")}>
                 <span>More Pages</span>{" "}
@@ -337,7 +335,7 @@ const Header = () => {
                 </li>
               </ul>
             </li>
-            <li
+            {/* <li
               className={`dropdown ${
                 activeDropdown === "main" ? "active dropdown-active" : ""
               }`}
@@ -390,7 +388,7 @@ const Header = () => {
                   <a href="#">Dropdown 4</a>
                 </li>
               </ul>
-            </li>
+            </li> */}
             <li>
               <Link
                 to="/contact"
@@ -402,9 +400,8 @@ const Header = () => {
             </li>
           </ul>
           <i
-            className={`mobile-nav-toggle d-xl-none bi ${
-              isMobileNavActive ? "bi-x" : "bi-list"
-            }`}
+            className={`mobile-nav-toggle d-xl-none bi ${isMobileNavActive ? "bi-x" : "bi-list"
+              }`}
             onClick={toggleMobileNav}
             aria-label="Toggle mobile menu"
           ></i>
@@ -457,7 +454,7 @@ const Header = () => {
           @media (min-width: 1200px) {
             .header .navmenu {
               position: absolute;
-              left: 50%;
+              left: 45%;
               transform: translateX(-50%);
               z-index: 5;
             }

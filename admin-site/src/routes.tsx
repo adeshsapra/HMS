@@ -23,8 +23,20 @@ import {
   RectangleStackIcon,
   UserCircleIcon,
   BellIcon,
+  PlusIcon,
+  ListBulletIcon,
+  DocumentChartBarIcon,
 } from "@heroicons/react/24/solid";
-import { Home, Profile, Notifications } from "@/pages/dashboard";
+import {
+  Home,
+  Profile,
+  Notifications,
+  Prescriptions,
+  MedicalRecords,
+  PatientReports,
+  Bills,
+  Medicines,
+} from "@/pages/dashboard";
 import { SignIn, SignUp } from "@/pages/auth";
 
 // Import all HMS pages
@@ -78,6 +90,54 @@ export const routes: Route[] = [
     ],
   },
   {
+    title: "doctor menu",
+    layout: "dashboard",
+    pages: [
+      {
+        icon: <PlusIcon {...icon} />,
+        name: "prescriptions",
+        path: "/prescriptions",
+        element: <Prescriptions />,
+      },
+      {
+        icon: <PlusIcon {...icon} />,
+        name: "medical records",
+        path: "/medical-records",
+        element: <MedicalRecords />,
+      },
+      {
+        icon: <DocumentChartBarIcon {...icon} />,
+        name: "patient reports",
+        path: "/patient-reports",
+        element: <PatientReports />,
+      },
+    ],
+  },
+  {
+    title: "staff menu",
+    layout: "dashboard",
+    pages: [
+      {
+        icon: <ListBulletIcon {...icon} />,
+        name: "manage bills",
+        path: "/bills",
+        element: <Bills />,
+      },
+      {
+        icon: <BeakerIcon {...icon} />,
+        name: "medicines",
+        path: "/medicines",
+        element: <Medicines />,
+      },
+      {
+        icon: <UserIcon {...icon} />,
+        name: "doctors",
+        path: "/doctors",
+        element: <Doctors />,
+      },
+    ],
+  },
+  {
     title: "core management",
     layout: "dashboard",
     pages: [
@@ -95,8 +155,8 @@ export const routes: Route[] = [
       },
       {
         icon: <UserIcon {...icon} />,
-        name: "doctors",
-        path: "/doctors",
+        name: "doctors (legacy)",
+        path: "/doctors-legacy",
         element: <Doctors />,
       },
       {
@@ -254,4 +314,3 @@ export const routes: Route[] = [
 ];
 
 export default routes;
-

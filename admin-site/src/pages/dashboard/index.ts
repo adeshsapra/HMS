@@ -1,6 +1,7 @@
 export { default as Home } from "./home";
 export { default as Profile } from "./profile";
 export { default as Notifications } from "./notifications";
+export { default as Tables } from "./tables";
 export { default as Appointments } from "./appointments";
 export { default as Patients } from "./patients";
 export { default as Doctors } from "./doctors";
@@ -21,3 +22,9 @@ export { default as Rooms } from "./rooms";
 export { default as Schedules } from "./schedules";
 export { default as Emergency } from "./emergency";
 
+// New consolidated pages
+export { default as Prescriptions } from "./prescriptions";
+export { default as MedicalRecords } from "./medical-records";
+export { default as PatientReports } from "./patient-reports";
+export { default as Bills } from "./bills";
+export { default as Medicines } from "./medicines";
