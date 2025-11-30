@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AOS from "aos";
+import { useAuth } from "../context/AuthContext";
 
 const SignUp = () => {
+  const navigate = useNavigate();
+  const { register } = useAuth();
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -30,24 +34,57 @@ const SignUp = () => {
     setError("");
     setSent(false);
 
+    // Email validation
+    const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+    if (!emailRegex.test(formData.email)) {
+      setError("Please enter a valid email address.");
+      setLoading(false);
+      return;
+    }
+
+    // Phone validation (10-15 digits)
+    const phoneDigits = formData.phone.replace(/\D/g, "");
+    if (phoneDigits.length < 10 || phoneDigits.length > 15) {
+      setError("Please enter a valid phone number (10-15 digits).");
+      setLoading(false);
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match");
       setLoading(false);
       return;
     }
 
-    setTimeout(() => {
+    if (formData.password.length < 8) {
+      setError("Password must be at least 8 characters long");
       setLoading(false);
-      setSent(true);
-      setFormData({
-        firstName: "",
-        lastName: "",
-        email: "",
-        phone: "",
-        password: "",
-        confirmPassword: "",
+      return;
+    }
+
+    try {
+      await register({
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        password: formData.password,
+        password_confirmation: formData.confirmPassword,
       });
-    }, 1500);
+
+      setSent(true);
+      setTimeout(() => {
+        navigate('/');
+      }, 2000);
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message ||
+        err.response?.data?.errors?.email?.[0] ||
+        err.response?.data?.errors?.phone?.[0] ||
+        "Registration failed. Please try again.";
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -1,11 +1,20 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const Header = () => {
   const [isMobileNavActive, setIsMobileNavActive] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, isAuthenticated, logout } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/');
+    closeMobileNav();
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -318,16 +327,26 @@ const Header = () => {
                     Privacy
                   </Link>
                 </li>
-                <li>
-                  <Link to="/sign-in" onClick={closeMobileNav}>
-                    <i className="bi bi-box-arrow-in-right me-2"></i>Sign In
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/sign-up" onClick={closeMobileNav}>
-                    <i className="bi bi-person-plus me-2"></i>Sign Up
-                  </Link>
-                </li>
+                {!isAuthenticated ? (
+                  <>
+                    <li>
+                      <Link to="/sign-in" onClick={closeMobileNav}>
+                        <i className="bi bi-box-arrow-in-right me-2"></i>Sign In
+                      </Link>
+                    </li>
+                    <li>
+                      <Link to="/sign-up" onClick={closeMobileNav}>
+                        <i className="bi bi-person-plus me-2"></i>Sign Up
+                      </Link>
+                    </li>
+                  </>
+                ) : (
+                  <li>
+                    <a href="#" onClick={(e) => { e.preventDefault(); handleLogout(); }}>
+                      <i className="bi bi-box-arrow-right me-2"></i>Logout ({user?.name})
+                    </a>
+                  </li>
+                )}
                 <li>
                   <Link to="/404" onClick={closeMobileNav}>
                     404
@@ -409,28 +428,59 @@ const Header = () => {
 
         {/* Auth Buttons - Right Side */}
         <div className="d-flex align-items-center header-auth-buttons">
-          <Link
-            to="/sign-in"
-            className="btn-signin d-none d-md-flex align-items-center"
-            onClick={closeMobileNav}
-          >
-            <i className="bi bi-box-arrow-in-right"></i>
-            <span className="d-flex flex-column">
-              <span>Sign</span>
-              <span>In</span>
-            </span>
-          </Link>
-          <Link
-            to="/sign-up"
-            className="btn-signup d-none d-md-flex align-items-center"
-            onClick={closeMobileNav}
-          >
-            <i className="bi bi-person-plus"></i>
-            <span className="d-flex flex-column">
-              <span>Sign</span>
-              <span>Up</span>
-            </span>
-          </Link>
+          {!isAuthenticated ? (
+            <>
+              <Link
+                to="/sign-in"
+                className="btn-signin d-none d-md-flex align-items-center"
+                onClick={closeMobileNav}
+              >
+                <i className="bi bi-box-arrow-in-right"></i>
+                <span className="d-flex flex-column">
+                  <span>Sign</span>
+                  <span>In</span>
+                </span>
+              </Link>
+              <Link
+                to="/sign-up"
+                className="btn-signup d-none d-md-flex align-items-center"
+                onClick={closeMobileNav}
+              >
+                <i className="bi bi-person-plus"></i>
+                <span className="d-flex flex-column">
+                  <span>Sign</span>
+                  <span>Up</span>
+                </span>
+              </Link>
+            </>
+          ) : (
+            <div className="dropdown d-none d-md-block">
+              <button
+                className="btn-signin d-flex align-items-center gap-2 dropdown-toggle"
+                type="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                style={{ border: 'none', background: 'transparent' }}
+              >
+                <i className="bi bi-person-circle fs-5"></i>
+                <span className="fw-bold">{user?.name?.split(' ')[0]}</span>
+              </button>
+              <ul className="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 mt-2">
+                <li><h6 className="dropdown-header">Hello, {user?.name}</h6></li>
+                <li><hr className="dropdown-divider" /></li>
+                <li>
+                  <Link to="/profile" className="dropdown-item d-flex align-items-center gap-2" onClick={closeMobileNav}>
+                    <i className="bi bi-person"></i> Profile
+                  </Link>
+                </li>
+                <li>
+                  <button className="dropdown-item text-danger d-flex align-items-center gap-2" onClick={handleLogout}>
+                    <i className="bi bi-box-arrow-right"></i> Logout
+                  </button>
+                </li>
+              </ul>
+            </div>
+          )}
           <Link
             className="btn-getstarted"
             to="/appointment"
@@ -504,18 +554,18 @@ const Header = () => {
             color: var(--accent-color);
           }
           
-          .header-auth-buttons .btn-signin:hover {
-            background: var(--accent-color);
-            color: white;
-            border-color: var(--accent-color);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(4, 158, 187, 0.25);
-          }
+          // .header-auth-buttons .btn-signin:hover {
+          //   background: var(--accent-color);
+          //   color: white;
+          //   border-color: var(--accent-color);
+          //   transform: translateY(-1px);
+          //   box-shadow: 0 4px 12px rgba(4, 158, 187, 0.25);
+          // }
           
-          .header-auth-buttons .btn-signin:hover i,
-          .header-auth-buttons .btn-signin:hover span span {
-            color: white;
-          }
+          // .header-auth-buttons .btn-signin:hover i,
+          // .header-auth-buttons .btn-signin:hover span span {
+          //   color: white;
+          // }
           
           .header-auth-buttons .btn-signup {
             background: var(--accent-color);
@@ -715,6 +765,91 @@ const Header = () => {
                 opacity: 1;
                 transform: translateY(0);
               }
+            }
+          }
+
+          /* User Profile Dropdown Styles */
+          .header-auth-buttons .dropdown-menu {
+            background: #ffffff;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            border-radius: 12px;
+            padding: 8px;
+            min-width: 220px;
+            animation: dropdownSlideIn 0.3s ease;
+            margin-top: 15px !important;
+          }
+
+          .header-auth-buttons .dropdown-menu::before {
+            content: '';
+            position: absolute;
+            top: -6px;
+            right: 20px;
+            width: 12px;
+            height: 12px;
+            background: #ffffff;
+            transform: rotate(45deg);
+            box-shadow: -2px -2px 5px rgba(0, 0, 0, 0.04);
+          }
+
+          .header-auth-buttons .dropdown-header {
+            color: var(--heading-color);
+            font-weight: 700;
+            padding: 10px 16px;
+            font-size: 0.95rem;
+          }
+
+          .header-auth-buttons .dropdown-divider {
+            margin: 4px 0;
+            border-color: rgba(0, 0, 0, 0.05);
+          }
+
+          .header-auth-buttons .dropdown-item {
+            padding: 10px 16px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            color: var(--default-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+          }
+
+          .header-auth-buttons .dropdown-item i {
+            font-size: 1.1rem;
+            transition: all 0.2s ease;
+          }
+
+          .header-auth-buttons .dropdown-item:hover {
+            background-color: #f8f9fa; /* Subtle gray background */
+            color: var(--accent-color);
+          }
+          
+          .header-auth-buttons .dropdown-item:hover i {
+            color: var(--accent-color);
+          }
+
+          .header-auth-buttons .dropdown-item.text-danger {
+            color: #dc3545;
+          }
+
+          .header-auth-buttons .dropdown-item.text-danger:hover {
+            background-color: rgba(220, 53, 69, 0.05);
+            color: #dc3545;
+          }
+          
+          .header-auth-buttons .dropdown-item.text-danger:hover i {
+            color: #dc3545;
+          }
+
+          @keyframes dropdownSlideIn {
+            from {
+              opacity: 0;
+              transform: translateY(15px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
             }
           }
         `}</style>

@@ -1,5 +1,6 @@
 import { Routes, Route, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
+import { AuthProvider } from './context/AuthContext'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import ScrollTop from './components/ScrollTop'
@@ -44,7 +45,7 @@ function App() {
       const script = document.createElement('script')
       script.src = '/assets/vendor/purecounter/purecounter_vanilla.js'
       script.async = true
-      
+
       script.onload = () => {
         if ((window as any).PureCounter) {
           new (window as any).PureCounter()
@@ -62,7 +63,7 @@ function App() {
   }, [isAuthPage])
 
   return (
-    <>
+    <AuthProvider>
       {!isAuthPage && <Preloader />}
       {!isAuthPage && <Header />}
       <main className={isAuthPage ? "main-auth" : "main"}>
@@ -88,7 +89,7 @@ function App() {
       </main>
       {!isAuthPage && <Footer />}
       {!isAuthPage && <ScrollTop />}
-    </>
+    </AuthProvider>
   )
 }
 

@@ -1,0 +1,12 @@
+{
+  "name": "hms-unified-runner",
+  "version": "1.0.0",
+  "description": "Unified runner for HMS React projects",
+  "scripts": {
+    "install-all": "npm install && npm install --prefix admin-site && npm install --prefix main-site",
+    "dev": "concurrently \"npm run dev --prefix admin-site\" \"npm run dev --prefix main-site\" --names \"ADMIN,MAIN\" --prefix-colors \"blue,green\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}
