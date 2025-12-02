@@ -4,6 +4,8 @@ export * from "./FormModal";
 export * from "./ViewModal";
 export * from "./DeleteConfirmModal";
 export * from "./AppointmentCalendar";
+export * from "./ProtectedRoute";
+export * from "./PermissionWrapper";
 
 export type { Column, DataTableProps } from "./DataTable";
 export type { FormField, FormModalProps } from "./FormModal";

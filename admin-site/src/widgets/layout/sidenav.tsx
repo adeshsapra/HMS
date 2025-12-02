@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { XMarkIcon, Bars3Icon, ChevronDownIcon, ChevronRightIcon, ChevronDoubleLeftIcon, ChevronDoubleRightIcon } from "@heroicons/react/24/outline";
 import {
@@ -8,18 +8,8 @@ import {
   Typography,
 } from "@material-tailwind/react";
 import { useMaterialTailwindController, setOpenSidenav, setSidenavCollapsed } from "@/context";
-
-export interface RoutePage {
-  icon: React.ReactNode;
-  name: string;
-  path: string;
-}
-
-export interface Route {
-  layout: string;
-  title?: string;
-  pages: RoutePage[];
-}
+import { useFilteredRoutes } from "@/utils/routeFilter";
+import { Route, RoutePage } from "@/routes";
 
 export interface SidenavProps {
   brandImg?: string;
@@ -30,10 +20,14 @@ export interface SidenavProps {
 export function Sidenav({ brandImg = "/img/logo-ct.png", brandName = "HMS Admin Panel", routes }: SidenavProps): JSX.Element {
   const [controller, dispatch] = useMaterialTailwindController();
   const { sidenavColor, sidenavType, openSidenav, sidenavCollapsed } = controller;
+  
+  // Filter routes based on user permissions
+  const filteredRoutes = useFilteredRoutes(routes);
+  
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(() => {
-    // Initialize all sections as expanded by default
+    // Initialize all sections as expanded by default for all roles
     const initial: Record<string, boolean> = {};
-    routes.forEach((route, index) => {
+    routes.forEach((route) => {
       if (route.title) {
         initial[route.title] = true;
       }
@@ -150,8 +144,9 @@ export function Sidenav({ brandImg = "/img/logo-ct.png", brandName = "HMS Admin 
           }}
         >
           <div className={`py-4 ${sidenavCollapsed ? "px-2" : "px-2"}`}>
-            {routes.map(({ layout, title, pages }, key) => {
-              const isExpanded = title ? expandedSections[title] : true;
+            {filteredRoutes.map(({ layout, title, pages }, key) => {
+              // Default to expanded (true) if section state doesn't exist - ensures all sections are open by default
+              const isExpanded = title ? (expandedSections[title] !== undefined ? expandedSections[title] : true) : true;
               
               return (
                 <div key={key} className={`${sidenavCollapsed ? "mb-3" : "mb-2"}`}>
@@ -192,13 +187,13 @@ export function Sidenav({ brandImg = "/img/logo-ct.png", brandName = "HMS Admin 
                                   <div className="relative group">
                                     <Button
                                       variant={isActive ? "gradient" : "text"}
-                                      color={
-                                        (isActive
-                                          ? sidenavColor
-                                          : sidenavType === "dark"
-                                          ? "white"
-                                          : "blue-gray") as any
-                                      }
+                                  color={
+                                    (isActive
+                                      ? (sidenavColor === "dark" ? "blue" : sidenavColor)
+                                      : sidenavType === "dark"
+                                      ? "white"
+                                      : "blue-gray") as any
+                                  }
                                       className={`flex items-center ${
                                         sidenavCollapsed 
                                           ? "justify-center px-2 py-3 min-w-[48px]" 
@@ -252,7 +247,7 @@ export function Sidenav({ brandImg = "/img/logo-ct.png", brandName = "HMS Admin 
                                   variant={isActive ? "gradient" : "text"}
                                   color={
                                     (isActive
-                                      ? sidenavColor
+                                      ? (sidenavColor === "dark" ? "blue" : sidenavColor)
                                       : sidenavType === "dark"
                                       ? "white"
                                       : "blue-gray") as any

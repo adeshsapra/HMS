@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Routes, Route } from "react-router-dom";
 import { Cog6ToothIcon } from "@heroicons/react/24/solid";
 import { IconButton } from "@material-tailwind/react";
@@ -10,15 +10,20 @@ import {
 } from "@/widgets/layout";
 import routes from "@/routes";
 import { useMaterialTailwindController, setOpenConfigurator } from "@/context";
+import { useFilteredRoutes } from "@/utils/routeFilter";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 export function Dashboard(): JSX.Element {
   const [controller] = useMaterialTailwindController();
   const { sidenavType, openSidenav } = controller;
+  
+  // Filter routes based on user permissions
+  const filteredRoutes = useFilteredRoutes(routes);
 
   return (
     <div className="min-h-screen bg-blue-gray-50/50">
       <Sidenav
-        routes={routes}
+        routes={filteredRoutes}
         brandImg={
           sidenavType === "dark" ? "/img/logo-ct.png" : "/img/logo-ct-dark.png"
         }
@@ -40,11 +45,20 @@ export function Dashboard(): JSX.Element {
           <Cog6ToothIcon className="h-5 w-5" />
         </IconButton>
         <Routes>
+          {/* Use all routes (not filtered) so we can show Access Denied for routes user doesn't have permission for */}
           {routes.map(
             ({ layout, pages }) =>
               layout === "dashboard" &&
-              pages.map(({ path, element }) => (
-                <Route key={path} path={path} element={element} />
+              pages.map(({ path, element, permission }) => (
+                <Route 
+                  key={path} 
+                  path={path} 
+                  element={
+                    <ProtectedRoute requiredPermission={permission}>
+                      {element}
+                    </ProtectedRoute>
+                  } 
+                />
               ))
           )}
         </Routes>

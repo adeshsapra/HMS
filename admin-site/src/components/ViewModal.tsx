@@ -18,6 +18,7 @@ export interface ViewField {
   type?: "status" | "avatar" | "currency" | "date" | "badge";
   color?: string;
   fullWidth?: boolean;
+  render?: (value: any, row: Record<string, any>) => React.ReactNode;
 }
 
 export interface ViewModalProps {
@@ -50,6 +51,11 @@ export function ViewModal({ open, onClose, title, data, fields }: ViewModalProps
   };
 
   const renderValue = (field: ViewField, value: any): JSX.Element => {
+    // Use custom render function if provided
+    if (field.render) {
+      return <>{field.render(value, data)}</>;
+    }
+    
     if (field.type === "status") {
       return <StatusBadge status={value} size="lg" />;
     }

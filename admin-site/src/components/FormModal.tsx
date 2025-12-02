@@ -26,6 +26,8 @@ export interface FormField {
   min?: number;
   max?: number;
   fullWidth?: boolean;
+  accept?: string; // For file inputs
+  multiple?: boolean; // For file inputs
 }
 
 export interface FormModalProps {
@@ -201,6 +203,27 @@ export function FormModal({
               onChange={(e) => handleChange(field.name, e.target.value)}
               label={undefined}
               className={`${inputProps.className} [&::before]:hidden [&::after]:hidden`}
+              crossOrigin={undefined}
+            />
+          </div>
+        );
+      case "file":
+        return (
+          <div className="[&::before]:hidden [&::after]:hidden">
+            <label className="block text-sm font-normal text-blue-gray-700 mb-2">
+              {field.label}
+            </label>
+            <Input
+              type="file"
+              accept={field.accept}
+              multiple={field.multiple}
+              onChange={(e) => {
+                const files = e.target.files;
+                if (files && files.length > 0) {
+                  handleChange(field.name, field.multiple ? Array.from(files) : files[0]);
+                }
+              }}
+              className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
               crossOrigin={undefined}
             />
           </div>

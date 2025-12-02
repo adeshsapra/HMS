@@ -26,6 +26,8 @@ import {
   PlusIcon,
   ListBulletIcon,
   DocumentChartBarIcon,
+  ShieldCheckIcon,
+  KeyIcon,
 } from "@heroicons/react/24/solid";
 import {
   Home,
@@ -37,7 +39,7 @@ import {
   Bills,
   Medicines,
 } from "@/pages/dashboard";
-import { SignIn, SignUp } from "@/pages/auth";
+import { SignIn } from "@/pages/auth";
 
 // Import all HMS pages
 import Appointments from "@/pages/dashboard/appointments";
@@ -59,6 +61,7 @@ import Laboratory from "@/pages/dashboard/laboratory";
 import Rooms from "@/pages/dashboard/rooms";
 import Schedules from "@/pages/dashboard/schedules";
 import Emergency from "@/pages/dashboard/emergency";
+import { Roles, Permissions, RolePermissions, UserRoles } from "@/pages/dashboard";
 
 const icon = {
   className: "w-5 h-5 text-inherit",
@@ -69,6 +72,7 @@ export interface RoutePage {
   name: string;
   path: string;
   element: ReactElement;
+  permission?: string; // Permission required to access this route
 }
 
 export interface Route {
@@ -86,6 +90,7 @@ export const routes: Route[] = [
         name: "dashboard",
         path: "/home",
         element: <Home />,
+        permission: "view-dashboard",
       },
     ],
   },
@@ -98,18 +103,21 @@ export const routes: Route[] = [
         name: "prescriptions",
         path: "/prescriptions",
         element: <Prescriptions />,
+        permission: "view-prescriptions",
       },
       {
         icon: <PlusIcon {...icon} />,
         name: "medical records",
         path: "/medical-records",
         element: <MedicalRecords />,
+        permission: "view-medical-records",
       },
       {
         icon: <DocumentChartBarIcon {...icon} />,
         name: "patient reports",
         path: "/patient-reports",
         element: <PatientReports />,
+        permission: "view-patient-reports",
       },
     ],
   },
@@ -122,18 +130,21 @@ export const routes: Route[] = [
         name: "manage bills",
         path: "/bills",
         element: <Bills />,
+        permission: "view-bills",
       },
       {
         icon: <BeakerIcon {...icon} />,
         name: "medicines",
         path: "/medicines",
         element: <Medicines />,
+        permission: "view-medicines",
       },
       {
         icon: <UserIcon {...icon} />,
         name: "doctors",
         path: "/doctors",
         element: <Doctors />,
+        permission: "view-doctors",
       },
     ],
   },
@@ -146,36 +157,35 @@ export const routes: Route[] = [
         name: "appointments",
         path: "/appointments",
         element: <Appointments />,
+        permission: "view-appointments",
       },
       {
         icon: <UserGroupIcon {...icon} />,
         name: "patients",
         path: "/patients",
         element: <Patients />,
-      },
-      {
-        icon: <UserIcon {...icon} />,
-        name: "doctors (legacy)",
-        path: "/doctors-legacy",
-        element: <Doctors />,
+        permission: "view-patients",
       },
       {
         icon: <BuildingOfficeIcon {...icon} />,
         name: "departments",
         path: "/departments",
         element: <Departments />,
+        permission: "view-departments",
       },
       {
         icon: <BriefcaseIcon {...icon} />,
         name: "services",
         path: "/services",
         element: <Services />,
+        permission: "view-services",
       },
       {
         icon: <UsersIcon {...icon} />,
         name: "staff",
         path: "/staff",
         element: <Staff />,
+        permission: "view-staff",
       },
     ],
   },
@@ -188,24 +198,28 @@ export const routes: Route[] = [
         name: "gallery",
         path: "/gallery",
         element: <Gallery />,
+        permission: "view-gallery",
       },
       {
         icon: <ChatBubbleLeftRightIcon {...icon} />,
         name: "testimonials",
         path: "/testimonials",
         element: <Testimonials />,
+        permission: "view-testimonials",
       },
       {
         icon: <QuestionMarkCircleIcon {...icon} />,
         name: "faq",
         path: "/faq",
         element: <FAQ />,
+        permission: "view-faq",
       },
       {
         icon: <EnvelopeIcon {...icon} />,
         name: "contact inquiries",
         path: "/contact-inquiries",
         element: <ContactInquiries />,
+        permission: "view-contact-inquiries",
       },
     ],
   },
@@ -218,42 +232,14 @@ export const routes: Route[] = [
         name: "billing & finance",
         path: "/billing",
         element: <Billing />,
+        permission: "view-billing-finance",
       },
       {
         icon: <CubeIcon {...icon} />,
         name: "inventory",
         path: "/inventory",
         element: <Inventory />,
-      },
-      {
-        icon: <BeakerIcon {...icon} />,
-        name: "pharmacy",
-        path: "/pharmacy",
-        element: <Pharmacy />,
-      },
-      {
-        icon: <BeakerIcon {...icon} />,
-        name: "laboratory",
-        path: "/laboratory",
-        element: <Laboratory />,
-      },
-      {
-        icon: <HomeModernIcon {...icon} />,
-        name: "rooms & beds",
-        path: "/rooms",
-        element: <Rooms />,
-      },
-      {
-        icon: <ClockIcon {...icon} />,
-        name: "schedules",
-        path: "/schedules",
-        element: <Schedules />,
-      },
-      {
-        icon: <ExclamationTriangleIcon {...icon} />,
-        name: "emergency",
-        path: "/emergency",
-        element: <Emergency />,
+        permission: "view-inventory",
       },
     ],
   },
@@ -262,16 +248,93 @@ export const routes: Route[] = [
     layout: "dashboard",
     pages: [
       {
-        icon: <ChartBarIcon {...icon} />,
-        name: "reports",
-        path: "/reports",
-        element: <Reports />,
-      },
-      {
         icon: <Cog6ToothIcon {...icon} />,
         name: "settings",
         path: "/settings",
         element: <Settings />,
+        permission: "view-settings",
+      },
+    ],
+  },
+  {
+    title: "coming soon",
+    layout: "dashboard",
+    pages: [
+      {
+        icon: <ChartBarIcon {...icon} />,
+        name: "reports",
+        path: "/reports",
+        element: <Reports />,
+        permission: "view-reports",
+      },
+      {
+        icon: <BeakerIcon {...icon} />,
+        name: "pharmacy",
+        path: "/pharmacy",
+        element: <Pharmacy />,
+        permission: "view-pharmacy",
+      },
+      {
+        icon: <BeakerIcon {...icon} />,
+        name: "laboratory",
+        path: "/laboratory",
+        element: <Laboratory />,
+        permission: "view-laboratory",
+      },
+      {
+        icon: <HomeModernIcon {...icon} />,
+        name: "rooms & beds",
+        path: "/rooms",
+        element: <Rooms />,
+        permission: "view-rooms",
+      },
+      {
+        icon: <ClockIcon {...icon} />,
+        name: "schedules",
+        path: "/schedules",
+        element: <Schedules />,
+        permission: "view-schedules",
+      },
+      {
+        icon: <ExclamationTriangleIcon {...icon} />,
+        name: "emergency",
+        path: "/emergency",
+        element: <Emergency />,
+        permission: "view-emergency",
+      },
+    ],
+  },
+  {
+    title: "role & permission management",
+    layout: "dashboard",
+    pages: [
+      {
+        icon: <ShieldCheckIcon {...icon} />,
+        name: "roles",
+        path: "/roles",
+        element: <Roles />,
+        permission: "view-roles",
+      },
+      {
+        icon: <KeyIcon {...icon} />,
+        name: "permissions",
+        path: "/permissions",
+        element: <Permissions />,
+        permission: "view-permissions",
+      },
+      {
+        icon: <ServerStackIcon {...icon} />,
+        name: "role permissions",
+        path: "/role-permissions",
+        element: <RolePermissions />,
+        permission: "manage-roles",
+      },
+      {
+        icon: <UsersIcon {...icon} />,
+        name: "user roles",
+        path: "/user-roles",
+        element: <UserRoles />,
+        permission: "assign-roles",
       },
     ],
   },
@@ -284,12 +347,14 @@ export const routes: Route[] = [
         name: "profile",
         path: "/profile",
         element: <Profile />,
+        // Profile is accessible to all authenticated users
       },
       {
         icon: <BellIcon {...icon} />,
         name: "notifications",
         path: "/notifications",
         element: <Notifications />,
+        permission: "view-notifications",
       },
     ],
   },
@@ -302,12 +367,6 @@ export const routes: Route[] = [
         name: "sign in",
         path: "/sign-in",
         element: <SignIn />,
-      },
-      {
-        icon: <RectangleStackIcon {...icon} />,
-        name: "sign up",
-        path: "/sign-up",
-        element: <SignUp />,
       },
     ],
   },

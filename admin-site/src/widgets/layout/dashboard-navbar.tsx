@@ -1,5 +1,5 @@
 import React from "react";
-import { useLocation, Link } from "react-router-dom";
+import { useLocation, Link, useNavigate } from "react-router-dom";
 import {
   Navbar,
   Typography,
@@ -20,18 +20,27 @@ import {
   ClockIcon,
   CreditCardIcon,
   Bars3Icon,
+  ArrowRightOnRectangleIcon,
 } from "@heroicons/react/24/solid";
 import {
   useMaterialTailwindController,
   setOpenConfigurator,
   setOpenSidenav,
 } from "@/context";
+import { useAuth } from "@/context/AuthContext";
 
 export function DashboardNavbar(): JSX.Element {
   const [controller, dispatch] = useMaterialTailwindController();
   const { fixedNavbar, openSidenav } = controller;
   const { pathname } = useLocation();
   const [layout, page] = pathname.split("/").filter((el) => el !== "");
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/auth/sign-in");
+  };
 
   return (
     <Navbar
@@ -84,23 +93,103 @@ export function DashboardNavbar(): JSX.Element {
           >
             <Bars3Icon strokeWidth={3} className="h-6 w-6 text-blue-gray-500" />
           </IconButton>
-          <Link to="/auth/sign-in">
-            <Button
-              variant="text"
-              color="blue-gray"
-              className="hidden items-center gap-1 px-4 xl:flex normal-case"
-            >
-              <UserCircleIcon className="h-5 w-5 text-blue-gray-500" />
-              Sign In
-            </Button>
-            <IconButton
-              variant="text"
-              color="blue-gray"
-              className="grid xl:hidden"
-            >
-              <UserCircleIcon className="h-5 w-5 text-blue-gray-500" />
-            </IconButton>
-          </Link>
+          {user ? (
+            <Menu>
+              <MenuHandler>
+                <div className="flex items-center">
+                  <Button
+                    variant="text"
+                    color="blue-gray"
+                    className="hidden items-center gap-2 px-4 xl:flex normal-case"
+                  >
+                    <Avatar
+                      src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`}
+                      alt={user.name}
+                      size="sm"
+                      variant="circular"
+                      className="border-2 border-blue-gray-200"
+                    />
+                    <span className="hidden lg:block">{user.name}</span>
+                  </Button>
+                  <IconButton
+                    variant="text"
+                    color="blue-gray"
+                    className="grid xl:hidden"
+                  >
+                    <Avatar
+                      src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`}
+                      alt={user.name}
+                      size="sm"
+                      variant="circular"
+                    />
+                  </IconButton>
+                </div>
+              </MenuHandler>
+              <MenuList className="w-56">
+                <MenuItem className="flex items-center gap-3">
+                  <Avatar
+                    src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`}
+                    alt={user.name}
+                    size="sm"
+                    variant="circular"
+                  />
+                  <div className="flex flex-col">
+                    <Typography variant="small" className="font-semibold">
+                      {user.name}
+                    </Typography>
+                    <Typography variant="small" color="gray" className="text-xs">
+                      {user.email}
+                    </Typography>
+                    {user.role && (
+                      <Typography variant="small" color="blue-gray" className="text-xs capitalize">
+                        {user.role.name}
+                      </Typography>
+                    )}
+                  </div>
+                </MenuItem>
+                <hr className="my-2 border-blue-gray-100" />
+                <MenuItem onClick={() => navigate("/dashboard/profile")}>
+                  <div className="flex items-center gap-2">
+                    <UserCircleIcon className="h-4 w-4" />
+                    <Typography variant="small">Profile</Typography>
+                  </div>
+                </MenuItem>
+                <MenuItem onClick={() => navigate("/dashboard/settings")}>
+                  <div className="flex items-center gap-2">
+                    <Cog6ToothIcon className="h-4 w-4" />
+                    <Typography variant="small">Settings</Typography>
+                  </div>
+                </MenuItem>
+                <hr className="my-2 border-blue-gray-100" />
+                <MenuItem onClick={handleLogout}>
+                  <div className="flex items-center gap-2 text-red-600">
+                    <ArrowRightOnRectangleIcon className="h-4 w-4" />
+                    <Typography variant="small" className="font-semibold">
+                      Logout
+                    </Typography>
+                  </div>
+                </MenuItem>
+              </MenuList>
+            </Menu>
+          ) : (
+            <Link to="/auth/sign-in">
+              <Button
+                variant="text"
+                color="blue-gray"
+                className="hidden items-center gap-1 px-4 xl:flex normal-case"
+              >
+                <UserCircleIcon className="h-5 w-5 text-blue-gray-500" />
+                Sign In
+              </Button>
+              <IconButton
+                variant="text"
+                color="blue-gray"
+                className="grid xl:hidden"
+              >
+                <UserCircleIcon className="h-5 w-5 text-blue-gray-500" />
+              </IconButton>
+            </Link>
+          )}
           <Menu>
             <MenuHandler>
               <IconButton variant="text" color="blue-gray">
