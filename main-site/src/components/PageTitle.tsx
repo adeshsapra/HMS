@@ -38,6 +38,10 @@ const PageTitle = ({ title, description, breadcrumbs }: PageTitleProps) => {
         </div>
       )}
 
+      {/* <div className="title-wrapper">
+        <h1>{title}</h1>
+        {description && <p>{description}</p>}
+      </div> */}
       <div className="title-wrapper">
         <h1>{title}</h1>
         {description && <p>{description}</p>}
