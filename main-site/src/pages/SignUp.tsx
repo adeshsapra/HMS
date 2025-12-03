@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AOS from "aos";
+import "aos/dist/aos.css";
 import { useAuth } from "../context/AuthContext";
 
 const SignUp = () => {
@@ -15,16 +16,18 @@ const SignUp = () => {
     password: "",
     confirmPassword: "",
   });
+  
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
   const [sent, setSent] = useState(false);
 
   useEffect(() => {
     AOS.init({
-      duration: 600,
-      easing: "ease-in-out",
+      duration: 800,
+      easing: "ease-out-cubic",
       once: true,
-      mirror: false,
     });
   }, []);
 
@@ -74,7 +77,7 @@ const SignUp = () => {
 
       setSent(true);
       setTimeout(() => {
-        navigate('/');
+        navigate('/sign-in');
       }, 2000);
     } catch (err: any) {
       const errorMessage = err.response?.data?.message ||
@@ -95,74 +98,86 @@ const SignUp = () => {
   };
 
   return (
-    <>
-      <div className="auth-page-wrapper">
-        <div className="auth-container">
-          {/* Centered Content */}
-          <div className="auth-center-wrapper">
-            {/* Logo Section */}
-            <div className="auth-brand" data-aos="fade-up" data-aos-delay="100">
-              <Link to="/" className="auth-brand-link">
-                <div className="auth-brand-icon">
-                  <i className="bi bi-heart-pulse-fill"></i>
+    <div className="login-wrapper">
+      <div className="login-container">
+        
+        {/* Left Side: Visual Section */}
+        <div className="login-visual-side">
+          <div className="visual-overlay"></div>
+          <div className="visual-content">
+            <div className="glass-card" data-aos="zoom-in" data-aos-delay="200">
+              <div className="glass-icon">
+                <i className="bi bi-people-fill"></i>
+              </div>
+              <h3>Join Our Network</h3>
+              <p>Connect with top healthcare professionals and streamline your medical management.</p>
+              <div className="stats-row">
+                <div className="stat">
+                  <span className="stat-num">10k+</span>
+                  <span className="stat-desc">Doctors</span>
                 </div>
-                <h1 className="auth-brand-name">MediTrust</h1>
-              </Link>
+                <div className="stat">
+                  <span className="stat-num">50+</span>
+                  <span className="stat-desc">Hospitals</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Side: Form Section */}
+        <div className="login-form-side" data-aos="fade-up" data-aos-delay="100">
+          <div className="login-content-max">
+            
+            {/* Logo - Kept AOS here as it is at the top */}
+            <div className="brand-logo" data-aos="fade-down">
+              <div className="brand-icon">
+                <i className="bi bi-hospital-fill"></i>
+              </div>
+              <span className="brand-text">MediTrust<span className="brand-dot">.</span></span>
             </div>
 
-            {/* Form Card */}
-            <div
-              className="auth-form-card"
-              data-aos="fade-up"
-              data-aos-delay="200"
-            >
-              <div className="auth-form-header">
-                <div className="auth-form-icon">
-                  <i className="bi bi-person-plus-fill"></i>
+            <div className="form-header">
+              <h1>Create Account</h1>
+              <p>Join us today to access the full portal.</p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="modern-form">
+              {error && <div className="error-alert"><i className="bi bi-exclamation-circle"></i> {error}</div>}
+              
+              {sent && (
+                <div className="success-alert">
+                  <i className="bi bi-check-circle"></i> 
+                  Your account has been created successfully! Please check your email to verify your account.
                 </div>
-                <h2 className="auth-form-title">Create Account</h2>
-                <p className="auth-form-subtitle">
-                  Register to access our patient portal
-                </p>
-              </div>
+              )}
 
-              <form onSubmit={handleSubmit} className="auth-form">
-                {error && <div className="auth-error-message">{error}</div>}
-
-                {sent && (
-                  <div className="auth-success-message">
-                    Your account has been created successfully! Please check
-                    your email to verify your account.
-                  </div>
-                )}
-
-                <div className="auth-form-row">
-                  <div className="auth-form-group">
-                    <label htmlFor="firstName" className="auth-form-label">
-                      <i className="bi bi-person me-2"></i>
-                      First Name
-                    </label>
+              <div className="form-row">
+                <div className="input-group">
+                  <label htmlFor="firstName">First Name</label>
+                  <div className="input-wrapper">
+                    <span className="input-icon"><i className="bi bi-person"></i></span>
                     <input
                       type="text"
-                      className="auth-form-input"
                       id="firstName"
                       name="firstName"
+                      className="form-input"
                       placeholder="John"
                       value={formData.firstName}
                       onChange={handleChange}
                       required
                     />
                   </div>
-                  <div className="auth-form-group">
-                    <label htmlFor="lastName" className="auth-form-label">
-                      <i className="bi bi-person me-2"></i>
-                      Last Name
-                    </label>
+                </div>
+                <div className="input-group">
+                  <label htmlFor="lastName">Last Name</label>
+                  <div className="input-wrapper">
+                    <span className="input-icon"><i className="bi bi-person"></i></span>
                     <input
                       type="text"
-                      className="auth-form-input"
                       id="lastName"
                       name="lastName"
+                      className="form-input"
                       placeholder="Doe"
                       value={formData.lastName}
                       onChange={handleChange}
@@ -170,557 +185,584 @@ const SignUp = () => {
                     />
                   </div>
                 </div>
+              </div>
 
-                <div className="auth-form-group">
-                  <label htmlFor="email" className="auth-form-label">
-                    <i className="bi bi-envelope me-2"></i>
-                    Email Address
-                  </label>
+              {/* Email */}
+              <div className="input-group">
+                <label htmlFor="email">Email Address</label>
+                <div className="input-wrapper">
+                  <span className="input-icon"><i className="bi bi-envelope"></i></span>
                   <input
                     type="email"
-                    className="auth-form-input"
                     id="email"
                     name="email"
-                    placeholder="your.email@example.com"
+                    className="form-input"
+                    placeholder="name@example.com"
                     value={formData.email}
                     onChange={handleChange}
                     required
                   />
                 </div>
+              </div>
 
-                <div className="auth-form-group">
-                  <label htmlFor="phone" className="auth-form-label">
-                    <i className="bi bi-telephone me-2"></i>
-                    Phone Number
-                  </label>
+              {/* Phone */}
+              <div className="input-group">
+                <label htmlFor="phone">Phone Number</label>
+                <div className="input-wrapper">
+                  <span className="input-icon"><i className="bi bi-telephone"></i></span>
                   <input
                     type="tel"
-                    className="auth-form-input"
                     id="phone"
                     name="phone"
-                    placeholder="+1 (555) 123-4567"
+                    className="form-input"
+                    placeholder="+1 (555) 000-0000"
                     value={formData.phone}
                     onChange={handleChange}
                     required
                   />
                 </div>
+              </div>
 
-                <div className="auth-form-row">
-                  <div className="auth-form-group">
-                    <label htmlFor="password" className="auth-form-label">
-                      <i className="bi bi-lock-fill me-2"></i>
-                      Password
-                    </label>
+              {/* Password Row */}
+              <div className="form-row">
+                <div className="input-group">
+                  <label htmlFor="password">Password</label>
+                  <div className="input-wrapper">
+                    <span className="input-icon"><i className="bi bi-shield-lock"></i></span>
                     <input
-                      type="password"
-                      className="auth-form-input"
+                      type={showPassword ? "text" : "password"}
                       id="password"
                       name="password"
+                      className="form-input"
                       placeholder="Create password"
                       value={formData.password}
                       onChange={handleChange}
                       required
                     />
-                  </div>
-                  <div className="auth-form-group">
-                    <label
-                      htmlFor="confirmPassword"
-                      className="auth-form-label"
+                    <button 
+                      type="button" 
+                      className="password-toggle"
+                      onClick={() => setShowPassword(!showPassword)}
+                      tabIndex={-1}
                     >
-                      <i className="bi bi-lock-fill me-2"></i>
-                      Confirm Password
-                    </label>
+                      <i className={`bi ${showPassword ? 'bi-eye-slash' : 'bi-eye'}`}></i>
+                    </button>
+                  </div>
+                </div>
+                <div className="input-group">
+                  <label htmlFor="confirmPassword">Confirm</label>
+                  <div className="input-wrapper">
+                    <span className="input-icon"><i className="bi bi-shield-check"></i></span>
                     <input
-                      type="password"
-                      className="auth-form-input"
+                      type={showConfirmPassword ? "text" : "password"}
                       id="confirmPassword"
                       name="confirmPassword"
+                      className="form-input"
                       placeholder="Confirm password"
                       value={formData.confirmPassword}
                       onChange={handleChange}
                       required
                     />
+                    <button 
+                      type="button" 
+                      className="password-toggle"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      tabIndex={-1}
+                    >
+                      <i className={`bi ${showConfirmPassword ? 'bi-eye-slash' : 'bi-eye'}`}></i>
+                    </button>
                   </div>
                 </div>
+              </div>
 
-                <div className="auth-form-check-full">
-                  <input
-                    type="checkbox"
-                    id="terms"
-                    className="auth-checkbox"
-                    required
-                  />
-                  <label htmlFor="terms" className="auth-checkbox-label">
-                    I agree to the{" "}
-                    <Link to="/terms" className="auth-link">
-                      Terms and Conditions
-                    </Link>{" "}
-                    and{" "}
-                    <Link to="/privacy" className="auth-link">
-                      Privacy Policy
-                    </Link>
-                  </label>
-                </div>
+              {/* Terms */}
+              <div className="form-actions" style={{justifyContent: 'flex-start'}}>
+                <label className="custom-checkbox">
+                  <input type="checkbox" required />
+                  <span className="checkmark"></span>
+                  <span className="label-text">
+                    I agree to the <Link to="/terms" className="link-highlight">Terms</Link> & <Link to="/privacy" className="link-highlight">Privacy Policy</Link>
+                  </span>
+                </label>
+              </div>
 
-                <button
-                  type="submit"
-                  className="auth-submit-btn"
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <>
-                      <span className="auth-spinner"></span>
-                      Creating account...
-                    </>
-                  ) : (
-                    <>
-                      <i className="bi bi-person-plus me-2"></i>
-                      Create Account
-                    </>
-                  )}
-                </button>
+              <button type="submit" className="submit-btn" disabled={loading}>
+                {loading ? <span className="loader"></span> : "Create Account"}
+              </button>
+            </form>
 
-                <div className="auth-divider">
-                  <span>Or sign up with</span>
-                </div>
-
-                <div className="auth-social-buttons">
-                  <button type="button" className="auth-social-btn">
-                    <svg width="20" height="20" viewBox="0 0 18 18" fill="none">
-                      <path
-                        d="M17.3442 9.18429C17.3442 8.64047 17.3001 8.09371 17.206 7.55872H9.66016V10.6394H13.9813C13.802 11.6329 13.2258 12.5119 12.3822 13.0704V15.0693H14.9602C16.4741 13.6759 17.3442 11.6182 17.3442 9.18429Z"
-                        fill="#4285F4"
-                      />
-                      <path
-                        d="M9.65974 17.0006C11.8174 17.0006 13.637 16.2922 14.9627 15.0693L12.3847 13.0704C11.6675 13.5584 10.7415 13.8347 9.66268 13.8347C7.5756 13.8347 5.80598 12.4266 5.17104 10.5336H2.51074V12.5942C3.86882 15.2956 6.63494 17.0006 9.65974 17.0006Z"
-                        fill="#34A853"
-                      />
-                      <path
-                        d="M5.16852 10.5336C4.83341 9.53999 4.83341 8.46411 5.16852 7.47054V5.40991H2.51116C1.37649 7.67043 1.37649 10.3337 2.51116 12.5942L5.16852 10.5336Z"
-                        fill="#FBBC04"
-                      />
-                      <path
-                        d="M9.65974 4.16644C10.8003 4.1488 11.9026 4.57798 12.7286 5.36578L15.0127 3.08174C13.5664 1.72367 11.6469 0.0229773 9.65974 0.000539111C6.63494 0.000539111 3.86882 1.70548 2.51074 4.40987L5.1681 6.4705C5.8001 4.57449 7.57266 3.16644 9.65974 3.16644Z"
-                        fill="#EA4335"
-                      />
-                    </svg>
-                    Google
+            {/* REMOVED AOS from Footer to ensure it's always visible when scrolled */}
+            <div className="form-footer">
+              <p>Already have an account? <Link to="/sign-in">Sign In</Link></p>
+              
+              <div className="social-login">
+                <span>Or register with</span>
+                <div className="social-icons">
+                  <button type="button" className="social-btn google">
+                    <i className="bi bi-google"></i>
                   </button>
-                  <button type="button" className="auth-social-btn">
+                  <button type="button" className="social-btn microsoft">
                     <i className="bi bi-microsoft"></i>
-                    Microsoft
                   </button>
                 </div>
-
-                <div className="auth-form-footer">
-                  <p>
-                    Already have an account?{" "}
-                    <Link to="/sign-in" className="auth-link-primary">
-                      Sign In
-                    </Link>
-                  </p>
-                </div>
-              </form>
+              </div>
             </div>
           </div>
         </div>
-        <style>{`
-        .auth-page-wrapper {
-          min-height: 100vh;
+      </div>
+
+      <style>{`
+        /* --- RESET & VARIABLES --- */
+        :root {
+          --primary-color: #0e7490;
+          --primary-hover: #155e75;
+          --accent-color: #06b6d4;
+          --bg-color: #f8fafc;
+          --text-main: #0f172a;
+          --text-muted: #64748b;
+          --border-color: #cbd5e1;
+          --input-bg: #ffffff;
+          --success-color: #059669;
+          --success-bg: #d1fae5;
+          --success-border: #a7f3d0;
+        }
+
+        * { box-sizing: border-box; }
+
+        .login-wrapper {
+          height: 100vh;
           width: 100%;
-          overflow-x: hidden;
-          background: #ffffff;
+          background: var(--bg-color);
+          font-family: 'Inter', system-ui, -apple-system, sans-serif;
+          overflow: hidden; /* Prevent body scroll */
+        }
+
+        .login-container {
+          display: flex;
+          height: 100vh;
+          width: 100%;
+          overflow: hidden;
+        }
+
+        /* --- LEFT SIDE (VISUAL) --- */
+        .login-visual-side {
+          flex: 1.2;
+          height: 100%;
+          background-image: url('https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?q=80&w=2091&auto=format&fit=crop');
+          background-size: cover;
+          background-position: center;
+          position: relative;
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 2rem 1rem;
         }
 
-        .auth-container {
-          width: 100%;
-          max-width: 1400px;
-          margin: 0 auto;
+        .visual-overlay {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(135deg, rgba(14, 116, 144, 0.9), rgba(6, 182, 212, 0.7));
         }
 
-        .auth-center-wrapper {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          width: 100%;
-          max-width: 500px;
-          margin: 0 auto;
+        .visual-content {
+          position: relative;
+          z-index: 2;
+          width: 90%;
+          max-width: 480px;
         }
 
-        .auth-brand {
-          margin-bottom: 2.5rem;
-          text-align: center;
-        }
-
-        .auth-brand-link {
-          display: inline-flex;
-          flex-direction: column;
-          align-items: center;
-          text-decoration: none;
-          color: inherit;
-        }
-
-        .auth-brand-icon {
-          width: 70px;
-          height: 70px;
-          background: linear-gradient(135deg, #049ebb 0%, #06b6d4 100%);
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: 0 8px 24px rgba(4, 158, 187, 0.25);
-          margin-bottom: 1rem;
-        }
-
-        .auth-brand-icon i {
-          font-size: 2rem;
+        .glass-card {
+          background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(12px);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 24px;
+          padding: 40px;
           color: white;
         }
 
-        .auth-brand-name {
-          font-size: 1.75rem;
-          font-weight: 700;
-          color: var(--heading-color);
-          margin: 0;
-          font-family: var(--heading-font);
-        }
-
-        .auth-form-card {
-          background: white;
-          border-radius: 24px;
-          box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
-          padding: 2.5rem;
-          width: 100%;
-          max-width: 500px;
-        }
-
-        .auth-form-header {
-          text-align: center;
-          margin-bottom: 2rem;
-        }
-
-        .auth-form-icon {
+        .glass-icon {
           width: 64px;
           height: 64px;
-          background: linear-gradient(135deg, #049ebb 0%, #06b6d4 100%);
-          border-radius: 50%;
-          display: inline-flex;
+          background: rgba(255, 255, 255, 0.2);
+          border-radius: 16px;
+          display: flex;
           align-items: center;
           justify-content: center;
-          box-shadow: 0 6px 20px rgba(4, 158, 187, 0.25);
-          margin-bottom: 1.25rem;
+          font-size: 32px;
+          margin-bottom: 24px;
         }
 
-        .auth-form-icon i {
-          font-size: 1.75rem;
-          color: white;
-        }
-
-        .auth-form-title {
-          font-size: 1.875rem;
+        .glass-card h3 {
+          font-size: 28px;
           font-weight: 700;
-          color: var(--heading-color);
-          margin-bottom: 0.5rem;
-          font-family: var(--heading-font);
+          margin-bottom: 12px;
         }
 
-        .auth-form-subtitle {
-          color: #6b7280;
-          font-size: 0.9375rem;
-          margin: 0;
+        .glass-card p {
+          font-size: 18px;
+          line-height: 1.6;
+          opacity: 0.9;
+          margin-bottom: 32px;
         }
 
-        .auth-form {
-          width: 100%;
+        .stats-row {
+          display: flex;
+          gap: 40px;
+          border-top: 1px solid rgba(255, 255, 255, 0.2);
+          padding-top: 24px;
         }
 
-        .auth-form-row {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 1rem;
-          margin-bottom: 1.5rem;
-        }
-
-        .auth-form-group {
-          margin-bottom: 1.5rem;
-        }
-
-        .auth-form-row .auth-form-group {
-          margin-bottom: 0;
-        }
-
-        .auth-form-label {
+        .stat-num {
+          font-size: 24px;
+          font-weight: 700;
           display: block;
-          font-size: 0.875rem;
-          font-weight: 600;
-          color: var(--default-color);
-          margin-bottom: 0.5rem;
         }
 
-        .auth-form-label i {
-          color: var(--accent-color);
+        .stat-desc {
+          font-size: 14px;
+          opacity: 0.8;
         }
 
-        .auth-form-input {
+        /* --- RIGHT SIDE (SCROLLABLE FORM) --- */
+         .login-form-side {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          padding: 3rem;
+          position: relative;
+          max-width: 700px;
+          margin: 0 auto;
+        }
+
+        /* Custom Scrollbar */
+        .login-form-side::-webkit-scrollbar { width: 6px; }
+        .login-form-side::-webkit-scrollbar-track { background: #f1f1f1; }
+        .login-form-side::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .login-form-side::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        .login-content-max {
           width: 100%;
-          padding: 0.875rem 1rem;
-          border: 1.5px solid #e5e7eb;
-          border-radius: 12px;
-          font-size: 0.9375rem;
-          transition: all 0.3s;
-          background: #fafafa;
+          max-width: 480px;
+          margin: 0 auto;
+          min-height: 100%;
+          display: flex;
+          flex-direction: column;
+          justify-content: center; 
+          padding-bottom: 40px; /* Ensure space at bottom for scrolling */
         }
 
-        .auth-form-input:focus {
+        .brand-logo {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          margin-bottom: 24px; /* Reduced from 32px */
+        }
+
+        .brand-icon {
+          width: 40px; /* Slightly smaller */
+          height: 40px;
+          background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-size: 20px;
+        }
+
+        .brand-text {
+          font-size: 22px;
+          font-weight: 700;
+          color: var(--text-main);
+        }
+
+        .form-header h1 {
+          font-size: 28px; /* Slightly smaller */
+          font-weight: 700;
+          color: var(--text-main);
+          margin-bottom: 8px;
+        }
+
+        .form-header p {
+          color: var(--text-muted);
+          font-size: 15px;
+          margin-bottom: 24px; /* Reduced from 32px */
+        }
+
+        .modern-form { width: 100%; }
+
+        .form-row {
+          display: flex;
+          gap: 16px;
+        }
+        .form-row .input-group { flex: 1; }
+
+        .input-group {
+          margin-bottom: 16px; /* Reduced from 20px */
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          width: 100%;
+        }
+
+        .input-group label {
+          font-size: 14px;
+          font-weight: 600;
+          color: var(--text-main);
+          margin-bottom: 6px;
+        }
+
+        .input-wrapper {
+          position: relative;
+          width: 100%;
+          display: flex;
+          align-items: center;
+        }
+
+        .form-input {
+          width: 100%;
+          height: 48px; /* Reduced from 50px */
+          padding: 0 16px 0 48px;
+          background: var(--input-bg);
+          border: 1.5px solid var(--border-color);
+          border-radius: 12px;
+          font-size: 15px;
+          color: var(--text-main);
+          transition: all 0.2s ease;
+        }
+
+        .form-input:focus {
           outline: none;
           border-color: var(--accent-color);
-          background: white;
-          box-shadow: 0 0 0 4px rgba(4, 158, 187, 0.1);
+          box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.1);
         }
 
-        .auth-form-check-full {
+        .input-icon {
+          position: absolute;
+          left: 16px;
+          top: 50%;
+          transform: translateY(-50%);
+          color: var(--text-muted);
+          font-size: 18px;
+          pointer-events: none;
+        }
+
+        .form-input:focus + .input-icon,
+        .input-wrapper:focus-within .input-icon {
+          color: var(--primary-color);
+        }
+
+        .password-toggle {
+          position: absolute;
+          right: 16px;
+          top: 50%;
+          transform: translateY(-50%);
+          background: none;
+          border: none;
+          color: var(--text-muted);
+          cursor: pointer;
+          padding: 4px;
+          display: flex;
+          align-items: center;
+        }
+        
+        .password-toggle:hover { color: var(--text-main); }
+
+        .form-actions {
+          display: flex;
+          margin-bottom: 24px;
+        }
+
+        .custom-checkbox {
           display: flex;
           align-items: flex-start;
-          margin-bottom: 1.5rem;
+          cursor: pointer;
         }
 
-        .auth-form-check-full .auth-checkbox {
-          margin-top: 0.25rem;
-          margin-right: 0.5rem;
+        .custom-checkbox input { display: none; }
+
+        .checkmark {
+          width: 20px;
+          height: 20px;
+          border: 2px solid var(--border-color);
+          border-radius: 6px;
+          margin-right: 10px;
           flex-shrink: 0;
+          position: relative;
+          transition: all 0.2s;
+          margin-top: 2px;
         }
 
-        .auth-checkbox {
-          width: 18px;
-          height: 18px;
-          cursor: pointer;
-          accent-color: var(--accent-color);
+        .custom-checkbox input:checked + .checkmark {
+          background: var(--primary-color);
+          border-color: var(--primary-color);
         }
 
-        .auth-checkbox-label {
-          font-size: 0.875rem;
-          color: #6b7280;
-          cursor: pointer;
-          margin: 0;
+        .custom-checkbox input:checked + .checkmark:after {
+          content: "";
+          position: absolute;
+          left: 6px;
+          top: 2px;
+          width: 5px;
+          height: 10px;
+          border: solid white;
+          border-width: 0 2px 2px 0;
+          transform: rotate(45deg);
+        }
+
+        .label-text {
+          font-size: 13px;
+          color: var(--text-muted);
           line-height: 1.5;
         }
 
-        .auth-link {
-          color: var(--accent-color);
+        .link-highlight {
+          color: var(--primary-color);
           text-decoration: none;
-          font-weight: 500;
-          transition: color 0.3s;
+          font-weight: 600;
         }
 
-        .auth-link:hover {
-          color: #038a9e;
-        }
-
-        .auth-submit-btn {
+        .submit-btn {
           width: 100%;
-          padding: 0.875rem 1.5rem;
-          background: linear-gradient(135deg, #049ebb 0%, #06b6d4 100%);
+          height: 48px;
+          background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
           color: white;
           border: none;
           border-radius: 12px;
-          font-size: 1rem;
+          font-size: 16px;
           font-weight: 600;
           cursor: pointer;
-          transition: all 0.3s;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin-bottom: 1.5rem;
-          box-shadow: 0 4px 12px rgba(4, 158, 187, 0.3);
+          transition: transform 0.2s, box-shadow 0.2s;
+          position: relative;
         }
 
-        .auth-submit-btn:hover:not(:disabled) {
+        .submit-btn:hover:not(:disabled) {
           transform: translateY(-2px);
-          box-shadow: 0 6px 20px rgba(4, 158, 187, 0.4);
+          box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
         }
 
-        .auth-submit-btn:disabled {
+        .submit-btn:disabled {
           opacity: 0.7;
           cursor: not-allowed;
         }
 
-        .auth-spinner {
-          width: 18px;
-          height: 18px;
-          border: 2px solid rgba(255, 255, 255, 0.3);
-          border-top-color: white;
-          border-radius: 50%;
-          animation: spin 0.8s linear infinite;
-          margin-right: 0.5rem;
-        }
-
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-
-        .auth-divider {
-          position: relative;
-          text-align: center;
-          margin: 1.5rem 0;
-        }
-
-        .auth-divider::before {
-          content: '';
-          position: absolute;
-          left: 0;
-          top: 50%;
-          width: 100%;
-          height: 1px;
-          background: #e5e7eb;
-        }
-
-        .auth-divider span {
-          position: relative;
-          background: white;
-          padding: 0 1rem;
-          color: #9ca3af;
-          font-size: 0.875rem;
-        }
-
-        .auth-social-buttons {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 0.75rem;
-          margin-bottom: 1.5rem;
-        }
-
-        .auth-social-btn {
-          padding: 0.75rem 1rem;
-          border: 1.5px solid #e5e7eb;
-          border-radius: 12px;
-          background: white;
-          color: var(--default-color);
-          font-size: 0.875rem;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.3s;
+        .error-alert {
+          background: #fee2e2;
+          color: #b91c1c;
+          padding: 12px;
+          border-radius: 8px;
+          margin-bottom: 20px;
+          font-size: 14px;
           display: flex;
           align-items: center;
-          justify-content: center;
-          gap: 0.5rem;
-        }
-
-        .auth-social-btn:hover {
-          border-color: var(--accent-color);
-          background: #f8fbfc;
-        }
-
-        .auth-social-btn i {
-          font-size: 1.125rem;
-          color: var(--accent-color);
-        }
-
-        .auth-form-footer {
-          text-align: center;
-          margin-top: 1.5rem;
-        }
-
-        .auth-form-footer p {
-          margin: 0;
-          color: #6b7280;
-          font-size: 0.875rem;
-        }
-
-        .auth-link-primary {
-          color: var(--accent-color);
-          text-decoration: none;
-          font-weight: 600;
-          transition: color 0.3s;
-        }
-
-        .auth-link-primary:hover {
-          color: #038a9e;
-        }
-
-        .auth-error-message {
-          background: #fee2e2;
-          color: #dc2626;
-          padding: 0.875rem 1rem;
-          border-radius: 12px;
-          margin-bottom: 1.5rem;
-          font-size: 0.875rem;
+          gap: 8px;
           border: 1px solid #fecaca;
         }
 
-        .auth-success-message {
-          background: #d1fae5;
-          color: #059669;
-          padding: 0.875rem 1rem;
+        .success-alert {
+          background: var(--success-bg);
+          color: var(--success-color);
+          padding: 12px;
+          border-radius: 8px;
+          margin-bottom: 20px;
+          font-size: 14px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          border: 1px solid var(--success-border);
+        }
+
+        .form-footer {
+          margin-top: 24px; /* Reduced from 32px */
+          text-align: center;
+        }
+
+        .form-footer p {
+          color: var(--text-muted);
+          font-size: 14px;
+          margin-bottom: 20px;
+        }
+
+        .form-footer a {
+          color: var(--primary-color);
+          font-weight: 600;
+          text-decoration: none;
+        }
+
+        .social-login {
+          position: relative;
+          border-top: 1px solid var(--border-color);
+          padding-top: 20px;
+        }
+
+        .social-login span {
+          position: absolute;
+          top: -10px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: white;
+          padding: 0 10px;
+          color: var(--text-muted);
+          font-size: 12px;
+        }
+
+        .social-icons {
+          display: flex;
+          justify-content: center;
+          gap: 16px;
+        }
+
+        .social-btn {
+          width: 44px;
+          height: 44px;
+          border: 1px solid var(--border-color);
           border-radius: 12px;
-          margin-bottom: 1.5rem;
-          font-size: 0.875rem;
-          border: 1px solid #a7f3d0;
+          background: white;
+          font-size: 20px;
+          cursor: pointer;
+          transition: all 0.2s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
 
-        /* Responsive Design */
-        @media (max-width: 768px) {
-          .auth-page-wrapper {
-            padding: 1.5rem 1rem;
-          }
-
-          .auth-form-card {
-            padding: 2rem 1.5rem;
-            border-radius: 20px;
-          }
-
-          .auth-brand {
-            margin-bottom: 2rem;
-          }
+        .social-btn:hover {
+          background: #f1f5f9;
+          border-color: var(--text-muted);
         }
 
-        @media (max-width: 768px) {
-          .auth-form-row {
-            grid-template-columns: 1fr;
-            gap: 0;
-          }
+        .social-btn.google { color: #EA4335; }
+        .social-btn.microsoft { color: #00A4EF; }
 
-          .auth-form-row .auth-form-group {
-            margin-bottom: 1.5rem;
-          }
+        .loader {
+          width: 24px;
+          height: 24px;
+          border: 3px solid #FFF;
+          border-bottom-color: transparent;
+          border-radius: 50%;
+          display: inline-block;
+          animation: rotation 1s linear infinite;
+        }
+
+        @keyframes rotation {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 992px) {
+          .login-wrapper { height: auto; overflow: auto; }
+          .login-container { height: auto; min-height: 100vh; }
+          .login-visual-side { display: none; }
+          .login-form-side { height: auto; min-height: 100vh; overflow-y: visible; }
         }
 
         @media (max-width: 576px) {
-          .auth-left-column {
-            padding: 1.5rem 1rem;
-          }
-
-          .auth-form-card {
-            padding: 1.5rem 1rem;
-            border-radius: 20px;
-          }
-
-          .auth-form-title {
-            font-size: 1.5rem;
-          }
-
-          .auth-brand-icon,
-          .auth-form-icon {
-            width: 56px;
-            height: 56px;
-          }
-
-          .auth-brand-icon i,
-          .auth-form-icon i {
-            font-size: 1.5rem;
-          }
-
-          .auth-social-buttons {
-            grid-template-columns: 1fr;
-          }
+          .login-form-side { padding: 24px; }
+          .form-row { flex-direction: column; gap: 0; }
         }
       `}</style>
-      </div>
-    </>
+    </div>
   );
 };
 

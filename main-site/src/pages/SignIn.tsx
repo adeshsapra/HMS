@@ -1,7 +1,7 @@
-
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AOS from "aos";
+import "aos/dist/aos.css";
 import { useAuth } from "../context/AuthContext";
 
 const SignIn = () => {
@@ -12,8 +12,10 @@ const SignIn = () => {
     email: "",
     password: "",
   });
+  
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({});
 
   useEffect(() => {
@@ -21,7 +23,6 @@ const SignIn = () => {
       duration: 800,
       easing: "ease-out-cubic",
       once: true,
-      mirror: false,
     });
   }, []);
 
@@ -80,423 +81,392 @@ const SignIn = () => {
   };
 
   return (
-    <>
-      <div className="auth-page-wrapper">
-        {/* Decorative Background Elements */}
-        <div className="auth-bg-shape shape-1"></div>
-        <div className="auth-bg-shape shape-2"></div>
+    <div className="login-wrapper">
+      <div className="login-container">
 
-        <div className="auth-container">
-          <div className="auth-center-wrapper">
-            {/* Logo Section */}
-            <div className="auth-brand" data-aos="fade-down" data-aos-delay="100">
-              <Link to="/" className="auth-brand-link">
-                <div className="auth-brand-icon">
-                  <i className="bi bi-heart-pulse-fill"></i>
-                </div>
-                <h1 className="auth-brand-name">MediTrust</h1>
-              </Link>
+        {/* Left Side: Form Section */}
+        <div className="login-form-side" data-aos="fade-up" data-aos-delay="100">
+          <div className="login-content-max">
+
+            {/* Logo */}
+            <div className="brand-logo" data-aos="fade-down">
+              <div className="brand-icon">
+                <i className="bi bi-hospital-fill"></i>
+              </div>
+              <span className="brand-text">MediTrust<span className="brand-dot">.</span></span>
             </div>
 
-            {/* Form Card */}
-            <div
-              className="auth-form-card"
-              data-aos="fade-up"
-              data-aos-delay="200"
-            >
-              <div className="auth-form-header">
-                <h2 className="auth-form-title">Welcome Back</h2>
-                <p className="auth-form-subtitle">
-                  Sign in to access your patient portal
-                </p>
+            <div className="form-header">
+              <h1>Welcome Back</h1>
+              <p>Please enter your credentials to access the hospital admin panel.</p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="modern-form">
+              {errors.general && (
+                <div className="error-alert">
+                  <i className="bi bi-exclamation-circle"></i> 
+                  <span>{errors.general}</span>
+                </div>
+              )}
+
+              {/* Email Input */}
+              <div className="input-group">
+                <label htmlFor="email">Email Address</label>
+                <div className={`input-wrapper ${errors.email ? 'error' : ''}`}>
+                  <span className="input-icon">
+                    <i className="bi bi-envelope"></i>
+                  </span>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    className="form-input"
+                    placeholder="doctor@meditrust.com"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                {errors.email && <div className="field-error">{errors.email}</div>}
               </div>
 
-              <form onSubmit={handleSubmit} className="auth-form">
-                {errors.general && (
-                  <div className="auth-alert error" data-aos="fade-in">
-                    <i className="bi bi-exclamation-circle-fill"></i>
-                    <span>{errors.general}</span>
-                  </div>
-                )}
-
-                <div className="auth-form-group">
-                  <label htmlFor="email" className="auth-form-label">
-                    Email Address
-                  </label>
-                  <div className={`auth-input-wrapper ${errors.email ? 'error' : ''}`}>
-                    <i className="bi bi-envelope auth-input-icon"></i>
-                    <input
-                      type="email"
-                      className="auth-form-input"
-                      id="email"
-                      name="email"
-                      placeholder="name@example.com"
-                      value={formData.email}
-                      onChange={handleChange}
-                    />
-                  </div>
-                  {errors.email && <div className="auth-field-error">{errors.email}</div>}
-                </div>
-
-                <div className="auth-form-group">
-                  <label htmlFor="password" className="auth-form-label">
-                    Password
-                  </label>
-                  <div className={`auth-input-wrapper ${errors.password ? 'error' : ''}`}>
-                    <i className="bi bi-lock auth-input-icon"></i>
-                    <input
-                      type="password"
-                      className="auth-form-input"
-                      id="password"
-                      name="password"
-                      placeholder="Enter your password"
-                      value={formData.password}
-                      onChange={handleChange}
-                    />
-                  </div>
-                  {errors.password && <div className="auth-field-error">{errors.password}</div>}
-                </div>
-
-                <div className="auth-form-options">
-                  <label className="auth-checkbox-container">
-                    <input
-                      type="checkbox"
-                      checked={rememberMe}
-                      onChange={() => setRememberMe((prev) => !prev)}
-                    />
-                    <span className="checkmark"></span>
-                    <span className="label-text">Remember me</span>
-                  </label>
-                  <Link to="/forgot-password" className="auth-link">
-                    Forgot Password?
-                  </Link>
-                </div>
-
-                <button
-                  type="submit"
-                  className="auth-submit-btn"
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <>
-                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                      Signing in...
-                    </>
-                  ) : (
-                    <>
-                      Sign In <i className="bi bi-arrow-right ms-2"></i>
-                    </>
-                  )}
-                </button>
-
-                <div className="auth-divider">
-                  <span>Or continue with</span>
-                </div>
-
-                <div className="auth-social-buttons">
-                  <button type="button" className="auth-social-btn google">
-                    <svg width="20" height="20" viewBox="0 0 18 18" fill="none">
-                      <path d="M17.3442 9.18429C17.3442 8.64047 17.3001 8.09371 17.206 7.55872H9.66016V10.6394H13.9813C13.802 11.6329 13.2258 12.5119 12.3822 13.0704V15.0693H14.9602C16.4741 13.6759 17.3442 11.6182 17.3442 9.18429Z" fill="#4285F4" />
-                      <path d="M9.65974 17.0006C11.8174 17.0006 13.637 16.2922 14.9627 15.0693L12.3847 13.0704C11.6675 13.5584 10.7415 13.8347 9.66268 13.8347C7.5756 13.8347 5.80598 12.4266 5.17104 10.5336H2.51074V12.5942C3.86882 15.2956 6.63494 17.0006 9.65974 17.0006Z" fill="#34A853" />
-                      <path d="M5.16852 10.5336C4.83341 9.53999 4.83341 8.46411 5.16852 7.47054V5.40991H2.51116C1.37649 7.67043 1.37649 10.3337 2.51116 12.5942L5.16852 10.5336Z" fill="#FBBC04" />
-                      <path d="M9.65974 4.16644C10.8003 4.1488 11.9026 4.57798 12.7286 5.36578L15.0127 3.08174C13.5664 1.72367 11.6469 0.0229773 9.65974 0.000539111C6.63494 0.000539111 3.86882 1.70548 2.51074 4.40987L5.1681 6.4705C5.8001 4.57449 7.57266 3.16644 9.65974 3.16644Z" fill="#EA4335" />
-                    </svg>
-                    Google
+              {/* Password Input */}
+              <div className="input-group">
+                <label htmlFor="password">Password</label>
+                <div className={`input-wrapper ${errors.password ? 'error' : ''}`}>
+                  <span className="input-icon">
+                    <i className="bi bi-shield-lock"></i>
+                  </span>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    id="password"
+                    name="password"
+                    className="form-input"
+                    placeholder="••••••••"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    onClick={() => setShowPassword(!showPassword)}
+                    tabIndex={-1}
+                  >
+                    <i className={`bi ${showPassword ? 'bi-eye-slash' : 'bi-eye'}`}></i>
                   </button>
-                  <button type="button" className="auth-social-btn microsoft">
+                </div>
+                {errors.password && <div className="field-error">{errors.password}</div>}
+              </div>
+
+              <div className="form-actions">
+                <label className="custom-checkbox">
+                  <input 
+                    type="checkbox" 
+                    checked={rememberMe}
+                    onChange={() => setRememberMe((prev) => !prev)}
+                  />
+                  <span className="checkmark"></span>
+                  <span className="label-text">Remember me</span>
+                </label>
+                <Link to="/forgot-password" className="forgot-link">Forgot password?</Link>
+              </div>
+
+              <button type="submit" className="submit-btn" disabled={loading}>
+                {loading ? <span className="loader"></span> : "Access Portal"}
+              </button>
+            </form>
+
+            <div className="form-footer">
+              <p>New staff member? <Link to="/sign-up">Create an account</Link></p>
+
+              <div className="social-login">
+                <span>Or sign in with</span>
+                <div className="social-icons">
+                  <button type="button" className="social-btn google">
+                    <i className="bi bi-google"></i>
+                  </button>
+                  <button type="button" className="social-btn microsoft">
                     <i className="bi bi-microsoft"></i>
-                    Microsoft
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-                <div className="auth-form-footer">
-                  <p>
-                    Don't have an account? <Link to="/sign-up" className="auth-link-primary">Create Account</Link>
-                  </p>
+        {/* Right Side: Visual Section */}
+        <div className="login-visual-side">
+          <div className="visual-overlay"></div>
+          <div className="visual-content">
+            <div className="glass-card" data-aos="zoom-in" data-aos-delay="400">
+              <div className="glass-icon">
+                <i className="bi bi-heart-pulse"></i>
+              </div>
+              <h3>Advanced Care</h3>
+              <p>Streamlining hospital operations for better patient outcomes.</p>
+              <div className="stats-row">
+                <div className="stat">
+                  <span className="stat-num">24/7</span>
+                  <span className="stat-desc">Support</span>
                 </div>
-              </form>
+                <div className="stat">
+                  <span className="stat-num">99%</span>
+                  <span className="stat-desc">Uptime</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
+
       <style>{`
+        /* --- RESET & VARIABLES --- */
         :root {
-          --primary-color: #049ebb;
-          --primary-dark: #038a9e;
-          --primary-light: #e0f7fa;
-          --text-dark: #1e293b;
+          --primary-color: #0e7490;
+          --primary-hover: #155e75;
+          --accent-color: #06b6d4;
+          --bg-color: #f8fafc;
+          --text-main: #0f172a;
           --text-muted: #64748b;
-          --border-color: #e2e8f0;
-          --bg-gradient: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-          --card-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-          --input-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+          --border-color: #cbd5e1;
+          --input-bg: #ffffff;
+          --error-color: #ef4444;
+          --error-bg: #fee2e2;
+          --error-border: #fecaca;
         }
 
-        .auth-page-wrapper {
+        * {
+            box-sizing: border-box;
+        }
+
+        .login-wrapper {
           min-height: 100vh;
           width: 100%;
-          position: relative;
-          overflow: hidden;
-          background: var(--bg-gradient);
+          background: var(--bg-color);
+          font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        .login-container {
           display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 2rem 1rem;
-          font-family: 'Inter', sans-serif;
+          min-height: 100vh;
+          background: white;
         }
 
-        /* Decorative Background Shapes */
-        .auth-bg-shape {
-          position: absolute;
-          border-radius: 50%;
-          filter: blur(80px);
-          z-index: 0;
-          opacity: 0.6;
-        }
-        .shape-1 {
-          top: -10%;
-          left: -5%;
-          width: 500px;
-          height: 500px;
-          background: rgba(4, 158, 187, 0.15);
-        }
-        .shape-2 {
-          bottom: -10%;
-          right: -5%;
-          width: 400px;
-          height: 400px;
-          background: rgba(6, 182, 212, 0.15);
-        }
-
-        .auth-container {
-          width: 100%;
-          max-width: 1200px;
-          margin: 0 auto;
-          position: relative;
-          z-index: 1;
-        }
-
-        .auth-center-wrapper {
+        /* --- LEFT SIDE: FORM --- */
+      .login-form-side {
+          flex: 1;
           display: flex;
           flex-direction: column;
-          align-items: center;
           justify-content: center;
-          width: 100%;
-          max-width: 480px;
+          padding: 3rem;
+          position: relative;
+          max-width: 700px;
           margin: 0 auto;
         }
 
-        .auth-brand {
-          margin-bottom: 2rem;
-          text-align: center;
-        }
-
-        .auth-brand-link {
-          display: inline-flex;
-          flex-direction: column;
-          align-items: center;
-          text-decoration: none;
-          color: inherit;
-          transition: transform 0.3s ease;
-        }
-        .auth-brand-link:hover {
-          transform: translateY(-2px);
-        }
-
-        .auth-brand-icon {
-          width: 60px;
-          height: 60px;
-          background: linear-gradient(135deg, var(--primary-color) 0%, #06b6d4 100%);
-          border-radius: 16px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: 0 10px 20px rgba(4, 158, 187, 0.2);
-          margin-bottom: 0.75rem;
-          transform: rotate(-5deg);
-        }
-
-        .auth-brand-icon i {
-          font-size: 1.75rem;
-          color: white;
-        }
-
-        .auth-brand-name {
-          font-size: 1.75rem;
-          font-weight: 800;
-          color: var(--text-dark);
-          margin: 0;
-          letter-spacing: -0.025em;
-        }
-
-        .auth-form-card {
-          background: rgba(255, 255, 255, 0.95);
-          backdrop-filter: blur(10px);
-          border-radius: 24px;
-          box-shadow: var(--card-shadow);
-          padding: 3rem 2.5rem;
+        .login-content-max {
           width: 100%;
-          border: 1px solid rgba(255, 255, 255, 0.5);
+          max-width: 440px;
+          margin: 0 auto;
         }
 
-        .auth-form-header {
-          text-align: center;
-          margin-bottom: 2.5rem;
-        }
-
-        .auth-form-title {
-          font-size: 1.875rem;
-          font-weight: 700;
-          color: var(--text-dark);
-          margin-bottom: 0.5rem;
-          letter-spacing: -0.025em;
-        }
-
-        .auth-form-subtitle {
-          color: var(--text-muted);
-          font-size: 0.95rem;
-          margin: 0;
-        }
-
-        .auth-alert {
+        /* Logo & Header */
+        .brand-logo {
           display: flex;
           align-items: center;
-          gap: 0.75rem;
-          padding: 1rem;
+          gap: 12px;
+          margin-bottom: 40px;
+        }
+
+        .brand-icon {
+          width: 44px;
+          height: 44px;
+          background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
           border-radius: 12px;
-          margin-bottom: 1.5rem;
-          font-size: 0.9rem;
-          font-weight: 500;
-        }
-        .auth-alert.error {
-          background-color: #fef2f2;
-          color: #ef4444;
-          border: 1px solid #fee2e2;
-        }
-        .auth-alert i {
-          font-size: 1.1rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-size: 22px;
         }
 
-        .auth-form-group {
-          margin-bottom: 1.5rem;
+        .brand-text {
+          font-size: 24px;
+          font-weight: 700;
+          color: var(--text-main);
         }
 
-        .auth-form-label {
-          display: block;
-          font-size: 0.875rem;
+        .form-header h1 {
+          font-size: 32px;
+          font-weight: 700;
+          color: var(--text-main);
+          margin-bottom: 12px;
+        }
+
+        .form-header p {
+          color: var(--text-muted);
+          font-size: 16px;
+          line-height: 1.5;
+          margin-bottom: 32px;
+        }
+
+        /* --- FORM STYLING --- */
+        .modern-form {
+          width: 100%;
+        }
+
+        .error-alert {
+          background: var(--error-bg);
+          color: var(--error-color);
+          padding: 12px 16px;
+          border-radius: 12px;
+          margin-bottom: 24px;
+          font-size: 14px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          border: 1px solid var(--error-border);
+        }
+
+        .input-group {
+          margin-bottom: 24px;
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          width: 100%;
+        }
+
+        .input-group label {
+          font-size: 14px;
           font-weight: 600;
-          color: var(--text-dark);
-          margin-bottom: 0.5rem;
+          color: var(--text-main);
+          margin-bottom: 8px;
+          display: block;
         }
 
-        .auth-input-wrapper {
+        .input-wrapper {
           position: relative;
+          width: 100%;
           display: flex;
           align-items: center;
         }
 
-        .auth-input-icon {
-          position: absolute;
-          left: 1rem;
-          color: var(--text-muted);
-          font-size: 1.1rem;
-          pointer-events: none;
-          transition: color 0.3s ease;
+        .input-wrapper.error .form-input {
+          border-color: var(--error-color);
+          background-color: var(--error-bg);
         }
 
-        .auth-form-input {
+        .input-wrapper.error .input-icon {
+          color: var(--error-color);
+        }
+
+        .form-input {
           width: 100%;
-          padding: 0.875rem 1rem 0.875rem 3rem;
+          height: 52px;
+          padding: 0 16px 0 48px;
+          background: var(--input-bg);
           border: 1.5px solid var(--border-color);
           border-radius: 12px;
-          font-size: 0.95rem;
-          color: var(--text-dark);
-          background: #f8fafc;
+          font-size: 16px;
+          color: var(--text-main);
           transition: all 0.2s ease;
-          box-shadow: var(--input-shadow);
         }
 
-        .auth-form-input:focus {
+        .form-input:focus {
           outline: none;
-          border-color: var(--primary-color);
-          background: white;
-          box-shadow: 0 0 0 4px rgba(4, 158, 187, 0.1);
+          border-color: var(--accent-color);
+          box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.1);
         }
-        
-        .auth-input-wrapper:focus-within .auth-input-icon {
+
+        .input-icon {
+          position: absolute;
+          left: 16px;
+          top: 50%;
+          transform: translateY(-50%);
+          color: var(--text-muted);
+          font-size: 18px;
+          pointer-events: none;
+          display: flex;
+          align-items: center;
+        }
+
+        .form-input:focus + .input-icon,
+        .input-wrapper:focus-within .input-icon {
           color: var(--primary-color);
         }
 
-        .auth-input-wrapper.error .auth-form-input {
-          border-color: #ef4444;
-          background-color: #fef2f2;
-        }
-        .auth-input-wrapper.error .auth-input-icon {
-          color: #ef4444;
+        .password-toggle {
+          position: absolute;
+          right: 16px;
+          top: 50%;
+          transform: translateY(-50%);
+          background: none;
+          border: none;
+          color: var(--text-muted);
+          cursor: pointer;
+          padding: 4px;
+          display: flex;
+          align-items: center;
+          transition: color 0.2s;
         }
 
-        .auth-field-error {
-          color: #ef4444;
-          font-size: 0.8rem;
-          margin-top: 0.5rem;
+        .password-toggle:hover {
+          color: var(--text-main);
+        }
+
+        .field-error {
+          color: var(--error-color);
+          font-size: 12px;
+          margin-top: 6px;
           font-weight: 500;
           display: flex;
           align-items: center;
-          gap: 0.25rem;
+          gap: 4px;
         }
-        .auth-field-error::before {
+
+        .field-error::before {
           content: "•";
-          font-size: 1.2rem;
+          font-size: 16px;
           line-height: 0;
         }
 
-        .auth-form-options {
+        /* --- FORM ACTIONS --- */
+        .form-actions {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 2rem;
+          margin-bottom: 32px;
         }
 
-        .auth-checkbox-container {
+        .custom-checkbox {
           display: flex;
           align-items: center;
           cursor: pointer;
-          user-select: none;
-          position: relative;
         }
 
-        .auth-checkbox-container input {
-          position: absolute;
-          opacity: 0;
-          cursor: pointer;
-          height: 0;
-          width: 0;
+        .custom-checkbox input {
+          display: none;
         }
 
         .checkmark {
-          height: 20px;
           width: 20px;
-          background-color: #f1f5f9;
-          border: 1.5px solid var(--border-color);
+          height: 20px;
+          border: 2px solid var(--border-color);
           border-radius: 6px;
-          margin-right: 0.75rem;
-          transition: all 0.2s ease;
+          margin-right: 8px;
           position: relative;
+          transition: all 0.2s;
         }
 
-        .auth-checkbox-container:hover input ~ .checkmark {
-          background-color: #e2e8f0;
-        }
-
-        .auth-checkbox-container input:checked ~ .checkmark {
-          background-color: var(--primary-color);
+        .custom-checkbox input:checked + .checkmark {
+          background: var(--primary-color);
           border-color: var(--primary-color);
         }
 
-        .checkmark:after {
+        .custom-checkbox input:checked + .checkmark:after {
           content: "";
           position: absolute;
-          display: none;
           left: 6px;
           top: 2px;
           width: 5px;
@@ -506,157 +476,214 @@ const SignIn = () => {
           transform: rotate(45deg);
         }
 
-        .auth-checkbox-container input:checked ~ .checkmark:after {
-          display: block;
-        }
-
         .label-text {
-          font-size: 0.9rem;
+          font-size: 14px;
           color: var(--text-muted);
-          font-weight: 500;
         }
 
-        .auth-link {
-          font-size: 0.9rem;
+        .forgot-link {
+          font-size: 14px;
           color: var(--primary-color);
           text-decoration: none;
           font-weight: 600;
           transition: color 0.2s;
         }
-        .auth-link:hover {
-          color: var(--primary-dark);
+
+        .forgot-link:hover {
+          color: var(--primary-hover);
           text-decoration: underline;
         }
 
-        .auth-submit-btn {
+        /* --- BUTTONS --- */
+        .submit-btn {
           width: 100%;
-          padding: 1rem;
-          background: linear-gradient(135deg, var(--primary-color) 0%, #06b6d4 100%);
+          height: 52px;
+          background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
           color: white;
           border: none;
           border-radius: 12px;
-          font-size: 1rem;
+          font-size: 16px;
           font-weight: 600;
           cursor: pointer;
-          transition: all 0.3s ease;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: 0 4px 12px rgba(4, 158, 187, 0.25);
+          transition: transform 0.2s, box-shadow 0.2s;
+          position: relative;
         }
 
-        .auth-submit-btn:hover:not(:disabled) {
+        .submit-btn:hover:not(:disabled) {
           transform: translateY(-2px);
-          box-shadow: 0 8px 20px rgba(4, 158, 187, 0.35);
+          box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
         }
 
-        .auth-submit-btn:disabled {
+        .submit-btn:disabled {
           opacity: 0.7;
           cursor: not-allowed;
-          transform: none;
         }
 
-        .auth-divider {
-          position: relative;
+        /* --- FOOTER & SOCIAL --- */
+        .form-footer {
+          margin-top: 40px;
           text-align: center;
-          margin: 2rem 0;
         }
-        .auth-divider::before {
-          content: '';
-          position: absolute;
-          left: 0;
-          top: 50%;
-          width: 100%;
-          height: 1px;
-          background: var(--border-color);
-        }
-        .auth-divider span {
-          position: relative;
-          background: white;
-          padding: 0 1rem;
+
+        .form-footer p {
           color: var(--text-muted);
-          font-size: 0.85rem;
-          font-weight: 500;
+          font-size: 14px;
+          margin-bottom: 24px;
         }
 
-        .auth-social-buttons {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 1rem;
-          margin-bottom: 2rem;
+        .form-footer a {
+          color: var(--primary-color);
+          font-weight: 600;
+          text-decoration: none;
+          transition: color 0.2s;
         }
 
-        .auth-social-btn {
-          padding: 0.875rem;
-          border: 1.5px solid var(--border-color);
+        .form-footer a:hover {
+          color: var(--primary-hover);
+        }
+
+        .social-login {
+          position: relative;
+          border-top: 1px solid var(--border-color);
+          padding-top: 24px;
+        }
+
+        .social-login span {
+          position: absolute;
+          top: -10px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: white;
+          padding: 0 10px;
+          color: var(--text-muted);
+          font-size: 12px;
+        }
+
+        .social-icons {
+          display: flex;
+          justify-content: center;
+          gap: 16px;
+        }
+
+        .social-btn {
+          width: 48px;
+          height: 48px;
+          border: 1px solid var(--border-color);
           border-radius: 12px;
           background: white;
-          color: var(--text-dark);
-          font-size: 0.9rem;
-          font-weight: 600;
+          font-size: 20px;
           cursor: pointer;
-          transition: all 0.2s ease;
+          transition: all 0.2s;
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 0.75rem;
         }
 
-        .auth-social-btn:hover {
-          background: #f8fafc;
-          border-color: #cbd5e1;
-          transform: translateY(-1px);
+        .social-btn:hover {
+          background: #f1f5f9;
+          border-color: var(--text-muted);
         }
 
-        .auth-social-btn.google:hover {
-          border-color: #4285F4;
-          background: #f0f7ff;
-        }
-        .auth-social-btn.microsoft:hover {
-          border-color: #00a4ef;
-          background: #f0f9ff;
+        .social-btn.google { color: #EA4335; }
+        .social-btn.microsoft { color: #00A4EF; }
+
+        /* --- RIGHT SIDE: VISUAL --- */
+        .login-visual-side {
+          flex: 1.2;
+          background-image: url('https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=2053&auto=format&fit=crop');
+          background-size: cover;
+          background-position: center;
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
 
-        .auth-form-footer {
-          text-align: center;
-          padding-top: 1rem;
-          border-top: 1px solid #f1f5f9;
+        .visual-overlay {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(135deg, rgba(14, 116, 144, 0.9), rgba(6, 182, 212, 0.7));
         }
 
-        .auth-form-footer p {
-          margin: 0;
-          color: var(--text-muted);
-          font-size: 0.95rem;
+        .visual-content {
+          position: relative;
+          z-index: 2;
+          width: 90%;
+          max-width: 480px;
         }
 
-        .auth-link-primary {
-          color: var(--primary-color);
-          text-decoration: none;
+        .glass-card {
+          background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(12px);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 24px;
+          padding: 40px;
+          color: white;
+        }
+
+        .glass-icon {
+          width: 64px;
+          height: 64px;
+          background: rgba(255, 255, 255, 0.2);
+          border-radius: 16px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 32px;
+          margin-bottom: 24px;
+        }
+
+        .glass-card h3 {
+          font-size: 28px;
           font-weight: 700;
-          margin-left: 0.25rem;
-          transition: color 0.2s;
-        }
-        .auth-link-primary:hover {
-          color: var(--primary-dark);
+          margin-bottom: 12px;
         }
 
-        @media (max-width: 640px) {
-          .auth-form-card {
-            padding: 2rem 1.5rem;
-            border-radius: 20px;
-          }
-          .auth-brand-name {
-            font-size: 1.5rem;
-          }
-          .auth-form-title {
-            font-size: 1.5rem;
-          }
-          .auth-social-buttons {
-            grid-template-columns: 1fr;
-          }
+        .glass-card p {
+          font-size: 18px;
+          line-height: 1.6;
+          opacity: 0.9;
+          margin-bottom: 32px;
+        }
+
+        .stats-row {
+          display: flex;
+          gap: 40px;
+          border-top: 1px solid rgba(255, 255, 255, 0.2);
+          padding-top: 24px;
+        }
+
+        .stat-num {
+          font-size: 24px;
+          font-weight: 700;
+          display: block;
+        }
+
+        .stat-desc {
+          font-size: 14px;
+          opacity: 0.8;
+        }
+
+        .loader {
+          width: 24px;
+          height: 24px;
+          border: 3px solid #FFF;
+          border-bottom-color: transparent;
+          border-radius: 50%;
+          display: inline-block;
+          animation: rotation 1s linear infinite;
+        }
+
+        @keyframes rotation {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 992px) {
+          .login-visual-side { display: none; }
         }
       `}</style>
-    </>
+    </div>
   );
 };
 
