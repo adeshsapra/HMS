@@ -429,30 +429,16 @@ const Header = () => {
         {/* Auth Buttons - Right Side */}
         <div className="d-flex align-items-center header-auth-buttons">
           {!isAuthenticated ? (
-            <>
-              <Link
-                to="/sign-in"
-                className="btn-signin d-none d-md-flex align-items-center"
-                onClick={closeMobileNav}
-              >
-                <i className="bi bi-box-arrow-in-right"></i>
-                <span className="d-flex flex-column">
-                  <span>Sign</span>
-                  <span>In</span>
-                </span>
-              </Link>
-              <Link
-                to="/sign-up"
-                className="btn-signup d-none d-md-flex align-items-center"
-                onClick={closeMobileNav}
-              >
-                <i className="bi bi-person-plus"></i>
-                <span className="d-flex flex-column">
-                  <span>Sign</span>
-                  <span>Up</span>
-                </span>
-              </Link>
-            </>
+            <Link
+              to="/sign-in"
+              className="btn-signin d-none d-md-flex align-items-center"
+              onClick={closeMobileNav}
+            >
+              <i className="bi bi-box-arrow-in-right"></i>
+              <span className="d-flex flex-column">
+                <span>Sign In</span>
+              </span>
+            </Link>
           ) : (
             <div className="dropdown d-none d-md-block">
               <button
@@ -486,6 +472,7 @@ const Header = () => {
             to="/appointment"
             onClick={closeMobileNav}
           >
+            <i className="bi bi-calendar-check me-2"></i>
             Appointment
           </Link>
         </div>
@@ -511,16 +498,17 @@ const Header = () => {
           }
           
           .header-auth-buttons {
-            gap: 10px;
+            gap: 5px;
             flex-shrink: 0;
             z-index: 10;
+            align-items: center;
           }
           
           .header-auth-buttons .btn-signin {
             background: #ffffff;
             border: 1px solid var(--accent-color);
             color: var(--accent-color);
-            border-radius: 8px;
+            border-radius: 50px;
             padding: 10px 14px;
             font-size: 13px;
             font-weight: 600;
@@ -532,6 +520,8 @@ const Header = () => {
             line-height: 1;
             white-space: nowrap;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            will-change: transform;
+            transform: translateZ(0);
           }
           
           .header-auth-buttons .btn-signin i {
@@ -554,62 +544,17 @@ const Header = () => {
             color: var(--accent-color);
           }
           
-          // .header-auth-buttons .btn-signin:hover {
-          //   background: var(--accent-color);
-          //   color: white;
-          //   border-color: var(--accent-color);
-          //   transform: translateY(-1px);
-          //   box-shadow: 0 4px 12px rgba(4, 158, 187, 0.25);
-          // }
-          
-          // .header-auth-buttons .btn-signin:hover i,
-          // .header-auth-buttons .btn-signin:hover span span {
-          //   color: white;
-          // }
-          
-          .header-auth-buttons .btn-signup {
+          .header-auth-buttons .btn-signin:hover {
             background: var(--accent-color);
-            border: 1px solid var(--accent-color);
             color: white;
-            border-radius: 8px;
-            padding: 10px 14px;
-            font-size: 13px;
-            font-weight: 600;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            line-height: 1;
-            white-space: nowrap;
-            box-shadow: 0 1px 3px rgba(4, 158, 187, 0.2);
+            border-color: var(--accent-color);
+            transform: translateZ(0) translateY(-1px);
+            box-shadow: 0 4px 12px rgba(4, 158, 187, 0.25);
           }
           
-          .header-auth-buttons .btn-signup i {
-            font-size: 18px;
+          .header-auth-buttons .btn-signin:hover i,
+          .header-auth-buttons .btn-signin:hover span span {
             color: white;
-            flex-shrink: 0;
-          }
-          
-          .header-auth-buttons .btn-signup span {
-            display: flex;
-            flex-direction: column;
-            line-height: 1.1;
-            gap: 0;
-          }
-          
-          .header-auth-buttons .btn-signup span span {
-            font-size: 12px;
-            line-height: 1.2;
-            font-weight: 600;
-            color: white;
-          }
-          
-          .header-auth-buttons .btn-signup:hover {
-            background: color-mix(in srgb, var(--accent-color) 90%, black 10%);
-            border-color: color-mix(in srgb, var(--accent-color) 90%, black 10%);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(4, 158, 187, 0.3);
           }
           
           .header-auth-buttons .btn-getstarted {
@@ -625,11 +570,13 @@ const Header = () => {
             white-space: nowrap;
             box-shadow: 0 1px 3px rgba(4, 158, 187, 0.2);
             margin: 0;
+            will-change: transform;
+            transform: translateZ(0);
           }
           
           .header-auth-buttons .btn-getstarted:hover {
             background: color-mix(in srgb, var(--accent-color) 90%, black 10%);
-            transform: translateY(-1px);
+            transform: translateZ(0) translateY(-1px);
             box-shadow: 0 4px 12px rgba(4, 158, 187, 0.3);
             color: white;
           }
@@ -656,8 +603,7 @@ const Header = () => {
               margin-right: 10px;
             }
             
-            .header-auth-buttons .btn-signin,
-            .header-auth-buttons .btn-signup {
+            .header-auth-buttons .btn-signin {
               display: none !important;
             }
             
@@ -692,20 +638,17 @@ const Header = () => {
           }
           
           @media (min-width: 768px) and (max-width: 991px) {
-            .header-auth-buttons .btn-signin,
-            .header-auth-buttons .btn-signup {
+            .header-auth-buttons .btn-signin {
               padding: 8px 12px;
               font-size: 12px;
               gap: 8px;
             }
             
-            .header-auth-buttons .btn-signin i,
-            .header-auth-buttons .btn-signup i {
+            .header-auth-buttons .btn-signin i {
               font-size: 16px;
             }
             
-            .header-auth-buttons .btn-signin span span,
-            .header-auth-buttons .btn-signup span span {
+            .header-auth-buttons .btn-signin span span {
               font-size: 11px;
             }
           }
