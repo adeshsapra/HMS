@@ -1,6 +1,6 @@
 import AOS from 'aos'
-import PageTitle from '../components/PageTitle'
 import { useEffect } from 'react'
+import PageHero from '../components/PageHero'
 
 const Privacy = () => {
   useEffect(() => {
@@ -14,14 +14,15 @@ const Privacy = () => {
 
   return (
     <div className="privacy-page">
-      <PageTitle
+      <PageHero
         title="Privacy Policy"
-        description="Our privacy policy and data protection information."
+        description="Understand how we collect, protect, and use your personal information."
         breadcrumbs={[
           { label: 'Home', path: '/' },
           { label: 'Privacy' }
         ]}
       />
+
 
       <section id="privacy" className="privacy section">
         <div className="container" data-aos="fade-up">

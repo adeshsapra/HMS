@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import AOS from 'aos'
-import PageTitle from '../components/PageTitle'
+import PageHero from '../components/PageHero'
 
 const DepartmentDetails = () => {
   useEffect(() => {
@@ -14,15 +14,16 @@ const DepartmentDetails = () => {
 
   return (
     <div className="department-details-page">
-      <PageTitle
-        title="Department Details"
-        description="Detailed information about our medical departments and specialized services."
-        breadcrumbs={[
-          { label: 'Home', path: '/' },
-          { label: 'Departments', path: '/departments' },
-          { label: 'Department Details' }
-        ]}
-      />
+      <PageHero
+  title="Department Details"
+  description="Learn more about our specialized departments and the expert care they provide."
+  breadcrumbs={[
+    { label: 'Home', path: '/' },
+    { label: 'Departments', path: '/departments' },
+    { label: 'Department Details' }
+  ]}
+/>
+
 
       <section id="department-details" className="department-details section">
         <div className="container" data-aos="fade-up">

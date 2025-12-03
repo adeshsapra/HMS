@@ -24,6 +24,7 @@ import Privacy from './pages/Privacy'
 import SignIn from './pages/SignIn'
 import SignUp from './pages/SignUp'
 import NotFound from './pages/NotFound'
+import Profile from './pages/Profile'
 
 function App() {
   const location = useLocation()
@@ -84,6 +85,7 @@ function App() {
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/sign-in" element={<SignIn />} />
           <Route path="/sign-up" element={<SignUp />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>

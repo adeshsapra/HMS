@@ -1,6 +1,6 @@
 import AOS from 'aos'
-import PageTitle from '../components/PageTitle'
 import { useEffect } from 'react'
+import PageHero from '../components/PageHero'
 
 const Terms = () => {
   useEffect(() => {
@@ -14,14 +14,15 @@ const Terms = () => {
 
   return (
     <div className="terms-page">
-      <PageTitle
+      <PageHero
         title="Terms of Service"
-        description="Please read our terms and conditions."
+        description="Review our terms, conditions, and policies for using our services."
         breadcrumbs={[
           { label: 'Home', path: '/' },
           { label: 'Terms' }
         ]}
       />
+
 
       <section id="terms" className="terms section">
         <div className="container" data-aos="fade-up">

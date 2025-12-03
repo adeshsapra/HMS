@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import AOS from 'aos'
-import PageTitle from '../components/PageTitle'
+import PageHero from '../components/PageHero'
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -44,15 +44,15 @@ const Contact = () => {
 
   return (
     <div className="contact-page">
-      <PageTitle
+      <PageHero
         title="Contact"
-        description="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut elit tellus, luctus nec ullamcorper mattis, pulvinar dapibus leo."
+        description="Reach out to our support team for assistance, inquiries, or appointment guidance."
         breadcrumbs={[
           { label: 'Home', path: '/' },
-          { label: 'Category' },
           { label: 'Contact' }
         ]}
       />
+
 
       <section id="contact" className="contact section">
         <div className="container">

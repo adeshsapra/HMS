@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import AOS from 'aos'
-import PageTitle from '../components/PageTitle'
+import PageHero from '../components/PageHero'
 
 const Doctors = () => {
   useEffect(() => {
@@ -26,15 +26,14 @@ const Doctors = () => {
 
   return (
     <div className="doctors-page">
-      <PageTitle
-        title="Doctors"
-        description="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut elit tellus, luctus nec ullamcorper mattis, pulvinar dapibus leo."
-        breadcrumbs={[
-          { label: 'Home', path: '/' },
-          { label: 'Category' },
-          { label: 'Doctors' }
-        ]}
-      />
+  <PageHero
+  title="Doctors"
+  description="Meet our team of skilled and compassionate medical specialists dedicated to your health."
+  breadcrumbs={[
+    { label: 'Home', path: '/' },
+    { label: 'Doctors' }
+  ]}
+/>
 
       <section id="doctors" className="doctors section">
         <div className="container" data-aos="fade-up" data-aos-delay="100">

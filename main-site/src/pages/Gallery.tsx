@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import AOS from 'aos'
 import GLightbox from 'glightbox'
-import PageTitle from '../components/PageTitle'
+import PageHero from '../components/PageHero'
 
 const Gallery = () => {
   useEffect(() => {
@@ -25,14 +25,15 @@ const Gallery = () => {
 
   return (
     <div className="gallery-page">
-      <PageTitle
+      <PageHero
         title="Gallery"
-        description="View our facilities and medical equipment."
+        description="Explore our modern facilities, departments, and medical infrastructure."
         breadcrumbs={[
           { label: 'Home', path: '/' },
           { label: 'Gallery' }
         ]}
       />
+
 
       <section id="gallery" className="gallery section">
         <div className="container" data-aos="fade-up">

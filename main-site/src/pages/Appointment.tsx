@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import AOS from 'aos'
-import PageTitle from '../components/PageTitle'
+import PageHero from '../components/PageHero'
 
 const Appointment = () => {
   const [formData, setFormData] = useState({
@@ -56,15 +56,16 @@ const Appointment = () => {
 
   return (
     <div className="appointment-page">
-      <PageTitle
+      <PageHero
         title="Appointment"
-        description="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut elit tellus, luctus nec ullamcorper mattis, pulvinar dapibus leo."
+        description="Book your medical appointment quickly and receive timely expert care."
         breadcrumbs={[
           { label: 'Home', path: '/' },
           { label: 'Category' },
           { label: 'Appointment' }
         ]}
       />
+
 
       <section id="appointmnet" className="appointmnet section">
         <div className="container" data-aos="fade-up" data-aos-delay="100">
