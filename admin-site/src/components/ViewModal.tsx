@@ -51,24 +51,30 @@ export function ViewModal({ open, onClose, title, data, fields }: ViewModalProps
   };
 
   const renderValue = (field: ViewField, value: any): JSX.Element => {
-    // Use custom render function if provided
+    // For avatar type with render function, use render to get the URL
+    if (field.type === "avatar") {
+      const avatarUrl = field.render ? field.render(value, data) : value;
+      return (
+        <Avatar
+          src={avatarUrl as string || "/img/team-1.jpeg"}
+          alt={data.name || `${data.first_name || ''} ${data.last_name || ''}`}
+          size="xl"
+          variant="rounded"
+          className="border-4 border-blue-gray-100 shadow-lg"
+          onError={(e: any) => {
+            e.target.src = "/img/team-1.jpeg";
+          }}
+        />
+      );
+    }
+
+    // Use custom render function if provided (for non-avatar types)
     if (field.render) {
       return <>{field.render(value, data)}</>;
     }
-    
+
     if (field.type === "status") {
       return <StatusBadge status={value} size="lg" />;
-    }
-    if (field.type === "avatar" && value) {
-      return (
-        <Avatar 
-          src={value} 
-          alt={data.name || ""} 
-          size="xl" 
-          variant="rounded" 
-          className="border-4 border-blue-gray-100 shadow-lg" 
-        />
-      );
     }
     if (field.type === "currency") {
       return (
@@ -80,10 +86,10 @@ export function ViewModal({ open, onClose, title, data, fields }: ViewModalProps
     if (field.type === "date" && value) {
       return (
         <span className="text-blue-gray-700 font-medium">
-          {new Date(value).toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
+          {new Date(value).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
           })}
         </span>
       );
@@ -122,11 +128,11 @@ export function ViewModal({ open, onClose, title, data, fields }: ViewModalProps
           </Button>
         </div>
       </DialogHeader>
-      <DialogBody className="pt-6 px-6 bg-blue-gray-50/30">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <DialogBody className="pt-6 px-6 bg-blue-gray-50/30 overflow-y-auto max-h-[70vh]">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {fields.map((field, index) => (
-            <div 
-              key={field.key} 
+            <div
+              key={field.key}
               className={field.fullWidth ? "md:col-span-2" : ""}
             >
               <div className="bg-white rounded-lg p-4 border border-blue-gray-100 shadow-sm hover:shadow-md transition-shadow">
@@ -146,17 +152,17 @@ export function ViewModal({ open, onClose, title, data, fields }: ViewModalProps
         </div>
       </DialogBody>
       <DialogFooter className="bg-white border-t border-blue-gray-200 px-6 py-4">
-        <Button 
-          variant="text" 
-          color="blue-gray" 
-          onClick={onClose} 
+        <Button
+          variant="text"
+          color="blue-gray"
+          onClick={onClose}
           className="mr-2 px-6 py-2.5 font-semibold hover:bg-blue-gray-50"
         >
           Close
         </Button>
-        <Button 
-          variant="gradient" 
-          color="blue" 
+        <Button
+          variant="gradient"
+          color="blue"
           onClick={onClose}
           className="px-8 py-2.5 font-semibold shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2"
         >

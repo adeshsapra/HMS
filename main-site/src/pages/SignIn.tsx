@@ -12,7 +12,12 @@ const SignIn = () => {
     email: "",
     password: "",
   });
-  
+
+  const [touched, setTouched] = useState({
+    email: false,
+    password: false,
+  });
+
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -26,16 +31,39 @@ const SignIn = () => {
     });
   }, []);
 
+  const validateField = (name: string, value: string) => {
+    let error = "";
+    if (name === "email") {
+      const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+      if (!value) error = "Email is required";
+      else if (!emailRegex.test(value)) error = "Please enter a valid email address";
+    }
+    if (name === "password") {
+      if (!value) error = "Password is required";
+    }
+    return error;
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    // Clear error when user types
-    if (errors[name as keyof typeof errors]) {
-      setErrors((prev) => ({ ...prev, [name]: undefined }));
+
+    // Real-time validation if already touched
+    if (touched[name as keyof typeof touched]) {
+      const error = validateField(name, value);
+      setErrors((prev) => ({ ...prev, [name]: error || undefined }));
     }
+
     if (errors.general) {
       setErrors((prev) => ({ ...prev, general: undefined }));
     }
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setTouched((prev) => ({ ...prev, [name]: true }));
+    const error = validateField(name, value);
+    setErrors((prev) => ({ ...prev, [name]: error || undefined }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -44,17 +72,14 @@ const SignIn = () => {
     setErrors({});
 
     const newErrors: typeof errors = {};
-    // Simple email validation
-    const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
-    if (!emailRegex.test(formData.email)) {
-      newErrors.email = "Please enter a valid email address.";
-    }
-    if (!formData.password) {
-      newErrors.password = "Password is required";
-    }
+    Object.keys(formData).forEach((key) => {
+      const error = validateField(key, formData[key as keyof typeof formData]);
+      if (error) newErrors[key as keyof typeof errors] = error;
+    });
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      setTouched({ email: true, password: true });
       setLoading(false);
       return;
     }
@@ -85,7 +110,7 @@ const SignIn = () => {
       <div className="login-container">
 
         {/* Left Side: Form Section */}
-        <div className="login-form-side" data-aos="fade-up" data-aos-delay="100">
+        <div className="login-form-side" data-aos="fade-right" data-aos-delay="100">
           <div className="login-content-max">
 
             {/* Logo */}
@@ -101,10 +126,10 @@ const SignIn = () => {
               <p>Please enter your credentials to access the hospital admin panel.</p>
             </div>
 
-            <form onSubmit={handleSubmit} className="modern-form">
+            <form onSubmit={handleSubmit} className="modern-form" noValidate>
               {errors.general && (
-                <div className="error-alert">
-                  <i className="bi bi-exclamation-circle"></i> 
+                <div className="error-alert" data-aos="fade-in">
+                  <i className="bi bi-exclamation-circle-fill"></i>
                   <span>{errors.general}</span>
                 </div>
               )}
@@ -112,7 +137,7 @@ const SignIn = () => {
               {/* Email Input */}
               <div className="input-group">
                 <label htmlFor="email">Email Address</label>
-                <div className={`input-wrapper ${errors.email ? 'error' : ''}`}>
+                <div className={`input-wrapper ${errors.email ? 'error' : ''} ${!errors.email && formData.email && touched.email ? 'success' : ''}`}>
                   <span className="input-icon">
                     <i className="bi bi-envelope"></i>
                   </span>
@@ -124,8 +149,21 @@ const SignIn = () => {
                     placeholder="doctor@meditrust.com"
                     value={formData.email}
                     onChange={handleChange}
+                    onBlur={handleBlur}
                     required
                   />
+                  {/* Success Icon */}
+                  {!errors.email && formData.email && touched.email && (
+                    <span className="status-icon success">
+                      <i className="bi bi-check-circle-fill"></i>
+                    </span>
+                  )}
+                  {/* Error Icon */}
+                  {errors.email && (
+                    <span className="status-icon error">
+                      <i className="bi bi-exclamation-circle-fill"></i>
+                    </span>
+                  )}
                 </div>
                 {errors.email && <div className="field-error">{errors.email}</div>}
               </div>
@@ -145,6 +183,7 @@ const SignIn = () => {
                     placeholder="••••••••"
                     value={formData.password}
                     onChange={handleChange}
+                    onBlur={handleBlur}
                     required
                   />
                   <button
@@ -161,8 +200,8 @@ const SignIn = () => {
 
               <div className="form-actions">
                 <label className="custom-checkbox">
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     checked={rememberMe}
                     onChange={() => setRememberMe((prev) => !prev)}
                   />
@@ -234,6 +273,10 @@ const SignIn = () => {
           --error-color: #ef4444;
           --error-bg: #fee2e2;
           --error-border: #fecaca;
+          --success-color: #10b981;
+          --success-bg: #d1fae5;
+          --success-border: #a7f3d0;
+          --focus-ring: rgba(6, 182, 212, 0.2);
         }
 
         * {
@@ -289,12 +332,18 @@ const SignIn = () => {
           justify-content: center;
           color: white;
           font-size: 22px;
+          box-shadow: 0 8px 16px rgba(14, 116, 144, 0.2);
         }
 
         .brand-text {
           font-size: 24px;
           font-weight: 700;
           color: var(--text-main);
+          letter-spacing: -0.5px;
+        }
+        
+        .brand-dot {
+            color: var(--accent-color);
         }
 
         .form-header h1 {
@@ -302,6 +351,7 @@ const SignIn = () => {
           font-weight: 700;
           color: var(--text-main);
           margin-bottom: 12px;
+          letter-spacing: -0.5px;
         }
 
         .form-header p {
@@ -325,8 +375,14 @@ const SignIn = () => {
           font-size: 14px;
           display: flex;
           align-items: center;
-          gap: 8px;
+          gap: 10px;
           border: 1px solid var(--error-border);
+          animation: slideDown 0.3s ease-out;
+        }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .input-group {
@@ -354,17 +410,21 @@ const SignIn = () => {
 
         .input-wrapper.error .form-input {
           border-color: var(--error-color);
-          background-color: var(--error-bg);
+          background-color: #fffafa;
         }
 
         .input-wrapper.error .input-icon {
           color: var(--error-color);
         }
+        
+        .input-wrapper.success .form-input {
+            border-color: var(--success-color);
+        }
 
         .form-input {
           width: 100%;
           height: 52px;
-          padding: 0 16px 0 48px;
+          padding: 0 40px 0 48px; /* Extra padding right for status icons */
           background: var(--input-bg);
           border: 1.5px solid var(--border-color);
           border-radius: 12px;
@@ -376,7 +436,7 @@ const SignIn = () => {
         .form-input:focus {
           outline: none;
           border-color: var(--accent-color);
-          box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.1);
+          box-shadow: 0 0 0 4px var(--focus-ring);
         }
 
         .input-icon {
@@ -389,7 +449,22 @@ const SignIn = () => {
           pointer-events: none;
           display: flex;
           align-items: center;
+          transition: color 0.2s;
         }
+        
+        .status-icon {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            pointer-events: none;
+        }
+        
+        .status-icon.success { color: var(--success-color); }
+        .status-icon.error { color: var(--error-color); }
 
         .form-input:focus + .input-icon,
         .input-wrapper:focus-within .input-icon {
@@ -409,6 +484,7 @@ const SignIn = () => {
           display: flex;
           align-items: center;
           transition: color 0.2s;
+          z-index: 2;
         }
 
         .password-toggle:hover {
@@ -423,6 +499,12 @@ const SignIn = () => {
           display: flex;
           align-items: center;
           gap: 4px;
+          animation: fadeIn 0.2s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         .field-error::before {
@@ -443,6 +525,7 @@ const SignIn = () => {
           display: flex;
           align-items: center;
           cursor: pointer;
+          user-select: none;
         }
 
         .custom-checkbox input {
@@ -457,6 +540,7 @@ const SignIn = () => {
           margin-right: 8px;
           position: relative;
           transition: all 0.2s;
+          background: white;
         }
 
         .custom-checkbox input:checked + .checkmark {
@@ -474,6 +558,10 @@ const SignIn = () => {
           border: solid white;
           border-width: 0 2px 2px 0;
           transform: rotate(45deg);
+        }
+        
+        .custom-checkbox:hover .checkmark {
+            border-color: var(--primary-color);
         }
 
         .label-text {
@@ -505,13 +593,18 @@ const SignIn = () => {
           font-size: 16px;
           font-weight: 600;
           cursor: pointer;
-          transition: transform 0.2s, box-shadow 0.2s;
+          transition: all 0.3s ease;
           position: relative;
+          overflow: hidden;
         }
 
         .submit-btn:hover:not(:disabled) {
           transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+          box-shadow: 0 8px 20px rgba(6, 182, 212, 0.3);
+        }
+        
+        .submit-btn:active:not(:disabled) {
+            transform: translateY(0);
         }
 
         .submit-btn:disabled {
@@ -580,8 +673,9 @@ const SignIn = () => {
         }
 
         .social-btn:hover {
-          background: #f1f5f9;
+          background: #f8fafc;
           border-color: var(--text-muted);
+          transform: translateY(-2px);
         }
 
         .social-btn.google { color: #EA4335; }
@@ -602,7 +696,7 @@ const SignIn = () => {
         .visual-overlay {
           position: absolute;
           inset: 0;
-          background: linear-gradient(135deg, rgba(14, 116, 144, 0.9), rgba(6, 182, 212, 0.7));
+          background: linear-gradient(135deg, rgba(14, 116, 144, 0.9), rgba(6, 182, 212, 0.8));
         }
 
         .visual-content {
@@ -619,6 +713,7 @@ const SignIn = () => {
           border-radius: 24px;
           padding: 40px;
           color: white;
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
         }
 
         .glass-icon {
@@ -631,12 +726,14 @@ const SignIn = () => {
           justify-content: center;
           font-size: 32px;
           margin-bottom: 24px;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
         .glass-card h3 {
           font-size: 28px;
           font-weight: 700;
           margin-bottom: 12px;
+          letter-spacing: -0.5px;
         }
 
         .glass-card p {

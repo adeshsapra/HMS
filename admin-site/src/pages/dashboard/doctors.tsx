@@ -4,6 +4,9 @@ import { Avatar, Typography, Button } from "@material-tailwind/react";
 import { UserPlusIcon } from "@heroicons/react/24/outline";
 import apiService from "@/services/api";
 
+// Backend storage URL for images
+const STORAGE_URL = (import.meta as any).env?.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:8000';
+
 interface Doctor {
   id: number;
   doctor_id?: string;
@@ -35,6 +38,15 @@ interface Doctor {
   status: string;
   profile_picture?: string;
 }
+
+// Helper function to get profile picture URL
+const getProfilePictureUrl = (profilePicture?: string): string => {
+  if (!profilePicture) return "/img/team-1.jpeg";
+  // If it's already a full URL, return as is
+  if (profilePicture.startsWith('http')) return profilePicture;
+  // Otherwise, construct the full URL
+  return `${STORAGE_URL}/storage/${profilePicture}`;
+};
 
 export default function Doctors(): JSX.Element {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
@@ -81,12 +93,15 @@ export default function Doctors(): JSX.Element {
       key: "profile_picture",
       label: "Photo",
       render: (value: any, row: Doctor) => (
-        <Avatar 
-          src={row.profile_picture ? `/storage/${row.profile_picture}` : "/img/team-1.jpeg"} 
-          alt={`${row.first_name} ${row.last_name}`} 
-          size="sm" 
-          variant="rounded" 
-          className="border-2 border-blue-gray-100 shadow-sm" 
+        <Avatar
+          src={getProfilePictureUrl(row.profile_picture)}
+          alt={`${row.first_name} ${row.last_name}`}
+          size="sm"
+          variant="rounded"
+          className="border-2 border-blue-gray-100 shadow-sm"
+          onError={(e: any) => {
+            e.target.src = "/img/team-1.jpeg";
+          }}
         />
       ),
     },
@@ -140,13 +155,13 @@ export default function Doctors(): JSX.Element {
   ];
 
   const viewFields: ViewField[] = [
-    { key: "profile_picture", label: "Photo", type: "avatar" },
+    { key: "profile_picture", label: "Photo", type: "avatar", render: (value: any, row: Doctor) => getProfilePictureUrl(row.profile_picture) },
     { key: "doctor_id", label: "Doctor ID" },
     { key: "first_name", label: "First Name" },
     { key: "last_name", label: "Last Name" },
     { key: "email", label: "Email" },
     { key: "phone", label: "Phone" },
-    { key: "gender", label: "Gender" },
+    { key: "gender", label: "Gender", render: (value: string) => value ? value.charAt(0).toUpperCase() + value.slice(1) : "N/A" },
     { key: "date_of_birth", label: "Date of Birth", type: "date" },
     { key: "address", label: "Address", fullWidth: true },
     { key: "city", label: "City" },
@@ -155,11 +170,21 @@ export default function Doctors(): JSX.Element {
     { key: "postal_code", label: "Postal Code" },
     { key: "specialization", label: "Specialization" },
     { key: "qualification", label: "Qualification" },
-    { key: "experience_years", label: "Experience (Years)" },
+    { key: "experience_years", label: "Experience", render: (value: number) => value !== undefined ? `${value} years` : "N/A" },
     { key: "license_number", label: "License Number" },
     { key: "department", label: "Department", render: (value: any, row: Doctor) => row.department?.name || "N/A" },
     { key: "joining_date", label: "Joining Date", type: "date" },
-    { key: "employment_type", label: "Employment Type" },
+    {
+      key: "employment_type", label: "Employment Type", render: (value: string) => {
+        const types: Record<string, string> = {
+          full_time: "Full Time",
+          part_time: "Part Time",
+          contract: "Contract",
+          visiting: "Visiting"
+        };
+        return types[value] || value || "N/A";
+      }
+    },
     { key: "consultation_fee", label: "Consultation Fee", type: "currency" },
     { key: "working_days", label: "Working Days", render: (value: string[]) => value?.join(", ") || "N/A", fullWidth: true },
     { key: "working_hours_start", label: "Work Hours Start" },
@@ -180,41 +205,47 @@ export default function Doctors(): JSX.Element {
       { name: "last_name", label: "Last Name", type: "text", required: true, placeholder: "Enter last name" },
       { name: "email", label: "Email", type: "email", required: true, placeholder: "doctor@hospital.com" },
       { name: "phone", label: "Phone", type: "text", placeholder: "+1 234-567-8900" },
-      { name: "gender", label: "Gender", type: "select", required: true, options: [
-        { value: "male", label: "Male" },
-        { value: "female", label: "Female" },
-        { value: "other", label: "Other" }
-      ]},
+      {
+        name: "gender", label: "Gender", type: "select", required: true, placeholder: "Select Gender", options: [
+          { value: "male", label: "Male" },
+          { value: "female", label: "Female" },
+          { value: "other", label: "Other" }
+        ]
+      },
       { name: "date_of_birth", label: "Date of Birth", type: "date" },
       { name: "password", label: "Password", type: "password", required: !selectedDoctor, placeholder: "Minimum 8 characters" },
-      { name: "address", label: "Address", type: "textarea", fullWidth: true, rows: 3 },
-      { name: "city", label: "City", type: "text" },
-      { name: "state", label: "State", type: "text" },
-      { name: "country", label: "Country", type: "text" },
-      { name: "postal_code", label: "Postal Code", type: "text" },
+      { name: "address", label: "Address", type: "textarea", fullWidth: true, rows: 2, placeholder: "Enter address" },
+      { name: "city", label: "City", type: "text", placeholder: "Enter city" },
+      { name: "state", label: "State", type: "text", placeholder: "Enter state" },
+      { name: "country", label: "Country", type: "text", placeholder: "Enter country" },
+      { name: "postal_code", label: "Postal Code", type: "text", placeholder: "Enter postal code" },
       { name: "specialization", label: "Specialization", type: "text", required: true, placeholder: "e.g. Cardiology" },
       { name: "qualification", label: "Qualification", type: "text", required: true, placeholder: "e.g. MBBS, MD" },
-      { name: "experience_years", label: "Experience (Years)", type: "number", required: true, min: 0 },
+      { name: "experience_years", label: "Experience (Years)", type: "number", required: true, min: 0, placeholder: "0" },
       { name: "license_number", label: "License Number", type: "text", required: true, placeholder: "e.g. L12345" },
-      { name: "department", label: "Department", type: "select", options: departmentOptions },
+      { name: "department", label: "Department", type: "select", placeholder: "Select Department", options: departmentOptions },
       { name: "joining_date", label: "Joining Date", type: "date", required: true },
-      { name: "employment_type", label: "Employment Type", type: "select", required: true, options: [
-        { value: "full_time", label: "Full Time" },
-        { value: "part_time", label: "Part Time" },
-        { value: "contract", label: "Contract" },
-        { value: "visiting", label: "Visiting" }
-      ]},
-      { name: "consultation_fee", label: "Consultation Fee", type: "number", required: true, min: 0 },
+      {
+        name: "employment_type", label: "Employment Type", type: "select", required: true, placeholder: "Select Employment Type", options: [
+          { value: "full_time", label: "Full Time" },
+          { value: "part_time", label: "Part Time" },
+          { value: "contract", label: "Contract" },
+          { value: "visiting", label: "Visiting" }
+        ]
+      },
+      { name: "consultation_fee", label: "Consultation Fee ($)", type: "number", required: true, min: 0, placeholder: "0" },
       { name: "working_hours_start", label: "Working Hours Start", type: "time" },
       { name: "working_hours_end", label: "Working Hours End", type: "time" },
-      { name: "working_days", label: "Working Days (comma-separated)", type: "text", placeholder: "monday, tuesday, wednesday" },
-      { name: "status", label: "Status", type: "select", options: [
-        { value: "active", label: "Active" },
-        { value: "inactive", label: "Inactive" },
-        { value: "on_leave", label: "On Leave" }
-      ]},
-      { name: "bio", label: "Bio", type: "textarea", fullWidth: true, rows: 4 },
-      { name: "languages", label: "Languages (comma-separated)", type: "text", placeholder: "English, Spanish, French" },
+      { name: "working_days", label: "Working Days", type: "text", placeholder: "mon, tue, wed, thu, fri" },
+      {
+        name: "status", label: "Status", type: "select", placeholder: "Select Status", options: [
+          { value: "active", label: "Active" },
+          { value: "inactive", label: "Inactive" },
+          { value: "on_leave", label: "On Leave" }
+        ]
+      },
+      { name: "bio", label: "Bio", type: "textarea", fullWidth: true, rows: 3, placeholder: "Brief biography of the doctor" },
+      { name: "languages", label: "Languages", type: "text", placeholder: "English, Spanish, French" },
       { name: "profile_picture", label: "Profile Picture", type: "file", accept: "image/*" },
     ];
   };
@@ -241,8 +272,17 @@ export default function Doctors(): JSX.Element {
 
   const convertToFormData = (data: Record<string, any>): FormData => {
     const formData = new FormData();
-    
+
+    // Fields to exclude from form submission
+    const excludeFields = ['id', 'doctor_id', 'is_available', 'created_at', 'updated_at', 'remember_token'];
+
     Object.keys(data).forEach(key => {
+      // Skip excluded fields
+      if (excludeFields.includes(key)) return;
+
+      // Skip the department object (we use department as the ID)
+      if (key === 'department' && typeof data[key] === 'object' && data[key] !== null) return;
+
       if (key === "profile_picture") {
         if (data[key] instanceof File) {
           formData.append(key, data[key]);
@@ -261,6 +301,13 @@ export default function Doctors(): JSX.Element {
         languages.forEach((lang: string) => {
           formData.append("languages[]", lang);
         });
+      } else if (key === "languages" && Array.isArray(data[key])) {
+        data[key].forEach((lang: string) => {
+          formData.append("languages[]", lang);
+        });
+      } else if (typeof data[key] === "boolean") {
+        // Convert boolean to string '1' or '0' for Laravel
+        formData.append(key, data[key] ? "1" : "0");
       } else if (data[key] !== null && data[key] !== undefined && data[key] !== "") {
         formData.append(key, data[key]);
       }
@@ -270,10 +317,10 @@ export default function Doctors(): JSX.Element {
   };
 
   const handleSubmit = async (data: Record<string, any>): Promise<void> => {
+    setFormLoading(true);
     try {
-      setFormLoading(true);
       const formData = convertToFormData(data);
-      
+
       if (selectedDoctor) {
         await apiService.updateDoctor(selectedDoctor.id, formData);
       } else {
@@ -282,11 +329,11 @@ export default function Doctors(): JSX.Element {
       await loadDoctors();
       setOpenModal(false);
       setSelectedDoctor(null);
-    } catch (error: any) {
-      throw error;
-    } finally {
+    } catch (error) {
       setFormLoading(false);
+      throw error; // Re-throw so FormModal can catch and display
     }
+    setFormLoading(false);
   };
 
   const confirmDelete = async (): Promise<void> => {
@@ -304,7 +351,7 @@ export default function Doctors(): JSX.Element {
 
   const prepareInitialData = (doctor: Doctor | null): Record<string, any> => {
     if (!doctor) return {};
-    
+
     return {
       ...doctor,
       department: doctor.department_id?.toString() || "",

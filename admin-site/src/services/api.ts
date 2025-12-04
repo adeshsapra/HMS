@@ -31,7 +31,7 @@ class ApiService {
 
     try {
       const response = await fetch(url, config);
-      
+
       // Handle non-JSON responses
       let data;
       const contentType = response.headers.get('content-type');
@@ -206,7 +206,7 @@ class ApiService {
   async createDoctor(data: FormData) {
     const token = this.getAuthToken();
     const url = `${API_BASE_URL}/doctors`;
-    
+
     const response = await fetch(url, {
       method: 'POST',
       headers: {
@@ -218,7 +218,10 @@ class ApiService {
 
     const responseData = await response.json();
     if (!response.ok) {
-      throw new Error(responseData.message || 'Failed to create doctor');
+      // Create custom error with validation details
+      const error: any = new Error(responseData.message || 'Failed to create doctor');
+      error.validationErrors = responseData.errors || {};
+      throw error;
     }
     return responseData;
   }
@@ -226,9 +229,12 @@ class ApiService {
   async updateDoctor(id: number, data: FormData) {
     const token = this.getAuthToken();
     const url = `${API_BASE_URL}/doctors/${id}`;
-    
+
+    // Laravel requires POST with _method for FormData updates
+    data.append('_method', 'PUT');
+
     const response = await fetch(url, {
-      method: 'PUT',
+      method: 'POST',
       headers: {
         'Accept': 'application/json',
         ...(token && { Authorization: `Bearer ${token}` }),
@@ -238,7 +244,10 @@ class ApiService {
 
     const responseData = await response.json();
     if (!response.ok) {
-      throw new Error(responseData.message || 'Failed to update doctor');
+      // Create custom error with validation details
+      const error: any = new Error(responseData.message || 'Failed to update doctor');
+      error.validationErrors = responseData.errors || {};
+      throw error;
     }
     return responseData;
   }
@@ -259,7 +268,7 @@ class ApiService {
   async createStaff(data: FormData) {
     const token = this.getAuthToken();
     const url = `${API_BASE_URL}/staff`;
-    
+
     const response = await fetch(url, {
       method: 'POST',
       headers: {
@@ -271,7 +280,9 @@ class ApiService {
 
     const responseData = await response.json();
     if (!response.ok) {
-      throw new Error(responseData.message || 'Failed to create staff');
+      const error: any = new Error(responseData.message || 'Failed to create staff');
+      error.validationErrors = responseData.errors || {};
+      throw error;
     }
     return responseData;
   }
@@ -279,9 +290,12 @@ class ApiService {
   async updateStaff(id: number, data: FormData) {
     const token = this.getAuthToken();
     const url = `${API_BASE_URL}/staff/${id}`;
-    
+
+    // Laravel requires POST with _method for FormData updates
+    data.append('_method', 'PUT');
+
     const response = await fetch(url, {
-      method: 'PUT',
+      method: 'POST',
       headers: {
         'Accept': 'application/json',
         ...(token && { Authorization: `Bearer ${token}` }),
@@ -291,7 +305,9 @@ class ApiService {
 
     const responseData = await response.json();
     if (!response.ok) {
-      throw new Error(responseData.message || 'Failed to update staff');
+      const error: any = new Error(responseData.message || 'Failed to update staff');
+      error.validationErrors = responseData.errors || {};
+      throw error;
     }
     return responseData;
   }

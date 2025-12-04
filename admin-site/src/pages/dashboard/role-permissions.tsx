@@ -6,7 +6,6 @@ import {
   Button,
   Select,
   Option,
-  Checkbox,
   Chip,
 } from "@material-tailwind/react";
 import { ShieldCheckIcon, KeyIcon } from "@heroicons/react/24/outline";
@@ -27,6 +26,37 @@ interface Permission {
   slug: string;
   module?: string;
 }
+
+const CustomCheckbox = ({ checked, onChange, label }: { checked: boolean; onChange: () => void; label?: React.ReactNode }) => (
+  <div className="inline-flex items-center cursor-pointer group" onClick={onChange}>
+    <div className="relative flex items-center justify-center p-1 rounded-full">
+      <div
+        className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all duration-200 ${checked
+          ? "bg-[#0e7490] border-[#0e7490]"
+          : "bg-white border-blue-gray-200 group-hover:border-[#0e7490]"
+          }`}
+      >
+        {checked && (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-3.5 w-3.5 text-white font-bold"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            stroke="currentColor"
+            strokeWidth={1}
+          >
+            <path
+              fillRule="evenodd"
+              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+              clipRule="evenodd"
+            />
+          </svg>
+        )}
+      </div>
+    </div>
+    {label && <span className="ml-2 select-none">{label}</span>}
+  </div>
+);
 
 export default function RolePermissions(): JSX.Element {
   const { hasPermission } = useAuth();
@@ -198,36 +228,31 @@ export default function RolePermissions(): JSX.Element {
                     const allSelected = modulePermissionIds.every((id) =>
                       selectedPermissions.includes(id)
                     );
-                    const someSelected = modulePermissionIds.some((id) =>
-                      selectedPermissions.includes(id)
-                    );
 
                     return (
-                      <Card key={module} className="p-4">
-                        <div className="mb-3">
-                          <Checkbox
+                      <Card key={module} className="p-4 shadow-sm border border-blue-gray-50">
+                        <div className="mb-4 pb-2 border-b border-blue-gray-50">
+                          <CustomCheckbox
                             checked={allSelected}
                             onChange={() => handleModuleToggle(module)}
                             label={
-                              <Typography variant="small" className="font-bold">
+                              <Typography variant="small" className="font-bold text-blue-gray-800 text-sm uppercase tracking-wide">
                                 {module}
                               </Typography>
                             }
-                            crossOrigin={undefined}
                           />
                         </div>
-                        <div className="space-y-2 pl-6">
+                        <div className="space-y-3 pl-2">
                           {perms.map((perm) => (
                             <div key={perm.id} className="flex items-center gap-2">
-                              <Checkbox
+                              <CustomCheckbox
                                 checked={selectedPermissions.includes(perm.id)}
                                 onChange={() => handlePermissionToggle(perm.id)}
                                 label={
-                                  <Typography variant="small" className="text-xs">
+                                  <Typography variant="small" className="text-blue-gray-600 font-medium">
                                     {perm.name}
                                   </Typography>
                                 }
-                                crossOrigin={undefined}
                               />
                             </div>
                           ))}
@@ -251,4 +276,3 @@ export default function RolePermissions(): JSX.Element {
     </div>
   );
 }
-

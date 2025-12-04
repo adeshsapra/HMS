@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AOS from "aos";
 import "aos/dist/aos.css";
@@ -16,11 +16,20 @@ const SignUp = () => {
     password: "",
     confirmPassword: "",
   });
-  
+
+  const [touched, setTouched] = useState({
+    firstName: false,
+    lastName: false,
+    email: false,
+    phone: false,
+    password: false,
+    confirmPassword: false,
+  });
+
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [sent, setSent] = useState(false);
 
   useEffect(() => {
@@ -31,36 +40,86 @@ const SignUp = () => {
     });
   }, []);
 
+  const validateField = (name: string, value: string) => {
+    let error = "";
+
+    switch (name) {
+      case "firstName":
+        if (!value.trim()) error = "First name is required";
+        break;
+      case "lastName":
+        if (!value.trim()) error = "Last name is required";
+        break;
+      case "email":
+        const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+        if (!value) error = "Email is required";
+        else if (!emailRegex.test(value)) error = "Please enter a valid email address";
+        break;
+      case "phone":
+        if (!value) error = "Phone number is required";
+        else if (value.length !== 10) error = "Phone number must be exactly 10 digits";
+        break;
+      case "password":
+        if (!value) error = "Password is required";
+        else if (value.length < 8) error = "Password must be at least 8 characters";
+        break;
+      case "confirmPassword":
+        if (!value) error = "Please confirm your password";
+        else if (value !== formData.password) error = "Passwords do not match";
+        break;
+      default:
+        break;
+    }
+    return error;
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let { name, value } = e.target;
+
+    // Enforce digits only and max length 10 for phone
+    if (name === "phone") {
+      value = value.replace(/\D/g, "").slice(0, 10);
+    }
+
+    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // Real-time validation if touched
+    if (touched[name as keyof typeof touched]) {
+      const error = validateField(name, value);
+      setErrors((prev) => ({ ...prev, [name]: error || "" }));
+
+      // Special case: if password changes, re-validate confirmPassword if it's touched
+      if (name === "password" && touched.confirmPassword) {
+        const confirmError = value !== formData.confirmPassword ? "Passwords do not match" : "";
+        setErrors((prev) => ({ ...prev, confirmPassword: confirmError }));
+      }
+    }
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setTouched((prev) => ({ ...prev, [name]: true }));
+    const error = validateField(name, value);
+    setErrors((prev) => ({ ...prev, [name]: error || "" }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
+    setErrors({});
     setSent(false);
 
-    // Email validation
-    const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
-    if (!emailRegex.test(formData.email)) {
-      setError("Please enter a valid email address.");
-      setLoading(false);
-      return;
-    }
+    const newErrors: typeof errors = {};
+    Object.keys(formData).forEach((key) => {
+      const error = validateField(key, formData[key as keyof typeof formData]);
+      if (error) newErrors[key] = error;
+    });
 
-    // Phone validation (10-15 digits)
-    const phoneDigits = formData.phone.replace(/\D/g, "");
-    if (phoneDigits.length < 10 || phoneDigits.length > 15) {
-      setError("Please enter a valid phone number (10-15 digits).");
-      setLoading(false);
-      return;
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
-      setLoading(false);
-      return;
-    }
-
-    if (formData.password.length < 8) {
-      setError("Password must be at least 8 characters long");
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      // Mark all as touched to show errors
+      const allTouched = Object.keys(formData).reduce((acc, key) => ({ ...acc, [key]: true }), {});
+      setTouched(allTouched as any);
       setLoading(false);
       return;
     }
@@ -84,23 +143,16 @@ const SignUp = () => {
         err.response?.data?.errors?.email?.[0] ||
         err.response?.data?.errors?.phone?.[0] ||
         "Registration failed. Please try again.";
-      setError(errorMessage);
+      setErrors((prev) => ({ ...prev, general: errorMessage }));
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
   return (
     <div className="login-wrapper">
       <div className="login-container">
-        
+
         {/* Left Side: Visual Section */}
         <div className="login-visual-side">
           <div className="visual-overlay"></div>
@@ -126,10 +178,10 @@ const SignUp = () => {
         </div>
 
         {/* Right Side: Form Section */}
-        <div className="login-form-side" data-aos="fade-up" data-aos-delay="100">
+        <div className="login-form-side" data-aos="fade-left" data-aos-delay="100">
           <div className="login-content-max">
-            
-            {/* Logo - Kept AOS here as it is at the top */}
+
+            {/* Logo */}
             <div className="brand-logo" data-aos="fade-down">
               <div className="brand-icon">
                 <i className="bi bi-hospital-fill"></i>
@@ -142,20 +194,25 @@ const SignUp = () => {
               <p>Join us today to access the full portal.</p>
             </div>
 
-            <form onSubmit={handleSubmit} className="modern-form">
-              {error && <div className="error-alert"><i className="bi bi-exclamation-circle"></i> {error}</div>}
-              
+            <form onSubmit={handleSubmit} className="modern-form" noValidate>
+              {errors.general && (
+                <div className="error-alert" data-aos="fade-in">
+                  <i className="bi bi-exclamation-circle-fill"></i>
+                  <span>{errors.general}</span>
+                </div>
+              )}
+
               {sent && (
-                <div className="success-alert">
-                  <i className="bi bi-check-circle"></i> 
-                  Your account has been created successfully! Please check your email to verify your account.
+                <div className="success-alert" data-aos="fade-in">
+                  <i className="bi bi-check-circle-fill"></i>
+                  <span>Account created successfully! Redirecting...</span>
                 </div>
               )}
 
               <div className="form-row">
                 <div className="input-group">
                   <label htmlFor="firstName">First Name</label>
-                  <div className="input-wrapper">
+                  <div className={`input-wrapper ${errors.firstName ? 'error' : ''} ${!errors.firstName && formData.firstName && touched.firstName ? 'success' : ''}`}>
                     <span className="input-icon"><i className="bi bi-person"></i></span>
                     <input
                       type="text"
@@ -165,13 +222,15 @@ const SignUp = () => {
                       placeholder="John"
                       value={formData.firstName}
                       onChange={handleChange}
+                      onBlur={handleBlur}
                       required
                     />
                   </div>
+                  {errors.firstName && <div className="field-error">{errors.firstName}</div>}
                 </div>
                 <div className="input-group">
                   <label htmlFor="lastName">Last Name</label>
-                  <div className="input-wrapper">
+                  <div className={`input-wrapper ${errors.lastName ? 'error' : ''} ${!errors.lastName && formData.lastName && touched.lastName ? 'success' : ''}`}>
                     <span className="input-icon"><i className="bi bi-person"></i></span>
                     <input
                       type="text"
@@ -181,16 +240,18 @@ const SignUp = () => {
                       placeholder="Doe"
                       value={formData.lastName}
                       onChange={handleChange}
+                      onBlur={handleBlur}
                       required
                     />
                   </div>
+                  {errors.lastName && <div className="field-error">{errors.lastName}</div>}
                 </div>
               </div>
 
               {/* Email */}
               <div className="input-group">
                 <label htmlFor="email">Email Address</label>
-                <div className="input-wrapper">
+                <div className={`input-wrapper ${errors.email ? 'error' : ''} ${!errors.email && formData.email && touched.email ? 'success' : ''}`}>
                   <span className="input-icon"><i className="bi bi-envelope"></i></span>
                   <input
                     type="email"
@@ -200,34 +261,43 @@ const SignUp = () => {
                     placeholder="name@example.com"
                     value={formData.email}
                     onChange={handleChange}
+                    onBlur={handleBlur}
                     required
                   />
+                  {!errors.email && formData.email && touched.email && <span className="status-icon success"><i className="bi bi-check-circle-fill"></i></span>}
+                  {errors.email && <span className="status-icon error"><i className="bi bi-exclamation-circle-fill"></i></span>}
                 </div>
+                {errors.email && <div className="field-error">{errors.email}</div>}
               </div>
 
               {/* Phone */}
               <div className="input-group">
                 <label htmlFor="phone">Phone Number</label>
-                <div className="input-wrapper">
+                <div className={`input-wrapper ${errors.phone ? 'error' : ''} ${!errors.phone && formData.phone && touched.phone ? 'success' : ''}`}>
                   <span className="input-icon"><i className="bi bi-telephone"></i></span>
                   <input
                     type="tel"
                     id="phone"
                     name="phone"
                     className="form-input"
-                    placeholder="+1 (555) 000-0000"
+                    placeholder="1234567890"
                     value={formData.phone}
                     onChange={handleChange}
+                    onBlur={handleBlur}
+                    maxLength={10}
                     required
                   />
+                  {!errors.phone && formData.phone && touched.phone && <span className="status-icon success"><i className="bi bi-check-circle-fill"></i></span>}
+                  {errors.phone && <span className="status-icon error"><i className="bi bi-exclamation-circle-fill"></i></span>}
                 </div>
+                {errors.phone && <div className="field-error">{errors.phone}</div>}
               </div>
 
               {/* Password Row */}
               <div className="form-row">
                 <div className="input-group">
                   <label htmlFor="password">Password</label>
-                  <div className="input-wrapper">
+                  <div className={`input-wrapper ${errors.password ? 'error' : ''} ${!errors.password && formData.password && touched.password ? 'success' : ''}`}>
                     <span className="input-icon"><i className="bi bi-shield-lock"></i></span>
                     <input
                       type={showPassword ? "text" : "password"}
@@ -237,10 +307,11 @@ const SignUp = () => {
                       placeholder="Create password"
                       value={formData.password}
                       onChange={handleChange}
+                      onBlur={handleBlur}
                       required
                     />
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       className="password-toggle"
                       onClick={() => setShowPassword(!showPassword)}
                       tabIndex={-1}
@@ -248,10 +319,11 @@ const SignUp = () => {
                       <i className={`bi ${showPassword ? 'bi-eye-slash' : 'bi-eye'}`}></i>
                     </button>
                   </div>
+                  {errors.password && <div className="field-error">{errors.password}</div>}
                 </div>
                 <div className="input-group">
                   <label htmlFor="confirmPassword">Confirm</label>
-                  <div className="input-wrapper">
+                  <div className={`input-wrapper ${errors.confirmPassword ? 'error' : ''} ${!errors.confirmPassword && formData.confirmPassword && touched.confirmPassword ? 'success' : ''}`}>
                     <span className="input-icon"><i className="bi bi-shield-check"></i></span>
                     <input
                       type={showConfirmPassword ? "text" : "password"}
@@ -261,10 +333,11 @@ const SignUp = () => {
                       placeholder="Confirm password"
                       value={formData.confirmPassword}
                       onChange={handleChange}
+                      onBlur={handleBlur}
                       required
                     />
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       className="password-toggle"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                       tabIndex={-1}
@@ -272,11 +345,12 @@ const SignUp = () => {
                       <i className={`bi ${showConfirmPassword ? 'bi-eye-slash' : 'bi-eye'}`}></i>
                     </button>
                   </div>
+                  {errors.confirmPassword && <div className="field-error">{errors.confirmPassword}</div>}
                 </div>
               </div>
 
               {/* Terms */}
-              <div className="form-actions" style={{justifyContent: 'flex-start'}}>
+              <div className="form-actions" style={{ justifyContent: 'flex-start' }}>
                 <label className="custom-checkbox">
                   <input type="checkbox" required />
                   <span className="checkmark"></span>
@@ -291,10 +365,9 @@ const SignUp = () => {
               </button>
             </form>
 
-            {/* REMOVED AOS from Footer to ensure it's always visible when scrolled */}
             <div className="form-footer">
               <p>Already have an account? <Link to="/sign-in">Sign In</Link></p>
-              
+
               <div className="social-login">
                 <span>Or register with</span>
                 <div className="social-icons">
@@ -322,9 +395,13 @@ const SignUp = () => {
           --text-muted: #64748b;
           --border-color: #cbd5e1;
           --input-bg: #ffffff;
-          --success-color: #059669;
+          --success-color: #10b981;
           --success-bg: #d1fae5;
           --success-border: #a7f3d0;
+          --error-color: #ef4444;
+          --error-bg: #fee2e2;
+          --error-border: #fecaca;
+          --focus-ring: rgba(6, 182, 212, 0.2);
         }
 
         * { box-sizing: border-box; }
@@ -334,7 +411,7 @@ const SignUp = () => {
           width: 100%;
           background: var(--bg-color);
           font-family: 'Inter', system-ui, -apple-system, sans-serif;
-          overflow: hidden; /* Prevent body scroll */
+          overflow: hidden;
         }
 
         .login-container {
@@ -360,7 +437,7 @@ const SignUp = () => {
         .visual-overlay {
           position: absolute;
           inset: 0;
-          background: linear-gradient(135deg, rgba(14, 116, 144, 0.9), rgba(6, 182, 212, 0.7));
+          background: linear-gradient(135deg, rgba(14, 116, 144, 0.9), rgba(6, 182, 212, 0.8));
         }
 
         .visual-content {
@@ -377,6 +454,7 @@ const SignUp = () => {
           border-radius: 24px;
           padding: 40px;
           color: white;
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
         }
 
         .glass-icon {
@@ -389,12 +467,14 @@ const SignUp = () => {
           justify-content: center;
           font-size: 32px;
           margin-bottom: 24px;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
         .glass-card h3 {
           font-size: 28px;
           font-weight: 700;
           margin-bottom: 12px;
+          letter-spacing: -0.5px;
         }
 
         .glass-card p {
@@ -455,11 +535,11 @@ const SignUp = () => {
           display: flex;
           align-items: center;
           gap: 12px;
-          margin-bottom: 24px; /* Reduced from 32px */
+          margin-bottom: 24px;
         }
 
         .brand-icon {
-          width: 40px; /* Slightly smaller */
+          width: 40px;
           height: 40px;
           background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
           border-radius: 12px;
@@ -468,25 +548,30 @@ const SignUp = () => {
           justify-content: center;
           color: white;
           font-size: 20px;
+          box-shadow: 0 8px 16px rgba(14, 116, 144, 0.2);
         }
 
         .brand-text {
           font-size: 22px;
           font-weight: 700;
           color: var(--text-main);
+          letter-spacing: -0.5px;
         }
+        
+        .brand-dot { color: var(--accent-color); }
 
         .form-header h1 {
-          font-size: 28px; /* Slightly smaller */
+          font-size: 28px;
           font-weight: 700;
           color: var(--text-main);
           margin-bottom: 8px;
+          letter-spacing: -0.5px;
         }
 
         .form-header p {
           color: var(--text-muted);
           font-size: 15px;
-          margin-bottom: 24px; /* Reduced from 32px */
+          margin-bottom: 24px;
         }
 
         .modern-form { width: 100%; }
@@ -498,7 +583,7 @@ const SignUp = () => {
         .form-row .input-group { flex: 1; }
 
         .input-group {
-          margin-bottom: 16px; /* Reduced from 20px */
+          margin-bottom: 16px;
           display: flex;
           flex-direction: column;
           align-items: flex-start;
@@ -518,11 +603,21 @@ const SignUp = () => {
           display: flex;
           align-items: center;
         }
+        
+        .input-wrapper.error .form-input {
+          border-color: var(--error-color);
+          background-color: #fffafa;
+        }
+        .input-wrapper.error .input-icon { color: var(--error-color); }
+        
+        .input-wrapper.success .form-input {
+            border-color: var(--success-color);
+        }
 
         .form-input {
           width: 100%;
-          height: 48px; /* Reduced from 50px */
-          padding: 0 16px 0 48px;
+          height: 48px;
+          padding: 0 40px 0 48px;
           background: var(--input-bg);
           border: 1.5px solid var(--border-color);
           border-radius: 12px;
@@ -534,7 +629,7 @@ const SignUp = () => {
         .form-input:focus {
           outline: none;
           border-color: var(--accent-color);
-          box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.1);
+          box-shadow: 0 0 0 4px var(--focus-ring);
         }
 
         .input-icon {
@@ -545,7 +640,22 @@ const SignUp = () => {
           color: var(--text-muted);
           font-size: 18px;
           pointer-events: none;
+          transition: color 0.2s;
         }
+        
+        .status-icon {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            pointer-events: none;
+        }
+        
+        .status-icon.success { color: var(--success-color); }
+        .status-icon.error { color: var(--error-color); }
 
         .form-input:focus + .input-icon,
         .input-wrapper:focus-within .input-icon {
@@ -564,9 +674,32 @@ const SignUp = () => {
           padding: 4px;
           display: flex;
           align-items: center;
+          z-index: 2;
         }
         
         .password-toggle:hover { color: var(--text-main); }
+        
+        .field-error {
+          color: var(--error-color);
+          font-size: 12px;
+          margin-top: 6px;
+          font-weight: 500;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          animation: fadeIn 0.2s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .field-error::before {
+          content: "•";
+          font-size: 16px;
+          line-height: 0;
+        }
 
         .form-actions {
           display: flex;
@@ -577,6 +710,7 @@ const SignUp = () => {
           display: flex;
           align-items: flex-start;
           cursor: pointer;
+          user-select: none;
         }
 
         .custom-checkbox input { display: none; }
@@ -591,6 +725,7 @@ const SignUp = () => {
           position: relative;
           transition: all 0.2s;
           margin-top: 2px;
+          background: white;
         }
 
         .custom-checkbox input:checked + .checkmark {
@@ -608,6 +743,10 @@ const SignUp = () => {
           border: solid white;
           border-width: 0 2px 2px 0;
           transform: rotate(45deg);
+        }
+        
+        .custom-checkbox:hover .checkmark {
+            border-color: var(--primary-color);
         }
 
         .label-text {
@@ -632,13 +771,18 @@ const SignUp = () => {
           font-size: 16px;
           font-weight: 600;
           cursor: pointer;
-          transition: transform 0.2s, box-shadow 0.2s;
+          transition: all 0.3s ease;
           position: relative;
+          overflow: hidden;
         }
 
         .submit-btn:hover:not(:disabled) {
           transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+          box-shadow: 0 8px 20px rgba(6, 182, 212, 0.3);
+        }
+        
+        .submit-btn:active:not(:disabled) {
+            transform: translateY(0);
         }
 
         .submit-btn:disabled {
@@ -647,8 +791,8 @@ const SignUp = () => {
         }
 
         .error-alert {
-          background: #fee2e2;
-          color: #b91c1c;
+          background: var(--error-bg);
+          color: var(--error-color);
           padding: 12px;
           border-radius: 8px;
           margin-bottom: 20px;
@@ -656,7 +800,13 @@ const SignUp = () => {
           display: flex;
           align-items: center;
           gap: 8px;
-          border: 1px solid #fecaca;
+          border: 1px solid var(--error-border);
+          animation: slideDown 0.3s ease-out;
+        }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .success-alert {
@@ -670,10 +820,11 @@ const SignUp = () => {
           align-items: center;
           gap: 8px;
           border: 1px solid var(--success-border);
+          animation: slideDown 0.3s ease-out;
         }
 
         .form-footer {
-          margin-top: 24px; /* Reduced from 32px */
+          margin-top: 24px;
           text-align: center;
         }
 
@@ -727,8 +878,9 @@ const SignUp = () => {
         }
 
         .social-btn:hover {
-          background: #f1f5f9;
+          background: #f8fafc;
           border-color: var(--text-muted);
+          transform: translateY(-2px);
         }
 
         .social-btn.google { color: #EA4335; }

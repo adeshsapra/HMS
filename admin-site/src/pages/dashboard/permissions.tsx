@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { DataTable, FormModal, DeleteConfirmModal, Column, FormField } from "@/components";
-import { Button, Typography, Chip, Select, Option } from "@material-tailwind/react";
-import { KeyIcon, PlusIcon } from "@heroicons/react/24/outline";
+import { Button, Typography, Chip } from "@material-tailwind/react";
+import { KeyIcon, PlusIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
 import apiService from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
 import { PermissionWrapper } from "@/components/PermissionWrapper";
@@ -13,6 +13,75 @@ interface Permission {
   module?: string;
   description?: string;
 }
+
+// Custom Select Component for filter
+const FilterSelect = ({
+  value,
+  onChange,
+  options,
+  label,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  options: { value: string; label: string }[];
+  label: string;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const selectRef = useRef<HTMLDivElement>(null);
+
+  const selectedOption = options.find((opt) => opt.value === value);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (selectRef.current && !selectRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  return (
+    <div className="relative w-64" ref={selectRef}>
+      <label className="block text-xs font-medium text-blue-gray-600 mb-1">
+        {label}
+      </label>
+      <div
+        onClick={() => setIsOpen(!isOpen)}
+        className={`w-full px-3 py-2.5 text-sm bg-white border rounded-lg cursor-pointer flex items-center justify-between transition-all ${isOpen
+          ? "border-purple-500 ring-1 ring-purple-500"
+          : "border-blue-gray-200 hover:border-blue-gray-400"
+          }`}
+      >
+        <span className="text-blue-gray-700">
+          {selectedOption ? selectedOption.label : "Select..."}
+        </span>
+        <ChevronDownIcon
+          className={`h-4 w-4 text-blue-gray-500 transition-transform ${isOpen ? "rotate-180" : ""}`}
+        />
+      </div>
+      {isOpen && (
+        <div className="absolute z-50 w-full mt-1 bg-white border border-blue-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+          {options.map((option) => (
+            <div
+              key={option.value}
+              onClick={() => {
+                onChange(option.value);
+                setIsOpen(false);
+              }}
+              className={`px-3 py-2.5 text-sm cursor-pointer transition-colors ${value === option.value
+                ? "bg-purple-50 text-purple-700 font-medium"
+                : "text-blue-gray-700 hover:bg-blue-gray-50"
+                }`}
+            >
+              {option.label}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default function Permissions(): JSX.Element {
   const { hasPermission } = useAuth();
@@ -115,8 +184,8 @@ export default function Permissions(): JSX.Element {
       label: "Module",
       type: "select",
       required: false,
+      placeholder: "Select Module",
       options: [
-        { value: "", label: "Select Module" },
         ...modules.map((m) => ({ value: m, label: m })),
         { value: "Custom", label: "Custom" },
       ],
@@ -183,6 +252,12 @@ export default function Permissions(): JSX.Element {
     }
   };
 
+  // Build filter options
+  const filterOptions = [
+    { value: "all", label: "All Modules" },
+    ...modules.map((m) => ({ value: m, label: m })),
+  ];
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -201,19 +276,12 @@ export default function Permissions(): JSX.Element {
           </p>
         </div>
         <div className="flex items-center gap-4">
-          <Select
+          <FilterSelect
             label="Filter by Module"
             value={selectedModule}
-            onChange={(val) => setSelectedModule(val as string)}
-            className="w-64"
-          >
-            <Option value="all">All Modules</Option>
-            {modules.map((module) => (
-              <Option key={module} value={module}>
-                {module}
-              </Option>
-            ))}
-          </Select>
+            onChange={(val) => setSelectedModule(val)}
+            options={filterOptions}
+          />
           <PermissionWrapper permission="create-permissions">
             <Button
               variant="gradient"
@@ -269,4 +337,3 @@ export default function Permissions(): JSX.Element {
     </div>
   );
 }
-

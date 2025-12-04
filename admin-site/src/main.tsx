@@ -20,16 +20,16 @@ import "../public/css/tailwind.css";
 import "./styles/forms.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <BrowserRouter>
-      <ThemeProvider>
-        <MaterialTailwindControllerProvider>
-          <AuthProvider>
-            <App />
-          </AuthProvider>
-        </MaterialTailwindControllerProvider>
-      </ThemeProvider>
-    </BrowserRouter>
-  </React.StrictMode>
+    <React.StrictMode>
+        <BrowserRouter>
+            <ThemeProvider>
+                <MaterialTailwindControllerProvider>
+                    <AuthProvider>
+                        <App />
+                    </AuthProvider>
+                </MaterialTailwindControllerProvider>
+            </ThemeProvider>
+        </BrowserRouter>
+    </React.StrictMode>
 );
 

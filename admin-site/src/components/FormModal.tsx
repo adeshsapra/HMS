@@ -1,19 +1,13 @@
-import React from "react";
+import React, { useRef, useState, useEffect } from "react";
 import {
   Dialog,
   DialogHeader,
   DialogBody,
   DialogFooter,
   Button,
-  Input,
-  Textarea,
-  Select,
-  Option,
   Typography,
 } from "@material-tailwind/react";
-import { XMarkIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
-import { useState, useEffect } from "react";
-import "../styles/forms.css";
+import { XMarkIcon, CheckCircleIcon, ChevronDownIcon, ExclamationCircleIcon } from "@heroicons/react/24/outline";
 
 export interface FormField {
   name: string;
@@ -26,8 +20,8 @@ export interface FormField {
   min?: number;
   max?: number;
   fullWidth?: boolean;
-  accept?: string; // For file inputs
-  multiple?: boolean; // For file inputs
+  accept?: string;
+  multiple?: boolean;
 }
 
 export interface FormModalProps {
@@ -36,10 +30,88 @@ export interface FormModalProps {
   title: string;
   formFields: FormField[];
   initialData?: Record<string, any>;
-  onSubmit: (data: Record<string, any>) => void;
+  onSubmit: (data: Record<string, any>) => Promise<void>;
   submitLabel?: string;
   loading?: boolean;
 }
+
+// Custom Select Component
+const CustomSelect = ({
+  value,
+  onChange,
+  options,
+  placeholder,
+  label,
+  required,
+  error,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  options: { value: string; label: string }[];
+  placeholder: string;
+  label: string;
+  required?: boolean;
+  error?: boolean;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const selectRef = useRef<HTMLDivElement>(null);
+
+  const selectedOption = options.find((opt) => opt.value === value);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (selectRef.current && !selectRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  return (
+    <div className="relative" ref={selectRef}>
+      <label className="block text-sm font-medium text-blue-gray-700 mb-2">
+        {label}
+        {required && <span className="text-red-500 ml-1">*</span>}
+      </label>
+      <div
+        onClick={() => setIsOpen(!isOpen)}
+        className={`w-full px-3 py-2.5 text-sm bg-white border rounded-lg cursor-pointer flex items-center justify-between transition-all ${error
+          ? "border-red-500"
+          : isOpen
+            ? "border-blue-500 ring-1 ring-blue-500"
+            : "border-blue-gray-200 hover:border-blue-gray-400"
+          }`}
+      >
+        <span className={selectedOption ? "text-blue-gray-700" : "text-blue-gray-400"}>
+          {selectedOption ? selectedOption.label : placeholder}
+        </span>
+        <ChevronDownIcon
+          className={`h-4 w-4 text-blue-gray-500 transition-transform ${isOpen ? "rotate-180" : ""}`}
+        />
+      </div>
+      {isOpen && (
+        <div className="absolute z-50 w-full mt-1 bg-white border border-blue-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+          {options.map((option) => (
+            <div
+              key={option.value}
+              onClick={() => {
+                onChange(option.value);
+                setIsOpen(false);
+              }}
+              className={`px-3 py-2.5 text-sm cursor-pointer transition-colors ${value === option.value
+                ? "bg-blue-50 text-blue-700 font-medium"
+                : "text-blue-gray-700 hover:bg-blue-gray-50"
+                }`}
+            >
+              {option.label}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export function FormModal({
   open,
@@ -53,11 +125,14 @@ export function FormModal({
 }: FormModalProps): JSX.Element {
   const [formData, setFormData] = useState<Record<string, any>>(initialData);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [generalError, setGeneralError] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (open) {
       setFormData(initialData);
       setErrors({});
+      setGeneralError("");
     }
   }, [initialData, open]);
 
@@ -65,6 +140,9 @@ export function FormModal({
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+    if (generalError) {
+      setGeneralError("");
     }
   };
 
@@ -93,127 +171,87 @@ export function FormModal({
           }
         }
       }
+      // Password validation
+      if (field.type === "password" && field.required && formData[field.name]) {
+        if (formData[field.name].length < 8) {
+          newErrors[field.name] = "Password must be at least 8 characters";
+        }
+      }
     });
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent): void => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
-    if (validate()) {
-      onSubmit(formData);
+    if (!validate()) return;
+
+    setIsSubmitting(true);
+    setGeneralError("");
+
+    try {
+      await onSubmit(formData);
+    } catch (error: any) {
+      // Handle validation errors from server
+      if (error.validationErrors) {
+        const serverErrors: Record<string, string> = {};
+        Object.keys(error.validationErrors).forEach((key) => {
+          const errorMessages = error.validationErrors[key];
+          serverErrors[key] = Array.isArray(errorMessages) ? errorMessages[0] : errorMessages;
+        });
+        setErrors(serverErrors);
+      }
+      setGeneralError(error.message || "An error occurred. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
+
+  const inputBaseClass = "w-full px-3 py-2.5 text-sm text-blue-gray-700 bg-white border border-blue-gray-200 rounded-lg transition-all focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 hover:border-blue-gray-400";
+  const inputErrorClass = "!border-red-500 focus:!border-red-500 focus:!ring-red-500";
 
   const renderField = (field: FormField): JSX.Element => {
     const fieldValue = formData[field.name] || "";
     const hasError = !!errors[field.name];
-
-    // Simple static label and input - no floating effects
-    const inputProps = {
-      value: fieldValue,
-      error: hasError,
-      placeholder: field.placeholder || (field.type === "select" ? `Select ${field.label.toLowerCase()}` : `Enter ${field.label.toLowerCase()}`),
-      className: "!border-blue-gray-200 focus:!border-blue-500",
-      containerProps: {
-        className: "!min-w-0 [&::before]:hidden [&::after]:hidden",
-      },
-    };
+    const inputClass = `${inputBaseClass} ${hasError ? inputErrorClass : ""}`;
 
     switch (field.type) {
       case "textarea":
         return (
-          <div className="[&::before]:hidden [&::after]:hidden">
-            <label className="block text-sm font-normal text-blue-gray-700 mb-2">
+          <div>
+            <label className="block text-sm font-medium text-blue-gray-700 mb-2">
               {field.label}
+              {field.required && <span className="text-red-500 ml-1">*</span>}
             </label>
-            <Textarea
-              {...inputProps}
-              rows={field.rows || 4}
+            <textarea
+              value={fieldValue}
               onChange={(e) => handleChange(field.name, e.target.value)}
-              className={`${inputProps.className} resize-none [&::before]:hidden [&::after]:hidden`}
-              label={undefined}
+              placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
+              rows={field.rows || 4}
+              className={`${inputClass} resize-none`}
             />
           </div>
         );
       case "select":
         return (
-          <div className="[&::before]:hidden [&::after]:hidden">
-            <label className="block text-sm font-normal text-blue-gray-700 mb-2">
-              {field.label}
-            </label>
-            <Select
-              value={fieldValue}
-              onChange={(value) => handleChange(field.name, value)}
-              error={hasError}
-              className={`${inputProps.className} [&::before]:hidden [&::after]:hidden`}
-              containerProps={inputProps.containerProps}
-            >
-              {field.options?.map((option) => (
-                <Option key={option.value} value={option.value}>
-                  {option.label}
-                </Option>
-              ))}
-            </Select>
-          </div>
-        );
-      case "date":
-        return (
-          <div className="[&::before]:hidden [&::after]:hidden">
-            <label className="block text-sm font-normal text-blue-gray-700 mb-2">
-              {field.label}
-            </label>
-            <Input
-              {...inputProps}
-              type="date"
-              onChange={(e) => handleChange(field.name, e.target.value)}
-              label={undefined}
-              className={`${inputProps.className} [&::before]:hidden [&::after]:hidden`}
-              crossOrigin={undefined}
-            />
-          </div>
-        );
-      case "time":
-        return (
-          <div className="[&::before]:hidden [&::after]:hidden">
-            <label className="block text-sm font-normal text-blue-gray-700 mb-2">
-              {field.label}
-            </label>
-            <Input
-              {...inputProps}
-              type="time"
-              onChange={(e) => handleChange(field.name, e.target.value)}
-              label={undefined}
-              className={`${inputProps.className} [&::before]:hidden [&::after]:hidden`}
-              crossOrigin={undefined}
-            />
-          </div>
-        );
-      case "number":
-        return (
-          <div className="[&::before]:hidden [&::after]:hidden">
-            <label className="block text-sm font-normal text-blue-gray-700 mb-2">
-              {field.label}
-            </label>
-            <Input
-              {...inputProps}
-              type="number"
-              min={field.min}
-              max={field.max}
-              onChange={(e) => handleChange(field.name, e.target.value)}
-              label={undefined}
-              className={`${inputProps.className} [&::before]:hidden [&::after]:hidden`}
-              crossOrigin={undefined}
-            />
-          </div>
+          <CustomSelect
+            value={fieldValue}
+            onChange={(value) => handleChange(field.name, value)}
+            options={field.options || []}
+            placeholder={field.placeholder || `Select ${field.label}`}
+            label={field.label}
+            required={field.required}
+            error={hasError}
+          />
         );
       case "file":
         return (
-          <div className="[&::before]:hidden [&::after]:hidden">
-            <label className="block text-sm font-normal text-blue-gray-700 mb-2">
+          <div>
+            <label className="block text-sm font-medium text-blue-gray-700 mb-2">
               {field.label}
+              {field.required && <span className="text-red-500 ml-1">*</span>}
             </label>
-            <Input
+            <input
               type="file"
               accept={field.accept}
               multiple={field.multiple}
@@ -223,34 +261,37 @@ export function FormModal({
                   handleChange(field.name, field.multiple ? Array.from(files) : files[0]);
                 }
               }}
-              className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-              crossOrigin={undefined}
+              className="w-full text-sm text-blue-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
             />
           </div>
         );
       default:
         return (
-          <div className="[&::before]:hidden [&::after]:hidden">
-            <label className="block text-sm font-normal text-blue-gray-700 mb-2">
+          <div>
+            <label className="block text-sm font-medium text-blue-gray-700 mb-2">
               {field.label}
+              {field.required && <span className="text-red-500 ml-1">*</span>}
             </label>
-            <Input
-              {...inputProps}
+            <input
               type={field.type || "text"}
+              value={fieldValue}
               onChange={(e) => handleChange(field.name, e.target.value)}
-              label={undefined}
-              className={`${inputProps.className} [&::before]:hidden [&::after]:hidden`}
-              crossOrigin={undefined}
+              placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
+              min={field.min}
+              max={field.max}
+              className={inputClass}
             />
           </div>
         );
     }
   };
 
+  const isLoading = loading || isSubmitting;
+
   return (
-    <Dialog 
-      open={open} 
-      handler={onClose} 
+    <Dialog
+      open={open}
+      handler={onClose}
       size="lg"
       className="!max-w-4xl"
     >
@@ -271,6 +312,18 @@ export function FormModal({
       </DialogHeader>
       <form onSubmit={handleSubmit}>
         <DialogBody className="overflow-y-auto max-h-[65vh] pt-8 px-8 bg-gradient-to-br from-blue-gray-50/50 to-white">
+          {/* General Error Alert */}
+          {generalError && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
+              <ExclamationCircleIcon className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+              <div>
+                <Typography variant="small" className="font-medium text-red-800">
+                  {generalError}
+                </Typography>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {formFields.map((field) => (
               <div
@@ -282,8 +335,9 @@ export function FormModal({
                   <Typography
                     variant="small"
                     color="red"
-                    className="mt-1 text-xs"
+                    className="mt-1 text-xs flex items-center gap-1"
                   >
+                    <ExclamationCircleIcon className="h-3.5 w-3.5" />
                     {errors[field.name]}
                   </Typography>
                 )}
@@ -297,7 +351,7 @@ export function FormModal({
             color="blue-gray"
             onClick={onClose}
             className="px-8 py-3 font-bold text-sm uppercase tracking-wide hover:bg-blue-gray-50 transition-all"
-            disabled={loading}
+            disabled={isLoading}
           >
             Cancel
           </Button>
@@ -305,10 +359,10 @@ export function FormModal({
             type="submit"
             variant="gradient"
             color="blue"
-            disabled={loading}
+            disabled={isLoading}
             className="px-10 py-3 font-bold text-sm uppercase tracking-wide shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2"
           >
-            {loading ? (
+            {isLoading ? (
               <>
                 <svg
                   className="animate-spin h-5 w-5 text-white"
@@ -346,4 +400,3 @@ export function FormModal({
 }
 
 export default FormModal;
-
