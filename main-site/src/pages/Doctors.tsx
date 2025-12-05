@@ -1,9 +1,11 @@
 import { useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import AOS from 'aos'
 import PageHero from '../components/PageHero'
 
 const Doctors = () => {
+  const navigate = useNavigate();
+
   useEffect(() => {
     AOS.init({
       duration: 600,
@@ -12,6 +14,31 @@ const Doctors = () => {
       mirror: false
     })
   }, [])
+
+  const handleBookAppointment = (doctor: any) => {
+    // Transform doctor data to match DoctorDetails interface
+    const doctorData = {
+      img: doctor.img,
+      full_name: doctor.name,
+      specialization: doctor.specialty,
+      bio: doctor.bio,
+      qualifications: 'MBBS, MD', // Mock data
+      gender: 'Not specified', // Mock
+      experience_years: parseInt(doctor.exp.split('+')[0]),
+      consultation_fee: 150, // Mock
+      employment_type: 'Full Time', // Mock
+      working_hours_start: '09:00', // Mock
+      working_hours_end: '17:00', // Mock
+      working_days: 'Mon - Fri', // Mock
+      languages: JSON.stringify(['English']), // Mock
+      status: 'Active', // Mock
+      department_name: doctor.specialty.split(' ')[0], // Mock
+      address: 'Hospital Address', // Mock
+      phone: '+1 234 567 890', // Mock
+      email: 'doctor@hospital.com' // Mock
+    };
+    navigate('/doctor-details', { state: { doctor: doctorData } });
+  };
 
   const doctors = [
     { img: 'staff-3.webp', name: 'Dr. Jennifer Martinez', specialty: 'Chief of Cardiology', bio: 'Mauris blandit aliquet elit eget tincidunt nibh pulvinar a. Curabitur arcu erat accumsan id imperdiet et porttitor at.', exp: '15+ Years Experience' },
@@ -58,7 +85,7 @@ const Doctors = () => {
                     <div className="doctor-experience">
                       <span className="experience-badge">{doctor.exp}</span>
                     </div>
-                    <Link to="/quickappointment" className="btn-appointment">Book Appointment</Link>
+                    <button onClick={() => handleBookAppointment(doctor)} className="btn-appointment">Book Appointment</button>
                   </div>
                 </div>
               </div>

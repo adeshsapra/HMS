@@ -1,0 +1,525 @@
+import { useState, useEffect } from 'react';
+
+interface Doctor {
+  working_hours_start: string;
+  working_hours_end: string;
+}
+
+interface CalendarComponentProps {
+  doctor: Doctor;
+  onDateSelect?: (date: Date) => void;
+}
+
+const CalendarComponent = ({ doctor, onDateSelect }: CalendarComponentProps) => {
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [showModal, setShowModal] = useState(false);
+
+  // Time Selection State
+  const [selectedHour, setSelectedHour] = useState<string>('09');
+  const [selectedMinute, setSelectedMinute] = useState<string>('00');
+  const [selectedPeriod, setSelectedPeriod] = useState<string>('AM');
+
+  const getDaysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
+  const getFirstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay();
+
+  const handlePrevMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+  };
+
+  const handleNextMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+  };
+
+  const handleDateClick = (day: number) => {
+    const clickedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (clickedDate >= today) {
+      setSelectedDate(clickedDate);
+      setShowModal(true);
+      if (onDateSelect) {
+        onDateSelect(clickedDate);
+      }
+    }
+  };
+
+  // Helper to generate hours (01-12)
+  const hoursList = Array.from({ length: 12 }, (_, i) => (i + 1).toString().padStart(2, '0'));
+  
+  // Helper for minutes (15 min intervals for cleaner appointments)
+  const minutesList = ['00', '15', '30', '45'];
+
+  return (
+    <>
+      <style>
+        {`
+        :root {
+          --background-color: #ffffff;
+          --default-color: #2c3031;
+          --heading-color: #18444c;
+          --accent-color: #049ebb;
+          --surface-color: #ffffff;
+          --contrast-color: #ffffff;
+          --soft-shadow: 0 10px 40px rgba(4, 158, 187, 0.08);
+          --glass-bg: rgba(255, 255, 255, 0.95);
+          --border-color: rgba(4, 158, 187, 0.15);
+        }
+
+        .appointment-calendar-section {
+          position: relative;
+        }
+
+        .appointment-calendar-container {
+          background: var(--surface-color);
+          border-radius: 24px;
+          box-shadow: var(--soft-shadow);
+          padding: 40px;
+          position: relative;
+        }
+
+        .appointment-calendar-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 30px;
+        }
+
+        .appointment-month-display {
+          font-size: 1.8rem;
+          font-weight: 700;
+          color: var(--heading-color);
+        }
+
+        .appointment-nav-btn {
+          background: white;
+          border: 1px solid #eee;
+          width: 45px;
+          height: 45px;
+          border-radius: 50%;
+          color: var(--heading-color);
+          transition: all 0.3s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .appointment-nav-btn:hover {
+          background: var(--accent-color);
+          color: white;
+          border-color: var(--accent-color);
+        }
+
+        .appointment-calendar-grid {
+          display: grid;
+          grid-template-columns: repeat(7, 1fr);
+          gap: 15px;
+        }
+
+        .appointment-weekday-header {
+          text-align: center;
+          font-weight: 600;
+          color: #999;
+          text-transform: uppercase;
+          font-size: 0.85rem;
+          padding-bottom: 10px;
+        }
+
+        .appointment-date-box {
+           width: 90px;
+           height: 90px;
+           border-radius: 16px;
+           background: #f9f9f9;
+           display: flex;
+           align-items: center;
+           justify-content: center;
+           font-weight: 600;
+           color: var(--heading-color);
+           cursor: pointer;
+           position: relative;
+           transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+           border: 1px solid transparent;
+         }
+
+        .appointment-date-box:not(.appointment-disabled):hover {
+          background: var(--accent-color);
+          color: white;
+          transform: scale(1.05);
+          box-shadow: 0 10px 20px rgba(4, 158, 187, 0.3);
+        }
+
+        .appointment-date-box.appointment-disabled {
+          background: #f0f0f0;
+          color: #ccc;
+          cursor: not-allowed;
+        }
+
+        .appointment-date-box.appointment-today {
+          border: 2px solid var(--accent-color);
+          color: var(--accent-color);
+          background: white;
+        }
+
+        .appointment-date-box.appointment-today:hover {
+          background: var(--accent-color);
+          color: white;
+        }
+
+        .appointment-plus-icon {
+          position: absolute;
+          top: 8px;
+          right: 8px;
+          font-size: 12px;
+          opacity: 0;
+          transition: opacity 0.3s;
+        }
+
+        .appointment-date-box:hover .appointment-plus-icon {
+          opacity: 1;
+        }
+
+        /* --- Modal Styling --- */
+        .appointment-custom-modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(24, 68, 76, 0.6);
+          backdrop-filter: blur(5px);
+          z-index: 1050;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 0.3s ease;
+        }
+
+        .appointment-custom-modal-overlay.appointment-show {
+          opacity: 1;
+          pointer-events: auto;
+        }
+
+        .appointment-custom-modal {
+          background: white;
+          width: 90%;
+          max-width: 650px; /* Slightly wider for time picker */
+          border-radius: 20px;
+          padding: 0;
+          box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+          transform: translateY(20px);
+          transition: transform 0.3s ease;
+          overflow: hidden;
+          max-height: 90vh;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .appointment-custom-modal-overlay.appointment-show .appointment-custom-modal {
+          transform: translateY(0);
+        }
+
+        .appointment-modal-header-custom {
+          background: var(--accent-color);
+          padding: 20px 30px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          color: white;
+        }
+
+        .appointment-modal-header-custom h5 {
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .appointment-modal-body-custom {
+          padding: 30px;
+          overflow-y: auto;
+          flex: 1;
+        }
+
+        .appointment-form-control {
+          border-radius: 10px;
+          padding: 12px 15px;
+          border: 1px solid #e0e0e0;
+          margin-bottom: 20px;
+          width: 100%;
+        }
+
+        .appointment-form-control:focus {
+            box-shadow: 0 0 0 3px rgba(4, 158, 187, 0.2);
+            border-color: var(--accent-color);
+            outline: none;
+        }
+
+        /* --- NEW TIME PICKER STYLES --- */
+        .appointment-time-picker-wrapper {
+            background: #f8fbfc;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .appointment-time-display {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--accent-color);
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .appointment-time-selector {
+            display: flex;
+            gap: 15px;
+            justify-content: space-between;
+        }
+
+        .appointment-time-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .appointment-time-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #888;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        .appointment-time-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+        }
+        
+        .appointment-time-grid.minutes {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .appointment-time-grid.period {
+            grid-template-columns: 1fr;
+        }
+
+        .appointment-time-btn {
+            background: white;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            padding: 6px 0;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--default-color);
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .appointment-time-btn:hover {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+
+        .appointment-time-btn.active {
+            background: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+            box-shadow: 0 4px 10px rgba(4, 158, 187, 0.3);
+        }
+
+        .appointment-btn-confirm {
+          background: var(--accent-color);
+          color: white;
+          width: 100%;
+          padding: 14px;
+          border-radius: 10px;
+          font-weight: 600;
+          border: none;
+          transition: 0.3s;
+          margin-top: 10px;
+        }
+
+        .appointment-btn-confirm:hover {
+          background: #037f96;
+        }
+
+        .appointment-btn-close-custom {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        @media (max-width: 991px) {
+          .appointment-calendar-grid {
+            gap: 8px;
+          }
+          .appointment-date-box {
+            font-size: 0.9rem;
+            border-radius: 8px;
+          }
+        }
+        `}
+      </style>
+
+      {/* Appointment Calendar Section */}
+      <div className="appointment-calendar-section" data-aos="fade-up">
+         <div className="row justify-content-center">
+             <div className="col-12">
+                 <div className="appointment-calendar-container">
+                    <div className="appointment-calendar-header">
+                        <button className="appointment-nav-btn" onClick={handlePrevMonth}>
+                            <i className="bi bi-chevron-left"></i>
+                        </button>
+                        <div className="appointment-month-display">
+                            {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
+                        </div>
+                        <button className="appointment-nav-btn" onClick={handleNextMonth}>
+                            <i className="bi bi-chevron-right"></i>
+                        </button>
+                    </div>
+
+                    <div className="appointment-calendar-grid">
+                        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+                            <div key={day} className="appointment-weekday-header">{day}</div>
+                        ))}
+
+                        {/* Empty slots for previous month */}
+                        {Array.from({ length: getFirstDayOfMonth(currentDate.getFullYear(), currentDate.getMonth()) }).map((_, i) => (
+                            <div key={`empty-${i}`}></div>
+                        ))}
+
+                        {/* Days */}
+                        {Array.from({ length: getDaysInMonth(currentDate.getFullYear(), currentDate.getMonth()) }).map((_, i) => {
+                            const day = i + 1;
+                            const dateObj = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+                            const today = new Date();
+                            const isToday = dateObj.toDateString() === today.toDateString();
+                            const isPast = dateObj.setHours(0,0,0,0) < today.setHours(0,0,0,0);
+
+                            return (
+                                <div
+                                    key={day}
+                                    className={`appointment-date-box ${isPast ? 'appointment-disabled' : ''} ${isToday ? 'appointment-today' : ''}`}
+                                    onClick={() => !isPast && handleDateClick(day)}
+                                >
+                                    {day}
+                                    {!isPast && <i className="bi bi-plus-lg appointment-plus-icon"></i>}
+                                </div>
+                            );
+                        })}
+                    </div>
+                 </div>
+             </div>
+         </div>
+      </div>
+
+      {/* Premium Modal Form */}
+      <div className={`appointment-custom-modal-overlay ${showModal ? 'appointment-show' : ''}`}>
+        <div className="appointment-custom-modal">
+            <div className="appointment-modal-header-custom">
+                <h5>Book Appointment - {selectedDate?.toLocaleDateString()}</h5>
+                <button className="appointment-btn-close-custom" onClick={() => setShowModal(false)}>&times;</button>
+            </div>
+            <div className="appointment-modal-body-custom">
+                <form>
+                    <div className="row">
+                        <div className="col-md-6">
+                            <label className="form-label text-muted small fw-bold">Patient Name</label>
+                            <input type="text" className="appointment-form-control" placeholder="John Doe" />
+                        </div>
+                        <div className="col-md-6">
+                            <label className="form-label text-muted small fw-bold">Phone Number</label>
+                            <input type="tel" className="appointment-form-control" placeholder="+1 234 567 890" />
+                        </div>
+                    </div>
+
+                    <label className="form-label text-muted small fw-bold">Email Address</label>
+                    <input type="email" className="appointment-form-control" placeholder="john@example.com" />
+
+                    {/* NEW PROFESSIONAL TIME SELECTOR */}
+                    <label className="form-label text-muted small fw-bold">Select Appointment Time</label>
+                    <div className="appointment-time-picker-wrapper">
+                        <div className="appointment-time-display">
+                            {selectedHour} : {selectedMinute} {selectedPeriod}
+                        </div>
+                        
+                        <div className="appointment-time-selector">
+                            {/* Hours Column */}
+                            <div className="appointment-time-column">
+                                <span className="appointment-time-label">Hour</span>
+                                <div className="appointment-time-grid">
+                                    {hoursList.map((h) => (
+                                        <div 
+                                            key={h}
+                                            className={`appointment-time-btn ${selectedHour === h ? 'active' : ''}`}
+                                            onClick={() => setSelectedHour(h)}
+                                        >
+                                            {h}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Minutes Column */}
+                            <div className="appointment-time-column">
+                                <span className="appointment-time-label">Minute</span>
+                                <div className="appointment-time-grid minutes">
+                                    {minutesList.map((m) => (
+                                        <div 
+                                            key={m}
+                                            className={`appointment-time-btn ${selectedMinute === m ? 'active' : ''}`}
+                                            onClick={() => setSelectedMinute(m)}
+                                        >
+                                            {m}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* AM/PM Column */}
+                            <div className="appointment-time-column">
+                                <span className="appointment-time-label">Period</span>
+                                <div className="appointment-time-grid period">
+                                    {['AM', 'PM'].map((p) => (
+                                        <div 
+                                            key={p}
+                                            className={`appointment-time-btn ${selectedPeriod === p ? 'active' : ''}`}
+                                            onClick={() => setSelectedPeriod(p)}
+                                        >
+                                            {p}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <label className="form-label text-muted small fw-bold">Reason for Visit</label>
+                    <input type="text" className="appointment-form-control" placeholder="Checkup, Consultation..." />
+
+                    <label className="form-label text-muted small fw-bold">Additional Notes</label>
+                    <textarea className="appointment-form-control" rows={2} placeholder="Any specific symptoms..."></textarea>
+
+                    <button type="button" className="appointment-btn-confirm">Confirm Booking</button>
+                </form>
+            </div>
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default CalendarComponent;

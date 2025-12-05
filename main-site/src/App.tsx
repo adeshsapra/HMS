@@ -25,6 +25,8 @@ import SignIn from './pages/SignIn'
 import SignUp from './pages/SignUp'
 import NotFound from './pages/NotFound'
 import Profile from './pages/Profile'
+import Appointment from './pages/Appointment'
+import DoctorDetails from './pages/DoctorDetails'
 
 function App() {
   const location = useLocation()
@@ -77,6 +79,8 @@ function App() {
           <Route path="/services" element={<Services />} />
           <Route path="/service-details" element={<ServiceDetails />} />
           <Route path="/quickappointment" element={<QuickAppointment />} />
+          <Route path="/appointment" element={<Appointment />} />
+          <Route path="/doctor-details" element={<DoctorDetails />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/testimonials" element={<Testimonials />} />
           <Route path="/faq" element={<FAQ />} />
