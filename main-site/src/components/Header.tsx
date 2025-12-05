@@ -298,8 +298,8 @@ const Header = () => {
                   </Link>
                 </li>
                 <li>
-                  <Link to="/appointment" onClick={closeMobileNav}>
-                    Appointment
+                  <Link to="/quickappointment" onClick={closeMobileNav}>
+                    Quick Appointment
                   </Link>
                 </li>
                 <li>
@@ -469,7 +469,7 @@ const Header = () => {
           )}
           <Link
             className="btn-getstarted"
-            to="/appointment"
+            to="/quickappointment"
             onClick={closeMobileNav}
           >
             <i className="bi bi-calendar-check me-2"></i>

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import AOS from 'aos'
 import PageHero from '../components/PageHero'
 
-const Appointment = () => {
+const QuickAppointment = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -55,23 +55,22 @@ const Appointment = () => {
   }
 
   return (
-    <div className="appointment-page">
+    <div className="quickappointment-page">
       <PageHero
         title="Appointment"
         description="Book your medical appointment quickly and receive timely expert care."
         breadcrumbs={[
           { label: 'Home', path: '/' },
-          { label: 'Category' },
           { label: 'Appointment' }
         ]}
       />
 
 
-      <section id="appointmnet" className="appointmnet section">
+      <section id="quickappointmnet" className="quickappointmnet section">
         <div className="container" data-aos="fade-up" data-aos-delay="100">
           <div className="row gy-4">
             <div className="col-lg-6">
-              <div className="appointment-info">
+              <div className="quickappointment-info">
                 <h3>Quick &amp; Easy Online Booking</h3>
                 <p className="mb-4">Book your appointment in just a few simple steps. Our healthcare professionals are ready to provide you with the best medical care tailored to your needs.</p>
 
@@ -117,8 +116,8 @@ const Appointment = () => {
             </div>
 
             <div className="col-lg-6">
-              <div className="appointment-form-wrapper" data-aos="fade-up" data-aos-delay="200">
-                <form onSubmit={handleSubmit} className="appointment-form php-email-form">
+              <div className="quickappointment-form-wrapper" data-aos="fade-up" data-aos-delay="200">
+                <form onSubmit={handleSubmit} className="quickappointment-form php-email-form">
                   <div className="row gy-3">
                     <div className="col-md-6">
                       <input
@@ -219,7 +218,7 @@ const Appointment = () => {
                       {error && <div className="error-message">{error}</div>}
                       {sent && <div className="sent-message">Your appointment request has been sent successfully. We will contact you shortly!</div>}
 
-                      <button type="submit" className="btn btn-appointment w-100" disabled={loading}>
+                      <button type="submit" className="btn btn-quickappointment w-100" disabled={loading}>
                         <i className="bi bi-calendar-plus me-2"></i>Book Appointment
                       </button>
                     </div>
@@ -256,5 +255,5 @@ const Appointment = () => {
   )
 }
 
-export default Appointment
+export default QuickAppointment
 

@@ -250,7 +250,7 @@ const Profile = () => {
               </div>
             </div>
             <div className="text-center">
-              <Link to="/appointment" className="btn btn-primary">Schedule New Appointment</Link>
+              <Link to="/quickappointment" className="btn btn-primary">Schedule New Appointment</Link>
             </div>
           </div>
         )

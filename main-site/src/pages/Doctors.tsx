@@ -58,7 +58,7 @@ const Doctors = () => {
                     <div className="doctor-experience">
                       <span className="experience-badge">{doctor.exp}</span>
                     </div>
-                    <Link to="/appointment" className="btn-appointment">Book Appointment</Link>
+                    <Link to="/quickappointment" className="btn-appointment">Book Appointment</Link>
                   </div>
                 </div>
               </div>

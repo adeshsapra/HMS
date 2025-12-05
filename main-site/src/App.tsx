@@ -14,7 +14,7 @@ import DepartmentDetails from './pages/DepartmentDetails'
 import Doctors from './pages/Doctors'
 import Services from './pages/Services'
 import ServiceDetails from './pages/ServiceDetails'
-import Appointment from './pages/Appointment'
+import QuickAppointment from './pages/QuickAppointment'
 import Contact from './pages/Contact'
 import Testimonials from './pages/Testimonials'
 import FAQ from './pages/FAQ'
@@ -76,7 +76,7 @@ function App() {
           <Route path="/doctors" element={<Doctors />} />
           <Route path="/services" element={<Services />} />
           <Route path="/service-details" element={<ServiceDetails />} />
-          <Route path="/appointment" element={<Appointment />} />
+          <Route path="/quickappointment" element={<QuickAppointment />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/testimonials" element={<Testimonials />} />
           <Route path="/faq" element={<FAQ />} />

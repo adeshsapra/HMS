@@ -56,7 +56,7 @@ const Home = () => {
                         data-aos="fade-up"
                         data-aos-delay="300"
                       >
-                        <Link to="/appointment" className="btn btn-primary">
+                        <Link to="/quickappointment" className="btn btn-primary">
                           Book Appointment
                         </Link>
                         <Link to="/services" className="btn btn-outline">
@@ -401,7 +401,7 @@ const Home = () => {
                         View Profile
                       </a>
                       <Link
-                        to="/appointment"
+                        to="/quickappointment"
                         className="btn btn-primary btn-sm"
                       >
                         Book Appointment
@@ -434,7 +434,7 @@ const Home = () => {
                 data-aos="fade-up"
                 data-aos-delay="300"
               >
-                <Link to="/appointment" className="btn-primary">
+                <Link to="/quickappointment" className="btn-primary">
                   Book Appointment
                 </Link>
                 <Link to="/doctors" className="btn-secondary">

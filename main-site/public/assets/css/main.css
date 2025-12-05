@@ -4217,20 +4217,20 @@ section,
 /*--------------------------------------------------------------
 # Appointmnet Section
 --------------------------------------------------------------*/
-.appointmnet .appointment-info h3 {
+.quickappointmnet .quickappointment-info h3 {
   color: var(--heading-color);
   font-size: 2rem;
   font-weight: 700;
   margin-bottom: 1rem;
 }
 
-.appointmnet .appointment-info p {
+.quickappointmnet .quickappointment-info p {
   color: var(--default-color);
   font-size: 1rem;
   line-height: 1.6;
 }
 
-.appointmnet .info-items .info-item .icon-wrapper {
+.quickappointmnet .info-items .info-item .icon-wrapper {
   width: 60px;
   height: 60px;
   background-color: color-mix(in srgb, var(--accent-color), transparent 90%);
@@ -4241,57 +4241,57 @@ section,
   flex-shrink: 0;
 }
 
-.appointmnet .info-items .info-item .icon-wrapper i {
+.quickappointmnet .info-items .info-item .icon-wrapper i {
   font-size: 1.5rem;
   color: var(--accent-color);
 }
 
-.appointmnet .info-items .info-item h5 {
+.quickappointmnet .info-items .info-item h5 {
   color: var(--heading-color);
   font-size: 1.1rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
 }
 
-.appointmnet .info-items .info-item p {
+.quickappointmnet .info-items .info-item p {
   color: color-mix(in srgb, var(--default-color), transparent 20%);
   font-size: 0.9rem;
   line-height: 1.5;
 }
 
-.appointmnet .emergency-contact .emergency-card {
+.quickappointmnet .emergency-contact .emergency-card {
   background-color: color-mix(in srgb, var(--accent-color), transparent 95%);
   border-left: 4px solid var(--accent-color);
   border-radius: 8px;
 }
 
-.appointmnet .emergency-contact .emergency-card h6 {
+.quickappointmnet .emergency-contact .emergency-card h6 {
   color: var(--heading-color);
   font-weight: 600;
 }
 
-.appointmnet .emergency-contact .emergency-card h6 i {
+.quickappointmnet .emergency-contact .emergency-card h6 i {
   color: var(--accent-color);
 }
 
-.appointmnet .emergency-contact .emergency-card p {
+.quickappointmnet .emergency-contact .emergency-card p {
   color: var(--default-color);
   font-size: 0.9rem;
 }
 
-.appointmnet .emergency-contact .emergency-card p strong {
+.quickappointmnet .emergency-contact .emergency-card p strong {
   color: var(--accent-color);
 }
 
-.appointmnet .appointment-form-wrapper {
+.quickappointmnet .quickappointment-form-wrapper {
   background-color: var(--surface-color);
   padding: 2rem;
   border-radius: 15px;
   box-shadow: 0 5px 30px rgba(0, 0, 0, 0.1);
 }
 
-.appointmnet .appointment-form .form-control,
-.appointmnet .appointment-form .form-select {
+.quickappointmnet .quickappointment-form .form-control,
+.quickappointmnet .quickappointment-form .form-select {
   color: var(--default-color);
   background-color: var(--surface-color);
   border: 1px solid color-mix(in srgb, var(--default-color), transparent 80%);
@@ -4301,31 +4301,31 @@ section,
   transition: all 0.3s ease;
 }
 
-.appointmnet .appointment-form .form-control:focus,
-.appointmnet .appointment-form .form-select:focus {
+.quickappointmnet .quickappointment-form .form-control:focus,
+.quickappointmnet .quickappointment-form .form-select:focus {
   border-color: var(--accent-color);
   box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--accent-color), transparent 85%);
 }
 
-.appointmnet .appointment-form .form-control::placeholder,
-.appointmnet .appointment-form .form-select::placeholder {
+.quickappointmnet .quickappointment-form .form-control::placeholder,
+.quickappointmnet .quickappointment-form .form-select::placeholder {
   color: color-mix(in srgb, var(--default-color), transparent 50%);
 }
 
-.appointmnet .appointment-form .form-select {
+.quickappointmnet .quickappointment-form .form-select {
   color: color-mix(in srgb, var(--default-color), transparent 20%);
 }
 
-.appointmnet .appointment-form .form-select:focus {
+.quickappointmnet .quickappointment-form .form-select:focus {
   color: var(--default-color);
 }
 
-.appointmnet .appointment-form textarea.form-control {
+.quickappointmnet .quickappointment-form textarea.form-control {
   resize: vertical;
   min-height: 120px;
 }
 
-.appointmnet .appointment-form .btn-appointment {
+.quickappointmnet .quickappointment-form .btn-quickappointment {
   background-color: var(--accent-color);
   border: none;
   color: var(--contrast-color);
@@ -4336,26 +4336,26 @@ section,
   transition: all 0.3s ease;
 }
 
-.appointmnet .appointment-form .btn-appointment:hover {
+.quickappointmnet .quickappointment-form .btn-quickappointment:hover {
   background-color: color-mix(in srgb, var(--accent-color), black 10%);
   transform: translateY(-2px);
 }
 
-.appointmnet .appointment-form .btn-appointment i {
+.quickappointmnet .quickappointment-form .btn-quickappointment i {
   font-size: 1.1rem;
 }
 
-.appointmnet .process-steps {
+.quickappointmnet .process-steps {
   margin-top: 4rem;
 }
 
-.appointmnet .process-steps .step-item {
+.quickappointmnet .process-steps .step-item {
   position: relative;
   padding: 2rem 1rem;
   text-align: center;
 }
 
-.appointmnet .process-steps .step-item .step-number {
+.quickappointmnet .process-steps .step-item .step-number {
   position: absolute;
   top: -10px;
   left: 50%;
@@ -4373,30 +4373,30 @@ section,
   z-index: 2;
 }
 
-.appointmnet .process-steps .step-item .step-icon {
+.quickappointmnet .process-steps .step-item .step-icon {
   margin: 1.5rem 0 1rem 0;
 }
 
-.appointmnet .process-steps .step-item .step-icon i {
+.quickappointmnet .process-steps .step-item .step-icon i {
   font-size: 3rem;
   color: color-mix(in srgb, var(--accent-color), transparent 30%);
 }
 
-.appointmnet .process-steps .step-item h5 {
+.quickappointmnet .process-steps .step-item h5 {
   color: var(--heading-color);
   font-size: 1.2rem;
   font-weight: 600;
   margin-bottom: 0.75rem;
 }
 
-.appointmnet .process-steps .step-item p {
+.quickappointmnet .process-steps .step-item p {
   color: color-mix(in srgb, var(--default-color), transparent 20%);
   font-size: 0.9rem;
   line-height: 1.6;
   margin-bottom: 0;
 }
 
-.appointmnet .process-steps .step-item::before {
+.quickappointmnet .process-steps .step-item::before {
   content: "";
   position: absolute;
   top: 15px;
@@ -4408,26 +4408,26 @@ section,
 }
 
 @media (max-width: 991px) {
-  .appointmnet .process-steps .step-item::before {
+  .quickappointmnet .process-steps .step-item::before {
     display: none;
   }
 }
 
-.appointmnet .process-steps .step-item:last-child::before {
+.quickappointmnet .process-steps .step-item:last-child::before {
   display: none;
 }
 
 @media (max-width: 768px) {
-  .appointmnet .appointment-form-wrapper {
+  .quickappointmnet .quickappointment-form-wrapper {
     padding: 1.5rem;
     margin-top: 2rem;
   }
 
-  .appointmnet .process-steps {
+  .quickappointmnet .process-steps {
     margin-top: 3rem;
   }
 
-  .appointmnet .process-steps .step-item {
+  .quickappointmnet .process-steps .step-item {
     padding: 1.5rem 0.5rem;
   }
 }

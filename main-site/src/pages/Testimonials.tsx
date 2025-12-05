@@ -185,7 +185,7 @@ const Testimonials = () => {
                 <div className="bg-light rounded p-4" data-aos="fade-up">
                   <h4 className="mb-3">Ready to Experience Exceptional Care?</h4>
                   <p className="mb-4">Join thousands of satisfied patients who trust us with their healthcare journey.</p>
-                  <a href="/appointment" className="btn btn-primary btn-lg">
+                  <a href="/quickappointment" className="btn btn-primary btn-lg">
                     <i className="bi bi-calendar-check me-2"></i>
                     Book Your Appointment
                   </a>
