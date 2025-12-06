@@ -4168,10 +4168,11 @@ section,
   font-size: 14px;
   text-decoration: none;
   transition: all 0.3s ease;
+  border: none;
 }
 
 .doctors .doctor-card .doctor-content .btn-appointment:hover {
-  background: color-mix(in srgb, var(--accent-color) 90%, black 15%);
+  /* background: color-mix(in srgb, var(--accent-color) 90%, black 15%); */
   color: var(--contrast-color);
   transform: translateY(-2px);
 }
