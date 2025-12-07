@@ -320,6 +320,88 @@ class ApiService {
   async getDepartments() {
     return this.get<any[]>('/departments');
   }
+
+  async getDepartment(id: number) {
+    return this.get<any>(`/departments/${id}`);
+  }
+
+  async createDepartment(data: any) {
+    if (data instanceof FormData) {
+      const token = this.getAuthToken();
+      const url = `${API_BASE_URL}/departments`;
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        body: data,
+      });
+
+      const responseData = await response.json();
+      if (!response.ok) {
+        const error: any = new Error(responseData.message || 'Failed to create department');
+        error.validationErrors = responseData.errors || {};
+        throw error;
+      }
+      return responseData;
+    }
+    return this.post<any>('/departments', data);
+  }
+
+  async updateDepartment(id: number, data: any) {
+    if (data instanceof FormData) {
+      const token = this.getAuthToken();
+      const url = `${API_BASE_URL}/departments/${id}`;
+
+      // Laravel requires POST with _method for FormData updates
+      data.append('_method', 'PUT');
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        body: data,
+      });
+
+      const responseData = await response.json();
+      if (!response.ok) {
+        const error: any = new Error(responseData.message || 'Failed to update department');
+        error.validationErrors = responseData.errors || {};
+        throw error;
+      }
+      return responseData;
+    }
+    return this.put<any>(`/departments/${id}`, data);
+  }
+
+  async deleteDepartment(id: number) {
+    return this.delete<any>(`/departments/${id}`);
+  }
+
+  // Service methods
+  async getServices() {
+    return this.get<any[]>('/services');
+  }
+
+  async getService(id: number) {
+    return this.get<any>(`/services/${id}`);
+  }
+
+  async createService(data: any) {
+    return this.post<any>('/services', data);
+  }
+
+  async updateService(id: number, data: any) {
+    return this.put<any>(`/services/${id}`, data);
+  }
+
+  async deleteService(id: number) {
+    return this.delete<any>(`/services/${id}`);
+  }
 }
 
 export const apiService = new ApiService();

@@ -2,8 +2,22 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import AOS from 'aos'
 import PageHero from '../components/PageHero'
+import { departmentAPI } from '../services/api'
+
+interface Department {
+  id: number
+  name: string
+  description: string
+  head_of_department?: string
+  icon?: string
+  image?: string
+  category?: string
+  subtitle?: string
+}
 
 const Departments = () => {
+  const [departments, setDepartments] = useState<Department[]>([])
+  const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('All')
 
@@ -14,92 +28,42 @@ const Departments = () => {
       once: true,
       mirror: false
     })
+    fetchDepartments()
   }, [])
 
-  // Enhanced data with Categories for filtering
-  const departments = [
-    { 
-      id: 1, 
-      category: 'Surgical', 
-      img: 'cardiology-2.webp', 
-      icon: 'bi-heart-pulse', 
-      title: 'Cardiology', 
-      subtitle: 'Heart & Vascular Care', 
-      stat: '500+', 
-      statLabel: 'Procedures', 
-      desc: 'Expert care for complex heart conditions using state-of-the-art technology.', 
-      highlights: ['Advanced Cardiac Surgery', 'Interventional Cardiology', 'Heart Rhythm Management'] 
-    },
-    { 
-      id: 2, 
-      category: 'Cosmetic', 
-      img: 'dermatology-3.webp', 
-      icon: 'bi-shield-plus', 
-      title: 'Dermatology', 
-      subtitle: 'Skin Health Experts', 
-      stat: '1200+', 
-      statLabel: 'Treatments', 
-      desc: 'Comprehensive skin care solutions for medical and cosmetic needs.', 
-      highlights: ['Cosmetic Dermatology', 'Skin Cancer Treatment', 'Laser Therapy'] 
-    },
-    { 
-      id: 3, 
-      category: 'Specialized', 
-      img: 'neurology-4.webp', 
-      icon: 'bi-brain', 
-      title: 'Neurology', 
-      subtitle: 'Brain & Nervous System', 
-      stat: '800+', 
-      statLabel: 'Cases', 
-      desc: 'Diagnosing and treating disorders of the nervous system with precision.', 
-      highlights: ['Stroke Treatment', 'Epilepsy Management', 'Neurological Rehabilitation'] 
-    },
-    { 
-      id: 4, 
-      category: 'Surgical', 
-      img: 'orthopedics-4.webp', 
-      icon: 'bi-bone', 
-      title: 'Orthopedics', 
-      subtitle: 'Musculoskeletal Care', 
-      stat: '1500+', 
-      statLabel: 'Surgeries', 
-      desc: 'Restoring mobility and relieving pain through advanced orthopedic care.', 
-      highlights: ['Joint Replacement', 'Sports Medicine', 'Spine Surgery'] 
-    },
-    { 
-      id: 5, 
-      category: 'Pediatric', 
-      img: 'pediatrics-2.webp', 
-      icon: 'bi-heart', 
-      title: 'Pediatrics', 
-      subtitle: 'Child Healthcare', 
-      stat: '2000+', 
-      statLabel: 'Patients', 
-      desc: 'Compassionate care dedicated to the unique needs of infants and children.', 
-      highlights: ['Child Development', 'Vaccination Programs', 'Pediatric Surgery'] 
-    },
-    { 
-      id: 6, 
-      category: 'Specialized', 
-      img: 'oncology-4.webp', 
-      icon: 'bi-shield-check', 
-      title: 'Oncology', 
-      subtitle: 'Cancer Care', 
-      stat: '600+', 
-      statLabel: 'Treatments', 
-      desc: 'Multidisciplinary approach to cancer treatment and patient support.', 
-      highlights: ['Chemotherapy', 'Radiation Therapy', 'Surgical Oncology'] 
+  const fetchDepartments = async () => {
+    try {
+      setLoading(true)
+      const response = await departmentAPI.getAll()
+      if (response.data.success && response.data.data) {
+        setDepartments(response.data.data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch departments:', error)
+    } finally {
+      setLoading(false)
     }
-  ]
+  }
+
+  const getImageUrl = (path: string) => {
+    if (!path) return 'https://via.placeholder.com/400x220?text=Department';
+    if (path.startsWith('http')) return path;
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+    const rootUrl = baseUrl.replace(/\/api\/?$/, '');
+    return `${rootUrl}/${path.replace(/^\//, '')}`;
+  }
+
+  // Get unique categories from departments
+  const categories = ['All', ...Array.from(new Set(departments.map(d => d.category).filter(Boolean))) as string[]]
 
   // Filter Logic
-  const categories = ['All', 'Surgical', 'Specialized', 'Pediatric', 'Cosmetic'];
-
   const filteredDepartments = departments.filter((dept) => {
-    const matchesSearch = dept.title.toLowerCase().includes(searchTerm.toLowerCase()) || dept.subtitle.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'All' || dept.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+    const matchesSearch = dept.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (dept.subtitle && dept.subtitle.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      dept.description.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesCategory = selectedCategory === 'All' || dept.category === selectedCategory
+    return matchesSearch && matchesCategory
+  })
 
   return (
     <div className="departments-page">
@@ -247,6 +211,7 @@ const Departments = () => {
           position: relative;
           height: 220px;
           overflow: hidden;
+          background: linear-gradient(135deg, var(--heading-color), var(--accent-color));
         }
 
         .department-image-wrapper img {
@@ -360,7 +325,27 @@ const Departments = () => {
           margin-left: 10px;
         }
 
-        /* --- Empty State --- */
+        /* --- Loading & Empty States --- */
+        .loading-spinner {
+          text-align: center;
+          padding: 60px;
+        }
+
+        .spinner {
+          border: 4px solid #f3f3f3;
+          border-top: 4px solid var(--accent-color);
+          border-radius: 50%;
+          width: 50px;
+          height: 50px;
+          animation: spin 1s linear infinite;
+          margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+
         .no-results {
           text-align: center;
           padding: 50px;
@@ -382,7 +367,7 @@ const Departments = () => {
       <section id="departments" className="departments section section-bg">
         <div className="container" data-aos="fade-up" data-aos-delay="100">
           <div className="row">
-            
+
             {/* --- Left Sidebar Filter --- */}
             <div className="col-lg-3 mb-5 mb-lg-0">
               <div className="sidebar-wrapper">
@@ -394,22 +379,22 @@ const Departments = () => {
                 {/* Search */}
                 <div className="search-box">
                   <i className="bi bi-search"></i>
-                  <input 
-                    type="text" 
-                    placeholder="Search departments..." 
+                  <input
+                    type="text"
+                    placeholder="Search departments..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
 
                 {/* Categories */}
-                <div className="sidebar-title" style={{fontSize: '1rem', marginTop: '10px'}}>
+                <div className="sidebar-title" style={{ fontSize: '1rem', marginTop: '10px' }}>
                   Categories
                 </div>
                 <ul className="category-list">
                   {categories.map((cat, idx) => (
                     <li key={idx} className="category-item">
-                      <button 
+                      <button
                         className={`category-btn ${selectedCategory === cat ? 'active' : ''}`}
                         onClick={() => setSelectedCategory(cat)}
                       >
@@ -443,41 +428,50 @@ const Departments = () => {
                 </span>
               </div>
 
-              {filteredDepartments.length > 0 ? (
+              {loading ? (
+                <div className="loading-spinner">
+                  <div className="spinner"></div>
+                  <p className="text-muted">Loading departments...</p>
+                </div>
+              ) : filteredDepartments.length > 0 ? (
                 <div className="row gy-4">
                   {filteredDepartments.map((dept) => (
                     <div key={dept.id} className="col-md-6" data-aos="fade-up" data-aos-delay="100">
                       <div className="department-card">
-                        
                         <div className="department-image-wrapper">
-                          <span className="category-tag">{dept.category}</span>
-                          <img 
-                            src={`/assets/img/health/${dept.img}`} 
-                            alt={dept.title} 
-                            loading="lazy" 
+                          {dept.category && <span className="category-tag">{dept.category}</span>}
+                          <img
+                            src={getImageUrl(dept.image || '')}
+                            alt={dept.name}
+                            loading="lazy"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x220?text=Department'
+                            }}
                           />
                         </div>
 
                         <div className="department-content">
                           <div className="icon-box">
-                            <i className={`bi ${dept.icon}`}></i>
+                            <i className={`bi ${dept.icon || 'bi-hospital'}`}></i>
                           </div>
 
-                          <h3 className="dept-title">{dept.title}</h3>
-                          <span className="dept-subtitle">{dept.subtitle}</span>
-                          
-                          <div className="dept-stats">
-                            <i className="bi bi-trophy text-warning"></i>
-                            <div>
-                              <span className="stat-val">{dept.stat} </span> 
-                              <span className="stat-lbl">{dept.statLabel}</span>
+                          <h3 className="dept-title">{dept.name}</h3>
+                          {dept.subtitle && <span className="dept-subtitle">{dept.subtitle}</span>}
+
+                          {dept.head_of_department && (
+                            <div className="dept-stats">
+                              <i className="bi bi-person-badge text-warning"></i>
+                              <div>
+                                <span className="stat-lbl">Head: </span>
+                                <span className="stat-val">{dept.head_of_department}</span>
+                              </div>
                             </div>
-                          </div>
+                          )}
 
-                          <p className="dept-desc">{dept.desc}</p>
-                          
-                          <Link to="/department-details" className="dept-link">
-                            View Details <i className="bi bi-arrow-right"></i>
+                          <p className="dept-desc">{dept.description}</p>
+
+                          <Link to={`/department-details/${dept.id}`} className="dept-link">
+                            Details <i className="bi bi-arrow-right"></i>
                           </Link>
                         </div>
                       </div>
@@ -489,16 +483,15 @@ const Departments = () => {
                   <i className="bi bi-search display-4 text-muted mb-3"></i>
                   <h4>No departments found</h4>
                   <p className="text-muted">Try adjusting your search or category filter.</p>
-                  <button 
+                  <button
                     className="btn btn-outline-dark mt-2"
-                    onClick={() => {setSearchTerm(''); setSelectedCategory('All');}}
+                    onClick={() => { setSearchTerm(''); setSelectedCategory('All'); }}
                   >
                     Reset Filters
                   </button>
                 </div>
               )}
             </div>
-
           </div>
         </div>
       </section>

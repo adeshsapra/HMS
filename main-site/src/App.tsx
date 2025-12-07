@@ -74,10 +74,10 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
           <Route path="/departments" element={<Departments />} />
-          <Route path="/department-details" element={<DepartmentDetails />} />
+          <Route path="/department-details/:id" element={<DepartmentDetails />} />
           <Route path="/doctors" element={<Doctors />} />
           <Route path="/services" element={<Services />} />
-          <Route path="/service-details" element={<ServiceDetails />} />
+          <Route path="/service-details/:id" element={<ServiceDetails />} />
           <Route path="/quickappointment" element={<QuickAppointment />} />
           <Route path="/appointment" element={<Appointment />} />
           <Route path="/doctor-details" element={<DoctorDetails />} />

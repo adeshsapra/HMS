@@ -32,3 +32,4 @@ export { default as Roles } from "./roles";
 export { default as Permissions } from "./permissions";
 export { default as RolePermissions } from "./role-permissions";
 export { default as UserRoles } from "./user-roles";
+export { default as HealthPackages } from "./health-packages";

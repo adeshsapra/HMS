@@ -1,16 +1,45 @@
-import { useEffect } from "react";
-import { Link } from "react-router-dom";
-import AOS from "aos";
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import AOS from 'aos'
+import axios from 'axios'
+import '../billing-toggle.css'
+
+interface HealthPackage {
+  id: number
+  title: string
+  subtitle: string
+  price_monthly: number
+  price_yearly: number
+  features_monthly: string[]
+  features_yearly: string[]
+  featured: boolean
+}
 
 const Home = () => {
+  const [healthPackages, setHealthPackages] = useState<HealthPackage[]>([])
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly')
+
   useEffect(() => {
     AOS.init({
       duration: 600,
-      easing: "ease-in-out",
+      easing: 'ease-in-out',
       once: true,
-      mirror: false,
-    });
-  }, []);
+      mirror: false
+    })
+    fetchPackages()
+  }, [])
+
+  const fetchPackages = async () => {
+    try {
+      const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
+      const response = await axios.get(`${API_URL}/public/health-packages`)
+      if (response.data.success) {
+        setHealthPackages(response.data.data)
+      }
+    } catch (error) {
+      console.error('Error fetching health packages:', error)
+    }
+  }
 
   return (
     <div className="index-page">
@@ -1003,37 +1032,31 @@ const Home = () => {
         <div className="container section-title text-center" data-aos="fade-up">
           <h2>Exclusive Health Packages</h2>
           <p>Preventive care tailored for every stage of life.</p>
+
+          <div className="d-flex justify-content-center mt-4">
+            <div className="billing-toggle-wrapper">
+              <div
+                className={`billing-option ${billingCycle === 'monthly' ? 'active' : ''}`}
+                onClick={() => setBillingCycle('monthly')}
+              >
+                Monthly
+              </div>
+              <div
+                className={`billing-option ${billingCycle === 'yearly' ? 'active' : ''}`}
+                onClick={() => setBillingCycle('yearly')}
+              >
+                Yearly
+                {/* <span className="discount-badge">Save 20%</span> */}
+              </div>
+              <div className={`slider-bg ${billingCycle === 'yearly' ? 'slide-right' : ''}`}></div>
+            </div>
+          </div>
         </div>
 
         <div className="container">
           <div className="row gy-4 align-items-center justify-content-center">
-            {[
-              {
-                title: "Basic Checkup",
-                price: "99",
-                subtitle: "For Individuals",
-                features: ["Complete Blood Count (CBC)", "Blood Sugar Fasting", "Urine Routine Analysis", "General Physician Consult"],
-                featured: false,
-                delay: "100"
-              },
-              {
-                title: "Comprehensive",
-                price: "199",
-                subtitle: "Most Recommended",
-                features: ["All Basic Features", "Liver & Kidney Function", "Thyroid Profile", "ECG & Chest X-Ray", "Dental Screening"],
-                featured: true,
-                delay: "200"
-              },
-              {
-                title: "Senior Citizen",
-                price: "299",
-                subtitle: "Advanced Care",
-                features: ["Full Body Analysis", "Cardiac Risk Markers", "Vitamin D & B12 Levels", "Cancer Screening Markers", "Home Sample Collection"],
-                featured: false,
-                delay: "300"
-              },
-            ].map((pkg, idx) => (
-              <div className="col-lg-4 col-md-6" key={idx} data-aos="fade-up" data-aos-delay={pkg.delay}>
+            {healthPackages.map((pkg, idx) => (
+              <div className="col-lg-4 col-md-6" key={pkg.id} data-aos="fade-up" data-aos-delay={100 * (idx + 1)}>
                 <div className={`package-card ${pkg.featured ? 'featured' : ''}`}>
                   {pkg.featured && <div className="popular-badge">Best Value</div>}
 
@@ -1041,13 +1064,15 @@ const Home = () => {
                   <p className="package-subtitle">{pkg.subtitle}</p>
 
                   <div className="package-price">
-                    <sup>$</sup>{pkg.price}<span>/session</span>
+                    <sup>$</sup>
+                    {billingCycle === 'monthly' ? pkg.price_monthly : pkg.price_yearly || pkg.price_monthly * 10}
+                    <span>/{billingCycle === 'monthly' ? 'month' : 'year'}</span>
                   </div>
 
                   <hr />
 
                   <ul className="package-features">
-                    {pkg.features.map((f, i) => (
+                    {(billingCycle === 'monthly' ? pkg.features_monthly : pkg.features_yearly)?.map((f, i) => (
                       <li key={i}>
                         <i className="bi bi-check-circle-fill me-2"></i>
                         <span>{f}</span>
@@ -1056,7 +1081,7 @@ const Home = () => {
                   </ul>
 
                   <Link to="/book-package" className={`btn-package ${pkg.featured ? 'filled' : 'outline'}`}>
-                    Book Now
+                    {billingCycle === 'monthly' ? 'Book Monthly Plan' : 'Book Yearly Plan'}
                   </Link>
                 </div>
               </div>

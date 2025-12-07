@@ -38,6 +38,7 @@ import {
   PatientReports,
   Bills,
   Medicines,
+  HealthPackages,
 } from "@/pages/dashboard";
 import { SignIn } from "@/pages/auth";
 
@@ -220,6 +221,13 @@ export const routes: Route[] = [
         path: "/contact-inquiries",
         element: <ContactInquiries />,
         permission: "view-contact-inquiries",
+      },
+      {
+        icon: <RectangleStackIcon {...icon} />,
+        name: "health packages",
+        path: "/health-packages",
+        element: <HealthPackages />,
+        permission: "view-health-packages",
       },
     ],
   },

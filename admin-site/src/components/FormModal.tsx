@@ -35,6 +35,89 @@ export interface FormModalProps {
   loading?: boolean;
 }
 
+const COMMON_ICONS = [
+  // Medical & Clinical
+  "bi-heart-pulse", "bi-lungs", "bi-virus", "bi-capsule", "bi-hospital",
+  "bi-person-wheelchair", "bi-thermometer-half", "bi-bandaid", "bi-activity",
+  "bi-clipboard2-pulse", "bi-file-medical", "bi-heart", "bi-gender-female",
+  "bi-gender-male", "bi-droplet", "bi-prescription", "bi-scissors",
+  "bi-radioactive", "bi-person-x", "bi-person-check", "bi-heart-fill",
+  "bi-lungs-fill", "bi-capsule-pill", "bi-clipboard-pulse", "bi-file-earmark-medical",
+
+  // Departments & Specialties
+  "bi-eye", "bi-ear", "bi-brain", "bi-tooth", "bi-eyeglasses",
+  "bi-ear-fill", "bi-eye-fill", "bi-journal-medical", "bi-person-standing-dress",
+  "bi-person-standing", "bi-yin-yang", "bi-flower1", "bi-flower2", "bi-flower3",
+
+  // Administrative & General
+  "bi-people", "bi-person", "bi-person-gear", "bi-gear", "bi-calendar-check",
+  "bi-clock", "bi-telephone", "bi-envelope", "bi-geo-alt", "bi-star",
+  "bi-check-circle", "bi-exclamation-circle", "bi-info-circle", "bi-award",
+  "bi-briefcase", "bi-building", "bi-calculator", "bi-camera", "bi-card-checklist",
+  "bi-cash-coin", "bi-credit-card", "bi-file-earmark-text", "bi-graph-up",
+  "bi-house", "bi-key", "bi-lock", "bi-megaphone", "bi-mic", "bi-bell",
+  "bi-search", "bi-trash", "bi-pencil", "bi-printer", "bi-share",
+  "bi-wifi", "bi-battery-charging", "bi-bluetooth", "bi-usb", "bi-hdd",
+  "bi-cpu", "bi-display", "bi-phone", "bi-tablet", "bi-laptop",
+  "bi-box-seam", "bi-bezier", "bi-x-diamond", "bi-shield-check", "bi-shield-lock"
+];
+
+const IconPicker = ({ value, onChange, label, error }: any) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  return (
+    <div className="relative" ref={wrapperRef}>
+      <label className="block text-sm font-medium text-blue-gray-700 mb-2">
+        {label}
+      </label>
+      <div
+        className={`w-full px-3 py-2.5 text-sm bg-white border rounded-lg cursor-pointer flex items-center justify-between transition-all ${error ? "border-red-500" : "border-blue-gray-200 hover:border-blue-gray-400"}`}
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <div className="flex items-center gap-3">
+          {value ? (
+            <div className="w-8 h-8 rounded bg-blue-50 flex items-center justify-center text-blue-600">
+              <i className={`bi ${value} text-lg`}></i>
+            </div>
+          ) : (
+            <span className="text-gray-400">Select Icon</span>
+          )}
+          <span className="text-blue-gray-700 font-medium">{value || 'No icon selected'}</span>
+        </div>
+        <ChevronDownIcon className={`h-4 w-4 text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </div>
+
+      {isOpen && (
+        <div className="absolute z-50 w-full mt-2 bg-white border border-blue-gray-200 rounded-lg shadow-xl max-h-60 overflow-y-auto p-3">
+          <div className="grid grid-cols-6 gap-2">
+            {COMMON_ICONS.map(icon => (
+              <div
+                key={icon}
+                className={`aspect-square rounded-lg hover:bg-blue-50 cursor-pointer flex justify-center items-center transition-colors ${value === icon ? 'bg-blue-100 text-blue-600 ring-2 ring-blue-500 ring-offset-1' : 'text-gray-600 border border-gray-100'}`}
+                onClick={() => { onChange(icon); setIsOpen(false); }}
+                title={icon}
+              >
+                <i className={`bi ${icon} text-xl`}></i>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // Custom Select Component
 const CustomSelect = ({
   value,
@@ -244,6 +327,15 @@ export function FormModal({
             error={hasError}
           />
         );
+      case "icon-picker":
+        return (
+          <IconPicker
+            value={fieldValue}
+            onChange={(value: string) => handleChange(field.name, value)}
+            label={field.label}
+            error={hasError}
+          />
+        );
       case "file":
         return (
           <div>
@@ -251,18 +343,40 @@ export function FormModal({
               {field.label}
               {field.required && <span className="text-red-500 ml-1">*</span>}
             </label>
-            <input
-              type="file"
-              accept={field.accept}
-              multiple={field.multiple}
-              onChange={(e) => {
-                const files = e.target.files;
-                if (files && files.length > 0) {
-                  handleChange(field.name, field.multiple ? Array.from(files) : files[0]);
-                }
-              }}
-              className="w-full text-sm text-blue-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-            />
+            <div className={`flex items-center gap-4 p-3 border rounded-lg bg-white ${hasError ? 'border-red-500' : 'border-blue-gray-200'}`}>
+              <label className="cursor-pointer bg-blue-50 text-blue-600 border border-blue-100 rounded-md px-4 py-2 hover:bg-blue-100 transition-all flex items-center gap-2 shadow-sm">
+                <i className="bi bi-cloud-upload"></i>
+                <span className="text-sm font-semibold">Choose File</span>
+                <input
+                  type="file"
+                  className="hidden"
+                  accept={field.accept}
+                  multiple={field.multiple}
+                  onChange={(e) => {
+                    const files = e.target.files;
+                    if (files && files.length > 0) {
+                      handleChange(field.name, field.multiple ? Array.from(files) : files[0]);
+                    }
+                  }}
+                />
+              </label>
+              <div className="flex-grow overflow-hidden">
+                {formData[field.name] instanceof File ? (
+                  <div className="flex items-center gap-2 text-blue-gray-700">
+                    <i className="bi bi-file-earmark-image text-blue-400"></i>
+                    <span className="text-sm truncate font-medium">{formData[field.name].name}</span>
+                    <span className="text-xs text-gray-400">({(formData[field.name].size / 1024).toFixed(1)} KB)</span>
+                  </div>
+                ) : formData[field.name] && typeof formData[field.name] === 'string' ? (
+                  <div className="flex items-center gap-2 text-blue-gray-700">
+                    <i className="bi bi-check-circle-fill text-green-500"></i>
+                    <span className="text-sm truncate">Current file: {formData[field.name].split('/').pop()}</span>
+                  </div>
+                ) : (
+                  <span className="text-sm text-gray-400 italic">No file selected</span>
+                )}
+              </div>
+            </div>
           </div>
         );
       default:

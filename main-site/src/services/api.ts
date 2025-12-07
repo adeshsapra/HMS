@@ -38,4 +38,16 @@ api.interceptors.response.use(
     }
 );
 
+// API Helper Methods for Main Site (Public endpoints)
+export const departmentAPI = {
+    getAll: () => api.get('/public/departments'),
+    getById: (id: number) => api.get(`/public/departments/${id}`),
+};
+
+export const serviceAPI = {
+    getAll: () => api.get('/public/services'),
+    getById: (id: number) => api.get(`/public/services/${id}`),
+};
+
 export default api;
+
