@@ -354,60 +354,6 @@ const Header = () => {
                 </li>
               </ul>
             </li>
-            {/* <li
-              className={`dropdown ${
-                activeDropdown === "main" ? "active dropdown-active" : ""
-              }`}
-            >
-              <a href="#" onClick={(e) => toggleDropdown(e, "main")}>
-                <span>Dropdown</span>{" "}
-                <i className="bi bi-chevron-down toggle-dropdown"></i>
-              </a>
-              <ul
-                className={activeDropdown === "main" ? "dropdown-active" : ""}
-              >
-                <li>
-                  <a href="#">Dropdown 1</a>
-                </li>
-                <li className="dropdown">
-                  <a
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                    }}
-                  >
-                    <span>Deep Dropdown</span>{" "}
-                    <i className="bi bi-chevron-down toggle-dropdown"></i>
-                  </a>
-                  <ul>
-                    <li>
-                      <a href="#">Deep Dropdown 1</a>
-                    </li>
-                    <li>
-                      <a href="#">Deep Dropdown 2</a>
-                    </li>
-                    <li>
-                      <a href="#">Deep Dropdown 3</a>
-                    </li>
-                    <li>
-                      <a href="#">Deep Dropdown 4</a>
-                    </li>
-                    <li>
-                      <a href="#">Deep Dropdown 5</a>
-                    </li>
-                  </ul>
-                </li>
-                <li>
-                  <a href="#">Dropdown 2</a>
-                </li>
-                <li>
-                  <a href="#">Dropdown 3</a>
-                </li>
-                <li>
-                  <a href="#">Dropdown 4</a>
-                </li>
-              </ul>
-            </li> */}
             <li>
               <Link
                 to="/contact"
