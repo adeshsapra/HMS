@@ -1,0 +1,107 @@
+Custom styles for react-big-calendar to match Material Tailwind design .rbc-calendar {
+    font-family: 'Inter', sans-serif;
+}
+
+.rbc-toolbar {
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.rbc-toolbar button {
+    color: #374151;
+    background-color: white;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-weight: 500;
+    transition: all 0.2s;
+    cursor: pointer;
+    margin-right: 4px;
+}
+
+.rbc-toolbar button:hover {
+    background-color: #f3f4f6;
+    border-color: #9ca3af;
+}
+
+.rbc-toolbar button.rbc-active {
+    background-color: #2196f3;
+    color: white;
+    border-color: #2196f3;
+    box-shadow: 0 2px 4px rgba(33, 150, 243, 0.3);
+}
+
+.rbc-toolbar button.rbc-active:hover {
+    background-color: #1e88e5;
+}
+
+.rbc-toolbar-label {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.rbc-header {
+    padding: 12px 4px;
+    font-weight: 600;
+    color: #4b5563;
+    background-color: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.rbc-month-view {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.rbc-day-bg {
+    background-color: white;
+}
+
+.rbc-off-range-bg {
+    background-color: #f9fafb;
+}
+
+.rbc-today {
+    background-color: #eff6ff;
+}
+
+.rbc-event {
+    border-radius: 4px;
+    padding: 2px 5px;
+    font-size: 0.85rem;
+    border: none;
+}
+
+.rbc-time-view {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.rbc-time-header {
+    background-color: #f9fafb;
+}
+
+.rbc-time-content {
+    border-top: 1px solid #e5e7eb;
+}
+
+.rbc-timeslot-group {
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.rbc-day-slot .rbc-time-slot {
+    border-top: 1px solid #f3f4f6;
+}
+
+.rbc-current-time-indicator {
+    background-color: #ef4444;
+}
+
+/* Hide the default "today" background if it conflicts with our styling or keep it subtle */
+.rbc-day-slot .rbc-event {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}

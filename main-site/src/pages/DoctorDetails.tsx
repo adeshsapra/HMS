@@ -1,32 +1,95 @@
-import { useLocation } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import PageHero from '../components/PageHero';
 import CalendarComponent from '../components/CalendarComponent';
+import { doctorAPI } from '../services/api';
 
 interface Doctor {
-  img: string;
-  full_name: string;
+  id: number;
+  first_name: string;
+  last_name: string;
   specialization: string;
   bio: string;
-  qualifications: string;
-  gender: string;
   experience_years: number;
+  profile_picture: string;
+  qualification: string;
   consultation_fee: number;
   employment_type: string;
   working_hours_start: string;
   working_hours_end: string;
-  working_days: string;
-  languages: string;
+  working_days: string[];
+  languages: string[];
   status: string;
-  department_name: string;
+  department: {
+    name: string;
+  };
   address: string;
   phone: string;
   email: string;
+  gender: string;
 }
 
 const DoctorDetails = () => {
   const location = useLocation();
-  const doctor: Doctor = location.state?.doctor;
-  const parsedLanguages = JSON.parse(doctor.languages).join(', ');
+  const { id } = useParams();
+  const [doctor, setDoctor] = useState<Doctor | null>(location.state?.doctor || null);
+  const [loading, setLoading] = useState(!location.state?.doctor);
+
+  useEffect(() => {
+    if (!doctor && id) {
+      fetchDoctor(id);
+    } else {
+      setLoading(false);
+    }
+  }, [id, doctor]);
+
+  const fetchDoctor = async (doctorId: string) => {
+    try {
+      setLoading(true);
+      const response = await doctorAPI.getById(doctorId);
+      if (response.data.success) {
+        setDoctor(response.data.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch doctor details", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const DEFAULT_DOCTOR_IMAGE =
+    "https://ui-avatars.com/api/?name=Doctor&background=0D8ABC&color=fff&size=256";
+
+
+  const getImageUrl = (path: string | null) => {
+    if (!path) return DEFAULT_DOCTOR_IMAGE;
+    if (path.startsWith('http')) return path;
+    return `http://localhost:8000/storage/${path}`;
+  };
+
+  const formatList = (list: string[] | string) => {
+    if (Array.isArray(list)) return list.join(', ');
+    try {
+      // Handle case where it might be a JSON string from legacy/mock
+      return JSON.parse(list).join(', ');
+    } catch (e) {
+      return list;
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="text-center mt-5">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!doctor) {
+    return <div className="text-center mt-5">Doctor not found</div>;
+  }
 
   return (
     <>
@@ -211,20 +274,26 @@ const DoctorDetails = () => {
             <div className="row g-0">
               <div className="col-lg-4">
                 <div className="appointment-doctor-img-wrapper">
-                  <img src={`/assets/img/health/${doctor.img}`} alt={doctor.full_name} />
+                  <img
+                    src={getImageUrl(doctor.profile_picture)}
+                    alt={`${doctor.first_name} ${doctor.last_name}`}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x400?text=Doctor';
+                    }}
+                  />
                   <div className="appointment-status-badge">
-                    <span className="appointment-status-dot"></span> {doctor.status}
+                    <span className="appointment-status-dot"></span> {doctor.status || 'Active'}
                   </div>
                 </div>
               </div>
               <div className="col-lg-8">
                 <div className="appointment-doctor-details">
                   <div className="appointment-doc-header">
-                    <h2>{doctor.full_name}</h2>
-                    <span className="appointment-doc-specialty">{doctor.specialization} - {doctor.department_name}</span>
+                    <h2>{doctor.first_name} {doctor.last_name}</h2>
+                    <span className="appointment-doc-specialty">{doctor.specialization} {doctor.department?.name ? `- ${doctor.department.name}` : ''}</span>
                   </div>
 
-                  <p className="appointment-doc-bio">{doctor.bio}</p>
+                  <p className="appointment-doc-bio">{doctor.bio || 'No biography available.'}</p>
 
                   <div className="appointment-info-grid">
                     <div className="appointment-info-box">
@@ -237,18 +306,18 @@ const DoctorDetails = () => {
                     </div>
                     <div className="appointment-info-box">
                       <span className="appointment-info-label">Qualification</span>
-                      <span className="appointment-info-value">{doctor.qualifications}</span>
+                      <span className="appointment-info-value">{doctor.qualification || 'N/A'}</span>
                     </div>
                     <div className="appointment-info-box">
                       <span className="appointment-info-label">Gender</span>
-                      <span className="appointment-info-value">{doctor.gender}</span>
+                      <span className="appointment-info-value">{doctor.gender === 'male' ? 'Male' : doctor.gender === 'female' ? 'Female' : doctor.gender}</span>
                     </div>
                   </div>
 
                   <div className="appointment-info-grid" style={{ marginTop: '20px' }}>
-                     <div className="appointment-info-box">
+                    <div className="appointment-info-box">
                       <span className="appointment-info-label">Working Days</span>
-                      <span className="appointment-info-value">{doctor.working_days}</span>
+                      <span className="appointment-info-value">{formatList(doctor.working_days)}</span>
                     </div>
                     <div className="appointment-info-box">
                       <span className="appointment-info-label">Hours</span>
@@ -256,23 +325,23 @@ const DoctorDetails = () => {
                     </div>
                     <div className="appointment-info-box">
                       <span className="appointment-info-label">Languages</span>
-                      <span className="appointment-info-value" style={{fontSize: '0.85rem'}}>{parsedLanguages}</span>
+                      <span className="appointment-info-value" style={{ fontSize: '0.85rem' }}>{formatList(doctor.languages)}</span>
                     </div>
-                     <div className="appointment-info-box">
+                    <div className="appointment-info-box">
                       <span className="appointment-info-label">Type</span>
-                      <span className="appointment-info-value">{doctor.employment_type}</span>
+                      <span className="appointment-info-value">{doctor.employment_type.replace('_', ' ')}</span>
                     </div>
                   </div>
 
                   <div className="appointment-contact-row">
                     <div className="appointment-contact-item">
-                      <i className="bi bi-geo-alt-fill"></i> {doctor.address}
+                      <i className="bi bi-geo-alt-fill"></i> {doctor.address || 'N/A'}
                     </div>
                     <div className="appointment-contact-item">
                       <i className="bi bi-envelope-fill"></i> {doctor.email}
                     </div>
                     <div className="appointment-contact-item">
-                      <i className="bi bi-telephone-fill"></i> {doctor.phone}
+                      <i className="bi bi-telephone-fill"></i> {doctor.phone || 'N/A'}
                     </div>
                   </div>
                 </div>

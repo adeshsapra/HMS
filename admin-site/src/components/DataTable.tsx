@@ -24,6 +24,15 @@ import {
   ArrowDownTrayIcon,
 } from "@heroicons/react/24/outline";
 
+import Pagination from "./Pagination";
+
+export interface ActionItem {
+  label: string;
+  icon: JSX.Element;
+  color?: string;
+  onClick: () => void;
+}
+
 export interface Column {
   key: string;
   label: string;
@@ -40,11 +49,19 @@ export interface DataTableProps {
   onEdit?: (row: Record<string, any>) => void;
   onDelete?: (row: Record<string, any>) => void;
   onView?: (row: Record<string, any>) => void;
+  customActions?: (row: Record<string, any>) => ActionItem[];
   searchable?: boolean;
   filterable?: boolean;
   exportable?: boolean;
   addButtonLabel?: string;
   searchPlaceholder?: string;
+  pagination?: {
+    currentPage: number;
+    totalPages: number;
+    onPageChange: (page: number) => void;
+    totalItems?: number;
+    perPage?: number;
+  };
 }
 
 export function DataTable({
@@ -55,11 +72,13 @@ export function DataTable({
   onEdit,
   onDelete,
   onView,
+  customActions,
   searchable = true,
   filterable = false,
   exportable = false,
   addButtonLabel = "Add New",
   searchPlaceholder = "Search...",
+  pagination,
 }: DataTableProps): JSX.Element {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [filteredData, setFilteredData] = useState<Record<string, any>[]>(data);
@@ -211,7 +230,7 @@ export function DataTable({
                     </Typography>
                   </th>
                 ))}
-                {(onEdit || onDelete || onView) && (
+                {(onEdit || onDelete || onView || customActions) && (
                   <th className="border-b border-blue-gray-100 py-4 px-6 text-left bg-blue-gray-50/50">
                     <Typography
                       variant="small"
@@ -227,7 +246,7 @@ export function DataTable({
               {filteredData.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={columns.length + (onEdit || onDelete || onView ? 1 : 0)}
+                    colSpan={columns.length + (onEdit || onDelete || onView || customActions ? 1 : 0)}
                     className="py-12 text-center"
                   >
                     <div className="flex flex-col items-center justify-center">
@@ -252,11 +271,10 @@ export function DataTable({
                     {columns.map((col) => (
                       <td
                         key={col.key}
-                        className={`py-4 px-6 ${
-                          rowIndex === filteredData.length - 1
-                            ? ""
-                            : "border-b border-blue-gray-100"
-                        }`}
+                        className={`py-4 px-6 ${rowIndex === filteredData.length - 1
+                          ? ""
+                          : "border-b border-blue-gray-100"
+                          }`}
                       >
                         {col.render ? (
                           col.render(row[col.key], row)
@@ -281,13 +299,12 @@ export function DataTable({
                         )}
                       </td>
                     ))}
-                    {(onEdit || onDelete || onView) && (
+                    {(onEdit || onDelete || onView || customActions) && (
                       <td
-                        className={`py-4 px-6 ${
-                          rowIndex === filteredData.length - 1
-                            ? ""
-                            : "border-b border-blue-gray-100"
-                        }`}
+                        className={`py-4 px-6 ${rowIndex === filteredData.length - 1
+                          ? ""
+                          : "border-b border-blue-gray-100"
+                          }`}
                       >
                         <Menu placement="left-start">
                           <MenuHandler>
@@ -334,6 +351,18 @@ export function DataTable({
                                 </Typography>
                               </MenuItem>
                             )}
+                            {customActions && customActions(row).map((action, index) => (
+                              <MenuItem
+                                key={index}
+                                onClick={action.onClick}
+                                className={`flex items-center gap-3 py-2 ${action.color ? `text-${action.color}-500 focus:text-${action.color}-500 focus:bg-${action.color}-50` : ''}`}
+                              >
+                                {action.icon}
+                                <Typography variant="small" className="font-medium">
+                                  {action.label}
+                                </Typography>
+                              </MenuItem>
+                            ))}
                           </MenuList>
                         </Menu>
                       </td>
@@ -344,25 +373,44 @@ export function DataTable({
             </tbody>
           </table>
         </div>
-        {filteredData.length > 0 && (
+        {(pagination || filteredData.length > 0) && (
           <div className="px-6 py-4 border-t border-blue-gray-100 bg-blue-gray-50/30">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
               <Typography variant="small" className="text-blue-gray-600 font-medium">
-                Showing <strong>{filteredData.length}</strong> of{" "}
-                <strong>{data.length}</strong> entries
+                {pagination ? (
+                  <>
+                    Showing <strong>{((pagination.currentPage - 1) * (pagination.perPage || 10)) + 1}</strong> to{" "}
+                    <strong>{Math.min(pagination.currentPage * (pagination.perPage || 10), pagination.totalItems || 0)}</strong> of{" "}
+                    <strong>{pagination.totalItems || 0}</strong> entries
+                  </>
+                ) : (
+                  <>
+                    Showing <strong>{filteredData.length}</strong> of{" "}
+                    <strong>{data.length}</strong> entries
+                  </>
+                )}
               </Typography>
-              {searchTerm && (
-                <Button
-                  variant="text"
-                  size="sm"
-                  onClick={() => {
-                    setSearchTerm("");
-                    setFilteredData(data);
-                  }}
-                  className="text-blue-600 font-semibold"
-                >
-                  Clear search
-                </Button>
+
+              {pagination ? (
+                <Pagination
+                  currentPage={pagination.currentPage}
+                  totalPages={pagination.totalPages}
+                  onPageChange={pagination.onPageChange}
+                />
+              ) : (
+                searchTerm && (
+                  <Button
+                    variant="text"
+                    size="sm"
+                    onClick={() => {
+                      setSearchTerm("");
+                      setFilteredData(data);
+                    }}
+                    className="text-blue-600 font-semibold"
+                  >
+                    Clear search
+                  </Button>
+                )
               )}
             </div>
           </div>

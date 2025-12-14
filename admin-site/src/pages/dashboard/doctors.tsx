@@ -6,7 +6,7 @@ import apiService from "@/services/api";
 
 // Backend storage URL for images
 const STORAGE_URL = (import.meta as any).env?.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:8000';
-
+console.log(STORAGE_URL);
 interface Doctor {
   id: number;
   doctor_id?: string;

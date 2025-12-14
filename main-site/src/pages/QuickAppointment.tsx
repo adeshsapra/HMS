@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import AOS from 'aos'
+import { useToast } from '../context/ToastContext'
 import PageHero from '../components/PageHero'
 
 const QuickAppointment = () => {
@@ -12,6 +13,7 @@ const QuickAppointment = () => {
     doctor: '',
     message: ''
   })
+  const toast = useToast()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [sent, setSent] = useState(false)
@@ -35,6 +37,7 @@ const QuickAppointment = () => {
     setTimeout(() => {
       setLoading(false)
       setSent(true)
+      toast.success('Your appointment request has been sent successfully!')
       setFormData({
         name: '',
         email: '',

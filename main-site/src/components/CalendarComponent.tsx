@@ -1,6 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useToast } from '../context/ToastContext';
+import { appointmentAPI } from '../services/api';
 
 interface Doctor {
+  id: number;
   working_hours_start: string;
   working_hours_end: string;
 }
@@ -19,6 +22,71 @@ const CalendarComponent = ({ doctor, onDateSelect }: CalendarComponentProps) => 
   const [selectedHour, setSelectedHour] = useState<string>('09');
   const [selectedMinute, setSelectedMinute] = useState<string>('00');
   const [selectedPeriod, setSelectedPeriod] = useState<string>('AM');
+
+  const [form, setForm] = useState({
+    patient_name: '',
+    patient_email: '',
+    patient_phone: '',
+    reason: '',
+    notes: ''
+  });
+  const [loading, setLoading] = useState(false);
+  const toast = useToast();
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+
+
+  const handleBookAppointment = async () => {
+    if (!selectedDate) return;
+    setLoading(true);
+
+    try {
+      // Format date YYYY-MM-DD manually to avoid timezone issues
+      const year = selectedDate.getFullYear();
+      const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+      const day = String(selectedDate.getDate()).padStart(2, '0');
+      const dateStr = `${year}-${month}-${day}`;
+
+      const timeStr = `${selectedHour}:${selectedMinute} ${selectedPeriod}`;
+
+      // Get user from localStorage
+      const userStr = localStorage.getItem('user');
+      const user = userStr ? JSON.parse(userStr) : null;
+
+      const payload = {
+        doctor_id: doctor.id,
+        user_id: user?.id || null, // Add user_id if available
+        patient_name: form.patient_name,
+        patient_email: form.patient_email,
+        patient_phone: form.patient_phone,
+        appointment_date: dateStr,
+        appointment_time: timeStr,
+        reason: `${form.reason}${form.notes ? '\nNotes: ' + form.notes : ''}`
+      };
+
+      const response = await appointmentAPI.create(payload);
+      if (response.status === 201 || (response.data && response.data.status)) {
+        toast.success('Appointment booked successfully!');
+        setShowModal(false);
+        setForm({
+          patient_name: '',
+          patient_email: '',
+          patient_phone: '',
+          reason: '',
+          notes: ''
+        });
+      }
+    } catch (error: any) {
+      console.error('Booking failed', error);
+      const errorMessage = error.response?.data?.message || 'Failed to book appointment. Please try again.';
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getDaysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
   const getFirstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay();
@@ -47,7 +115,7 @@ const CalendarComponent = ({ doctor, onDateSelect }: CalendarComponentProps) => 
 
   // Helper to generate hours (01-12)
   const hoursList = Array.from({ length: 12 }, (_, i) => (i + 1).toString().padStart(2, '0'));
-  
+
   // Helper for minutes (15 min intervals for cleaner appointments)
   const minutesList = ['00', '15', '30', '45'];
 
@@ -376,146 +444,188 @@ const CalendarComponent = ({ doctor, onDateSelect }: CalendarComponentProps) => 
 
       {/* Appointment Calendar Section */}
       <div className="appointment-calendar-section" data-aos="fade-up">
-         <div className="row justify-content-center">
-             <div className="col-12">
-                 <div className="appointment-calendar-container">
-                    <div className="appointment-calendar-header">
-                        <button className="appointment-nav-btn" onClick={handlePrevMonth}>
-                            <i className="bi bi-chevron-left"></i>
-                        </button>
-                        <div className="appointment-month-display">
-                            {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
-                        </div>
-                        <button className="appointment-nav-btn" onClick={handleNextMonth}>
-                            <i className="bi bi-chevron-right"></i>
-                        </button>
+        <div className="row justify-content-center">
+          <div className="col-12">
+            <div className="appointment-calendar-container">
+              <div className="appointment-calendar-header">
+                <button className="appointment-nav-btn" onClick={handlePrevMonth}>
+                  <i className="bi bi-chevron-left"></i>
+                </button>
+                <div className="appointment-month-display">
+                  {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
+                </div>
+                <button className="appointment-nav-btn" onClick={handleNextMonth}>
+                  <i className="bi bi-chevron-right"></i>
+                </button>
+              </div>
+
+              <div className="appointment-calendar-grid">
+                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+                  <div key={day} className="appointment-weekday-header">{day}</div>
+                ))}
+
+                {/* Empty slots for previous month */}
+                {Array.from({ length: getFirstDayOfMonth(currentDate.getFullYear(), currentDate.getMonth()) }).map((_, i) => (
+                  <div key={`empty-${i}`}></div>
+                ))}
+
+                {/* Days */}
+                {Array.from({ length: getDaysInMonth(currentDate.getFullYear(), currentDate.getMonth()) }).map((_, i) => {
+                  const day = i + 1;
+                  const dateObj = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+                  const today = new Date();
+                  const isToday = dateObj.toDateString() === today.toDateString();
+                  const isPast = dateObj.setHours(0, 0, 0, 0) < today.setHours(0, 0, 0, 0);
+
+                  return (
+                    <div
+                      key={day}
+                      className={`appointment-date-box ${isPast ? 'appointment-disabled' : ''} ${isToday ? 'appointment-today' : ''}`}
+                      onClick={() => !isPast && handleDateClick(day)}
+                    >
+                      {day}
+                      {!isPast && <i className="bi bi-plus-lg appointment-plus-icon"></i>}
                     </div>
-
-                    <div className="appointment-calendar-grid">
-                        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-                            <div key={day} className="appointment-weekday-header">{day}</div>
-                        ))}
-
-                        {/* Empty slots for previous month */}
-                        {Array.from({ length: getFirstDayOfMonth(currentDate.getFullYear(), currentDate.getMonth()) }).map((_, i) => (
-                            <div key={`empty-${i}`}></div>
-                        ))}
-
-                        {/* Days */}
-                        {Array.from({ length: getDaysInMonth(currentDate.getFullYear(), currentDate.getMonth()) }).map((_, i) => {
-                            const day = i + 1;
-                            const dateObj = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
-                            const today = new Date();
-                            const isToday = dateObj.toDateString() === today.toDateString();
-                            const isPast = dateObj.setHours(0,0,0,0) < today.setHours(0,0,0,0);
-
-                            return (
-                                <div
-                                    key={day}
-                                    className={`appointment-date-box ${isPast ? 'appointment-disabled' : ''} ${isToday ? 'appointment-today' : ''}`}
-                                    onClick={() => !isPast && handleDateClick(day)}
-                                >
-                                    {day}
-                                    {!isPast && <i className="bi bi-plus-lg appointment-plus-icon"></i>}
-                                </div>
-                            );
-                        })}
-                    </div>
-                 </div>
-             </div>
-         </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Premium Modal Form */}
       <div className={`appointment-custom-modal-overlay ${showModal ? 'appointment-show' : ''}`}>
         <div className="appointment-custom-modal">
-            <div className="appointment-modal-header-custom">
-                <h5>Book Appointment - {selectedDate?.toLocaleDateString()}</h5>
-                <button className="appointment-btn-close-custom" onClick={() => setShowModal(false)}>&times;</button>
-            </div>
-            <div className="appointment-modal-body-custom">
-                <form>
-                    <div className="row">
-                        <div className="col-md-6">
-                            <label className="form-label text-muted small fw-bold">Patient Name</label>
-                            <input type="text" className="appointment-form-control" placeholder="John Doe" />
+          <div className="appointment-modal-header-custom">
+            <h5>Book Appointment - {selectedDate?.toLocaleDateString()}</h5>
+            <button className="appointment-btn-close-custom" onClick={() => setShowModal(false)}>&times;</button>
+          </div>
+          <div className="appointment-modal-body-custom">
+            <form>
+              <div className="row">
+                <div className="col-md-6">
+                  <label className="form-label text-muted small fw-bold">Patient Name</label>
+                  <input
+                    type="text"
+                    name="patient_name"
+                    value={form.patient_name}
+                    onChange={handleInputChange}
+                    className="appointment-form-control"
+                    placeholder="John Doe"
+                  />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label text-muted small fw-bold">Phone Number</label>
+                  <input
+                    type="tel"
+                    name="patient_phone"
+                    value={form.patient_phone}
+                    onChange={handleInputChange}
+                    className="appointment-form-control"
+                    placeholder="+1 234 567 890"
+                  />
+                </div>
+              </div>
+
+              <label className="form-label text-muted small fw-bold">Email Address</label>
+              <input
+                type="email"
+                name="patient_email"
+                value={form.patient_email}
+                onChange={handleInputChange}
+                className="appointment-form-control"
+                placeholder="john@example.com"
+              />
+
+              {/* NEW PROFESSIONAL TIME SELECTOR */}
+              <label className="form-label text-muted small fw-bold">Select Appointment Time</label>
+              <div className="appointment-time-picker-wrapper">
+                <div className="appointment-time-display">
+                  {selectedHour} : {selectedMinute} {selectedPeriod}
+                </div>
+
+                <div className="appointment-time-selector">
+                  {/* Hours Column */}
+                  <div className="appointment-time-column">
+                    <span className="appointment-time-label">Hour</span>
+                    <div className="appointment-time-grid">
+                      {hoursList.map((h) => (
+                        <div
+                          key={h}
+                          className={`appointment-time-btn ${selectedHour === h ? 'active' : ''}`}
+                          onClick={() => setSelectedHour(h)}
+                        >
+                          {h}
                         </div>
-                        <div className="col-md-6">
-                            <label className="form-label text-muted small fw-bold">Phone Number</label>
-                            <input type="tel" className="appointment-form-control" placeholder="+1 234 567 890" />
-                        </div>
+                      ))}
                     </div>
+                  </div>
 
-                    <label className="form-label text-muted small fw-bold">Email Address</label>
-                    <input type="email" className="appointment-form-control" placeholder="john@example.com" />
-
-                    {/* NEW PROFESSIONAL TIME SELECTOR */}
-                    <label className="form-label text-muted small fw-bold">Select Appointment Time</label>
-                    <div className="appointment-time-picker-wrapper">
-                        <div className="appointment-time-display">
-                            {selectedHour} : {selectedMinute} {selectedPeriod}
+                  {/* Minutes Column */}
+                  <div className="appointment-time-column">
+                    <span className="appointment-time-label">Minute</span>
+                    <div className="appointment-time-grid minutes">
+                      {minutesList.map((m) => (
+                        <div
+                          key={m}
+                          className={`appointment-time-btn ${selectedMinute === m ? 'active' : ''}`}
+                          onClick={() => setSelectedMinute(m)}
+                        >
+                          {m}
                         </div>
-                        
-                        <div className="appointment-time-selector">
-                            {/* Hours Column */}
-                            <div className="appointment-time-column">
-                                <span className="appointment-time-label">Hour</span>
-                                <div className="appointment-time-grid">
-                                    {hoursList.map((h) => (
-                                        <div 
-                                            key={h}
-                                            className={`appointment-time-btn ${selectedHour === h ? 'active' : ''}`}
-                                            onClick={() => setSelectedHour(h)}
-                                        >
-                                            {h}
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Minutes Column */}
-                            <div className="appointment-time-column">
-                                <span className="appointment-time-label">Minute</span>
-                                <div className="appointment-time-grid minutes">
-                                    {minutesList.map((m) => (
-                                        <div 
-                                            key={m}
-                                            className={`appointment-time-btn ${selectedMinute === m ? 'active' : ''}`}
-                                            onClick={() => setSelectedMinute(m)}
-                                        >
-                                            {m}
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* AM/PM Column */}
-                            <div className="appointment-time-column">
-                                <span className="appointment-time-label">Period</span>
-                                <div className="appointment-time-grid period">
-                                    {['AM', 'PM'].map((p) => (
-                                        <div 
-                                            key={p}
-                                            className={`appointment-time-btn ${selectedPeriod === p ? 'active' : ''}`}
-                                            onClick={() => setSelectedPeriod(p)}
-                                        >
-                                            {p}
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
+                      ))}
                     </div>
+                  </div>
 
-                    <label className="form-label text-muted small fw-bold">Reason for Visit</label>
-                    <input type="text" className="appointment-form-control" placeholder="Checkup, Consultation..." />
+                  {/* AM/PM Column */}
+                  <div className="appointment-time-column">
+                    <span className="appointment-time-label">Period</span>
+                    <div className="appointment-time-grid period">
+                      {['AM', 'PM'].map((p) => (
+                        <div
+                          key={p}
+                          className={`appointment-time-btn ${selectedPeriod === p ? 'active' : ''}`}
+                          onClick={() => setSelectedPeriod(p)}
+                        >
+                          {p}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-                    <label className="form-label text-muted small fw-bold">Additional Notes</label>
-                    <textarea className="appointment-form-control" rows={2} placeholder="Any specific symptoms..."></textarea>
+              <label className="form-label text-muted small fw-bold">Reason for Visit</label>
+              <input
+                type="text"
+                name="reason"
+                value={form.reason}
+                onChange={handleInputChange}
+                className="appointment-form-control"
+                placeholder="Checkup, Consultation..."
+              />
 
-                    <button type="button" className="appointment-btn-confirm">Confirm Booking</button>
-                </form>
-            </div>
+              <label className="form-label text-muted small fw-bold">Additional Notes</label>
+              <textarea
+                name="notes"
+                value={form.notes}
+                onChange={handleInputChange}
+                className="appointment-form-control"
+                rows={2}
+                placeholder="Any specific symptoms..."
+              ></textarea>
+
+              <button
+                type="button"
+                onClick={handleBookAppointment}
+                disabled={loading}
+                className="appointment-btn-confirm"
+              >
+                {loading ? 'Booking...' : 'Confirm Booking'}
+              </button>
+            </form>
+          </div>
         </div>
       </div>
     </>

@@ -1,5 +1,6 @@
 import { Routes, Route, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
+import { ToastProvider } from './context/ToastContext'
 import { AuthProvider } from './context/AuthContext'
 import Header from './components/Header'
 import Footer from './components/Footer'
@@ -67,34 +68,36 @@ function App() {
 
   return (
     <AuthProvider>
-      {!isAuthPage && <Preloader />}
-      {!isAuthPage && <Header />}
-      <main className={isAuthPage ? "main-auth" : "main"}>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/departments" element={<Departments />} />
-          <Route path="/department-details/:id" element={<DepartmentDetails />} />
-          <Route path="/doctors" element={<Doctors />} />
-          <Route path="/services" element={<Services />} />
-          <Route path="/service-details/:id" element={<ServiceDetails />} />
-          <Route path="/quickappointment" element={<QuickAppointment />} />
-          <Route path="/appointment" element={<Appointment />} />
-          <Route path="/doctor-details" element={<DoctorDetails />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/testimonials" element={<Testimonials />} />
-          <Route path="/faq" element={<FAQ />} />
-          <Route path="/gallery" element={<Gallery />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/privacy" element={<Privacy />} />
-          <Route path="/sign-in" element={<SignIn />} />
-          <Route path="/sign-up" element={<SignUp />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </main>
-      {!isAuthPage && <Footer />}
-      {!isAuthPage && <ScrollTop />}
+      <ToastProvider>
+        {!isAuthPage && <Preloader />}
+        {!isAuthPage && <Header />}
+        <main className={isAuthPage ? "main-auth" : "main"}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/departments" element={<Departments />} />
+            <Route path="/department-details/:id" element={<DepartmentDetails />} />
+            <Route path="/doctors" element={<Doctors />} />
+            <Route path="/services" element={<Services />} />
+            <Route path="/service-details/:id" element={<ServiceDetails />} />
+            <Route path="/quickappointment" element={<QuickAppointment />} />
+            <Route path="/appointment" element={<Appointment />} />
+            <Route path="/doctors/:id" element={<DoctorDetails />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/testimonials" element={<Testimonials />} />
+            <Route path="/faq" element={<FAQ />} />
+            <Route path="/gallery" element={<Gallery />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/sign-in" element={<SignIn />} />
+            <Route path="/sign-up" element={<SignUp />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </main>
+        {!isAuthPage && <Footer />}
+        {!isAuthPage && <ScrollTop />}
+      </ToastProvider>
     </AuthProvider>
   )
 }

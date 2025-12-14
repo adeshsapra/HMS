@@ -1,10 +1,38 @@
-import { useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import AOS from 'aos'
 import PageHero from '../components/PageHero'
+import { doctorAPI } from '../services/api'
+
+interface Doctor {
+  id: number;
+  first_name: string;
+  last_name: string;
+  specialization: string;
+  bio: string;
+  experience_years: number;
+  profile_picture: string;
+  qualification: string;
+  consultation_fee: number;
+  employment_type: string;
+  working_hours_start: string;
+  working_hours_end: string;
+  working_days: string[]; // Backend sends array
+  languages: string[]; // Backend sends array
+  status: string;
+  department: {
+    name: string;
+  };
+  address: string;
+  phone: string;
+  email: string;
+  gender: string;
+}
 
 const Doctors = () => {
   const navigate = useNavigate();
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     AOS.init({
@@ -12,85 +40,92 @@ const Doctors = () => {
       easing: 'ease-in-out',
       once: true,
       mirror: false
-    })
+    });
+    fetchDoctors();
   }, [])
 
-  const handleBookAppointment = (doctor: any) => {
-    // Transform doctor data to match DoctorDetails interface
-    const doctorData = {
-      img: doctor.img,
-      full_name: doctor.name,
-      specialization: doctor.specialty,
-      bio: doctor.bio,
-      qualifications: 'MBBS, MD', // Mock data
-      gender: 'Not specified', // Mock
-      experience_years: parseInt(doctor.exp.split('+')[0]),
-      consultation_fee: 150, // Mock
-      employment_type: 'Full Time', // Mock
-      working_hours_start: '09:00', // Mock
-      working_hours_end: '17:00', // Mock
-      working_days: 'Mon - Fri', // Mock
-      languages: JSON.stringify(['English']), // Mock
-      status: 'Active', // Mock
-      department_name: doctor.specialty.split(' ')[0], // Mock
-      address: 'Hospital Address', // Mock
-      phone: '+1 234 567 890', // Mock
-      email: 'doctor@hospital.com' // Mock
-    };
-    navigate('/doctor-details', { state: { doctor: doctorData } });
+  const fetchDoctors = async () => {
+    try {
+      const response = await doctorAPI.getAll();
+      if (response.data.success) {
+        setDoctors(response.data.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch doctors", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const doctors = [
-    { img: 'staff-3.webp', name: 'Dr. Jennifer Martinez', specialty: 'Chief of Cardiology', bio: 'Mauris blandit aliquet elit eget tincidunt nibh pulvinar a. Curabitur arcu erat accumsan id imperdiet et porttitor at.', exp: '15+ Years Experience' },
-    { img: 'staff-7.webp', name: 'Dr. Michael Chen', specialty: 'Orthopedic Surgeon', bio: 'Vestibulum ac diam sit amet quam vehicula elementum sed sit amet dui. Nulla quis lorem ut libero malesuada feugiat.', exp: '12+ Years Experience' },
-    { img: 'staff-11.webp', name: 'Dr. Sarah Williams', specialty: 'Pediatrician', bio: 'Pellentesque in ipsum id orci porta dapibus. Vivamus magna justo, lacinia eget consectetur sed, convallis at tellus.', exp: '10+ Years Experience' },
-    { img: 'staff-1.webp', name: 'Dr. David Thompson', specialty: 'Neurologist', bio: 'Curabitur non nulla sit amet nisl tempus convallis quis ac lectus. Curabitur arcu erat, accumsan id imperdiet et.', exp: '18+ Years Experience' },
-    { img: 'staff-5.webp', name: 'Dr. Lisa Anderson', specialty: 'Dermatologist', bio: 'Donec rutrum congue leo eget malesuada. Vivamus suscipit tortor eget felis porttitor volutpat.', exp: '9+ Years Experience' },
-    { img: 'staff-9.webp', name: 'Dr. Robert Kim', specialty: 'Oncologist', bio: 'Nulla porttitor accumsan tincidunt. Quisque velit nisi, pretium ut lacinia in, elementum id enim.', exp: '14+ Years Experience' },
-    { img: 'staff-12.webp', name: 'Dr. Emily Johnson', specialty: 'Cardiologist', bio: 'Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae.', exp: '11+ Years Experience' },
-    { img: 'staff-14.webp', name: 'Dr. James Wilson', specialty: 'General Surgeon', bio: 'Cras ultricies ligula sed magna dictum porta. Curabitur aliquet quam id dui posuere blandit.', exp: '16+ Years Experience' }
-  ]
+  const handleBookAppointment = (doctor: Doctor) => {
+    navigate(`/doctors/${doctor.id}`, { state: { doctor } });
+  };
+  const DEFAULT_DOCTOR_IMAGE =
+    "https://ui-avatars.com/api/?name=Doctor&background=0D8ABC&color=fff&size=256";
+
+
+  const getImageUrl = (path: string | null) => {
+    if (!path) return DEFAULT_DOCTOR_IMAGE;
+    if (path.startsWith('http')) return path;
+    return `http://localhost:8000/storage/${path}`;
+  };
 
   return (
     <div className="doctors-page">
-  <PageHero
-  title="Doctors"
-  description="Meet our team of skilled and compassionate medical specialists dedicated to your health."
-  breadcrumbs={[
-    { label: 'Home', path: '/' },
-    { label: 'Doctors' }
-  ]}
-/>
+      <PageHero
+        title="Doctors"
+        description="Meet our team of skilled and compassionate medical specialists dedicated to your health."
+        breadcrumbs={[
+          { label: 'Home', path: '/' },
+          { label: 'Doctors' }
+        ]}
+      />
 
       <section id="doctors" className="doctors section">
         <div className="container" data-aos="fade-up" data-aos-delay="100">
-          <div className="row gy-4">
-            {doctors.map((doctor, idx) => (
-              <div key={idx} className="col-xl-3 col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay={100 + idx * 100}>
-                <div className="doctor-card">
-                  <div className="doctor-image">
-                    <img src={`/assets/img/health/${doctor.img}`} alt={doctor.name} className="img-fluid" />
-                    <div className="doctor-overlay">
-                      <div className="doctor-social">
-                        <a href="#" className="social-link"><i className="bi bi-linkedin"></i></a>
-                        <a href="#" className="social-link"><i className="bi bi-twitter"></i></a>
-                        <a href="#" className="social-link"><i className="bi bi-envelope"></i></a>
+          {loading ? (
+            <div className="text-center">
+              <div className="spinner-border text-primary" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+            </div>
+          ) : (
+            <div className="row gy-4">
+              {doctors.map((doctor, idx) => (
+                <div key={doctor.id} className="col-xl-3 col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay={100 + idx * 100}>
+                  <div className="doctor-card">
+                    <div className="doctor-image">
+                      <img
+                        src={getImageUrl(doctor.profile_picture)}
+                        alt={`${doctor.first_name} ${doctor.last_name}`}
+                        className="img-fluid"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = DEFAULT_DOCTOR_IMAGE;
+                        }}
+                      />
+                      <div className="doctor-overlay">
+                        <div className="doctor-social">
+                          <a href="#" className="social-link"><i className="bi bi-linkedin"></i></a>
+                          <a href="#" className="social-link"><i className="bi bi-twitter"></i></a>
+                          <a href="#" className="social-link"><i className="bi bi-envelope"></i></a>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="doctor-content">
-                    <h4 className="doctor-name">{doctor.name}</h4>
-                    <span className="doctor-specialty">{doctor.specialty}</span>
-                    <p className="doctor-bio">{doctor.bio}</p>
-                    <div className="doctor-experience">
-                      <span className="experience-badge">{doctor.exp}</span>
+                    <div className="doctor-content">
+                      <h4 className="doctor-name">{doctor.first_name} {doctor.last_name}</h4>
+                      <span className="doctor-specialty">{doctor.specialization}</span>
+                      <p className="doctor-bio">{doctor.bio ? (doctor.bio.length > 80 ? doctor.bio.substring(0, 80) + '...' : doctor.bio) : 'Experienced specialist.'}</p>
+                      <div className="doctor-experience">
+                        <span className="experience-badge">{doctor.experience_years} Years Experience</span>
+                      </div>
+                      <button onClick={() => handleBookAppointment(doctor)} className="btn-appointment">Book Appointment</button>
                     </div>
-                    <button onClick={() => handleBookAppointment(doctor)} className="btn-appointment">Book Appointment</button>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </div>

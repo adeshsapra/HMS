@@ -402,6 +402,34 @@ class ApiService {
   async deleteService(id: number) {
     return this.delete<any>(`/services/${id}`);
   }
+
+  // Appointment methods
+  async getAppointments(page: number = 1) {
+    return this.get<any>(`/appointments?page=${page}`);
+  }
+
+  async getAppointmentsByDateRange(startDate?: string, endDate?: string) {
+    let endpoint = '/appointments?per_page=1000'; // Get all for calendar view
+    if (startDate) endpoint += `&start_date=${startDate}`;
+    if (endDate) endpoint += `&end_date=${endDate}`;
+    return this.get<any>(endpoint);
+  }
+
+  async getAppointment(id: number) {
+    return this.get<any>(`/appointments/${id}`);
+  }
+
+  async createAppointment(data: any) {
+    return this.post<any>('/appointments', data);
+  }
+
+  async updateAppointment(id: number, data: any) {
+    return this.put<any>(`/appointments/${id}`, data);
+  }
+
+  async deleteAppointment(id: number) {
+    return this.delete<any>(`/appointments/${id}`);
+  }
 }
 
 export const apiService = new ApiService();

@@ -49,5 +49,14 @@ export const serviceAPI = {
     getById: (id: number) => api.get(`/public/services/${id}`),
 };
 
+export const doctorAPI = {
+    getAll: () => api.get('/public/doctors'),
+    getById: (id: number | string) => api.get(`/public/doctors/${id}`),
+};
+
+export const appointmentAPI = {
+    create: (data: any) => api.post('/public/appointments', data),
+};
+
 export default api;
 

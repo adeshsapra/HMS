@@ -1,8 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { DataTable, FormModal, ViewModal, DeleteConfirmModal, Column, FormField, ViewField, AppointmentCalendar } from "@/components";
-import { appointmentsData, patientsData, doctorsData } from "@/data/hms-data";
-import { Button } from "@material-tailwind/react";
-import { CalendarDaysIcon } from "@heroicons/react/24/outline";
+import { ActionItem } from "@/components/DataTable";
+import { patientsData, doctorsData } from "@/data/hms-data";
+import { Button, Spinner } from "@material-tailwind/react";
+import { CalendarDaysIcon, CheckIcon, XMarkIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
+import { apiService } from "@/services/api";
+import { toast } from "react-toastify";
 
 interface Appointment {
   id: number;
@@ -14,15 +17,86 @@ interface Appointment {
   status: string;
   reason?: string;
   phone?: string;
+  original?: any;
 }
 
 export default function Appointments(): JSX.Element {
-  const [appointments, setAppointments] = useState<Appointment[]>(appointmentsData);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    perPage: 10
+  });
+
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [openViewModal, setOpenViewModal] = useState<boolean>(false);
   const [openDeleteModal, setOpenDeleteModal] = useState<boolean>(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
+
+  const fetchAppointments = async (page = 1) => {
+    try {
+      setLoading(true);
+      let response;
+
+      // For calendar view, fetch all appointments without pagination
+      if (viewMode === "calendar") {
+        response = await apiService.getAppointmentsByDateRange();
+      } else {
+        response = await apiService.getAppointments(page);
+      }
+
+      if (response && response.data) {
+        // The controller returns the paginator object inside 'data'
+        const paginator = response.data;
+
+        const mappedData = paginator.data.map((appt: any) => ({
+          id: appt.id,
+          patientName: appt.patient_name || appt.user?.name || "Unknown",
+          doctorName: appt.doctor ? `${appt.doctor.first_name} ${appt.doctor.last_name}` : "Unknown",
+          department: appt.doctor?.department?.name || "General",
+          date: appt.appointment_date,
+          time: appt.appointment_time,
+          status: appt.status || "pending",
+          reason: appt.reason,
+          phone: appt.patient_phone || appt.user?.phone,
+          original: appt
+        }));
+
+        setAppointments(mappedData);
+
+        // Only update pagination for list view
+        if (viewMode === "list") {
+          setPagination({
+            currentPage: paginator.current_page,
+            totalPages: paginator.last_page,
+            totalItems: paginator.total,
+            perPage: paginator.per_page
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching appointments:", error);
+      toast.error("Failed to load appointments");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAppointments(pagination.currentPage);
+  }, []);
+
+  useEffect(() => {
+    // Refetch appointments when view mode changes
+    fetchAppointments(viewMode === "list" ? pagination.currentPage : 1);
+  }, [viewMode]);
+
+  const handlePageChange = (page: number) => {
+    fetchAppointments(page);
+  };
 
   const columns: Column[] = [
     {
@@ -153,46 +227,115 @@ export default function Appointments(): JSX.Element {
     setOpenModal(true);
   };
 
-  const handleEdit = (appointment: Appointment): void => {
-    setSelectedAppointment(appointment);
+  const handleEdit = (appointment: Record<string, any>): void => {
+    setSelectedAppointment(appointment as Appointment);
     setOpenModal(true);
   };
 
-  const handleDelete = (appointment: Appointment): void => {
-    setSelectedAppointment(appointment);
+  const handleDelete = (appointment: Record<string, any>): void => {
+    setSelectedAppointment(appointment as Appointment);
     setOpenDeleteModal(true);
   };
 
-  const confirmDelete = (): void => {
+  const confirmDelete = async (): Promise<void> => {
     if (selectedAppointment) {
-      setAppointments(appointments.filter((a) => a.id !== selectedAppointment.id));
+      try {
+        await apiService.deleteAppointment(selectedAppointment.id);
+        toast.success("Appointment deleted successfully");
+        fetchAppointments(pagination.currentPage);
+      } catch (error) {
+        toast.error("Failed to delete appointment");
+        console.error(error);
+      }
       setOpenDeleteModal(false);
       setSelectedAppointment(null);
     }
   };
 
-  const handleView = (appointment: Appointment): void => {
-    setSelectedAppointment(appointment);
+  const handleView = (appointment: Record<string, any>): void => {
+    setSelectedAppointment(appointment as Appointment);
     setOpenViewModal(true);
   };
 
-  const handleSubmit = (data: Record<string, any>): void => {
-    if (selectedAppointment) {
+  const handleStatusChange = async (appointment: Appointment, newStatus: string) => {
+    try {
+      // Optimistic update
       setAppointments(
         appointments.map((a) =>
-          a.id === selectedAppointment.id ? { ...a, ...data } : a
+          a.id === appointment.id ? { ...a, status: newStatus } : a
         )
       );
-    } else {
-      const newAppointment: Appointment = {
-        id: appointments.length + 1,
-        ...data,
-        phone: patientsData.find((p) => p.name === data.patientName)?.phone || "",
-      } as Appointment;
-      setAppointments([...appointments, newAppointment]);
+
+      await apiService.updateAppointment(appointment.id, {
+        status: newStatus,
+      });
+      toast.success(`Appointment marked as ${newStatus}`);
+    } catch (error) {
+      toast.error("Failed to update status");
+      // Revert optimistic update
+      fetchAppointments(pagination.currentPage);
     }
-    setOpenModal(false);
-    setSelectedAppointment(null);
+  };
+
+  const getCustomActions = (row: Record<string, any>): ActionItem[] => {
+    const appointment = row as Appointment;
+    const actions: ActionItem[] = [];
+
+    if (appointment.status === "pending") {
+      actions.push({
+        label: "Confirm",
+        icon: <CheckIcon className="h-4 w-4" />,
+        color: "green",
+        onClick: () => handleStatusChange(appointment, "confirmed"),
+      });
+      actions.push({
+        label: "Cancel",
+        icon: <XMarkIcon className="h-4 w-4" />,
+        color: "red",
+        onClick: () => handleStatusChange(appointment, "cancelled"),
+      });
+    } else if (appointment.status === "confirmed") {
+      actions.push({
+        label: "Complete",
+        icon: <CheckCircleIcon className="h-4 w-4" />,
+        color: "blue",
+        onClick: () => handleStatusChange(appointment, "completed"),
+      });
+      actions.push({
+        label: "Cancel",
+        icon: <XMarkIcon className="h-4 w-4" />,
+        color: "red",
+        onClick: () => handleStatusChange(appointment, "cancelled"),
+      });
+    }
+
+    return actions;
+  };
+
+  const handleSubmit = async (data: Record<string, any>): Promise<void> => {
+    try {
+      const payload = {
+        patient_name: data.patientName,
+        appointment_date: data.date,
+        appointment_time: data.time,
+        reason: data.reason,
+        status: data.status,
+      };
+
+      if (selectedAppointment) {
+        await apiService.updateAppointment(selectedAppointment.id, payload);
+        toast.success("Appointment updated successfully");
+      } else {
+        await apiService.createAppointment(payload);
+        toast.success("Appointment created successfully");
+      }
+      fetchAppointments(pagination.currentPage);
+      setOpenModal(false);
+      setSelectedAppointment(null);
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to save appointment");
+    }
   };
 
   return (
@@ -223,7 +366,11 @@ export default function Appointments(): JSX.Element {
         </div>
       </div>
 
-      {viewMode === "list" ? (
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        </div>
+      ) : viewMode === "list" ? (
         <DataTable
           title="Appointments Management"
           data={appointments}
@@ -232,16 +379,24 @@ export default function Appointments(): JSX.Element {
           onEdit={handleEdit}
           onDelete={handleDelete}
           onView={handleView}
+          customActions={getCustomActions}
           searchable={true}
           filterable={true}
           exportable={true}
           addButtonLabel="New Appointment"
           searchPlaceholder="Search appointments..."
+          pagination={{ // Pass pagination props
+            currentPage: pagination.currentPage,
+            totalPages: pagination.totalPages,
+            totalItems: pagination.totalItems,
+            perPage: pagination.perPage,
+            onPageChange: handlePageChange
+          }}
         />
       ) : (
         <AppointmentCalendar
           appointments={appointments}
-          onAppointmentClick={handleView}
+          onAppointmentClick={(appt) => handleView(appt)}
         />
       )}
 
