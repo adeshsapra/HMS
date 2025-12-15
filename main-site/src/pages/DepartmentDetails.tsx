@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import AOS from 'aos'
 import PageHero from '../components/PageHero'
-import { departmentAPI, serviceAPI } from '../services/api'
+import { departmentAPI, serviceAPI, doctorAPI } from '../services/api'
 
 interface Department {
   id: number
@@ -26,10 +26,29 @@ interface Service {
   icon?: string
 }
 
+interface Doctor {
+  id: number
+  doctor_id: string
+  first_name: string
+  last_name: string
+  email: string
+  specialization: string
+  qualification: string
+  experience_years: number
+  consultation_fee: number
+  profile_picture?: string
+  bio?: string
+  department?: {
+    id: number
+    name: string
+  }
+}
+
 const DepartmentDetails = () => {
   const { id } = useParams<{ id: string }>()
   const [department, setDepartment] = useState<Department | null>(null)
   const [services, setServices] = useState<Service[]>([])
+  const [doctors, setDoctors] = useState<Doctor[]>([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('overview')
 
@@ -44,6 +63,7 @@ const DepartmentDetails = () => {
     if (id) {
       fetchDepartmentDetails()
       fetchDepartmentServices()
+      fetchDepartmentDoctors()
     }
   }, [id])
 
@@ -92,13 +112,26 @@ const DepartmentDetails = () => {
     }
   }
 
-  const getImageUrl = (path: string) => {
-    if (!path) return '';
-    if (path.startsWith('http')) return path;
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
-    const rootUrl = baseUrl.replace(/\/api\/?$/, '');
-    return `${rootUrl}/${path.replace(/^\//, '')}`;
+  const fetchDepartmentDoctors = async () => {
+    try {
+      const response = await doctorAPI.getByDepartment(Number(id))
+      if (response.data.success && response.data.data) {
+        setDoctors(response.data.data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch department doctors:', error)
+    }
   }
+
+  const DEFAULT_DOCTOR_IMAGE =
+    "https://ui-avatars.com/api/?name=Doctor&background=0D8ABC&color=fff&size=256";
+
+
+  const getImageUrl = (path: string | null) => {
+    if (!path) return DEFAULT_DOCTOR_IMAGE;
+    if (path.startsWith('http')) return path;
+    return `http://localhost:8000/storage/${path}`;
+  };
 
   if (loading) {
     return (
@@ -425,33 +458,17 @@ const DepartmentDetails = () => {
               <div className="content-box mb-5">
                 {activeTab === 'overview' && (
                   <div>
-                    <h3 className="mb-3 fw-bold text-dark">About the Department</h3>
+                    <h3 className="mb-4 fw-bold text-dark">About {department.name}</h3>
+                    <p className="text-muted mb-4">{department.description}</p>
 
-                    {/* Subtitle - Matches the grey lead text in your screenshot */}
-                    {department.subtitle && (
-                      <p className="lead text-muted mb-4" style={{ fontSize: '1.3rem', fontWeight: 300 }}>
-                        {department.subtitle}
-                      </p>
-                    )}
-
-                    {/* Description - Matches the body text */}
-                    <p className="text-secondary mb-4" style={{ fontSize: '1.05rem', lineHeight: '1.8' }}>
-                      {department.description}
-                    </p>
-
-                    {/* Only show features if they exist in database */}
-                    {department.features && Array.isArray(department.features) && department.features.length > 0 && (
+                    {department.features && department.features.length > 0 && (
                       <div className="mt-4">
-                        <h5 className="fw-bold mb-3">Key Features</h5>
-                        <div className="row">
+                        <h4 className="mb-3 fw-bold text-dark">Key Features</h4>
+                        <ul className="feature-list">
                           {department.features.map((feature, idx) => (
-                            <div key={idx} className="col-md-6">
-                              <ul className="feature-list list-unstyled">
-                                <li><i className="bi bi-check-circle-fill"></i> {feature}</li>
-                              </ul>
-                            </div>
+                            <li key={idx}><i className="bi bi-check-circle"></i> {feature}</li>
                           ))}
-                        </div>
+                        </ul>
                       </div>
                     )}
                   </div>
@@ -525,33 +542,35 @@ const DepartmentDetails = () => {
                 )}
               </div>
 
-              {/* Related Services Preview - Only show if services exist and not on services tab */}
-              {services.length > 0 && activeTab !== 'services' && (
+              {/* Available Doctors */}
+              {doctors.length > 0 && (
                 <div className="mt-5 pt-3 border-top">
-                  <div className="d-flex justify-content-between align-items-end mb-4">
-                    <h3 className="fw-bold text-dark m-0">Available Services</h3>
-                    <button
-                      className="btn btn-link text-decoration-none small fw-bold p-0"
-                      style={{ color: 'var(--accent-color)' }}
-                      onClick={() => setActiveTab('services')}
-                    >
-                      View All Services <i className="bi bi-arrow-right"></i>
-                    </button>
-                  </div>
+                  <h3 className="mb-4 fw-bold text-dark">Available Doctors</h3>
 
-                  {services.slice(0, 3).map(service => (
-                    <div key={service.id} className="specialist-card" data-aos="fade-up">
+                  {doctors.map((doctor) => (
+                    <div key={doctor.id} className="specialist-card" data-aos="fade-up">
                       <div className="specialist-img">
-                        <i className={`${service.icon || 'fas fa-stethoscope'}`}></i>
+                        {doctor.profile_picture ? (
+                          <img
+                            src={getImageUrl(doctor.profile_picture)}
+                            alt={`${doctor.first_name} ${doctor.last_name}`}
+                            className="w-100 h-100 object-fit-cover rounded-circle"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = 'https://via.placeholder.com/80x80?text=Doctor'
+                            }}
+                          />
+                        ) : (
+                          <i className="bi bi-person-circle"></i>
+                        )}
                       </div>
                       <div className="specialist-info">
-                        <h5>{service.name}</h5>
-                        <span className="specialist-role">{service.category || 'Medical Service'}</span>
-                        <p className="small text-muted mb-0 d-none d-md-block">{service.description.substring(0, 80)}...</p>
+                        <h5>{doctor.first_name} {doctor.last_name}</h5>
+                        <span className="specialist-role">{doctor.specialization}</span>
+                        <p className="small text-muted mb-0 d-none d-md-block">{doctor.qualification} - {doctor.experience_years} years of experience</p>
                       </div>
                       <div className="specialist-actions d-none d-sm-block">
                         <Link
-                          to={`/service-details/${service.id}`}
+                          to={`/doctors/${doctor.id}`}
                           className="btn-theme-outline btn-sm text-decoration-none"
                         >
                           View Details
@@ -588,6 +607,13 @@ const DepartmentDetails = () => {
                   <div className="info-row">
                     <label><i className="bi bi-tag me-2"></i>Category</label>
                     <p>{department.category}</p>
+                  </div>
+                )}
+
+                {doctors.length > 0 && (
+                  <div className="info-row">
+                    <label><i className="bi bi-people me-2"></i>Total Doctors</label>
+                    <p>{doctors.length} Doctors Available</p>
                   </div>
                 )}
 

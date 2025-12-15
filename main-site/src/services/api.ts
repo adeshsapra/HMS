@@ -67,6 +67,7 @@ export const doctorAPI = {
         return api.get(`/public/doctors${params.toString() ? '?' + params.toString() : ''}`);
     },
     getById: (id: number | string) => api.get(`/public/doctors/${id}`),
+    getByDepartment: (departmentId: number | string) => api.get(`/public/doctors/department/${departmentId}`),
 };
 
 export const appointmentAPI = {
