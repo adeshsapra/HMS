@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import AOS from 'aos'
 import PageHero from '../components/PageHero'
+import Pagination from '../components/Pagination'
 import { departmentAPI } from '../services/api'
 
 interface Department {
@@ -21,6 +22,14 @@ const Departments = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('All')
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalRecords, setTotalRecords] = useState(0)
+  const [from, setFrom] = useState(0)
+  const [to, setTo] = useState(0)
+  const perPage = 8
+
   useEffect(() => {
     AOS.init({
       duration: 600,
@@ -29,14 +38,26 @@ const Departments = () => {
       mirror: false
     })
     fetchDepartments()
-  }, [])
+  }, [currentPage])
 
   const fetchDepartments = async () => {
     try {
       setLoading(true)
-      const response = await departmentAPI.getAll()
+      const response = await departmentAPI.getAll(currentPage, perPage)
       if (response.data.success && response.data.data) {
-        setDepartments(response.data.data)
+        // Check if response is paginated
+        if (response.data.meta) {
+          setDepartments(response.data.data)
+          setTotalPages(response.data.meta.last_page || 1)
+          setTotalRecords(response.data.meta.total || 0)
+          setFrom(response.data.meta.from || 0)
+          setTo(response.data.meta.to || 0)
+        } else {
+          // Fallback for non-paginated response
+          setDepartments(response.data.data)
+          setTotalRecords(response.data.data.length)
+          setTotalPages(1)
+        }
       }
     } catch (error) {
       console.error('Failed to fetch departments:', error)
@@ -56,7 +77,8 @@ const Departments = () => {
   // Get unique categories from departments
   const categories = ['All', ...Array.from(new Set(departments.map(d => d.category).filter(Boolean))) as string[]]
 
-  // Filter Logic
+  // Filter Logic (Note: With pagination, filtering should ideally be done server-side)
+  // For now, we'll display all departments from the current page
   const filteredDepartments = departments.filter((dept) => {
     const matchesSearch = dept.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (dept.subtitle && dept.subtitle.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -64,6 +86,12 @@ const Departments = () => {
     const matchesCategory = selectedCategory === 'All' || dept.category === selectedCategory
     return matchesSearch && matchesCategory
   })
+
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   return (
     <div className="departments-page">
@@ -434,50 +462,63 @@ const Departments = () => {
                   <p className="text-muted">Loading departments...</p>
                 </div>
               ) : filteredDepartments.length > 0 ? (
-                <div className="row gy-4">
-                  {filteredDepartments.map((dept) => (
-                    <div key={dept.id} className="col-md-6" data-aos="fade-up" data-aos-delay="100">
-                      <div className="department-card">
-                        <div className="department-image-wrapper">
-                          {dept.category && <span className="category-tag">{dept.category}</span>}
-                          <img
-                            src={getImageUrl(dept.image || '')}
-                            alt={dept.name}
-                            loading="lazy"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x220?text=Department'
-                            }}
-                          />
-                        </div>
-
-                        <div className="department-content">
-                          <div className="icon-box">
-                            <i className={`bi ${dept.icon || 'bi-hospital'}`}></i>
+                <>
+                  <div className="row gy-4">
+                    {filteredDepartments.map((dept) => (
+                      <div key={dept.id} className="col-md-6" data-aos="fade-up" data-aos-delay="100">
+                        <div className="department-card">
+                          <div className="department-image-wrapper">
+                            {dept.category && <span className="category-tag">{dept.category}</span>}
+                            <img
+                              src={getImageUrl(dept.image || '')}
+                              alt={dept.name}
+                              loading="lazy"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x220?text=Department'
+                              }}
+                            />
                           </div>
 
-                          <h3 className="dept-title">{dept.name}</h3>
-                          {dept.subtitle && <span className="dept-subtitle">{dept.subtitle}</span>}
-
-                          {dept.head_of_department && (
-                            <div className="dept-stats">
-                              <i className="bi bi-person-badge text-warning"></i>
-                              <div>
-                                <span className="stat-lbl">Head: </span>
-                                <span className="stat-val">{dept.head_of_department}</span>
-                              </div>
+                          <div className="department-content">
+                            <div className="icon-box">
+                              <i className={`bi ${dept.icon || 'bi-hospital'}`}></i>
                             </div>
-                          )}
 
-                          <p className="dept-desc">{dept.description}</p>
+                            <h3 className="dept-title">{dept.name}</h3>
+                            {dept.subtitle && <span className="dept-subtitle">{dept.subtitle}</span>}
 
-                          <Link to={`/department-details/${dept.id}`} className="dept-link">
-                            Details <i className="bi bi-arrow-right"></i>
-                          </Link>
+                            {dept.head_of_department && (
+                              <div className="dept-stats">
+                                <i className="bi bi-person-badge text-warning"></i>
+                                <div>
+                                  <span className="stat-lbl">Head: </span>
+                                  <span className="stat-val">{dept.head_of_department}</span>
+                                </div>
+                              </div>
+                            )}
+
+                            <p className="dept-desc">{dept.description}</p>
+
+                            <Link to={`/department-details/${dept.id}`} className="dept-link">
+                              Details <i className="bi bi-arrow-right"></i>
+                            </Link>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+
+                  {/* Pagination Component */}
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalRecords={totalRecords}
+                    perPage={perPage}
+                    onPageChange={handlePageChange}
+                    from={from}
+                    to={to}
+                  />
+                </>
               ) : (
                 <div className="no-results">
                   <i className="bi bi-search display-4 text-muted mb-3"></i>
@@ -485,7 +526,7 @@ const Departments = () => {
                   <p className="text-muted">Try adjusting your search or category filter.</p>
                   <button
                     className="btn btn-outline-dark mt-2"
-                    onClick={() => { setSearchTerm(''); setSelectedCategory('All'); }}
+                    onClick={() => { setSearchTerm(''); setSelectedCategory('All'); setCurrentPage(1); }}
                   >
                     Reset Filters
                   </button>

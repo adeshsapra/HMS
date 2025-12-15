@@ -70,7 +70,6 @@ const DoctorDetails = () => {
   const formatList = (list: string[] | string) => {
     if (Array.isArray(list)) return list.join(', ');
     try {
-      // Handle case where it might be a JSON string from legacy/mock
       return JSON.parse(list).join(', ');
     } catch (e) {
       return list;

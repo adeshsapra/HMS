@@ -58,17 +58,25 @@ export default function Doctors(): JSX.Element {
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [formLoading, setFormLoading] = useState(false);
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const perPage = 10;
+
   useEffect(() => {
     loadDoctors();
     loadDepartments();
-  }, []);
+  }, [currentPage]);
 
   const loadDoctors = async () => {
     try {
       setLoading(true);
-      const response = await apiService.getDoctors();
+      const response = await apiService.getDoctors(currentPage, perPage);
       if (response.success && response.data) {
         setDoctors(response.data);
+        setTotalPages(response.last_page || 1);
+        setTotalRecords(response.total || 0);
       }
     } catch (error) {
       console.error("Failed to load doctors:", error);
@@ -326,6 +334,7 @@ export default function Doctors(): JSX.Element {
       } else {
         await apiService.createDoctor(formData);
       }
+      setCurrentPage(1); // Reset to first page
       await loadDoctors();
       setOpenModal(false);
       setSelectedDoctor(null);
@@ -340,6 +349,7 @@ export default function Doctors(): JSX.Element {
     if (selectedDoctor) {
       try {
         await apiService.deleteDoctor(selectedDoctor.id);
+        setCurrentPage(1); // Reset to first page
         await loadDoctors();
         setOpenDeleteModal(false);
         setSelectedDoctor(null);
@@ -358,6 +368,10 @@ export default function Doctors(): JSX.Element {
       working_days: Array.isArray(doctor.working_days) ? doctor.working_days.join(", ") : doctor.working_days || "",
       languages: Array.isArray(doctor.languages) ? doctor.languages.join(", ") : doctor.languages || "",
     };
+  };
+
+  const handlePageChange = (page: number): void => {
+    setCurrentPage(page);
   };
 
   return (
@@ -396,6 +410,13 @@ export default function Doctors(): JSX.Element {
           exportable={true}
           addButtonLabel="Add Doctor"
           searchPlaceholder="Search doctors..."
+          pagination={{
+            currentPage: currentPage,
+            totalPages: totalPages,
+            totalItems: totalRecords,
+            perPage: perPage,
+            onPageChange: handlePageChange
+          }}
         />
       )}
 

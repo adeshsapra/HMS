@@ -40,17 +40,32 @@ api.interceptors.response.use(
 
 // API Helper Methods for Main Site (Public endpoints)
 export const departmentAPI = {
-    getAll: () => api.get('/public/departments'),
+    getAll: (page?: number, perPage?: number) => {
+        const params = new URLSearchParams();
+        if (page) params.append('page', page.toString());
+        if (perPage) params.append('per_page', perPage.toString());
+        return api.get(`/public/departments${params.toString() ? '?' + params.toString() : ''}`);
+    },
     getById: (id: number) => api.get(`/public/departments/${id}`),
 };
 
 export const serviceAPI = {
-    getAll: () => api.get('/public/services'),
+    getAll: (page?: number, perPage?: number) => {
+        const params = new URLSearchParams();
+        if (page) params.append('page', page.toString());
+        if (perPage) params.append('per_page', perPage.toString());
+        return api.get(`/public/services${params.toString() ? '?' + params.toString() : ''}`);
+    },
     getById: (id: number) => api.get(`/public/services/${id}`),
 };
 
 export const doctorAPI = {
-    getAll: () => api.get('/public/doctors'),
+    getAll: (page?: number, perPage?: number) => {
+        const params = new URLSearchParams();
+        if (page) params.append('page', page.toString());
+        if (perPage) params.append('per_page', perPage.toString());
+        return api.get(`/public/doctors${params.toString() ? '?' + params.toString() : ''}`);
+    },
     getById: (id: number | string) => api.get(`/public/doctors/${id}`),
 };
 

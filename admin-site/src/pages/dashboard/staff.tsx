@@ -65,17 +65,25 @@ export default function Staff(): JSX.Element {
   const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
   const [formLoading, setFormLoading] = useState(false);
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const perPage = 10;
+
   useEffect(() => {
     loadStaff();
     loadDepartments();
-  }, []);
+  }, [currentPage]);
 
   const loadStaff = async () => {
     try {
       setLoading(true);
-      const response = await apiService.getStaff();
+      const response = await apiService.getStaff(currentPage, perPage);
       if (response.success && response.data) {
         setStaff(response.data);
+        setTotalPages(response.last_page || 1);
+        setTotalRecords(response.total || 0);
       }
     } catch (error) {
       console.error("Failed to load staff:", error);
@@ -392,6 +400,7 @@ export default function Staff(): JSX.Element {
       } else {
         await apiService.createStaff(formData);
       }
+      setCurrentPage(1); // Reset to first page
       await loadStaff();
       setOpenModal(false);
       setSelectedStaff(null);
@@ -406,6 +415,7 @@ export default function Staff(): JSX.Element {
     if (selectedStaff) {
       try {
         await apiService.deleteStaff(selectedStaff.id);
+        setCurrentPage(1); // Reset to first page
         await loadStaff();
         setOpenDeleteModal(false);
         setSelectedStaff(null);
@@ -423,6 +433,10 @@ export default function Staff(): JSX.Element {
       department_id: staffMember.department_id?.toString() || "",
       working_days: Array.isArray(staffMember.working_days) ? staffMember.working_days.join(", ") : staffMember.working_days || "",
     };
+  };
+
+  const handlePageChange = (page: number): void => {
+    setCurrentPage(page);
   };
 
   return (
@@ -461,6 +475,13 @@ export default function Staff(): JSX.Element {
           exportable={true}
           addButtonLabel="Add Staff"
           searchPlaceholder="Search staff..."
+          pagination={{
+            currentPage: currentPage,
+            totalPages: totalPages,
+            totalItems: totalRecords,
+            perPage: perPage,
+            onPageChange: handlePageChange
+          }}
         />
       )}
 

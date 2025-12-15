@@ -195,8 +195,8 @@ class ApiService {
   }
 
   // Doctor methods
-  async getDoctors() {
-    return this.get<any[]>('/doctors');
+  async getDoctors(page: number = 1, perPage: number = 10) {
+    return this.get<any>(`/doctors?page=${page}&per_page=${perPage}`);
   }
 
   async getDoctor(id: number) {
@@ -257,8 +257,8 @@ class ApiService {
   }
 
   // Staff methods
-  async getStaff() {
-    return this.get<any[]>('/staff');
+  async getStaff(page: number = 1, perPage: number = 10) {
+    return this.get<any>(`/staff?page=${page}&per_page=${perPage}`);
   }
 
   async getStaffMember(id: number) {

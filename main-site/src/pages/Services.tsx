@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import AOS from 'aos'
 import PageHero from '../components/PageHero'
+import Pagination from '../components/Pagination'
 import { serviceAPI } from '../services/api'
 
 interface Service {
@@ -24,6 +25,14 @@ const Services = () => {
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [searchTerm, setSearchTerm] = useState('')
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalRecords, setTotalRecords] = useState(0)
+  const [from, setFrom] = useState(0)
+  const [to, setTo] = useState(0)
+  const perPage = 8
+
   useEffect(() => {
     AOS.init({
       duration: 600,
@@ -32,14 +41,26 @@ const Services = () => {
       mirror: false
     })
     fetchServices()
-  }, [])
+  }, [currentPage])
 
   const fetchServices = async () => {
     try {
       setLoading(true)
-      const response = await serviceAPI.getAll()
+      const response = await serviceAPI.getAll(currentPage, perPage)
       if (response.data.success && response.data.data) {
-        setServices(response.data.data)
+        // Check if response is paginated
+        if (response.data.meta) {
+          setServices(response.data.data)
+          setTotalPages(response.data.meta.last_page || 1)
+          setTotalRecords(response.data.meta.total || 0)
+          setFrom(response.data.meta.from || 0)
+          setTo(response.data.meta.to || 0)
+        } else {
+          // Fallback for non-paginated response
+          setServices(response.data.data)
+          setTotalRecords(response.data.data.length)
+          setTotalPages(1)
+        }
       }
     } catch (error) {
       console.error('Failed to fetch services:', error)
@@ -51,13 +72,19 @@ const Services = () => {
   // Get unique categories
   const categories = ['All', ...Array.from(new Set(services.map(s => s.category).filter(Boolean))) as string[]]
 
-  // Filter services
+  // Filter services (Note: With pagination, filtering should ideally be done server-side)
   const filteredServices = services.filter((service) => {
     const matchesSearch = service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       service.description.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesCategory = selectedCategory === 'All' || service.category === selectedCategory
     return matchesSearch && matchesCategory
   })
+
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   return (
     <div className="services-page">
@@ -393,56 +420,66 @@ const Services = () => {
                   <p className="text-muted">Loading services...</p>
                 </div>
               ) : filteredServices.length > 0 ? (
-                <div className="row gy-4">
-                  {filteredServices.map((service, idx) => (
-                    <div key={service.id} className="col-lg-6" data-aos="fade-up" data-aos-delay={100 + idx * 50}>
-                      <div className="service-card">
-                        <div className="service-icon">
-                          <i className={`bi ${service.icon || 'bi-heart-pulse'}`}></i>
-                        </div>
-
-
-
-
-                        <div className="service-content">
-                          <h3>{service.name}</h3>
-
-                          <div className="service-meta">
-                            {service.category && (
-                              <span className="service-badge badge-category">
-                                <i className="bi bi-tag-fill"></i>
-                                {service.category}
-                              </span>
-                            )}
-                            <span className="service-badge badge-price">
-                              <i className="bi bi-currency-dollar"></i>
-                              ${typeof service.price === 'number' ? service.price.toFixed(2) : parseFloat(service.price).toFixed(2)}
-                            </span>
-                            {service.duration && (
-                              <span className="service-badge badge-duration">
-                                <i className="bi bi-clock"></i>
-                                {service.duration} min
-                              </span>
-                            )}
-                            {service.department && (
-                              <span className="service-badge badge-department">
-                                <i className="bi bi-building"></i>
-                                {service.department.name}
-                              </span>
-                            )}
+                <>
+                  <div className="row gy-4">
+                    {filteredServices.map((service, idx) => (
+                      <div key={service.id} className="col-lg-6" data-aos="fade-up" data-aos-delay={100 + idx * 50}>
+                        <div className="service-card">
+                          <div className="service-icon">
+                            <i className={`bi ${service.icon || 'bi-heart-pulse'}`}></i>
                           </div>
 
-                          <p>{service.description}</p>
+                          <div className="service-content">
+                            <h3>{service.name}</h3>
 
-                          <Link to={`/service-details/${service.id}`} className="service-btn">
-                            Learn More
-                            <i className="bi bi-arrow-right"></i>
-                          </Link>
+                            <div className="service-meta">
+                              {service.category && (
+                                <span className="service-badge badge-category">
+                                  <i className="bi bi-tag-fill"></i>
+                                  {service.category}
+                                </span>
+                              )}
+                              <span className="service-badge badge-price">
+                                <i className="bi bi-currency-dollar"></i>
+                                ${typeof service.price === 'number' ? service.price.toFixed(2) : parseFloat(service.price).toFixed(2)}
+                              </span>
+                              {service.duration && (
+                                <span className="service-badge badge-duration">
+                                  <i className="bi bi-clock"></i>
+                                  {service.duration} min
+                                </span>
+                              )}
+                              {service.department && (
+                                <span className="service-badge badge-department">
+                                  <i className="bi bi-building"></i>
+                                  {service.department.name}
+                                </span>
+                              )}
+                            </div>
+
+                            <p>{service.description}</p>
+
+                            <Link to={`/service-details/${service.id}`} className="service-btn">
+                              Learn More
+                              <i className="bi bi-arrow-right"></i>
+                            </Link>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+
+                  {/* Pagination Component */}
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalRecords={totalRecords}
+                    perPage={perPage}
+                    onPageChange={handlePageChange}
+                    from={from}
+                    to={to}
+                  />
+                </>
               ) : (
                 <div className="no-results">
                   <i className="bi bi-search display-4 text-muted mb-3"></i>
@@ -450,7 +487,7 @@ const Services = () => {
                   <p className="text-muted">Try adjusting your search or category filter.</p>
                   <button
                     className="btn btn-outline-dark mt-2"
-                    onClick={() => { setSearchTerm(''); setSelectedCategory('All'); }}
+                    onClick={() => { setSearchTerm(''); setSelectedCategory('All'); setCurrentPage(1); }}
                   >
                     Reset Filters
                   </button>
