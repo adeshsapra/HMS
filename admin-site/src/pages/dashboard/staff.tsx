@@ -12,8 +12,12 @@ interface StaffMember {
   staff_id?: string;
   first_name: string;
   last_name: string;
-  email: string;
-  phone?: string;
+  user?: {
+    email: string;
+    phone?: string;
+  };
+  email?: string; // Keep for backward compatibility
+  phone?: string; // Keep for backward compatibility
   gender: string;
   date_of_birth?: string;
   address?: string;
@@ -129,7 +133,7 @@ export default function Staff(): JSX.Element {
             {row.first_name} {row.last_name}
           </Typography>
           <Typography className="text-xs font-normal text-blue-gray-500 mt-0.5">
-            {row.email}
+            {row.user?.email || row.email}
           </Typography>
         </div>
       ),
@@ -169,8 +173,8 @@ export default function Staff(): JSX.Element {
     { key: "staff_id", label: "Staff ID" },
     { key: "first_name", label: "First Name" },
     { key: "last_name", label: "Last Name" },
-    { key: "email", label: "Email" },
-    { key: "phone", label: "Phone" },
+    { key: "email", label: "Email", render: (value: any, row: StaffMember) => row.user?.email || row.email },
+    { key: "phone", label: "Phone", render: (value: any, row: StaffMember) => row.user?.phone || row.phone },
     { key: "gender", label: "Gender", render: (value: string) => value ? value.charAt(0).toUpperCase() + value.slice(1) : "N/A" },
     { key: "date_of_birth", label: "Date of Birth", type: "date" },
     { key: "marital_status", label: "Marital Status", render: (value: string) => value ? value.charAt(0).toUpperCase() + value.slice(1) : "N/A" },
@@ -430,6 +434,8 @@ export default function Staff(): JSX.Element {
 
     return {
       ...staffMember,
+      email: staffMember.user?.email || staffMember.email,
+      phone: staffMember.user?.phone || staffMember.phone,
       department_id: staffMember.department_id?.toString() || "",
       working_days: Array.isArray(staffMember.working_days) ? staffMember.working_days.join(", ") : staffMember.working_days || "",
     };

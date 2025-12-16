@@ -12,8 +12,8 @@ interface Doctor {
   doctor_id?: string;
   first_name: string;
   last_name: string;
-  email: string;
-  phone?: string;
+  user_id: number;
+  user?: { id: number; name: string; email: string; phone?: string };
   gender: string;
   date_of_birth?: string;
   address?: string;
@@ -122,7 +122,7 @@ export default function Doctors(): JSX.Element {
             Dr. {row.first_name} {row.last_name}
           </Typography>
           <Typography className="text-xs font-normal text-blue-gray-500 mt-0.5">
-            {row.email}
+            {row.user?.email}
           </Typography>
         </div>
       ),
@@ -167,8 +167,8 @@ export default function Doctors(): JSX.Element {
     { key: "doctor_id", label: "Doctor ID" },
     { key: "first_name", label: "First Name" },
     { key: "last_name", label: "Last Name" },
-    { key: "email", label: "Email" },
-    { key: "phone", label: "Phone" },
+    { key: "user", label: "Email", render: (value: any, row: Doctor) => row.user?.email || "N/A" },
+    { key: "user", label: "Phone", render: (value: any, row: Doctor) => row.user?.phone || "N/A" },
     { key: "gender", label: "Gender", render: (value: string) => value ? value.charAt(0).toUpperCase() + value.slice(1) : "N/A" },
     { key: "date_of_birth", label: "Date of Birth", type: "date" },
     { key: "address", label: "Address", fullWidth: true },
@@ -364,6 +364,8 @@ export default function Doctors(): JSX.Element {
 
     return {
       ...doctor,
+      email: doctor.user?.email || "",
+      phone: doctor.user?.phone || "",
       department: doctor.department_id?.toString() || "",
       working_days: Array.isArray(doctor.working_days) ? doctor.working_days.join(", ") : doctor.working_days || "",
       languages: Array.isArray(doctor.languages) ? doctor.languages.join(", ") : doctor.languages || "",
