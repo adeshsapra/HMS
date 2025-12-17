@@ -39,6 +39,7 @@ import {
   Bills,
   Medicines,
   HealthPackages,
+  HomeCare,
 } from "@/pages/dashboard";
 import { SignIn } from "@/pages/auth";
 
@@ -228,6 +229,13 @@ export const routes: Route[] = [
         path: "/health-packages",
         element: <HealthPackages />,
         permission: "view-health-packages",
+      },
+      {
+        icon: <HomeModernIcon {...icon} />,
+        name: "home care",
+        path: "/home-care",
+        element: <HomeCare />,
+        permission: "view-services", // Using general view-services for now
       },
     ],
   },

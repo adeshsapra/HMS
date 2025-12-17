@@ -430,6 +430,39 @@ class ApiService {
   async deleteAppointment(id: number) {
     return this.delete<any>(`/appointments/${id}`);
   }
+
+  // Home Care methods
+  async getHomeCareServices() {
+    return this.get<any[]>('/admin/home-care/services');
+  }
+
+  async createHomeCareService(data: any) {
+    return this.post<any>('/admin/home-care/services', data);
+  }
+
+  async updateHomeCareService(id: number, data: any) {
+    return this.put<any>(`/admin/home-care/services/${id}`, data);
+  }
+
+  async deleteHomeCareService(id: number) {
+    return this.delete<any>(`/admin/home-care/services/${id}`);
+  }
+
+  async getHomeCareRequests() {
+    return this.get<any[]>('/admin/home-care/requests');
+  }
+
+  async updateHomeCareRequestStatus(id: number, status: string) {
+    return this.put<any>(`/admin/home-care/requests/${id}/status`, { status });
+  }
+
+  async getHomeCareSettings() {
+    return this.get<any>('/admin/home-care/settings');
+  }
+
+  async updateHomeCareSettings(settings: any) {
+    return this.post<any>('/admin/home-care/settings', { settings });
+  }
 }
 
 export const apiService = new ApiService();

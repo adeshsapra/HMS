@@ -1,4 +1,4 @@
-import { useState } from 'react';
+
 import PageHero from '../components/PageHero';
 import CalendarComponent from '../components/CalendarComponent';
 
@@ -6,7 +6,8 @@ const Appointment = () => {
 
   // Mock Doctor Data 
   const doctor = {
-    img: 'staff-3.webp', 
+    id: 1,
+    img: 'staff-3.webp',
     full_name: 'Dr. Jennifer Martinez',
     specialization: 'Chief of Cardiology',
     bio: 'An award-winning cardiologist with a focus on preventative care and complex heart surgeries. Dr. Martinez leads the department with a patient-first approach.',
@@ -18,7 +19,7 @@ const Appointment = () => {
     working_hours_start: '09:00',
     working_hours_end: '17:00',
     working_days: 'Mon - Fri',
-    languages: JSON.stringify(['English', 'Spanish', 'French']), 
+    languages: JSON.stringify(['English', 'Spanish', 'French']),
     status: 'Active',
     department_name: 'Cardiology Center',
     address: 'Room 304, West Wing, Heart Institute',
@@ -347,7 +348,7 @@ const Appointment = () => {
                     <h2>{doctor.full_name}</h2>
                     <span className="appointment-doc-specialty">{doctor.specialization} - {doctor.department_name}</span>
                   </div>
-                  
+
                   <p className="appointment-doc-bio">{doctor.bio}</p>
 
                   <div className="appointment-info-grid">
@@ -370,7 +371,7 @@ const Appointment = () => {
                   </div>
 
                   <div className="appointment-info-grid" style={{ marginTop: '20px' }}>
-                     <div className="appointment-info-box">
+                    <div className="appointment-info-box">
                       <span className="appointment-info-label">Working Days</span>
                       <span className="appointment-info-value">{doctor.working_days}</span>
                     </div>
@@ -380,9 +381,9 @@ const Appointment = () => {
                     </div>
                     <div className="appointment-info-box">
                       <span className="appointment-info-label">Languages</span>
-                      <span className="appointment-info-value" style={{fontSize: '0.85rem'}}>{parsedLanguages}</span>
+                      <span className="appointment-info-value" style={{ fontSize: '0.85rem' }}>{parsedLanguages}</span>
                     </div>
-                     <div className="appointment-info-box">
+                    <div className="appointment-info-box">
                       <span className="appointment-info-label">Type</span>
                       <span className="appointment-info-value">{doctor.employment_type}</span>
                     </div>

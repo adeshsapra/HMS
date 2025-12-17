@@ -388,11 +388,10 @@ const Header = () => {
           ) : (
             <div className="dropdown d-none d-md-block">
               <button
-                className="btn-signin d-flex align-items-center gap-2 dropdown-toggle"
+                className="btn-profile-toggle d-flex align-items-center gap-2 dropdown-toggle"
                 type="button"
                 data-bs-toggle="dropdown"
                 aria-expanded="false"
-                style={{ border: 'none', background: 'transparent' }}
               >
                 <i className="bi bi-person-circle fs-5"></i>
                 <span className="fw-bold">{user?.name?.split(' ')[0]}</span>
@@ -658,6 +657,37 @@ const Header = () => {
           }
 
           /* User Profile Dropdown Styles */
+          .header-auth-buttons .btn-profile-toggle {
+            background: #ffffff;
+            border: 1px solid #eef2f6;
+            color: var(--heading-color);
+            border-radius: 50px;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+          }
+
+          .header-auth-buttons .btn-profile-toggle:hover,
+          .header-auth-buttons .btn-profile-toggle.show {
+            background: #ffffff;
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+            box-shadow: 0 4px 10px rgba(4, 158, 187, 0.15);
+            transform: translateY(-1px);
+          }
+
+          
+          .header-auth-buttons .btn-profile-toggle:hover i,
+          .header-auth-buttons .btn-profile-toggle.show i {
+            color: var(--accent-color);
+          }
+
           .header-auth-buttons .dropdown-menu {
             background: #ffffff;
             border: none;

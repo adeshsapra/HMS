@@ -19,6 +19,20 @@ const Home = () => {
   const [healthPackages, setHealthPackages] = useState<HealthPackage[]>([])
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly')
 
+  // Home Care State
+  const [homeCareServices, setHomeCareServices] = useState<any[]>([])
+  const [homeCareSettings, setHomeCareSettings] = useState<any>({})
+  const [showHomeCareModal, setShowHomeCareModal] = useState(false)
+  const [selectedServiceIds, setSelectedServiceIds] = useState<any[]>([])
+
+  const toggleService = (id: any) => {
+    if (selectedServiceIds.includes(id)) {
+      setSelectedServiceIds(prev => prev.filter(mid => mid !== id))
+    } else {
+      setSelectedServiceIds(prev => [...prev, id])
+    }
+  }
+
   useEffect(() => {
     AOS.init({
       duration: 600,
@@ -27,7 +41,51 @@ const Home = () => {
       mirror: false
     })
     fetchPackages()
+    fetchHomeCareData()
   }, [])
+
+  const fetchHomeCareData = async () => {
+    try {
+      const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
+      const [servicesRes, settingsRes] = await Promise.all([
+        axios.get(`${API_URL}/public/home-care/services`),
+        axios.get(`${API_URL}/public/home-care/settings`)
+      ])
+      if (servicesRes.data.success) setHomeCareServices(servicesRes.data.data)
+      if (settingsRes.data.success) setHomeCareSettings(settingsRes.data.data)
+    } catch (err) {
+      console.error('Error fetching home care data:', err)
+    }
+  }
+
+  const handleHomeCareSubmit = async (e: any) => {
+    e.preventDefault()
+    const form = e.target as HTMLFormElement
+    const formData = new FormData(form)
+
+    // Get selected services
+    const selectedServices = selectedServiceIds
+
+    const data = {
+      name: formData.get('name'),
+      phone: formData.get('phone'),
+      address: formData.get('address'),
+      preferred_date: formData.get('preferred_date'),
+      services_requested: selectedServices
+    }
+
+    try {
+      const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
+      await axios.post(`${API_URL}/public/home-care/requests`, data)
+      alert('Request submitted! We will contact you shortly.')
+      setShowHomeCareModal(false)
+      form.reset()
+      setSelectedServiceIds([])
+    } catch (err) {
+      alert('Failed to submit request')
+      console.error(err)
+    }
+  }
 
   const fetchPackages = async () => {
     try {
@@ -43,6 +101,229 @@ const Home = () => {
 
   return (
     <div className="index-page">
+      <style dangerouslySetInnerHTML={{
+        __html: `
+        /* --- Global Button Theme Overrides --- */
+        .btn-primary, .btn-primary:active, .btn-primary:focus {
+          background-color: #049EBB !important;
+          border-color: #049EBB !important;
+          color: white !important;
+        }
+        .btn-primary:hover {
+          background-color: #049cbbc4 !important;
+          border-color: #049cbbc4 !important;
+        }
+        .btn-outline, .btn-outline:active, .btn-outline:focus {
+          border: 2px solid #049EBB !important;
+          color: #049EBB !important;
+          background: transparent !important;
+        }
+        .btn-outline:hover {
+          background: #049EBB !important;
+          color: white !important;
+        }
+        .btn-outline-primary {
+           color: #049EBB !important;
+           border-color: #049EBB !important;
+        }
+        .btn-outline-primary:hover {
+           background-color: #049EBB !important;
+           color: white !important;
+        }
+
+        /* --- Home Care Button Specific Override --- */
+        .home-care-btn, 
+        .home-care-btn:hover, 
+        .home-care-btn:focus, 
+        .home-care-btn:active,
+        .home-care-btn:visited {
+            background-color: #049EBB !important;
+            border-color: #049EBB !important;
+            color: #ffffff !important;
+            opacity: 1 !important;
+            box-shadow: 0 4px 6px -1px rgba(4, 158, 187, 0.25) !important;
+            outline: none !important;
+        }
+        .home-care-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(4, 158, 187, 0.4) !important;
+        }
+
+        /* --- Modal Styles --- */
+        .home-care-modal-overlay {
+          position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+          background: rgba(15, 23, 42, 0.75);
+          backdrop-filter: blur(8px);
+          z-index: 9999;
+          display: flex; align-items: center; justify-content: center;
+          padding: 1rem;
+          animation: fadeIn 0.3s ease;
+        }
+        .home-care-modal-content {
+          background: #ffffff;
+          width: 100%; margin: auto;
+          max-width: 650px;
+          border-radius: 20px;
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+          padding: 0;
+          max-height: 90vh;
+          overflow: hidden;
+          position: relative;
+          display: flex; flex-direction: column;
+          animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* --- Improved Scrollbar --- */
+        .home-care-modal-content::-webkit-scrollbar {
+          width: 10px;
+        }
+        .home-care-modal-content::-webkit-scrollbar-track {
+          background: transparent;
+          margin-top: 24px;
+          margin-bottom: 24px;
+        }
+        .home-care-modal-content::-webkit-scrollbar-thumb {
+          background-color: #cbd5e1;
+          border-radius: 20px;
+          border: 3px solid transparent;
+          background-clip: content-box;
+        }
+        .home-care-modal-content::-webkit-scrollbar-thumb:hover {
+          background-color: #94a3b8;
+        }
+
+        /* --- Service Card Styles --- */
+        .home-care-card {
+            background: #ffffff;
+            padding: 1.5rem;
+            border-left: 4px solid #049EBB;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            /* border-radius already handled by bootstrap class, but we can enforce if needed */
+        }
+        
+        .home-care-card h4 {
+            color: #1e293b; font-weight: 700; margin-bottom: 0.5rem; transition: color 0.3s;
+        }
+        .home-care-card p {
+            color: #64748b; transition: color 0.3s;
+        }
+        .home-care-card i {
+            color: #049EBB; transition: color 0.3s;
+        }
+        
+        .badge-24-7 {
+             position: absolute; top: 15px; right: 15px; font-size: 0.7rem;
+             background: rgba(4, 158, 187, 0.1);
+             color: #049EBB;
+             border: 1px solid rgba(4, 158, 187, 0.2);
+             transition: all 0.3s;
+        }
+
+        /* Hover State */
+        .home-care-card:hover {
+            background: #049EBB;
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(4, 158, 187, 0.25);
+            border-left-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .home-care-card:hover h4,
+        .home-care-card:hover p,
+        .home-care-card:hover i {
+            color: #ffffff !important;
+        }
+        
+        .home-care-card:hover .badge-24-7 {
+            background: rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .modal-header-custom {
+          background: #049EBB;
+          padding: 20px 30px;
+          display: flex; justify-content: space-between; align-items: center;
+          margin-bottom: 0;
+          color: white;
+        }
+        .modal-title-custom {
+          font-size: 1.5rem; font-weight: 600; color: white; letter-spacing: -0.5px; margin: 0;
+        }
+        .btn-close-custom {
+          background: transparent; border: none; width: auto; height: auto;
+          padding: 0;
+          display: flex; align-items: center; justify-content: center; cursor: pointer;
+          transition: all 0.2s; color: white; font-size: 1.5rem;
+        }
+        .btn-close-custom:hover { opacity: 0.8; }
+        
+        .modal-body-custom {
+            padding: 30px;
+            overflow-y: auto;
+            flex: 1;
+        }
+        
+        .form-group-custom { margin-bottom: 1.5rem; }
+        .form-label-custom {
+          font-weight: 600; font-size: 0.925rem; color: #334155; margin-bottom: 0.5rem; display: block;
+        }
+        .form-control-custom {
+          width: 100%; padding: 0.875rem 1rem;
+          border: 2px solid #e2e8f0; border-radius: 10px;
+          font-size: 1rem; color: #0f172a; transition: all 0.2s;
+          background: #f8fafc;
+        }
+        .form-control-custom:focus {
+          background: #fff; border-color: #049EBB; outline: none;
+          box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+        
+        .services-grid {
+          display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;
+          margin-top: 0.5rem;
+        }
+        @media (max-width: 640px) {
+          .services-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        .service-card-select {
+          border: 2px solid #e2e8f0; border-radius: 16px; padding: 1rem;
+          cursor: pointer; transition: all 0.2s; text-align: center;
+          background: #fff; position: relative; overflow: hidden;
+          display: flex; flex-direction: column; align-items: center; justify-content: center;
+          min-height: 110px;
+        }
+        .service-card-select:hover { border-color: #cbd5e1; transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .service-card-select.active {
+          border-color: #049EBB; background: #eff6ff; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+        }
+        .service-card-select i { font-size: 1.75rem; color: #94a3b8; margin-bottom: 0.5rem; transition: color 0.2s; }
+        .service-card-select.active i { color: #049EBB; }
+        .service-card-select h5 { font-size: 0.95rem; font-weight: 600; color: #334155; margin: 0; line-height: 1.3; }
+        .service-card-select.active h5 { color: #1e293b; }
+        .check-badge {
+          position: absolute; top: 10px; right: 10px; width: 20px; height: 20px;
+          background: #049EBB; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+          color: white; font-size: 0.75rem; transform: scale(0); transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .service-card-select.active .check-badge { transform: scale(1); }
+
+        .btn-submit-custom {
+          background-color: #049EBB !important;
+          color: white; border: none; padding: 1rem 2rem; border-radius: 10px;
+          font-weight: 600; font-size: 1rem; width: 100%; box-shadow: 0 4px 6px -1px rgba(4, 158, 187, 0.25);
+          transition: all 0.2s;
+        }
+        .btn-submit-custom:hover, .btn-submit-custom:active, .btn-submit-custom:focus {
+          background-color: #049EBB !important;
+          transform: translateY(-1px);
+          box-shadow: 0 10px 15px -3px rgba(4, 158, 187, 0.3);
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        `
+      }} />
       {/* Hero Section */}
       <section id="hero" className="hero section dark-background">
         <div className="container-fluid p-0">
@@ -970,44 +1251,48 @@ const Home = () => {
             <div className="col-lg-6" data-aos="fade-right" data-aos-delay="100">
               <div className="home-care-content">
                 <span className="home-care-badge">
-                  Hospital at Home
+                  {homeCareSettings.home_care_subtitle || "Hospital at Home"}
                 </span>
                 <h2 className="home-care-title">
-                  Professional Home Care Services
+                  {homeCareSettings.home_care_title || "Professional Home Care Services"}
                 </h2>
                 <p className="home-care-description">
-                  We bring world-class medical assistance to your doorstep. Perfect for post-surgery recovery,
-                  elderly care, or chronic disease management.
+                  {homeCareSettings.home_care_desc || "We bring world-class medical assistance to your doorstep. Perfect for post-surgery recovery, elderly care, or chronic disease management."}
                 </p>
 
                 <div className="row g-4 mb-4">
-                  {[
-                    { title: "Nursing Care", desc: "Injections, wound dressing, and vitals monitoring.", icon: "bi-activity" },
-                    { title: "Physiotherapy", desc: "Rehab sessions at the comfort of your home.", icon: "bi-person-arms-up" },
-                    { title: "Medical Equipment", desc: "Oxygen, beds, and wheelchair rentals.", icon: "bi-tools" },
-                    { title: "Lab at Home", desc: "Sample collection and instant reports.", icon: "bi-eyedropper" },
-                  ].map((service, idx) => (
+                  {homeCareServices.length > 0 ? homeCareServices.map((service, idx) => (
                     <div className="col-md-6" key={idx}>
-                      <div className="home-care-card rounded-3 h-100">
-                        <i className={`bi ${service.icon} fs-3 mb-2 d-block`}></i>
+                      <div className="home-care-card rounded-3 h-100 position-relative">
+                        {service.is_24_7 && (
+                          <span className="badge-24-7 px-2 py-1 rounded-pill fw-bold d-flex align-items-center">
+                            <i className="bi bi-clock-history me-1"></i>24/7
+                          </span>
+                        )}
+                        <i className={`bi ${service.icon || 'bi-activity'} fs-3 mb-2 d-block`}></i>
                         <h4>{service.title}</h4>
-                        <p className="m-0 small text-muted">{service.desc}</p>
+                        <p className="m-0 small text-muted">{service.description}</p>
                       </div>
                     </div>
-                  ))}
+                  )) : (
+                    <div className="col-12"><p>Loading services...</p></div>
+                  )}
                 </div>
 
-                <Link to="/home-care" className="btn btn-primary btn-lg rounded-pill home-care-btn">
-                  Schedule Home Visit
-                </Link>
+                <button
+                  className="btn btn-primary btn-lg rounded-pill home-care-btn"
+                  onClick={() => setShowHomeCareModal(true)}
+                >
+                  {homeCareSettings.home_care_cta || "Schedule Home Visit"}
+                </button>
               </div>
             </div>
 
             <div className="col-lg-6" data-aos="fade-left" data-aos-delay="200">
               <div className="home-care-img-wrapper ps-lg-5">
                 <img
-                  src="https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?q=80&w=2070&auto=format&fit=crop"
-                  alt="Medical professional visiting patient at home"
+                  src={homeCareSettings.home_care_image || "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?q=80&w=2070&auto=format&fit=crop"}
+                  alt="Medical professional"
                   className="img-fluid w-100 object-fit-cover"
                   style={{ borderRadius: '20px', minHeight: '400px' }}
                 />
@@ -1026,6 +1311,81 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* Home Care Modal */}
+      {showHomeCareModal && (
+        <>
+          <div className="home-care-modal-overlay" onClick={() => setShowHomeCareModal(false)}>
+            <div className="home-care-modal-content" onClick={e => e.stopPropagation()}>
+              <div className="modal-header-custom">
+                <h5 className="modal-title-custom">Schedule Home Visit</h5>
+                <button type="button" className="btn-close-custom" onClick={() => setShowHomeCareModal(false)}>
+                  &times;
+                </button>
+              </div>
+
+              <div className="modal-body-custom">
+                <form onSubmit={handleHomeCareSubmit}>
+                  <div className="row">
+                    <div className="col-md-6 form-group-custom">
+                      <label className="form-label-custom">Patient Name</label>
+                      <input type="text" name="name" className="form-control-custom" placeholder="e.g. John Doe" required />
+                    </div>
+                    <div className="col-md-6 form-group-custom">
+                      <label className="form-label-custom">Phone Number</label>
+                      <input type="tel" name="phone" className="form-control-custom" placeholder="e.g. +1 234 567 8900" required />
+                    </div>
+                  </div>
+
+                  <div className="form-group-custom">
+                    <label className="form-label-custom">Email Address <span className="text-muted fw-normal fst-italic ms-1">(Optional)</span></label>
+                    <input type="email" name="email" className="form-control-custom" placeholder="e.g. john@example.com" />
+                  </div>
+
+                  <div className="form-group-custom">
+                    <label className="form-label-custom">Home Address</label>
+                    <textarea name="address" className="form-control-custom" rows={2} placeholder="Enter full address for the visit" required></textarea>
+                  </div>
+
+                  <div className="form-group-custom">
+                    <label className="form-label-custom">Preferred Date & Time</label>
+                    <input type="datetime-local" name="preferred_date" className="form-control-custom" required />
+                  </div>
+
+                  <div className="form-group-custom">
+                    <label className="form-label-custom mb-3">Select Services Needed</label>
+                    <div className="services-grid">
+                      {homeCareServices.map(s => (
+                        <div
+                          key={s.id}
+                          className={`service-card-select ${selectedServiceIds.includes(s.id) ? 'active' : ''}`}
+                          onClick={() => toggleService(s.id)}
+                        >
+                          <div className="check-badge"><i className="bi bi-check" style={{ fontSize: '1.2rem', color: 'white', marginBottom: 0 }}></i></div>
+                          <i className={`bi ${s.icon || 'bi-activity'}`}></i>
+                          <h5>{s.title}</h5>
+                        </div>
+                      ))}
+                    </div>
+                    {selectedServiceIds.length === 0 && (
+                      <div className="text-danger mt-2 small">* Please select at least one service</div>
+                    )}
+                  </div>
+
+                  <div className="mt-5">
+                    <button type="submit" className="btn-submit-custom">
+                      Confirm Booking Request
+                    </button>
+                    <div className="text-center mt-3">
+                      <button type="button" className="btn btn-link text-muted text-decoration-none" onClick={() => setShowHomeCareModal(false)}>Cancel</button>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* --- REDESIGNED: Health Packages Section --- */}
       <section id="packages" className="packages section">
