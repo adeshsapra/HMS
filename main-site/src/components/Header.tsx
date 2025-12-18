@@ -269,6 +269,15 @@ const Header = () => {
             </li>
             <li>
               <Link
+                to="/home-care"
+                className={isActive("/home-care")}
+                onClick={closeMobileNav}
+              >
+                Home Care
+              </Link>
+            </li>
+            <li>
+              <Link
                 to="/doctors"
                 className={isActive("/doctors")}
                 onClick={closeMobileNav}
