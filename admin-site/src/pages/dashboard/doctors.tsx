@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { DataTable, ViewModal, DeleteConfirmModal, Column, ViewField, FormModal, FormField } from "@/components";
-import { Avatar, Typography, Button } from "@material-tailwind/react";
-import { UserPlusIcon } from "@heroicons/react/24/outline";
+import { Avatar, Typography, Button, Alert } from "@material-tailwind/react";
+import { UserPlusIcon, ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import apiService from "@/services/api";
 
 // Backend storage URL for images
 const STORAGE_URL = (import.meta as any).env?.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:8000';
-console.log(STORAGE_URL);
+
 interface Doctor {
   id: number;
   doctor_id?: string;
@@ -39,12 +39,17 @@ interface Doctor {
   profile_picture?: string;
 }
 
+interface ApiError {
+  success: boolean;
+  message: string;
+  errors?: Record<string, string[]>;
+  error?: string;
+}
+
 // Helper function to get profile picture URL
 const getProfilePictureUrl = (profilePicture?: string): string => {
   if (!profilePicture) return "/img/team-1.jpeg";
-  // If it's already a full URL, return as is
   if (profilePicture.startsWith('http')) return profilePicture;
-  // Otherwise, construct the full URL
   return `${STORAGE_URL}/storage/${profilePicture}`;
 };
 
@@ -57,6 +62,8 @@ export default function Doctors(): JSX.Element {
   const [openDeleteModal, setOpenDeleteModal] = useState<boolean>(false);
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [formLoading, setFormLoading] = useState(false);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [alert, setAlert] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -80,6 +87,7 @@ export default function Doctors(): JSX.Element {
       }
     } catch (error) {
       console.error("Failed to load doctors:", error);
+      showAlert('error', 'Failed to load doctors. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -94,6 +102,11 @@ export default function Doctors(): JSX.Element {
     } catch (error) {
       console.error("Failed to load departments:", error);
     }
+  };
+
+  const showAlert = (type: 'success' | 'error', message: string) => {
+    setAlert({ type, message });
+    setTimeout(() => setAlert(null), 5000);
   };
 
   const columns: Column[] = [
@@ -209,62 +222,238 @@ export default function Doctors(): JSX.Element {
     }));
 
     return [
-      { name: "first_name", label: "First Name", type: "text", required: true, placeholder: "Enter first name" },
-      { name: "last_name", label: "Last Name", type: "text", required: true, placeholder: "Enter last name" },
-      { name: "email", label: "Email", type: "email", required: true, placeholder: "doctor@hospital.com" },
-      { name: "phone", label: "Phone", type: "text", placeholder: "+1 234-567-8900" },
       {
-        name: "gender", label: "Gender", type: "select", required: true, placeholder: "Select Gender", options: [
+        name: "first_name",
+        label: "First Name",
+        type: "text",
+        required: true,
+        placeholder: "Enter first name",
+        error: formErrors.first_name
+      },
+      {
+        name: "last_name",
+        label: "Last Name",
+        type: "text",
+        required: true,
+        placeholder: "Enter last name",
+        error: formErrors.last_name
+      },
+      {
+        name: "email",
+        label: "Email",
+        type: "email",
+        required: true,
+        placeholder: "doctor@hospital.com",
+        error: formErrors.email
+      },
+      {
+        name: "phone",
+        label: "Phone",
+        type: "text",
+        placeholder: "+1 234-567-8900",
+        error: formErrors.phone
+      },
+      {
+        name: "gender",
+        label: "Gender",
+        type: "select",
+        required: true,
+        placeholder: "Select Gender",
+        options: [
           { value: "male", label: "Male" },
           { value: "female", label: "Female" },
           { value: "other", label: "Other" }
-        ]
+        ],
+        error: formErrors.gender
       },
-      { name: "date_of_birth", label: "Date of Birth", type: "date" },
-      { name: "password", label: "Password", type: "password", required: !selectedDoctor, placeholder: "Minimum 8 characters" },
-      { name: "address", label: "Address", type: "textarea", fullWidth: true, rows: 2, placeholder: "Enter address" },
-      { name: "city", label: "City", type: "text", placeholder: "Enter city" },
-      { name: "state", label: "State", type: "text", placeholder: "Enter state" },
-      { name: "country", label: "Country", type: "text", placeholder: "Enter country" },
-      { name: "postal_code", label: "Postal Code", type: "text", placeholder: "Enter postal code" },
-      { name: "specialization", label: "Specialization", type: "text", required: true, placeholder: "e.g. Cardiology" },
-      { name: "qualification", label: "Qualification", type: "text", required: true, placeholder: "e.g. MBBS, MD" },
-      { name: "experience_years", label: "Experience (Years)", type: "number", required: true, min: 0, placeholder: "0" },
-      { name: "license_number", label: "License Number", type: "text", required: true, placeholder: "e.g. L12345" },
-      { name: "department", label: "Department", type: "select", placeholder: "Select Department", options: departmentOptions },
-      { name: "joining_date", label: "Joining Date", type: "date", required: true },
       {
-        name: "employment_type", label: "Employment Type", type: "select", required: true, placeholder: "Select Employment Type", options: [
+        name: "date_of_birth",
+        label: "Date of Birth",
+        type: "date",
+        error: formErrors.date_of_birth
+      },
+      {
+        name: "password",
+        label: "Password",
+        type: "password",
+        required: !selectedDoctor,
+        placeholder: "Minimum 8 characters",
+        error: formErrors.password
+      },
+      {
+        name: "address",
+        label: "Address",
+        type: "textarea",
+        fullWidth: true,
+        rows: 2,
+        placeholder: "Enter address",
+        error: formErrors.address
+      },
+      {
+        name: "city",
+        label: "City",
+        type: "text",
+        placeholder: "Enter city",
+        error: formErrors.city
+      },
+      {
+        name: "state",
+        label: "State",
+        type: "text",
+        placeholder: "Enter state",
+        error: formErrors.state
+      },
+      {
+        name: "country",
+        label: "Country",
+        type: "text",
+        placeholder: "Enter country",
+        error: formErrors.country
+      },
+      {
+        name: "postal_code",
+        label: "Postal Code",
+        type: "text",
+        placeholder: "Enter postal code",
+        error: formErrors.postal_code
+      },
+      {
+        name: "specialization",
+        label: "Specialization",
+        type: "text",
+        required: true,
+        placeholder: "e.g. Cardiology",
+        error: formErrors.specialization
+      },
+      {
+        name: "qualification",
+        label: "Qualification",
+        type: "text",
+        required: true,
+        placeholder: "e.g. MBBS, MD",
+        error: formErrors.qualification
+      },
+      {
+        name: "experience_years",
+        label: "Experience (Years)",
+        type: "number",
+        required: true,
+        min: 0,
+        placeholder: "0",
+        error: formErrors.experience_years
+      },
+      {
+        name: "license_number",
+        label: "License Number",
+        type: "text",
+        required: true,
+        placeholder: "e.g. L12345",
+        error: formErrors.license_number
+      },
+      {
+        name: "department_id",
+        label: "Department",
+        type: "select",
+        placeholder: "Select Department",
+        options: departmentOptions,
+        error: formErrors.department_id
+      },
+      {
+        name: "joining_date",
+        label: "Joining Date",
+        type: "date",
+        required: true,
+        error: formErrors.joining_date
+      },
+      {
+        name: "employment_type",
+        label: "Employment Type",
+        type: "select",
+        required: true,
+        placeholder: "Select Employment Type",
+        options: [
           { value: "full_time", label: "Full Time" },
           { value: "part_time", label: "Part Time" },
           { value: "contract", label: "Contract" },
           { value: "visiting", label: "Visiting" }
-        ]
+        ],
+        error: formErrors.employment_type
       },
-      { name: "consultation_fee", label: "Consultation Fee ($)", type: "number", required: true, min: 0, placeholder: "0" },
-      { name: "working_hours_start", label: "Working Hours Start", type: "time" },
-      { name: "working_hours_end", label: "Working Hours End", type: "time" },
-      { name: "working_days", label: "Working Days", type: "text", placeholder: "mon, tue, wed, thu, fri" },
       {
-        name: "status", label: "Status", type: "select", placeholder: "Select Status", options: [
+        name: "consultation_fee",
+        label: "Consultation Fee ($)",
+        type: "number",
+        required: true,
+        min: 0,
+        placeholder: "0",
+        error: formErrors.consultation_fee
+      },
+      {
+        name: "working_hours_start",
+        label: "Working Hours Start",
+        type: "time",
+        error: formErrors.working_hours_start
+      },
+      {
+        name: "working_hours_end",
+        label: "Working Hours End",
+        type: "time",
+        error: formErrors.working_hours_end
+      },
+      {
+        name: "working_days",
+        label: "Working Days",
+        type: "text",
+        placeholder: "mon, tue, wed, thu, fri",
+        error: formErrors.working_days
+      },
+      {
+        name: "status",
+        label: "Status",
+        type: "select",
+        placeholder: "Select Status",
+        options: [
           { value: "active", label: "Active" },
           { value: "inactive", label: "Inactive" },
           { value: "on_leave", label: "On Leave" }
-        ]
+        ],
+        error: formErrors.status
       },
-      { name: "bio", label: "Bio", type: "textarea", fullWidth: true, rows: 3, placeholder: "Brief biography of the doctor" },
-      { name: "languages", label: "Languages", type: "text", placeholder: "English, Spanish, French" },
-      { name: "profile_picture", label: "Profile Picture", type: "file", accept: "image/*" },
+      {
+        name: "bio",
+        label: "Bio",
+        type: "textarea",
+        fullWidth: true,
+        rows: 3,
+        placeholder: "Brief biography of the doctor",
+        error: formErrors.bio
+      },
+      {
+        name: "languages",
+        label: "Languages",
+        type: "text",
+        placeholder: "English, Spanish, French",
+        error: formErrors.languages
+      },
+      {
+        name: "profile_picture",
+        label: "Profile Picture",
+        type: "file",
+        accept: "image/*",
+        error: formErrors.profile_picture
+      },
     ];
   };
 
   const handleAdd = (): void => {
     setSelectedDoctor(null);
+    setFormErrors({});
     setOpenModal(true);
   };
 
   const handleEdit = (doctor: Doctor): void => {
     setSelectedDoctor(doctor);
+    setFormErrors({});
     setOpenModal(true);
   };
 
@@ -282,14 +471,14 @@ export default function Doctors(): JSX.Element {
     const formData = new FormData();
 
     // Fields to exclude from form submission
-    const excludeFields = ['id', 'doctor_id', 'is_available', 'created_at', 'updated_at', 'remember_token'];
+    const excludeFields = ['id', 'doctor_id', 'is_available', 'created_at', 'updated_at', 'remember_token', 'user'];
 
     Object.keys(data).forEach(key => {
       // Skip excluded fields
       if (excludeFields.includes(key)) return;
 
-      // Skip the department object (we use department as the ID)
-      if (key === 'department' && typeof data[key] === 'object' && data[key] !== null) return;
+      // Skip if value is undefined or null
+      if (data[key] === undefined || data[key] === null) return;
 
       if (key === "profile_picture") {
         if (data[key] instanceof File) {
@@ -314,47 +503,71 @@ export default function Doctors(): JSX.Element {
           formData.append("languages[]", lang);
         });
       } else if (typeof data[key] === "boolean") {
-        // Convert boolean to string '1' or '0' for Laravel
         formData.append(key, data[key] ? "1" : "0");
-      } else if (data[key] !== null && data[key] !== undefined && data[key] !== "") {
+      } else if (data[key] !== "") {
         formData.append(key, data[key]);
       }
     });
+
+    // For update, include _method=PUT
+    if (selectedDoctor) {
+      formData.append('_method', 'PUT');
+    }
 
     return formData;
   };
 
   const handleSubmit = async (data: Record<string, any>): Promise<void> => {
     setFormLoading(true);
+    setFormErrors({});
+
     try {
       const formData = convertToFormData(data);
+      let response;
 
       if (selectedDoctor) {
-        await apiService.updateDoctor(selectedDoctor.id, formData);
+        response = await apiService.updateDoctor(selectedDoctor.id, formData);
+        showAlert('success', 'Doctor updated successfully!');
       } else {
-        await apiService.createDoctor(formData);
+        response = await apiService.createDoctor(formData);
+        showAlert('success', 'Doctor created successfully!');
       }
-      setCurrentPage(1); // Reset to first page
+
+      setCurrentPage(1);
       await loadDoctors();
       setOpenModal(false);
       setSelectedDoctor(null);
-    } catch (error) {
+      setFormErrors({});
+    } catch (error: any) {
+      // Handle validation errors from backend
+      if (error.response?.data?.errors) {
+        const errors: Record<string, string> = {};
+        Object.keys(error.response.data.errors).forEach(key => {
+          errors[key] = error.response.data.errors[key][0];
+        });
+        setFormErrors(errors);
+        showAlert('error', 'Please fix the form errors');
+      } else {
+        showAlert('error', error.response?.data?.message || 'An error occurred');
+      }
+      throw error;
+    } finally {
       setFormLoading(false);
-      throw error; // Re-throw so FormModal can catch and display
     }
-    setFormLoading(false);
   };
 
   const confirmDelete = async (): Promise<void> => {
     if (selectedDoctor) {
       try {
         await apiService.deleteDoctor(selectedDoctor.id);
-        setCurrentPage(1); // Reset to first page
+        showAlert('success', 'Doctor deleted successfully!');
+        setCurrentPage(1);
         await loadDoctors();
         setOpenDeleteModal(false);
         setSelectedDoctor(null);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Failed to delete doctor:", error);
+        showAlert('error', error.response?.data?.message || 'Failed to delete doctor');
       }
     }
   };
@@ -366,14 +579,23 @@ export default function Doctors(): JSX.Element {
       ...doctor,
       email: doctor.user?.email || "",
       phone: doctor.user?.phone || "",
-      department: doctor.department_id?.toString() || "",
+      department_id: doctor.department_id?.toString() || "",
       working_days: Array.isArray(doctor.working_days) ? doctor.working_days.join(", ") : doctor.working_days || "",
       languages: Array.isArray(doctor.languages) ? doctor.languages.join(", ") : doctor.languages || "",
+      // Convert date formats for input fields
+      date_of_birth: doctor.date_of_birth ? doctor.date_of_birth.split('T')[0] : "",
+      joining_date: doctor.joining_date ? doctor.joining_date.split('T')[0] : "",
     };
   };
 
   const handlePageChange = (page: number): void => {
     setCurrentPage(page);
+  };
+
+  const handleModalClose = (): void => {
+    setOpenModal(false);
+    setSelectedDoctor(null);
+    setFormErrors({});
   };
 
   return (
@@ -393,6 +615,17 @@ export default function Doctors(): JSX.Element {
           Add Doctor
         </Button>
       </div>
+
+      {alert && (
+        <Alert
+          className="mb-4"
+          color={alert.type === 'success' ? 'green' : 'red'}
+          icon={alert.type === 'error' ? <ExclamationTriangleIcon className="h-6 w-6" /> : undefined}
+          onClose={() => setAlert(null)}
+        >
+          {alert.message}
+        </Alert>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
@@ -424,16 +657,14 @@ export default function Doctors(): JSX.Element {
 
       <FormModal
         open={openModal}
-        onClose={() => {
-          setOpenModal(false);
-          setSelectedDoctor(null);
-        }}
+        onClose={handleModalClose}
         title={selectedDoctor ? "Edit Doctor" : "Add New Doctor"}
         formFields={getFormFields()}
         initialData={prepareInitialData(selectedDoctor)}
         onSubmit={handleSubmit}
         submitLabel={selectedDoctor ? "Update Doctor" : "Add Doctor"}
         loading={formLoading}
+
       />
 
       <ViewModal
@@ -455,7 +686,7 @@ export default function Doctors(): JSX.Element {
         }}
         onConfirm={confirmDelete}
         title="Delete Doctor"
-        message="Are you sure you want to delete this doctor?"
+        message="Are you sure you want to delete this doctor? This action cannot be undone and will delete all associated user data."
         itemName={selectedDoctor ? `Dr. ${selectedDoctor.first_name} ${selectedDoctor.last_name}` : ""}
       />
     </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { DataTable, ViewModal, DeleteConfirmModal, Column, ViewField, FormModal, FormField } from "@/components";
-import { Avatar, Typography, Button } from "@material-tailwind/react";
-import { UserPlusIcon } from "@heroicons/react/24/outline";
+import { Avatar, Typography, Button, Alert } from "@material-tailwind/react";
+import { UserPlusIcon, ExclamationCircleIcon } from "@heroicons/react/24/outline";
 import apiService from "@/services/api";
 
 // Backend storage URL for images
@@ -13,11 +13,14 @@ interface StaffMember {
   first_name: string;
   last_name: string;
   user?: {
+    id: number;
     email: string;
     phone?: string;
+    role_id?: number;
+    name?: string;
   };
-  email?: string; // Keep for backward compatibility
-  phone?: string; // Keep for backward compatibility
+  email?: string;
+  phone?: string;
   gender: string;
   date_of_birth?: string;
   address?: string;
@@ -68,6 +71,8 @@ export default function Staff(): JSX.Element {
   const [openDeleteModal, setOpenDeleteModal] = useState<boolean>(false);
   const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
   const [formLoading, setFormLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string[]>>({});
+  const [alert, setAlert] = useState<{ type: 'success' | 'error', message: string } | null>(null);
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -80,6 +85,11 @@ export default function Staff(): JSX.Element {
     loadDepartments();
   }, [currentPage]);
 
+  const showAlert = (type: 'success' | 'error', message: string) => {
+    setAlert({ type, message });
+    setTimeout(() => setAlert(null), 5000);
+  };
+
   const loadStaff = async () => {
     try {
       setLoading(true);
@@ -91,6 +101,7 @@ export default function Staff(): JSX.Element {
       }
     } catch (error) {
       console.error("Failed to load staff:", error);
+      showAlert('error', 'Failed to load staff members');
     } finally {
       setLoading(false);
     }
@@ -165,7 +176,25 @@ export default function Staff(): JSX.Element {
         return shifts[value] || value || "N/A";
       }
     },
-    { key: "employment_status", label: "Status", type: "status" },
+    {
+      key: "employment_status",
+      label: "Status",
+      type: "status",
+      render: (value: string) => {
+        const statusConfig: Record<string, { color: string, label: string }> = {
+          active: { color: "green", label: "Active" },
+          inactive: { color: "gray", label: "Inactive" },
+          on_leave: { color: "yellow", label: "On Leave" },
+          terminated: { color: "red", label: "Terminated" }
+        };
+        const status = statusConfig[value] || { color: "gray", label: "N/A" };
+        return (
+          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${status.color}-100 text-${status.color}-800`}>
+            {status.label}
+          </span>
+        );
+      }
+    },
   ];
 
   const viewFields: ViewField[] = [
@@ -250,40 +279,52 @@ export default function Staff(): JSX.Element {
       label: dept.name
     }));
 
-    return [
-      { name: "first_name", label: "First Name", type: "text", required: true, placeholder: "Enter first name" },
-      { name: "last_name", label: "Last Name", type: "text", required: true, placeholder: "Enter last name" },
-      { name: "email", label: "Email", type: "email", required: true, placeholder: "staff@hospital.com" },
-      { name: "phone", label: "Phone", type: "text", placeholder: "+1 234-567-8900" },
+    const formFields: FormField[] = [
+      { name: "first_name", label: "First Name", type: "text", required: true, placeholder: "Enter first name", error: errors.first_name?.[0] },
+      { name: "last_name", label: "Last Name", type: "text", required: true, placeholder: "Enter last name", error: errors.last_name?.[0] },
+      { name: "email", label: "Email", type: "email", required: true, placeholder: "staff@hospital.com", error: errors.email?.[0] },
+      { name: "phone", label: "Phone", type: "text", placeholder: "+1 234-567-8900", error: errors.phone?.[0] },
       {
-        name: "gender", label: "Gender", type: "select", required: true, placeholder: "Select Gender", options: [
+        name: "gender", label: "Gender", type: "select", required: true, placeholder: "Select Gender",
+        options: [
           { value: "male", label: "Male" },
           { value: "female", label: "Female" },
           { value: "other", label: "Other" }
-        ]
+        ],
+        error: errors.gender?.[0]
       },
-      { name: "date_of_birth", label: "Date of Birth", type: "date" },
+      { name: "date_of_birth", label: "Date of Birth", type: "date", error: errors.date_of_birth?.[0] },
       {
-        name: "marital_status", label: "Marital Status", type: "select", placeholder: "Select Marital Status", options: [
+        name: "marital_status", label: "Marital Status", type: "select", placeholder: "Select Marital Status",
+        options: [
           { value: "single", label: "Single" },
           { value: "married", label: "Married" },
           { value: "divorced", label: "Divorced" },
           { value: "widowed", label: "Widowed" }
-        ]
+        ],
+        error: errors.marital_status?.[0]
       },
-      { name: "password", label: "Password", type: "password", required: !selectedStaff, placeholder: "Minimum 8 characters" },
-      { name: "address", label: "Address", type: "textarea", fullWidth: true, rows: 2, placeholder: "Enter address" },
-      { name: "city", label: "City", type: "text", placeholder: "Enter city" },
-      { name: "state", label: "State", type: "text", placeholder: "Enter state" },
-      { name: "country", label: "Country", type: "text", placeholder: "Enter country" },
-      { name: "postal_code", label: "Postal Code", type: "text", placeholder: "Enter postal code" },
-      { name: "emergency_contact_name", label: "Emergency Contact Name", type: "text", placeholder: "Contact name" },
-      { name: "emergency_contact_phone", label: "Emergency Contact Phone", type: "text", placeholder: "Contact phone" },
-      { name: "emergency_contact_relation", label: "Relationship", type: "text", placeholder: "e.g. Spouse, Parent" },
-      { name: "designation", label: "Designation", type: "text", required: true, placeholder: "e.g. Nurse, Receptionist" },
-      { name: "department_id", label: "Department", type: "select", required: true, placeholder: "Select Department", options: departmentOptions },
       {
-        name: "staff_type", label: "Staff Type", type: "select", required: true, placeholder: "Select Staff Type", options: [
+        name: "password",
+        label: "Password",
+        type: "password",
+        required: !selectedStaff,
+        placeholder: "Minimum 8 characters",
+        error: errors.password?.[0]
+      },
+      { name: "address", label: "Address", type: "textarea", fullWidth: true, rows: 2, placeholder: "Enter address", error: errors.address?.[0] },
+      { name: "city", label: "City", type: "text", placeholder: "Enter city", error: errors.city?.[0] },
+      { name: "state", label: "State", type: "text", placeholder: "Enter state", error: errors.state?.[0] },
+      { name: "country", label: "Country", type: "text", placeholder: "Enter country", error: errors.country?.[0] },
+      { name: "postal_code", label: "Postal Code", type: "text", placeholder: "Enter postal code", error: errors.postal_code?.[0] },
+      { name: "emergency_contact_name", label: "Emergency Contact Name", type: "text", placeholder: "Contact name", error: errors.emergency_contact_name?.[0] },
+      { name: "emergency_contact_phone", label: "Emergency Contact Phone", type: "text", placeholder: "Contact phone", error: errors.emergency_contact_phone?.[0] },
+      { name: "emergency_contact_relation", label: "Relationship", type: "text", placeholder: "e.g. Spouse, Parent", error: errors.emergency_contact_relation?.[0] },
+      { name: "designation", label: "Designation", type: "text", required: true, placeholder: "e.g. Nurse, Receptionist", error: errors.designation?.[0] },
+      { name: "department_id", label: "Department", type: "select", required: true, placeholder: "Select Department", options: departmentOptions, error: errors.department_id?.[0] },
+      {
+        name: "staff_type", label: "Staff Type", type: "select", required: true, placeholder: "Select Staff Type",
+        options: [
           { value: "administrative", label: "Administrative" },
           { value: "medical", label: "Medical" },
           { value: "nursing", label: "Nursing" },
@@ -292,10 +333,12 @@ export default function Staff(): JSX.Element {
           { value: "support", label: "Support" },
           { value: "pharmacy", label: "Pharmacy" },
           { value: "management", label: "Management" }
-        ]
+        ],
+        error: errors.staff_type?.[0]
       },
       {
-        name: "employment_type", label: "Employment Type", type: "select", required: true, placeholder: "Select Employment Type", options: [
+        name: "employment_type", label: "Employment Type", type: "select", required: true, placeholder: "Select Employment Type",
+        options: [
           { value: "full_time", label: "Full Time" },
           { value: "part_time", label: "Part Time" },
           { value: "contract", label: "Contract" },
@@ -303,48 +346,63 @@ export default function Staff(): JSX.Element {
           { value: "intern", label: "Intern" },
           { value: "probation", label: "Probation" },
           { value: "visiting", label: "Visiting" }
-        ]
+        ],
+        error: errors.employment_type?.[0]
       },
-      { name: "joining_date", label: "Joining Date", type: "date", required: true },
-      { name: "probation_end_date", label: "Probation End Date", type: "date" },
-      { name: "contract_end_date", label: "Contract End Date", type: "date" },
-      { name: "qualification", label: "Qualification", type: "text", placeholder: "e.g. B.Sc Nursing" },
-      { name: "specialization", label: "Specialization", type: "text", placeholder: "e.g. ICU, Emergency" },
-      { name: "experience_years", label: "Experience (Years)", type: "number", required: true, min: 0, placeholder: "0" },
-      { name: "employee_id", label: "Employee ID", type: "text", placeholder: "e.g. EMP001" },
-      { name: "badge_number", label: "Badge Number", type: "text", placeholder: "e.g. B001" },
+      { name: "joining_date", label: "Joining Date", type: "date", required: true, error: errors.joining_date?.[0] },
+      { name: "probation_end_date", label: "Probation End Date", type: "date", error: errors.probation_end_date?.[0] },
+      { name: "contract_end_date", label: "Contract End Date", type: "date", error: errors.contract_end_date?.[0] },
+      { name: "qualification", label: "Qualification", type: "text", placeholder: "e.g. B.Sc Nursing", error: errors.qualification?.[0] },
+      { name: "specialization", label: "Specialization", type: "text", placeholder: "e.g. ICU, Emergency", error: errors.specialization?.[0] },
+      { name: "experience_years", label: "Experience (Years)", type: "number", required: true, min: 0, placeholder: "0", error: errors.experience_years?.[0] },
+      { name: "employee_id", label: "Employee ID", type: "text", placeholder: "e.g. EMP001", error: errors.employee_id?.[0] },
+      { name: "badge_number", label: "Badge Number", type: "text", placeholder: "e.g. B001", error: errors.badge_number?.[0] },
       {
-        name: "shift", label: "Shift", type: "select", placeholder: "Select Shift", options: [
+        name: "shift", label: "Shift", type: "select", placeholder: "Select Shift",
+        options: [
           { value: "morning", label: "Morning" },
           { value: "afternoon", label: "Afternoon" },
           { value: "night", label: "Night" },
           { value: "rotating", label: "Rotating" }
-        ]
+        ],
+        error: errors.shift?.[0]
       },
-      { name: "work_hours_start", label: "Work Hours Start", type: "time" },
-      { name: "work_hours_end", label: "Work Hours End", type: "time" },
-      { name: "working_days", label: "Working Days", type: "text", placeholder: "mon, tue, wed, thu, fri" },
-      { name: "reporting_manager", label: "Reporting Manager", type: "text", placeholder: "Manager name" },
-      { name: "work_location", label: "Work Location", type: "text", placeholder: "e.g. Building A, Floor 2" },
+      { name: "work_hours_start", label: "Work Hours Start", type: "time", error: errors.work_hours_start?.[0] },
+      { name: "work_hours_end", label: "Work Hours End", type: "time", error: errors.work_hours_end?.[0] },
       {
-        name: "employment_status", label: "Employment Status", type: "select", required: true, placeholder: "Select Status", options: [
+        name: "working_days",
+        label: "Working Days",
+        type: "text",
+        placeholder: "monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+        error: errors.working_days?.[0]
+      },
+      { name: "reporting_manager", label: "Reporting Manager", type: "text", placeholder: "Manager name", error: errors.reporting_manager?.[0] },
+      { name: "work_location", label: "Work Location", type: "text", placeholder: "e.g. Building A, Floor 2", error: errors.work_location?.[0] },
+      {
+        name: "employment_status", label: "Employment Status", type: "select", required: true, placeholder: "Select Status",
+        options: [
           { value: "active", label: "Active" },
           { value: "inactive", label: "Inactive" },
           { value: "on_leave", label: "On Leave" },
           { value: "terminated", label: "Terminated" }
-        ]
+        ],
+        error: errors.employment_status?.[0]
       },
-      { name: "profile_picture", label: "Profile Picture", type: "file", accept: "image/*" },
+      { name: "profile_picture", label: "Profile Picture", type: "file", accept: "image/*", error: errors.profile_picture?.[0] },
     ];
+
+    return formFields;
   };
 
   const handleAdd = (): void => {
     setSelectedStaff(null);
+    setErrors({});
     setOpenModal(true);
   };
 
   const handleEdit = (staffMember: StaffMember): void => {
     setSelectedStaff(staffMember);
+    setErrors({});
     setOpenModal(true);
   };
 
@@ -361,33 +419,29 @@ export default function Staff(): JSX.Element {
   const convertToFormData = (data: Record<string, any>): FormData => {
     const formData = new FormData();
 
-    // Fields to exclude from form submission
-    const excludeFields = ['id', 'staff_id', 'is_available', 'created_at', 'updated_at', 'remember_token'];
-
+    // Add all fields dynamically
     Object.keys(data).forEach(key => {
-      // Skip excluded fields
-      if (excludeFields.includes(key)) return;
-
-      // Skip the department object
-      if (key === 'department' && typeof data[key] === 'object' && data[key] !== null) return;
-
       if (key === "profile_picture") {
         if (data[key] instanceof File) {
           formData.append(key, data[key]);
+        } else if (typeof data[key] === 'string' && data[key]) {
+          // If it's a string URL, don't add it
+          return;
         }
       } else if (key === "working_days" && typeof data[key] === "string") {
-        const days = data[key].split(",").map((day: string) => day.trim().toLowerCase()).filter(Boolean);
+        const days = data[key]
+          .split(",")
+          .map((day: string) => day.trim().toLowerCase())
+          .filter((day: string) =>
+            ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].includes(day)
+          );
         days.forEach((day: string) => {
           formData.append("working_days[]", day);
         });
-      } else if (key === "working_days" && Array.isArray(data[key])) {
-        data[key].forEach((day: string) => {
-          formData.append("working_days[]", day);
-        });
-      } else if (typeof data[key] === "boolean") {
-        formData.append(key, data[key] ? "1" : "0");
+      } else if (key === "department_id") {
+        formData.append(key, data[key].toString());
       } else if (data[key] !== null && data[key] !== undefined && data[key] !== "") {
-        formData.append(key, data[key]);
+        formData.append(key, data[key].toString());
       }
     });
 
@@ -396,35 +450,68 @@ export default function Staff(): JSX.Element {
 
   const handleSubmit = async (data: Record<string, any>): Promise<void> => {
     setFormLoading(true);
+    setErrors({});
+
     try {
       const formData = convertToFormData(data);
 
       if (selectedStaff) {
-        await apiService.updateStaff(selectedStaff.id, formData);
+        const response = await apiService.updateStaff(selectedStaff.id, formData);
+        if (response.success) {
+          showAlert('success', 'Staff member updated successfully');
+          setOpenModal(false);
+          setSelectedStaff(null);
+          loadStaff();
+        } else {
+          if (response.errors) {
+            setErrors(response.errors);
+          } else {
+            showAlert('error', response.message || 'Failed to update staff');
+          }
+          throw new Error(response.message || 'Update failed');
+        }
       } else {
-        await apiService.createStaff(formData);
+        const response = await apiService.createStaff(formData);
+        if (response.success) {
+          showAlert('success', 'Staff member created successfully');
+          setCurrentPage(1);
+          setOpenModal(false);
+          loadStaff();
+        } else {
+          if (response.errors) {
+            setErrors(response.errors);
+          } else {
+            showAlert('error', response.message || 'Failed to create staff');
+          }
+          throw new Error(response.message || 'Creation failed');
+        }
       }
-      setCurrentPage(1); // Reset to first page
-      await loadStaff();
-      setOpenModal(false);
-      setSelectedStaff(null);
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Submission error:", error);
+      if (!error.response?.data?.errors) {
+        showAlert('error', error.message || 'An unexpected error occurred');
+      }
+    } finally {
       setFormLoading(false);
-      throw error;
     }
-    setFormLoading(false);
   };
 
   const confirmDelete = async (): Promise<void> => {
     if (selectedStaff) {
       try {
-        await apiService.deleteStaff(selectedStaff.id);
-        setCurrentPage(1); // Reset to first page
-        await loadStaff();
-        setOpenDeleteModal(false);
-        setSelectedStaff(null);
-      } catch (error) {
-        console.error("Failed to delete staff:", error);
+        const response = await apiService.deleteStaff(selectedStaff.id);
+        if (response.success) {
+          showAlert('success', 'Staff member deleted successfully');
+          setCurrentPage(1);
+          setOpenDeleteModal(false);
+          setSelectedStaff(null);
+          loadStaff();
+        } else {
+          showAlert('error', response.message || 'Failed to delete staff');
+        }
+      } catch (error: any) {
+        console.error("Delete error:", error);
+        showAlert('error', error.message || 'Failed to delete staff');
       }
     }
   };
@@ -432,13 +519,26 @@ export default function Staff(): JSX.Element {
   const prepareInitialData = (staffMember: StaffMember | null): Record<string, any> => {
     if (!staffMember) return {};
 
-    return {
+    const initialData = {
       ...staffMember,
-      email: staffMember.user?.email || staffMember.email,
-      phone: staffMember.user?.phone || staffMember.phone,
-      department_id: staffMember.department_id?.toString() || "",
-      working_days: Array.isArray(staffMember.working_days) ? staffMember.working_days.join(", ") : staffMember.working_days || "",
+      email: staffMember.user?.email || staffMember.email || '',
+      phone: staffMember.user?.phone || staffMember.phone || '',
+      department_id: staffMember.department_id?.toString() || '',
+      working_days: Array.isArray(staffMember.working_days)
+        ? staffMember.working_days.join(", ")
+        : staffMember.working_days || "",
+      password: '', // Clear password field for edit
     };
+
+    // Convert date strings to YYYY-MM-DD format for input fields
+    const dateFields = ['date_of_birth', 'joining_date', 'probation_end_date', 'contract_end_date'];
+    dateFields.forEach(field => {
+      if (initialData[field]) {
+        initialData[field] = initialData[field].split('T')[0];
+      }
+    });
+
+    return initialData;
   };
 
   const handlePageChange = (page: number): void => {
@@ -462,6 +562,18 @@ export default function Staff(): JSX.Element {
           Add Staff
         </Button>
       </div>
+
+      {/* Alert Message */}
+      {alert && (
+        <Alert
+          color={alert.type === 'success' ? 'green' : 'red'}
+          icon={<ExclamationCircleIcon className="h-6 w-6" />}
+          className="mb-4"
+          onClose={() => setAlert(null)}
+        >
+          {alert.message}
+        </Alert>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
@@ -496,6 +608,7 @@ export default function Staff(): JSX.Element {
         onClose={() => {
           setOpenModal(false);
           setSelectedStaff(null);
+          setErrors({});
         }}
         title={selectedStaff ? "Edit Staff" : "Add New Staff"}
         formFields={getFormFields()}

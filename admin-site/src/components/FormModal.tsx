@@ -16,6 +16,7 @@ export interface FormField {
   placeholder?: string;
   required?: boolean;
   options?: { value: string; label: string }[];
+  error?: string;
   rows?: number;
   min?: number;
   max?: number;

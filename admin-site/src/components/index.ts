@@ -11,4 +11,3 @@ export * from "./Pagination";
 export type { Column, DataTableProps } from "./DataTable";
 export type { FormField, FormModalProps } from "./FormModal";
 export type { ViewField, ViewModalProps } from "./ViewModal";
-
