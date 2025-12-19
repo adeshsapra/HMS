@@ -22,16 +22,6 @@ const Home = () => {
   // Home Care State
   const [homeCareServices, setHomeCareServices] = useState<any[]>([])
   const [homeCareSettings, setHomeCareSettings] = useState<any>({})
-  const [showHomeCareModal, setShowHomeCareModal] = useState(false)
-  const [selectedServiceIds, setSelectedServiceIds] = useState<any[]>([])
-
-  const toggleService = (id: any) => {
-    if (selectedServiceIds.includes(id)) {
-      setSelectedServiceIds(prev => prev.filter(mid => mid !== id))
-    } else {
-      setSelectedServiceIds(prev => [...prev, id])
-    }
-  }
 
   useEffect(() => {
     AOS.init({
@@ -58,34 +48,7 @@ const Home = () => {
     }
   }
 
-  const handleHomeCareSubmit = async (e: any) => {
-    e.preventDefault()
-    const form = e.target as HTMLFormElement
-    const formData = new FormData(form)
 
-    // Get selected services
-    const selectedServices = selectedServiceIds
-
-    const data = {
-      name: formData.get('name'),
-      phone: formData.get('phone'),
-      address: formData.get('address'),
-      preferred_date: formData.get('preferred_date'),
-      services_requested: selectedServices
-    }
-
-    try {
-      const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
-      await axios.post(`${API_URL}/public/home-care/requests`, data)
-      alert('Request submitted! We will contact you shortly.')
-      setShowHomeCareModal(false)
-      form.reset()
-      setSelectedServiceIds([])
-    } catch (err) {
-      alert('Failed to submit request')
-      console.error(err)
-    }
-  }
 
   const fetchPackages = async () => {
     try {
@@ -1279,12 +1242,12 @@ const Home = () => {
                   )}
                 </div>
 
-                <button
-                  className="btn btn-primary btn-lg rounded-pill home-care-btn"
-                  onClick={() => setShowHomeCareModal(true)}
+                <Link
+                  to="/home-care"
+                  className="btn btn-primary btn-lg rounded-pill home-care-btn px-5 py-3 fw-bold"
                 >
                   {homeCareSettings.home_care_cta || "Schedule Home Visit"}
-                </button>
+                </Link>
               </div>
             </div>
 
@@ -1312,80 +1275,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Home Care Modal */}
-      {showHomeCareModal && (
-        <>
-          <div className="home-care-modal-overlay" onClick={() => setShowHomeCareModal(false)}>
-            <div className="home-care-modal-content" onClick={e => e.stopPropagation()}>
-              <div className="modal-header-custom">
-                <h5 className="modal-title-custom">Schedule Home Visit</h5>
-                <button type="button" className="btn-close-custom" onClick={() => setShowHomeCareModal(false)}>
-                  &times;
-                </button>
-              </div>
 
-              <div className="modal-body-custom">
-                <form onSubmit={handleHomeCareSubmit}>
-                  <div className="row">
-                    <div className="col-md-6 form-group-custom">
-                      <label className="form-label-custom">Patient Name</label>
-                      <input type="text" name="name" className="form-control-custom" placeholder="e.g. John Doe" required />
-                    </div>
-                    <div className="col-md-6 form-group-custom">
-                      <label className="form-label-custom">Phone Number</label>
-                      <input type="tel" name="phone" className="form-control-custom" placeholder="e.g. +1 234 567 8900" required />
-                    </div>
-                  </div>
-
-                  <div className="form-group-custom">
-                    <label className="form-label-custom">Email Address <span className="text-muted fw-normal fst-italic ms-1">(Optional)</span></label>
-                    <input type="email" name="email" className="form-control-custom" placeholder="e.g. john@example.com" />
-                  </div>
-
-                  <div className="form-group-custom">
-                    <label className="form-label-custom">Home Address</label>
-                    <textarea name="address" className="form-control-custom" rows={2} placeholder="Enter full address for the visit" required></textarea>
-                  </div>
-
-                  <div className="form-group-custom">
-                    <label className="form-label-custom">Preferred Date & Time</label>
-                    <input type="datetime-local" name="preferred_date" className="form-control-custom" required />
-                  </div>
-
-                  <div className="form-group-custom">
-                    <label className="form-label-custom mb-3">Select Services Needed</label>
-                    <div className="services-grid">
-                      {homeCareServices.map(s => (
-                        <div
-                          key={s.id}
-                          className={`service-card-select ${selectedServiceIds.includes(s.id) ? 'active' : ''}`}
-                          onClick={() => toggleService(s.id)}
-                        >
-                          <div className="check-badge"><i className="bi bi-check" style={{ fontSize: '1.2rem', color: 'white', marginBottom: 0 }}></i></div>
-                          <i className={`bi ${s.icon || 'bi-activity'}`}></i>
-                          <h5>{s.title}</h5>
-                        </div>
-                      ))}
-                    </div>
-                    {selectedServiceIds.length === 0 && (
-                      <div className="text-danger mt-2 small">* Please select at least one service</div>
-                    )}
-                  </div>
-
-                  <div className="mt-5">
-                    <button type="submit" className="btn-submit-custom">
-                      Confirm Booking Request
-                    </button>
-                    <div className="text-center mt-3">
-                      <button type="button" className="btn btn-link text-muted text-decoration-none" onClick={() => setShowHomeCareModal(false)}>Cancel</button>
-                    </div>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
 
       {/* --- REDESIGNED: Health Packages Section --- */}
       <section id="packages" className="packages section">
@@ -1566,23 +1456,31 @@ const Home = () => {
                   }
                 ].map((review, idx) => (
                   <div className="col-md-6" key={idx} data-aos="fade-up" data-aos-delay={review.delay}>
-                    <div className="review-card h-100">
+                    <div className="review-card-premium h-100">
+                      <div className="review-card-qoute">
+                        <i className="bi bi-quote"></i>
+                      </div>
                       <div className="patient-profile">
-                        <img src={review.img} alt={review.name} className="patient-img" />
+                        <div className="patient-img-container">
+                          <img src={review.img} alt={review.name} className="patient-img-premium" />
+                          <div className="verified-badge"><i className="bi bi-patch-check-fill"></i></div>
+                        </div>
                         <div className="patient-info">
                           <h5>{review.name}</h5>
-                          <span className="treatment-badge">{review.treatment}</span>
+                          <span className="treatment-tag">{review.treatment}</span>
                         </div>
                       </div>
-                      <div className="star-row mb-3" style={{ fontSize: '0.8rem' }}>
-                        {[...Array(5)].map((_, i) => (
-                          <i key={i} className="bi bi-star-fill text-warning"></i>
-                        ))}
-                      </div>
-                      <p className="review-text">
-                        <i className="bi bi-quote quote-mark-small"></i>
-                        {review.text}
+                      <p className="review-text-premium mt-3">
+                        "{review.text}"
                       </p>
+                      <div className="review-meta mt-auto pt-3 border-top border-light d-flex justify-content-between align-items-center">
+                        <div className="star-row-premium">
+                          {[...Array(5)].map((_, i) => (
+                            <i key={i} className="bi bi-star-fill"></i>
+                          ))}
+                        </div>
+                        <span className="review-date small text-muted">Verified Patient</span>
+                      </div>
                     </div>
                   </div>
                 ))}

@@ -16,6 +16,8 @@ import Doctors from './pages/Doctors'
 import Services from './pages/Services'
 import ServiceDetails from './pages/ServiceDetails'
 import QuickAppointment from './pages/QuickAppointment'
+import Appointment from './pages/Appointment'
+import DoctorDetails from './pages/DoctorDetails'
 import Contact from './pages/Contact'
 import Testimonials from './pages/Testimonials'
 import FAQ from './pages/FAQ'
@@ -26,8 +28,10 @@ import SignIn from './pages/SignIn'
 import SignUp from './pages/SignUp'
 import NotFound from './pages/NotFound'
 import Profile from './pages/Profile'
-import Appointment from './pages/Appointment'
-import DoctorDetails from './pages/DoctorDetails'
+// Home Care Pages
+import HomeCareLanding from './pages/HomeCare/HomeCareLanding'
+import BookingWizard from './pages/HomeCare/BookingWizard'
+
 
 function App() {
   const location = useLocation()
@@ -92,6 +96,11 @@ function App() {
             <Route path="/sign-in" element={<SignIn />} />
             <Route path="/sign-up" element={<SignUp />} />
             <Route path="/profile" element={<Profile />} />
+
+            {/* Home Care Routes */}
+            <Route path="/home-care" element={<HomeCareLanding />} />
+            <Route path="/home-care/booking" element={<BookingWizard />} />
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
@@ -103,4 +112,3 @@ function App() {
 }
 
 export default App
-
