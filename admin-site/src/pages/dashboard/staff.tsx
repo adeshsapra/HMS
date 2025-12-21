@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { DataTable, ViewModal, DeleteConfirmModal, Column, ViewField, FormModal, FormField } from "@/components";
-import { Avatar, Typography, Button, Alert } from "@material-tailwind/react";
-import { UserPlusIcon, ExclamationCircleIcon } from "@heroicons/react/24/outline";
+import { Avatar, Typography, Button } from "@material-tailwind/react";
+import { UserPlusIcon } from "@heroicons/react/24/outline";
 import apiService from "@/services/api";
+import { useToast } from "@/context/ToastContext";
 
 // Backend storage URL for images
 const STORAGE_URL = (import.meta as any).env?.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:8000';
@@ -72,7 +73,7 @@ export default function Staff(): JSX.Element {
   const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
   const [formLoading, setFormLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string[]>>({});
-  const [alert, setAlert] = useState<{ type: 'success' | 'error', message: string } | null>(null);
+  const { showToast } = useToast();
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -85,11 +86,6 @@ export default function Staff(): JSX.Element {
     loadDepartments();
   }, [currentPage]);
 
-  const showAlert = (type: 'success' | 'error', message: string) => {
-    setAlert({ type, message });
-    setTimeout(() => setAlert(null), 5000);
-  };
-
   const loadStaff = async () => {
     try {
       setLoading(true);
@@ -101,7 +97,7 @@ export default function Staff(): JSX.Element {
       }
     } catch (error) {
       console.error("Failed to load staff:", error);
-      showAlert('error', 'Failed to load staff members');
+      showToast('Failed to load staff members', 'error');
     } finally {
       setLoading(false);
     }
@@ -458,7 +454,7 @@ export default function Staff(): JSX.Element {
       if (selectedStaff) {
         const response = await apiService.updateStaff(selectedStaff.id, formData);
         if (response.success) {
-          showAlert('success', 'Staff member updated successfully');
+          showToast('Staff member updated successfully', 'success');
           setOpenModal(false);
           setSelectedStaff(null);
           loadStaff();
@@ -466,14 +462,14 @@ export default function Staff(): JSX.Element {
           if (response.errors) {
             setErrors(response.errors);
           } else {
-            showAlert('error', response.message || 'Failed to update staff');
+            showToast(response.message || 'Failed to update staff', 'error');
           }
           throw new Error(response.message || 'Update failed');
         }
       } else {
         const response = await apiService.createStaff(formData);
         if (response.success) {
-          showAlert('success', 'Staff member created successfully');
+          showToast('Staff member created successfully', 'success');
           setCurrentPage(1);
           setOpenModal(false);
           loadStaff();
@@ -481,16 +477,20 @@ export default function Staff(): JSX.Element {
           if (response.errors) {
             setErrors(response.errors);
           } else {
-            showAlert('error', response.message || 'Failed to create staff');
+            showToast(response.message || 'Failed to create staff', 'error');
           }
           throw new Error(response.message || 'Creation failed');
         }
       }
     } catch (error: any) {
       console.error("Submission error:", error);
-      if (!error.response?.data?.errors) {
-        showAlert('error', error.message || 'An unexpected error occurred');
+      if (error.validationErrors) {
+        setErrors(error.validationErrors);
+        showToast('Please fix the form errors', 'error');
+      } else {
+        showToast(error.message || 'An unexpected error occurred', 'error');
       }
+      throw error; // Rethrow to let FormModal handle state parsing if needed
     } finally {
       setFormLoading(false);
     }
@@ -501,17 +501,17 @@ export default function Staff(): JSX.Element {
       try {
         const response = await apiService.deleteStaff(selectedStaff.id);
         if (response.success) {
-          showAlert('success', 'Staff member deleted successfully');
+          showToast('Staff member deleted successfully', 'success');
           setCurrentPage(1);
           setOpenDeleteModal(false);
           setSelectedStaff(null);
           loadStaff();
         } else {
-          showAlert('error', response.message || 'Failed to delete staff');
+          showToast(response.message || 'Failed to delete staff', 'error');
         }
       } catch (error: any) {
         console.error("Delete error:", error);
-        showAlert('error', error.message || 'Failed to delete staff');
+        showToast(error.message || 'Failed to delete staff', 'error');
       }
     }
   };
@@ -562,18 +562,6 @@ export default function Staff(): JSX.Element {
           Add Staff
         </Button>
       </div>
-
-      {/* Alert Message */}
-      {alert && (
-        <Alert
-          color={alert.type === 'success' ? 'green' : 'red'}
-          icon={<ExclamationCircleIcon className="h-6 w-6" />}
-          className="mb-4"
-          onClose={() => setAlert(null)}
-        >
-          {alert.message}
-        </Alert>
-      )}
 
       {loading ? (
         <div className="flex items-center justify-center py-12">

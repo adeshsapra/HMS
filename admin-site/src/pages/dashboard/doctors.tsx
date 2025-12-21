@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { DataTable, ViewModal, DeleteConfirmModal, Column, ViewField, FormModal, FormField } from "@/components";
-import { Avatar, Typography, Button, Alert } from "@material-tailwind/react";
-import { UserPlusIcon, ExclamationTriangleIcon } from "@heroicons/react/24/outline";
+import { Avatar, Typography, Button } from "@material-tailwind/react";
+import { UserPlusIcon } from "@heroicons/react/24/outline";
 import apiService from "@/services/api";
+import { useToast } from "@/context/ToastContext";
 
 // Backend storage URL for images
 const STORAGE_URL = (import.meta as any).env?.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:8000';
@@ -63,7 +64,7 @@ export default function Doctors(): JSX.Element {
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [formLoading, setFormLoading] = useState(false);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-  const [alert, setAlert] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const { showToast } = useToast();
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -87,7 +88,7 @@ export default function Doctors(): JSX.Element {
       }
     } catch (error) {
       console.error("Failed to load doctors:", error);
-      showAlert('error', 'Failed to load doctors. Please try again.');
+      showToast('Failed to load doctors. Please try again.', 'error');
     } finally {
       setLoading(false);
     }
@@ -102,11 +103,6 @@ export default function Doctors(): JSX.Element {
     } catch (error) {
       console.error("Failed to load departments:", error);
     }
-  };
-
-  const showAlert = (type: 'success' | 'error', message: string) => {
-    setAlert({ type, message });
-    setTimeout(() => setAlert(null), 5000);
   };
 
   const columns: Column[] = [
@@ -527,10 +523,10 @@ export default function Doctors(): JSX.Element {
 
       if (selectedDoctor) {
         response = await apiService.updateDoctor(selectedDoctor.id, formData);
-        showAlert('success', 'Doctor updated successfully!');
+        showToast('Doctor updated successfully!', 'success');
       } else {
         response = await apiService.createDoctor(formData);
-        showAlert('success', 'Doctor created successfully!');
+        showToast('Doctor created successfully!', 'success');
       }
 
       setCurrentPage(1);
@@ -540,15 +536,15 @@ export default function Doctors(): JSX.Element {
       setFormErrors({});
     } catch (error: any) {
       // Handle validation errors from backend
-      if (error.response?.data?.errors) {
+      if (error.validationErrors) {
         const errors: Record<string, string> = {};
-        Object.keys(error.response.data.errors).forEach(key => {
-          errors[key] = error.response.data.errors[key][0];
+        Object.keys(error.validationErrors).forEach(key => {
+          errors[key] = error.validationErrors[key][0];
         });
         setFormErrors(errors);
-        showAlert('error', 'Please fix the form errors');
+        showToast('Please fix the form errors', 'error');
       } else {
-        showAlert('error', error.response?.data?.message || 'An error occurred');
+        showToast(error.message || 'An error occurred', 'error');
       }
       throw error;
     } finally {
@@ -560,14 +556,14 @@ export default function Doctors(): JSX.Element {
     if (selectedDoctor) {
       try {
         await apiService.deleteDoctor(selectedDoctor.id);
-        showAlert('success', 'Doctor deleted successfully!');
+        showToast('Doctor deleted successfully!', 'success');
         setCurrentPage(1);
         await loadDoctors();
         setOpenDeleteModal(false);
         setSelectedDoctor(null);
       } catch (error: any) {
         console.error("Failed to delete doctor:", error);
-        showAlert('error', error.response?.data?.message || 'Failed to delete doctor');
+        showToast(error.response?.data?.message || 'Failed to delete doctor', 'error');
       }
     }
   };
@@ -615,17 +611,6 @@ export default function Doctors(): JSX.Element {
           Add Doctor
         </Button>
       </div>
-
-      {alert && (
-        <Alert
-          className="mb-4"
-          color={alert.type === 'success' ? 'green' : 'red'}
-          icon={alert.type === 'error' ? <ExclamationTriangleIcon className="h-6 w-6" /> : undefined}
-          onClose={() => setAlert(null)}
-        >
-          {alert.message}
-        </Alert>
-      )}
 
       {loading ? (
         <div className="flex items-center justify-center py-12">

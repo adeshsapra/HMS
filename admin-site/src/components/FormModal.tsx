@@ -218,7 +218,8 @@ export function FormModal({
       setErrors({});
       setGeneralError("");
     }
-  }, [initialData, open]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const handleChange = (name: string, value: any): void => {
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -296,7 +297,7 @@ export function FormModal({
 
   const renderField = (field: FormField): JSX.Element => {
     const fieldValue = formData[field.name] || "";
-    const hasError = !!errors[field.name];
+    const hasError = !!(errors[field.name] || field.error);
     const inputClass = `${inputBaseClass} ${hasError ? inputErrorClass : ""}`;
 
     switch (field.type) {
@@ -440,24 +441,27 @@ export function FormModal({
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {formFields.map((field) => (
-              <div
-                key={field.name}
-                className={field.fullWidth ? "md:col-span-2" : ""}
-              >
-                {renderField(field)}
-                {errors[field.name] && (
-                  <Typography
-                    variant="small"
-                    color="red"
-                    className="mt-1 text-xs flex items-center gap-1"
-                  >
-                    <ExclamationCircleIcon className="h-3.5 w-3.5" />
-                    {errors[field.name]}
-                  </Typography>
-                )}
-              </div>
-            ))}
+            {formFields.map((field) => {
+              const errorMessage = errors[field.name] || field.error;
+              return (
+                <div
+                  key={field.name}
+                  className={field.fullWidth ? "md:col-span-2" : ""}
+                >
+                  {renderField(field)}
+                  {errorMessage && (
+                    <Typography
+                      variant="small"
+                      color="red"
+                      className="mt-1 text-xs flex items-center gap-1"
+                    >
+                      <ExclamationCircleIcon className="h-3.5 w-3.5" />
+                      {errorMessage}
+                    </Typography>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </DialogBody>
         <DialogFooter className="bg-white border-t-2 border-blue-gray-200 px-8 py-5 flex items-center justify-between shadow-lg">
