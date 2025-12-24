@@ -463,6 +463,31 @@ class ApiService {
   async updateHomeCareSettings(settings: any) {
     return this.post<any>('/admin/home-care/settings', { settings });
   }
+
+  async reorderHomeCareServices(services: Array<{ id: number; sort_order: number }>) {
+    return this.post<any>('/admin/home-care/services/reorder', { services });
+  }
+
+  // Home Care Professionals methods
+  async getHomeCareProfessionals() {
+    return this.get<any[]>('/admin/home-care/professionals');
+  }
+
+  async createHomeCareProfessional(data: any) {
+    return this.post<any>('/admin/home-care/professionals', data);
+  }
+
+  async updateHomeCareProfessional(id: number, data: any) {
+    return this.put<any>(`/admin/home-care/professionals/${id}`, data);
+  }
+
+  async deleteHomeCareProfessional(id: number) {
+    return this.delete<any>(`/admin/home-care/professionals/${id}`);
+  }
+
+  async reorderHomeCareProfessionals(professionals: Array<{ id: number; sort_order: number }>) {
+    return this.post<any>('/admin/home-care/professionals/reorder', { professionals });
+  }
 }
 
 export const apiService = new ApiService();

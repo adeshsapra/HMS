@@ -74,5 +74,19 @@ export const appointmentAPI = {
     create: (data: any) => api.post('/public/appointments', data),
 };
 
+export const homeCareAPI = {
+    getServices: () => api.get('/public/home-care/services'),
+    getSettings: () => api.get('/public/home-care/settings'),
+    getProfessionals: () => api.get('/public/home-care/professionals'),
+    submitRequest: (data: {
+        name: string;
+        phone: string;
+        email?: string;
+        address?: string;
+        preferred_date?: string;
+        services_requested?: number[];
+    }) => api.post('/public/home-care/requests', data),
+};
+
 export default api;
 

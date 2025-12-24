@@ -1,71 +1,75 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import AOS from 'aos'
-import axios from 'axios'
-import '../billing-toggle.css'
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import AOS from "aos";
+import axios from "axios";
+import { homeCareAPI } from "../services/api";
+import "../billing-toggle.css";
 
 interface HealthPackage {
-  id: number
-  title: string
-  subtitle: string
-  price_monthly: number
-  price_yearly: number
-  features_monthly: string[]
-  features_yearly: string[]
-  featured: boolean
+  id: number;
+  title: string;
+  subtitle: string;
+  price_monthly: number;
+  price_yearly: number;
+  features_monthly: string[];
+  features_yearly: string[];
+  featured: boolean;
 }
 
 const Home = () => {
-  const [healthPackages, setHealthPackages] = useState<HealthPackage[]>([])
-  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly')
+  const [healthPackages, setHealthPackages] = useState<HealthPackage[]>([]);
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">(
+    "monthly"
+  );
 
   // Home Care State
-  const [homeCareServices, setHomeCareServices] = useState<any[]>([])
-  const [homeCareSettings, setHomeCareSettings] = useState<any>({})
+  const [homeCareServices, setHomeCareServices] = useState<any[]>([]);
+  const [homeCareSettings, setHomeCareSettings] = useState<any>({});
 
   useEffect(() => {
     AOS.init({
       duration: 600,
-      easing: 'ease-in-out',
+      easing: "ease-in-out",
       once: true,
-      mirror: false
-    })
-    fetchPackages()
-    fetchHomeCareData()
-  }, [])
+      mirror: false,
+    });
+    fetchPackages();
+    fetchHomeCareData();
+  }, []);
 
   const fetchHomeCareData = async () => {
     try {
-      const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
       const [servicesRes, settingsRes] = await Promise.all([
-        axios.get(`${API_URL}/public/home-care/services`),
-        axios.get(`${API_URL}/public/home-care/settings`)
-      ])
-      if (servicesRes.data.success) setHomeCareServices(servicesRes.data.data)
-      if (settingsRes.data.success) setHomeCareSettings(settingsRes.data.data)
+        homeCareAPI.getServices(),
+        homeCareAPI.getSettings(),
+      ]);
+      if (servicesRes.data.success)
+        setHomeCareServices(servicesRes.data.data || []);
+      if (settingsRes.data.success)
+        setHomeCareSettings(settingsRes.data.data || {});
     } catch (err) {
-      console.error('Error fetching home care data:', err)
+      console.error("Error fetching home care data:", err);
     }
-  }
-
-
+  };
 
   const fetchPackages = async () => {
     try {
-      const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
-      const response = await axios.get(`${API_URL}/public/health-packages`)
+      const API_URL =
+        import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
+      const response = await axios.get(`${API_URL}/public/health-packages`);
       if (response.data.success) {
-        setHealthPackages(response.data.data)
+        setHealthPackages(response.data.data);
       }
     } catch (error) {
-      console.error('Error fetching health packages:', error)
+      console.error("Error fetching health packages:", error);
     }
-  }
+  };
 
   return (
     <div className="index-page">
-      <style dangerouslySetInnerHTML={{
-        __html: `
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
         /* --- Global Button Theme Overrides --- */
         .btn-primary, .btn-primary:active, .btn-primary:focus {
           background-color: #049EBB !important;
@@ -285,8 +289,9 @@ const Home = () => {
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
-        `
-      }} />
+        `,
+        }}
+      />
       {/* Hero Section */}
       <section id="hero" className="hero section dark-background">
         <div className="container-fluid p-0">
@@ -329,7 +334,10 @@ const Home = () => {
                         data-aos="fade-up"
                         data-aos-delay="300"
                       >
-                        <Link to="/quickappointment" className="btn btn-primary">
+                        <Link
+                          to="/quickappointment"
+                          className="btn btn-primary"
+                        >
                           Book Appointment
                         </Link>
                         <Link to="/services" className="btn btn-outline">
@@ -659,12 +667,13 @@ const Home = () => {
                       {[...Array(5)].map((_, i) => (
                         <i
                           key={i}
-                          className={`bi bi-star${i < Math.floor(doctor.stars)
-                            ? "-fill"
-                            : i < doctor.stars
+                          className={`bi bi-star${
+                            i < Math.floor(doctor.stars)
+                              ? "-fill"
+                              : i < doctor.stars
                               ? "-half"
                               : ""
-                            }`}
+                          }`}
                         ></i>
                       ))}
                       <span className="rating-text">({doctor.rating})</span>
@@ -1093,8 +1102,9 @@ const Home = () => {
                 ].map((contact, idx) => (
                   <div key={idx} className="col-md-6 mb-4">
                     <div
-                      className={`contact-card ${contact.urgent ? "urgent" : ""
-                        }`}
+                      className={`contact-card ${
+                        contact.urgent ? "urgent" : ""
+                      }`}
                     >
                       <div className="card-icon">
                         <i className={contact.icon}></i>
@@ -1210,35 +1220,50 @@ const Home = () => {
       <section id="home-care" className="home-care section">
         <div className="container" data-aos="fade-up">
           <div className="row align-items-center gy-5">
-
-            <div className="col-lg-6" data-aos="fade-right" data-aos-delay="100">
+            <div
+              className="col-lg-6"
+              data-aos="fade-right"
+              data-aos-delay="100"
+            >
               <div className="home-care-content">
                 <span className="home-care-badge">
                   {homeCareSettings.home_care_subtitle || "Hospital at Home"}
                 </span>
                 <h2 className="home-care-title">
-                  {homeCareSettings.home_care_title || "Professional Home Care Services"}
+                  {homeCareSettings.home_care_title ||
+                    "Professional Home Care Services"}
                 </h2>
                 <p className="home-care-description">
-                  {homeCareSettings.home_care_desc || "We bring world-class medical assistance to your doorstep. Perfect for post-surgery recovery, elderly care, or chronic disease management."}
+                  {homeCareSettings.home_care_desc ||
+                    "We bring world-class medical assistance to your doorstep. Perfect for post-surgery recovery, elderly care, or chronic disease management."}
                 </p>
 
                 <div className="row g-4 mb-4">
-                  {homeCareServices.length > 0 ? homeCareServices.map((service, idx) => (
-                    <div className="col-md-6" key={idx}>
-                      <div className="home-care-card rounded-3 h-100 position-relative">
-                        {service.is_24_7 && (
-                          <span className="badge-24-7 px-2 py-1 rounded-pill fw-bold d-flex align-items-center">
-                            <i className="bi bi-clock-history me-1"></i>24/7
-                          </span>
-                        )}
-                        <i className={`bi ${service.icon || 'bi-activity'} fs-3 mb-2 d-block`}></i>
-                        <h4>{service.title}</h4>
-                        <p className="m-0 small text-muted">{service.description}</p>
+                  {homeCareServices.length > 0 ? (
+                    homeCareServices.map((service, idx) => (
+                      <div className="col-md-6" key={idx}>
+                        <div className="home-care-card rounded-3 h-100 position-relative">
+                          {service.is_24_7 && (
+                            <span className="badge-24-7 px-2 py-1 rounded-pill fw-bold d-flex align-items-center">
+                              <i className="bi bi-clock-history me-1"></i>24/7
+                            </span>
+                          )}
+                          <i
+                            className={`bi ${
+                              service.icon || "bi-activity"
+                            } fs-3 mb-2 d-block`}
+                          ></i>
+                          <h4>{service.title}</h4>
+                          <p className="m-0 small text-muted">
+                            {service.description}
+                          </p>
+                        </div>
                       </div>
+                    ))
+                  ) : (
+                    <div className="col-12">
+                      <p>Loading services...</p>
                     </div>
-                  )) : (
-                    <div className="col-12"><p>Loading services...</p></div>
                   )}
                 </div>
 
@@ -1254,28 +1279,30 @@ const Home = () => {
             <div className="col-lg-6" data-aos="fade-left" data-aos-delay="200">
               <div className="home-care-img-wrapper ps-lg-5">
                 <img
-                  src={homeCareSettings.home_care_image || "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?q=80&w=2070&auto=format&fit=crop"}
+                  src={
+                    homeCareSettings.home_care_image ||
+                    "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?q=80&w=2070&auto=format&fit=crop"
+                  }
                   alt="Medical professional"
                   className="img-fluid w-100 object-fit-cover"
-                  style={{ borderRadius: '20px', minHeight: '400px' }}
+                  style={{ borderRadius: "20px", minHeight: "400px" }}
                 />
                 <div className="floating-badge">
                   <div className="icon-box rounded-circle d-flex align-items-center justify-content-center text-white">
                     <i className="bi bi-clock-history fs-4"></i>
                   </div>
                   <div>
-                    <strong className="d-block text-dark">Available 24/7</strong>
+                    <strong className="d-block text-dark">
+                      Available 24/7
+                    </strong>
                     <span className="text-muted small">For Emergencies</span>
                   </div>
                 </div>
               </div>
             </div>
-
           </div>
         </div>
       </section>
-
-
 
       {/* --- REDESIGNED: Health Packages Section --- */}
       <section id="packages" className="packages section">
@@ -1286,19 +1313,27 @@ const Home = () => {
           <div className="d-flex justify-content-center mt-4">
             <div className="billing-toggle-wrapper">
               <div
-                className={`billing-option ${billingCycle === 'monthly' ? 'active' : ''}`}
-                onClick={() => setBillingCycle('monthly')}
+                className={`billing-option ${
+                  billingCycle === "monthly" ? "active" : ""
+                }`}
+                onClick={() => setBillingCycle("monthly")}
               >
                 Monthly
               </div>
               <div
-                className={`billing-option ${billingCycle === 'yearly' ? 'active' : ''}`}
-                onClick={() => setBillingCycle('yearly')}
+                className={`billing-option ${
+                  billingCycle === "yearly" ? "active" : ""
+                }`}
+                onClick={() => setBillingCycle("yearly")}
               >
                 Yearly
                 {/* <span className="discount-badge">Save 20%</span> */}
               </div>
-              <div className={`slider-bg ${billingCycle === 'yearly' ? 'slide-right' : ''}`}></div>
+              <div
+                className={`slider-bg ${
+                  billingCycle === "yearly" ? "slide-right" : ""
+                }`}
+              ></div>
             </div>
           </div>
         </div>
@@ -1306,23 +1341,39 @@ const Home = () => {
         <div className="container">
           <div className="row gy-4 align-items-center justify-content-center">
             {healthPackages.map((pkg, idx) => (
-              <div className="col-lg-4 col-md-6" key={pkg.id} data-aos="fade-up" data-aos-delay={100 * (idx + 1)}>
-                <div className={`package-card ${pkg.featured ? 'featured' : ''}`}>
-                  {pkg.featured && <div className="popular-badge">Best Value</div>}
+              <div
+                className="col-lg-4 col-md-6"
+                key={pkg.id}
+                data-aos="fade-up"
+                data-aos-delay={100 * (idx + 1)}
+              >
+                <div
+                  className={`package-card ${pkg.featured ? "featured" : ""}`}
+                >
+                  {pkg.featured && (
+                    <div className="popular-badge">Best Value</div>
+                  )}
 
                   <h3 className="package-title">{pkg.title}</h3>
                   <p className="package-subtitle">{pkg.subtitle}</p>
 
                   <div className="package-price">
                     <sup>$</sup>
-                    {billingCycle === 'monthly' ? pkg.price_monthly : pkg.price_yearly || pkg.price_monthly * 10}
-                    <span>/{billingCycle === 'monthly' ? 'month' : 'year'}</span>
+                    {billingCycle === "monthly"
+                      ? pkg.price_monthly
+                      : pkg.price_yearly || pkg.price_monthly * 10}
+                    <span>
+                      /{billingCycle === "monthly" ? "month" : "year"}
+                    </span>
                   </div>
 
                   <hr />
 
                   <ul className="package-features">
-                    {(billingCycle === 'monthly' ? pkg.features_monthly : pkg.features_yearly)?.map((f, i) => (
+                    {(billingCycle === "monthly"
+                      ? pkg.features_monthly
+                      : pkg.features_yearly
+                    )?.map((f, i) => (
                       <li key={i}>
                         <i className="bi bi-check-circle-fill me-2"></i>
                         <span>{f}</span>
@@ -1330,8 +1381,15 @@ const Home = () => {
                     ))}
                   </ul>
 
-                  <Link to="/book-package" className={`btn-package ${pkg.featured ? 'filled' : 'outline'}`}>
-                    {billingCycle === 'monthly' ? 'Book Monthly Plan' : 'Book Yearly Plan'}
+                  <Link
+                    to="/book-package"
+                    className={`btn-package ${
+                      pkg.featured ? "filled" : "outline"
+                    }`}
+                  >
+                    {billingCycle === "monthly"
+                      ? "Book Monthly Plan"
+                      : "Book Yearly Plan"}
                   </Link>
                 </div>
               </div>
@@ -1350,12 +1408,37 @@ const Home = () => {
         <div className="container">
           <div className="row gy-4">
             {[
-              { step: "1", title: "Find Doctor", desc: "Search by name, specialty, or condition.", icon: "bi-search-heart" },
-              { step: "2", title: "Book Slot", desc: "Choose a time that fits your schedule.", icon: "bi-calendar-date" },
-              { step: "3", title: "Instant Confirm", desc: "Receive booking details via SMS/Email.", icon: "bi-patch-check" },
-              { step: "4", title: "Visit Hospital", desc: "Skip the queue and get treated.", icon: "bi-hospital" },
+              {
+                step: "1",
+                title: "Find Doctor",
+                desc: "Search by name, specialty, or condition.",
+                icon: "bi-search-heart",
+              },
+              {
+                step: "2",
+                title: "Book Slot",
+                desc: "Choose a time that fits your schedule.",
+                icon: "bi-calendar-date",
+              },
+              {
+                step: "3",
+                title: "Instant Confirm",
+                desc: "Receive booking details via SMS/Email.",
+                icon: "bi-patch-check",
+              },
+              {
+                step: "4",
+                title: "Visit Hospital",
+                desc: "Skip the queue and get treated.",
+                icon: "bi-hospital",
+              },
             ].map((item, idx) => (
-              <div className="col-lg-3 col-md-6" key={idx} data-aos="fade-up" data-aos-delay={100 * idx}>
+              <div
+                className="col-lg-3 col-md-6"
+                key={idx}
+                data-aos="fade-up"
+                data-aos-delay={100 * idx}
+              >
                 <div className="workflow-step">
                   <div className="step-icon">
                     <i className={`bi ${item.icon}`}></i>
@@ -1371,17 +1454,20 @@ const Home = () => {
       </section>
 
       {/* Unique Testimonials Section */}
-      <section id="testimonials" className="testimonials-section section" style={{ padding: '80px 0' }}>
+      <section
+        id="testimonials"
+        className="testimonials-section section"
+        style={{ padding: "80px 0" }}
+      >
         <div className="container" data-aos="fade-up">
-
           <div className="row g-5">
-
             {/* LEFT COLUMN: The "Trust Anchor" (Summary) */}
             <div className="col-lg-4" data-aos="fade-right">
               <div className="trust-summary-card">
                 <h3 className="mb-4">Why Patients Trust Us</h3>
                 <p className="opacity-75 mb-4">
-                  Our commitment to excellence is reflected in the smiles of our recovered patients.
+                  Our commitment to excellence is reflected in the smiles of our
+                  recovered patients.
                 </p>
 
                 <div className="mb-4">
@@ -1396,14 +1482,16 @@ const Home = () => {
                   <span className="text-white-50">Based on 2,400+ Reviews</span>
                 </div>
 
-                <hr style={{ borderColor: 'rgba(255,255,255,0.1)' }} />
+                <hr style={{ borderColor: "rgba(255,255,255,0.1)" }} />
 
                 <div className="d-flex align-items-center mt-3">
                   <div className="me-3">
                     <h2 className="mb-0 text-white">15k+</h2>
                   </div>
                   <div className="text-white-50 lh-sm">
-                    Successful<br />Surgeries
+                    Successful
+                    <br />
+                    Surgeries
                   </div>
                 </div>
 
@@ -1419,8 +1507,17 @@ const Home = () => {
             <div className="col-lg-8">
               <div className="row">
                 <div className="col-12 mb-4">
-                  <h2 style={{ color: 'var(--heading-color)', fontWeight: 'bold' }}>Patient Stories</h2>
-                  <p style={{ color: 'var(--default-color)' }}>Real experiences from real people.</p>
+                  <h2
+                    style={{
+                      color: "var(--heading-color)",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    Patient Stories
+                  </h2>
+                  <p style={{ color: "var(--default-color)" }}>
+                    Real experiences from real people.
+                  </p>
                 </div>
               </div>
 
@@ -1431,43 +1528,56 @@ const Home = () => {
                     treatment: "Cardiology",
                     img: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=2588&auto=format&fit=crop",
                     text: "Dr. Mitchell saved my life. The level of care I received during my heart surgery was phenomenal. The nurses were angels.",
-                    delay: 100
+                    delay: 100,
                   },
                   {
                     name: "Michael Ross",
                     treatment: "Orthopedics",
                     img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=2574&auto=format&fit=crop",
                     text: "I was back on my feet in weeks after my knee replacement. The rehabilitation facility here is world-class.",
-                    delay: 200
+                    delay: 200,
                   },
                   {
                     name: "Emily & Baby Leo",
                     treatment: "Maternity",
                     img: "https://images.unsplash.com/photo-1554774853-d39f79c2a36a?q=80&w=2574&auto=format&fit=crop",
                     text: "Giving birth here was a dream. The private suites are comfortable and the midwives were so supportive throughout.",
-                    delay: 300
+                    delay: 300,
                   },
                   {
                     name: "David Chen",
                     treatment: "Neurology",
                     img: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=2574&auto=format&fit=crop",
                     text: "Professional, clean, and efficient. I never had to wait long for my appointments, and the diagnosis was spot on.",
-                    delay: 400
-                  }
+                    delay: 400,
+                  },
                 ].map((review, idx) => (
-                  <div className="col-md-6" key={idx} data-aos="fade-up" data-aos-delay={review.delay}>
+                  <div
+                    className="col-md-6"
+                    key={idx}
+                    data-aos="fade-up"
+                    data-aos-delay={review.delay}
+                  >
                     <div className="review-card-premium h-100">
                       <div className="review-card-qoute">
                         <i className="bi bi-quote"></i>
                       </div>
                       <div className="patient-profile">
                         <div className="patient-img-container">
-                          <img src={review.img} alt={review.name} className="patient-img-premium" />
-                          <div className="verified-badge"><i className="bi bi-patch-check-fill"></i></div>
+                          <img
+                            src={review.img}
+                            alt={review.name}
+                            className="patient-img-premium"
+                          />
+                          <div className="verified-badge">
+                            <i className="bi bi-patch-check-fill"></i>
+                          </div>
                         </div>
                         <div className="patient-info">
                           <h5>{review.name}</h5>
-                          <span className="treatment-tag">{review.treatment}</span>
+                          <span className="treatment-tag">
+                            {review.treatment}
+                          </span>
                         </div>
                       </div>
                       <p className="review-text-premium mt-3">
@@ -1479,14 +1589,15 @@ const Home = () => {
                             <i key={i} className="bi bi-star-fill"></i>
                           ))}
                         </div>
-                        <span className="review-date small text-muted">Verified Patient</span>
+                        <span className="review-date small text-muted">
+                          Verified Patient
+                        </span>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
-
           </div>
         </div>
       </section>

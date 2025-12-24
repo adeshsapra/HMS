@@ -22,61 +22,120 @@ import {
 import { EyeIcon, PlusIcon } from "@heroicons/react/24/solid";
 import { apiService } from "@/services/api";
 import { DataTable, FormModal, DeleteConfirmModal } from "@/components";
-
-// Mock Data Imports
-import { mockServices, mockRequests, mockSettings } from "@/data/homeCareMockData";
+import { useToast } from "@/context/ToastContext";
 
 export default function HomeCare() {
+    const { showToast } = useToast();
     const [activeTab, setActiveTab] = useState("services");
     const [loading, setLoading] = useState(true);
+    const [formLoading, setFormLoading] = useState(false);
 
     // Services State
-    const [hmsServicesList] = useState([
-        { id: 201, name: "General Physiotherapy", category: "Therapy", price: 45, icon: "bi-person-arms-up" },
-        { id: 202, name: "Nursing Consultation", category: "Medical", price: 55, icon: "bi-heart-pulse" },
-        { id: 203, name: "Senior Health Check", category: "Elderly Care", price: 120, icon: "bi-eyeglasses" },
-        { id: 204, name: "Blood Sample Collection", category: "Diagnostics", price: 30, icon: "bi-droplet" },
-    ]);
-    const [services, setServices] = useState(mockServices);
+    const [services, setServices] = useState<any[]>([]);
     const [serviceModalOpen, setServiceModalOpen] = useState(false);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [selectedService, setSelectedService] = useState(null);
+    const [selectedService, setSelectedService] = useState<any>(null);
 
-    // Professionals State
-    const [doctorsList] = useState([
-        { id: 101, first_name: "Sarah", last_name: "Jenkins", specialization: "Senior ICU Nurse", experience_years: 8 },
-        { id: 102, first_name: "Alan", last_name: "Grant", specialization: "General Physician", experience_years: 12 },
-        { id: 103, first_name: "Emily", last_name: "Chen", specialization: "Physiotherapist", experience_years: 5 },
-        { id: 104, first_name: "Marcus", last_name: "Vane", specialization: "Cardiologist", experience_years: 15 },
-    ]);
-    const [professionals, setProfessionals] = useState([
-        { id: 1, name: "Nurse Sarah Jenkins", role: "Senior ICU Nurse", experience: "8 Years", rating: 4.9, is_active: true, doctor_id: 101 },
-        { id: 2, name: "Dr. Alan Grant", role: "General Physician", experience: "12 Years", rating: 4.8, is_active: true, doctor_id: 102 },
-    ]);
+    // Professionals State - Note: This would need a separate backend table or link to doctors
+    const [doctorsList, setDoctorsList] = useState<any[]>([]);
+    const [professionals, setProfessionals] = useState<any[]>([]);
     const [professionalModalOpen, setProfessionalModalOpen] = useState(false);
-    const [selectedProfessional, setSelectedProfessional] = useState(null);
+    const [selectedProfessional, setSelectedProfessional] = useState<any>(null);
 
     // Requests State
-    const [requests, setRequests] = useState(mockRequests);
+    const [requests, setRequests] = useState<any[]>([]);
     const [viewRequestModalOpen, setViewRequestModalOpen] = useState(false);
-    const [selectedRequest, setSelectedRequest] = useState(null);
+    const [selectedRequest, setSelectedRequest] = useState<any>(null);
 
     // Settings State
-    const [settings, setSettings] = useState({
-        ...mockSettings,
-        banner_image: 'https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=2000',
+    const [settings, setSettings] = useState<any>({
+        module_active: true,
         show_professionals: true,
         show_cta: true,
-        emergency_disclaimer: 'Inclusive of all essential logistics',
-        payment_required: true,
-        module_active: true
+        features_enabled: true,
+        professionals_enabled: true,
     });
 
     useEffect(() => {
-        // Simulate data loading
-        const timer = setTimeout(() => setLoading(false), 500);
-        return () => clearTimeout(timer);
+        loadData();
     }, []);
+
+    const loadData = async () => {
+        try {
+            setLoading(true);
+            await Promise.all([
+                loadServices(),
+                loadRequests(),
+                loadSettings(),
+                loadDoctors(),
+                loadProfessionals()
+            ]);
+        } catch (error: any) {
+            console.error('Error loading data:', error);
+            showToast('Failed to load data', 'error');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const loadServices = async () => {
+        try {
+            const response = await apiService.getHomeCareServices();
+            if (response.success && response.data) {
+                setServices(response.data);
+            }
+        } catch (error: any) {
+            console.error('Error loading services:', error);
+            showToast('Failed to load services', 'error');
+        }
+    };
+
+    const loadRequests = async () => {
+        try {
+            const response = await apiService.getHomeCareRequests();
+            if (response.success && response.data) {
+                setRequests(response.data);
+            }
+        } catch (error: any) {
+            console.error('Error loading requests:', error);
+            showToast('Failed to load requests', 'error');
+        }
+    };
+
+    const loadSettings = async () => {
+        try {
+            const response = await apiService.getHomeCareSettings();
+            if (response.success && response.data) {
+                setSettings((prev: any) => ({ ...prev, ...response.data }));
+            }
+        } catch (error: any) {
+            console.error('Error loading settings:', error);
+            showToast('Failed to load settings', 'error');
+        }
+    };
+
+    const loadDoctors = async () => {
+        try {
+            const response = await apiService.getDoctors();
+            if (response.success && response.data) {
+                setDoctorsList(response.data);
+            }
+        } catch (error: any) {
+            console.error('Error loading doctors:', error);
+        }
+    };
+
+    const loadProfessionals = async () => {
+        try {
+            const response = await apiService.getHomeCareProfessionals();
+            if (response.success && response.data) {
+                setProfessionals(response.data);
+            }
+        } catch (error: any) {
+            console.error('Error loading professionals:', error);
+            showToast('Failed to load professionals', 'error');
+        }
+    };
 
     if (loading) {
         return (
@@ -91,43 +150,91 @@ export default function HomeCare() {
         setSelectedService(null);
         setServiceModalOpen(true);
     };
-    const handleEditService = (item) => {
+    const handleEditService = (item: any) => {
         setSelectedService(item);
         setServiceModalOpen(true);
     };
-    const handleDeleteService = (item) => {
+    const handleDeleteService = (item: any) => {
         setSelectedService(item);
         setDeleteModalOpen(true);
     };
     const confirmDeleteService = async () => {
         if (selectedService) {
-            setServices(prev => prev.filter(s => s.id !== selectedService.id));
-            setDeleteModalOpen(false);
+            try {
+                setFormLoading(true);
+                const response = await apiService.deleteHomeCareService(selectedService.id);
+                if (response.success) {
+                    showToast('Service deleted successfully', 'success');
+                    await loadServices();
+                    setDeleteModalOpen(false);
+                    setSelectedService(null);
+                }
+            } catch (error: any) {
+                console.error('Error deleting service:', error);
+                showToast(error.response?.data?.message || 'Failed to delete service', 'error');
+            } finally {
+                setFormLoading(false);
+            }
         }
     };
-    const handleSubmitService = async (data) => {
-        if (data.is_24_7 === "1" || data.is_24_7 === "true") data.is_24_7 = true;
-        else if (data.is_24_7 === "0" || data.is_24_7 === "false") data.is_24_7 = false;
+    const handleSubmitService = async (data: any) => {
+        try {
+            setFormLoading(true);
+            
+            // Convert string booleans to actual booleans
+            if (data.is_24_7 === "1" || data.is_24_7 === "true") data.is_24_7 = true;
+            else if (data.is_24_7 === "0" || data.is_24_7 === "false") data.is_24_7 = false;
 
-        if (data.is_active === "1" || data.is_active === "true") data.is_active = true;
-        else if (data.is_active === "0" || data.is_active === "false") data.is_active = false;
+            if (data.is_active === "1" || data.is_active === "true") data.is_active = true;
+            else if (data.is_active === "0" || data.is_active === "false") data.is_active = false;
 
-        // Auto-fill from HMS Service if linked
-        const hmsService = hmsServicesList.find(s => s.id == data.hms_service_id);
-        if (hmsService && !selectedService) {
-            data.title = hmsService.name;
-            data.category = hmsService.category;
-            data.icon = hmsService.icon;
-            data.price = `$${hmsService.price} / session`;
+            // Handle benefits - convert comma-separated string to array
+            if (data.benefits && typeof data.benefits === 'string') {
+                data.benefits = data.benefits.split(',').map((b: string) => b.trim()).filter((b: string) => b);
+            }
+
+            // Handle image field
+            if (data.image_url) {
+                data.image = data.image_url;
+                delete data.image_url;
+            }
+
+            // Handle descriptions
+            if (data.description && !data.short_description) {
+                data.short_description = data.description;
+            }
+
+            // Remove hms_service_id if not needed
+            if (data.hms_service_id === "") {
+                delete data.hms_service_id;
+            }
+
+            // Set default sort_order if not provided
+            if (!data.sort_order && !selectedService) {
+                data.sort_order = services.length > 0 ? Math.max(...services.map(s => s.sort_order || 0)) + 1 : 1;
+            }
+
+            let response;
+            if (selectedService) {
+                response = await apiService.updateHomeCareService(selectedService.id, data);
+                showToast('Service updated successfully', 'success');
+            } else {
+                response = await apiService.createHomeCareService(data);
+                showToast('Service created successfully', 'success');
+            }
+
+            if (response.success) {
+                await loadServices();
+                setServiceModalOpen(false);
+                setSelectedService(null);
+            }
+        } catch (error: any) {
+            console.error('Error saving service:', error);
+            showToast(error.response?.data?.message || 'Failed to save service', 'error');
+            throw error; // Re-throw to let FormModal handle it
+        } finally {
+            setFormLoading(false);
         }
-
-        if (selectedService) {
-            setServices(prev => prev.map(s => s.id === selectedService.id ? { ...s, ...data } : s));
-        } else {
-            const newService = { ...data, id: Math.max(...services.map(s => s.id), 0) + 1 };
-            setServices(prev => [...prev, newService]);
-        }
-        setServiceModalOpen(false);
     };
 
     const serviceColumns = [
@@ -143,31 +250,24 @@ export default function HomeCare() {
         },
         { key: "category", label: "Category" },
         { key: "price", label: "Price" },
-        { key: "is_24_7", label: "24/7", render: val => val ? "Yes" : "No" },
-        { key: "is_active", label: "Active", render: val => val ? "Yes" : "No" },
+        { key: "sort_order", label: "Order" },
+        { key: "is_24_7", label: "24/7", render: (val: any) => val ? "Yes" : "No" },
+        { key: "is_active", label: "Active", render: (val: any) => val ? <Chip value="Active" color="green" size="sm" /> : <Chip value="Inactive" color="gray" size="sm" /> },
     ];
 
     const serviceFormFields = [
-        {
-            name: "hms_service_id",
-            label: "Link Existing Hospital Service (Optional)",
-            type: "select",
-            options: [
-                { value: "", label: "— Create Standalone Home Care Service —" },
-                ...hmsServicesList.map(s => ({
-                    value: s.id.toString(),
-                    label: `${s.name} ($${s.price})`
-                }))
-            ]
-        },
-        { name: "title", label: "Service Title (Custom)", type: "text", placeholder: "Leave blank to use Hospital Service name" },
-        { name: "category", label: "Category", type: "text" },
-        { name: "icon", label: "Bootstrap Icon Class", type: "text" },
-        { name: "price", label: "Price Label (e.g. $50 / visit)", type: "text" },
-        { name: "image_url", label: "Featured Image URL", type: "text" },
-        { name: "description", label: "Short Description", type: "textarea" },
-        { name: "long_description", label: "Detailed Description (Full Page)", type: "textarea" },
-        { name: "benefits", label: "Clinical Benefits (Comma separated)", type: "text" },
+        { name: "title", label: "Service Title", type: "text", required: true },
+        { name: "category", label: "Category", type: "text", placeholder: "e.g. Nursing, Physio, Medical" },
+        { name: "icon", label: "Bootstrap Icon Class", type: "text", placeholder: "e.g. bi-heart-pulse" },
+        { name: "price", label: "Price Label", type: "text", placeholder: "e.g. $50 / visit or $40 / hour" },
+        { name: "image_url", label: "Featured Image URL", type: "text", placeholder: "Full URL to image" },
+        { name: "description", label: "Short Description", type: "textarea", placeholder: "Brief description for cards" },
+        { name: "short_description", label: "Short Description (Alternative)", type: "textarea", placeholder: "If different from description" },
+        { name: "long_description", label: "Detailed Description", type: "textarea", placeholder: "Full description for detail modal" },
+        { name: "benefits", label: "Clinical Benefits (Comma separated)", type: "text", placeholder: "Pain Management, Post-Surgery Rehab, Mobility Improvement" },
+        { name: "rating", label: "Rating (1-5)", type: "number", placeholder: "e.g. 4.8" },
+        { name: "reviews_count", label: "Number of Reviews", type: "number", placeholder: "e.g. 124" },
+        { name: "sort_order", label: "Sort Order", type: "number", placeholder: "Lower numbers appear first" },
         { name: "is_24_7", label: "Available 24/7", type: "select", options: [{ value: "1", label: "Yes" }, { value: "0", label: "No" }] },
         { name: "is_active", label: "Show on Main Site", type: "select", options: [{ value: "1", label: "Yes" }, { value: "0", label: "No" }] },
     ];
@@ -177,45 +277,105 @@ export default function HomeCare() {
         setSelectedProfessional(null);
         setProfessionalModalOpen(true);
     };
-    const handleEditProfessional = (item) => {
+    const handleEditProfessional = (item: any) => {
         setSelectedProfessional(item);
         setProfessionalModalOpen(true);
     };
-    const handleSubmitProfessional = async (data) => {
-        if (data.is_active === "1" || data.is_active === "true") data.is_active = true;
-        else if (data.is_active === "0" || data.is_active === "false") data.is_active = false;
-
-        // Auto-fill from doctor if doctor_id is provided
-        const doctor = doctorsList.find(d => d.id == data.doctor_id);
-        if (doctor && !selectedProfessional) {
-            data.name = `Dr. ${doctor.first_name} ${doctor.last_name}`;
-            data.role = doctor.specialization;
-            data.experience = `${doctor.experience_years} Years`;
-        }
-
+    const handleDeleteProfessional = (item: any) => {
+        setSelectedProfessional(item);
+        setDeleteModalOpen(true);
+    };
+    const confirmDeleteProfessional = async () => {
         if (selectedProfessional) {
-            setProfessionals(prev => prev.map(p => p.id === selectedProfessional.id ? { ...p, ...data } : p));
-        } else {
-            const newProf = { ...data, id: Date.now() };
-            setProfessionals(prev => [...prev, newProf]);
+            try {
+                setFormLoading(true);
+                const response = await apiService.deleteHomeCareProfessional(selectedProfessional.id);
+                if (response.success) {
+                    showToast('Professional removed successfully', 'success');
+                    await loadProfessionals();
+                    setDeleteModalOpen(false);
+                    setSelectedProfessional(null);
+                }
+            } catch (error: any) {
+                console.error('Error deleting professional:', error);
+                showToast(error.response?.data?.message || 'Failed to remove professional', 'error');
+            } finally {
+                setFormLoading(false);
+            }
         }
-        setProfessionalModalOpen(false);
+    };
+    const handleSubmitProfessional = async (data: any) => {
+        try {
+            setFormLoading(true);
+
+            // Convert string booleans
+            if (data.is_active === "1" || data.is_active === "true") data.is_active = true;
+            else if (data.is_active === "0" || data.is_active === "false") data.is_active = false;
+
+            // Set default sort_order if not provided
+            if (!data.sort_order && !selectedProfessional) {
+                data.sort_order = professionals.length > 0 ? Math.max(...professionals.map((p: any) => p.sort_order || 0)) + 1 : 1;
+            }
+
+            // Convert rating to number if provided
+            if (data.home_care_rating && typeof data.home_care_rating === 'string') {
+                data.home_care_rating = parseFloat(data.home_care_rating);
+            }
+
+            let response;
+            if (selectedProfessional) {
+                response = await apiService.updateHomeCareProfessional(selectedProfessional.id, data);
+                showToast('Professional updated successfully', 'success');
+            } else {
+                // Ensure doctor_id is provided
+                if (!data.doctor_id) {
+                    showToast('Please select a doctor', 'error');
+                    throw new Error('Doctor is required');
+                }
+                response = await apiService.createHomeCareProfessional(data);
+                showToast('Professional assigned successfully', 'success');
+            }
+
+            if (response.success) {
+                await loadProfessionals();
+                setProfessionalModalOpen(false);
+                setSelectedProfessional(null);
+            }
+        } catch (error: any) {
+            console.error('Error saving professional:', error);
+            showToast(error.response?.data?.message || 'Failed to save professional', 'error');
+            throw error;
+        } finally {
+            setFormLoading(false);
+        }
     };
 
     const professionalColumns = [
         {
-            key: "name", label: "Expert Name", render: (val, row) => (
+            key: "name", label: "Expert Name", render: (val: any, row: any) => (
                 <div className="flex flex-col">
                     <span className="font-bold">{val}</span>
-                    <span className="text-[10px] text-blue-500 uppercase tracking-tighter">HMS Linked: {row.doctor_id}</span>
+                    {row.doctor_id && (
+                        <span className="text-[10px] text-blue-500 uppercase tracking-tighter">Doctor ID: {row.doctor_id}</span>
+                    )}
                 </div>
             )
         },
-        { key: "role", label: "Clinical Role" },
-        { key: "experience", label: "Experience" },
-        { key: "rating", label: "Rating" },
-        { key: "is_active", label: "Status", render: val => val ? <Chip value="Active" color="green" /> : <Chip value="Inactive" color="gray" /> },
+        { key: "specialization", label: "Clinical Role", render: (val: any) => val || 'N/A' },
+        { key: "experience_years", label: "Experience", render: (val: any) => val ? `${val} Years` : 'N/A' },
+        { key: "home_care_rating", label: "Rating", render: (val: any) => {
+            if (val == null) return 'N/A';
+            const numVal = typeof val === 'number' ? val : parseFloat(String(val));
+            return isNaN(numVal) ? 'N/A' : numVal.toFixed(1);
+        }},
+        { key: "sort_order", label: "Order" },
+        { key: "is_active", label: "Status", render: (val: any) => val ? <Chip value="Active" color="green" size="sm" /> : <Chip value="Inactive" color="gray" size="sm" /> },
     ];
+
+    // Filter out doctors that are already assigned
+    const availableDoctors = doctorsList.filter((doctor: any) => 
+        !professionals.some((prof: any) => prof.doctor_id === doctor.id)
+    );
 
     const professionalFormFields = [
         {
@@ -223,40 +383,52 @@ export default function HomeCare() {
             label: "Select Doctor from HMS Database",
             type: "select",
             required: true,
-            options: [
+            options: selectedProfessional ? [
+                { value: selectedProfessional.doctor_id.toString(), label: `${selectedProfessional.name} (${selectedProfessional.specialization})` }
+            ] : [
                 { value: "", label: "Choose a Clinical Specialist" },
-                ...doctorsList.map(d => ({
+                ...availableDoctors.map((d: any) => ({
                     value: d.id.toString(),
-                    label: `Dr. ${d.first_name} ${d.last_name} (${d.specialization})`
+                    label: `Dr. ${d.first_name} ${d.last_name} (${d.specialization}) - ${d.experience_years || 0} Years Exp.`
                 }))
-            ]
+            ],
+            disabled: !!selectedProfessional // Can't change doctor after assignment
         },
-        { name: "availability", label: "Home Visit Availability (e.g. Weekends only)", type: "text" },
-        { name: "rating", label: "Expert Patient Rating (1-5)", type: "text" },
-        { name: "is_active", label: "Enable for Home Visits", type: "select", options: [{ value: "1", label: "Yes" }, { value: "0", label: "No" }] },
+        { name: "home_care_availability", label: "Home Visit Availability", type: "text", placeholder: "e.g. Weekends only, Mon-Fri 9am-5pm" },
+        { name: "home_care_rating", label: "Home Care Rating (1-5)", type: "number", placeholder: "e.g. 4.8 (leave empty to use default)" },
+        { name: "sort_order", label: "Display Order", type: "number", placeholder: "Lower numbers appear first" },
+        { name: "is_active", label: "Show on Home Care Page", type: "select", options: [{ value: "1", label: "Yes" }, { value: "0", label: "No" }] },
     ];
 
     // Requests Handlers
-    const handleStatusChange = async (id, newStatus) => {
-        setRequests(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r));
+    const handleStatusChange = async (id: number, newStatus: string) => {
+        try {
+            const response = await apiService.updateHomeCareRequestStatus(id, newStatus);
+            if (response.success) {
+                showToast('Request status updated', 'success');
+                await loadRequests();
+            }
+        } catch (error: any) {
+            console.error('Error updating request status:', error);
+            showToast(error.response?.data?.message || 'Failed to update status', 'error');
+        }
     };
 
-    const handleViewRequest = (request) => {
+    const handleViewRequest = (request: any) => {
         setSelectedRequest(request);
         setViewRequestModalOpen(true);
     };
 
     const requestColumns = [
-        { key: "name", label: "Patient Name", render: (val) => <span className="font-semibold text-blue-gray-900">{val}</span> },
+        { key: "name", label: "Patient Name", render: (val: any) => <span className="font-semibold text-blue-gray-900">{val}</span> },
         { key: "phone", label: "Phone" },
         {
-            key: "preferred_date", label: "Visit Date", render: (val) => (
-                <span>{new Date(val).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+            key: "preferred_date", label: "Visit Date", render: (val: any) => (
+                val ? <span>{new Date(val).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span> : <span className="text-gray-400">Not specified</span>
             )
         },
-        { key: "payment_status", label: "Payment", render: (val) => <Chip value={val || "Paid"} color={val === 'Unpaid' ? "red" : "green"} variant="ghost" className="text-[10px]" /> },
         {
-            key: "status", label: "Status", render: (val, row) => (
+            key: "status", label: "Status", render: (val: any, row: any) => (
                 <div className="w-max">
                     <select
                         value={val}
@@ -278,7 +450,7 @@ export default function HomeCare() {
             )
         },
         {
-            key: "actions", label: "Actions", render: (_, row) => (
+            key: "actions", label: "Actions", render: (_: any, row: any) => (
                 <IconButton variant="text" color="blue-gray" onClick={() => handleViewRequest(row)}>
                     <EyeIcon className="h-5 w-5" />
                 </IconButton>
@@ -287,9 +459,9 @@ export default function HomeCare() {
     ];
 
     // Helper to get service names from IDs
-    const getRequestedServiceNames = (serviceIds) => {
+    const getRequestedServiceNames = (serviceIds: any) => {
         if (!serviceIds) return [];
-        let parsedIds = [];
+        let parsedIds: any[] = [];
         try {
             parsedIds = typeof serviceIds === 'string' ? JSON.parse(serviceIds) : serviceIds;
             if (!Array.isArray(parsedIds)) parsedIds = [parsedIds]; // Handle single ID case if any
@@ -299,18 +471,28 @@ export default function HomeCare() {
         }
 
         // Ensure parsedIds accounts for strings vs numbers if necessary
-        return parsedIds.map(id => {
+        return parsedIds.map((id: any) => {
             const service = services.find(s => s.id == id);
             return service ? service.title : `Service ID: ${id}`;
         });
     };
 
     // Settings Handler
-    const handleSettingsSubmit = async (e) => {
+    const handleSettingsSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Mock Save
-        // apiService.updateHomeCareSettings(settings);
-        alert("Settings updated (Mock)!");
+        try {
+            setFormLoading(true);
+            const response = await apiService.updateHomeCareSettings(settings);
+            if (response.success) {
+                showToast('Settings updated successfully', 'success');
+                await loadSettings();
+            }
+        } catch (error: any) {
+            console.error('Error updating settings:', error);
+            showToast(error.response?.data?.message || 'Failed to update settings', 'error');
+        } finally {
+            setFormLoading(false);
+        }
     };
 
 
@@ -321,7 +503,7 @@ export default function HomeCare() {
                 {[
                     { label: "Total Requests", value: requests.length, icon: EyeIcon, color: "blue" },
                     { label: "Active Services", value: services.filter(s => s.is_active).length, icon: PlusIcon, color: "green" },
-                    { label: "Clinical Experts", value: professionals.length, icon: EyeIcon, color: "purple" },
+                    { label: "Assigned Professionals", value: professionals.filter((p: any) => p.is_active).length, icon: EyeIcon, color: "purple" },
                     { label: "Pending Visit", value: requests.filter(r => r.status === 'pending').length, icon: PlusIcon, color: "orange" },
                 ].map((stat, idx) => (
                     <Card key={idx} className="border border-blue-gray-100 shadow-sm">
@@ -350,7 +532,7 @@ export default function HomeCare() {
                                 <Typography variant="h4" color="blue-gray" className="font-bold">
                                     Home Care Management
                                 </Typography>
-                                {settings.module_active ?
+                                {settings.module_active !== false ?
                                     <Chip value="Live" color="green" size="sm" variant="ghost" className="rounded-full" /> :
                                     <Chip value="Offline" color="gray" size="sm" variant="ghost" className="rounded-full" />
                                 }
@@ -397,13 +579,22 @@ export default function HomeCare() {
                             </TabPanel>
                             <TabPanel value="professionals" className="p-0">
                                 <div className="p-6">
+                                    <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-100">
+                                        <Typography variant="small" className="text-blue-gray-700 font-semibold mb-1">
+                                            Assign Doctors to Home Care
+                                        </Typography>
+                                        <Typography variant="small" className="text-blue-gray-600">
+                                            Select doctors from your database to display in the Home Care professionals section. Only assigned doctors will appear on the main site.
+                                        </Typography>
+                                    </div>
                                     <DataTable
                                         title="Clinical Professionals"
                                         data={professionals}
                                         columns={professionalColumns}
                                         onAdd={handleAddProfessional}
-                                        addButtonLabel="Register Expert"
+                                        addButtonLabel="Assign Doctor"
                                         onEdit={handleEditProfessional}
+                                        onDelete={handleDeleteProfessional}
                                         searchable
                                     />
                                 </div>
@@ -424,10 +615,10 @@ export default function HomeCare() {
                                             <Typography variant="small" className="text-gray-600">Toggle entire Home Care section on Main Site</Typography>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <Typography variant="small" className="font-bold">{settings.module_active ? 'ENABLED' : 'DISABLED'}</Typography>
+                                            <Typography variant="small" className="font-bold">{settings.module_active !== false ? 'ENABLED' : 'DISABLED'}</Typography>
                                             <input
                                                 type="checkbox"
-                                                checked={settings.module_active}
+                                                checked={settings.module_active !== false}
                                                 onChange={e => setSettings({ ...settings, module_active: e.target.checked })}
                                                 className="w-6 h-6 text-blue-500 rounded-lg cursor-pointer"
                                             />
@@ -470,7 +661,7 @@ export default function HomeCare() {
                                                 <Typography variant="small" color="blue-gray" className="font-bold">Professional Expert Box</Typography>
                                                 <input
                                                     type="checkbox"
-                                                    checked={settings.show_professionals}
+                                                    checked={settings.show_professionals !== false}
                                                     onChange={e => setSettings({ ...settings, show_professionals: e.target.checked })}
                                                     className="w-5 h-5 text-blue-500 rounded"
                                                 />
@@ -482,7 +673,7 @@ export default function HomeCare() {
                                                 <Typography variant="small" color="blue-gray" className="font-bold">Upfront Payment</Typography>
                                                 <input
                                                     type="checkbox"
-                                                    checked={settings.payment_required}
+                                                    checked={settings.payment_required !== false}
                                                     onChange={e => setSettings({ ...settings, payment_required: e.target.checked })}
                                                     className="w-5 h-5 text-blue-500 rounded"
                                                 />
@@ -502,23 +693,185 @@ export default function HomeCare() {
                                         />
                                     </div>
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-blue-gray-700 mb-2">Hero Image URL</label>
-                                        <input
-                                            type="text"
-                                            value={settings.banner_image || ''}
-                                            onChange={e => setSettings({ ...settings, banner_image: e.target.value })}
-                                            className="w-full px-3 py-2.5 text-sm text-blue-gray-700 bg-white border border-blue-gray-200 rounded-lg transition-all focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                        />
-                                    </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-blue-gray-700 mb-2">Hero Image URL</label>
+                                            <input
+                                                type="text"
+                                                value={settings.hero_image || settings.banner_image || settings.home_care_image || ''}
+                                                onChange={e => setSettings({ ...settings, hero_image: e.target.value })}
+                                                className="w-full px-3 py-2.5 text-sm text-blue-gray-700 bg-white border border-blue-gray-200 rounded-lg transition-all focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                            />
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div>
+                                                <label className="block text-sm font-medium text-blue-gray-700 mb-2">Hero Title</label>
+                                                <input
+                                                    type="text"
+                                                    value={settings.hero_title || ''}
+                                                    onChange={e => setSettings({ ...settings, hero_title: e.target.value })}
+                                                    className="w-full px-3 py-2.5 text-sm text-blue-gray-700 bg-white border border-blue-gray-200 rounded-lg transition-all focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-blue-gray-700 mb-2">Hero Subtitle</label>
+                                                <input
+                                                    type="text"
+                                                    value={settings.hero_subtitle || ''}
+                                                    onChange={e => setSettings({ ...settings, hero_subtitle: e.target.value })}
+                                                    className="w-full px-3 py-2.5 text-sm text-blue-gray-700 bg-white border border-blue-gray-200 rounded-lg transition-all focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <Typography variant="h6" color="blue-gray" className="mb-3">Features Section</Typography>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                                <div>
+                                                    <label className="block text-sm font-medium text-blue-gray-700 mb-2">Features Title</label>
+                                                    <input
+                                                        type="text"
+                                                        value={settings.features_title || ''}
+                                                        onChange={e => setSettings({ ...settings, features_title: e.target.value })}
+                                                        className="w-full px-3 py-2.5 text-sm text-blue-gray-700 bg-white border border-blue-gray-200 rounded-lg"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-blue-gray-700 mb-2">Features Subtitle</label>
+                                                    <input
+                                                        type="text"
+                                                        value={settings.features_subtitle || ''}
+                                                        onChange={e => setSettings({ ...settings, features_subtitle: e.target.value })}
+                                                        className="w-full px-3 py-2.5 text-sm text-blue-gray-700 bg-white border border-blue-gray-200 rounded-lg"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={settings.features_enabled !== 'false'}
+                                                    onChange={e => setSettings({ ...settings, features_enabled: e.target.checked ? 'true' : 'false' })}
+                                                    className="w-5 h-5 text-blue-500 rounded"
+                                                />
+                                                <label className="text-sm font-medium text-blue-gray-700">Show Features Section</label>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <Typography variant="h6" color="blue-gray" className="mb-3">Professionals Section</Typography>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                                <div>
+                                                    <label className="block text-sm font-medium text-blue-gray-700 mb-2">Professionals Title</label>
+                                                    <input
+                                                        type="text"
+                                                        value={settings.professionals_title || ''}
+                                                        onChange={e => setSettings({ ...settings, professionals_title: e.target.value })}
+                                                        className="w-full px-3 py-2.5 text-sm text-blue-gray-700 bg-white border border-blue-gray-200 rounded-lg"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-blue-gray-700 mb-2">Professionals Subtitle</label>
+                                                    <input
+                                                        type="text"
+                                                        value={settings.professionals_subtitle || ''}
+                                                        onChange={e => setSettings({ ...settings, professionals_subtitle: e.target.value })}
+                                                        className="w-full px-3 py-2.5 text-sm text-blue-gray-700 bg-white border border-blue-gray-200 rounded-lg"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2 mb-4">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={settings.professionals_enabled !== 'false'}
+                                                    onChange={e => setSettings({ ...settings, professionals_enabled: e.target.checked ? 'true' : 'false' })}
+                                                    className="w-5 h-5 text-blue-500 rounded"
+                                                />
+                                                <label className="text-sm font-medium text-blue-gray-700">Show Professionals Section</label>
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-blue-gray-700 mb-2">Maximum Doctors to Display</label>
+                                                <input
+                                                    type="number"
+                                                    min="1"
+                                                    max="12"
+                                                    value={settings.professionals_limit || '4'}
+                                                    onChange={e => setSettings({ ...settings, professionals_limit: e.target.value })}
+                                                    className="w-full px-3 py-2.5 text-sm text-blue-gray-700 bg-white border border-blue-gray-200 rounded-lg"
+                                                    placeholder="4"
+                                                />
+                                                <Typography variant="small" className="text-gray-500 font-normal mt-1">
+                                                    Number of doctors to show (automatically pulled from active doctors in your database)
+                                                </Typography>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <Typography variant="h6" color="blue-gray" className="mb-3">CTA Section</Typography>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                                <div>
+                                                    <label className="block text-sm font-medium text-blue-gray-700 mb-2">CTA Title</label>
+                                                    <input
+                                                        type="text"
+                                                        value={settings.cta_title || ''}
+                                                        onChange={e => setSettings({ ...settings, cta_title: e.target.value })}
+                                                        className="w-full px-3 py-2.5 text-sm text-blue-gray-700 bg-white border border-blue-gray-200 rounded-lg"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-blue-gray-700 mb-2">CTA Phone</label>
+                                                    <input
+                                                        type="text"
+                                                        value={settings.cta_phone || ''}
+                                                        onChange={e => setSettings({ ...settings, cta_phone: e.target.value })}
+                                                        className="w-full px-3 py-2.5 text-sm text-blue-gray-700 bg-white border border-blue-gray-200 rounded-lg"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="mb-4">
+                                                <label className="block text-sm font-medium text-blue-gray-700 mb-2">CTA Description</label>
+                                                <textarea
+                                                    value={settings.cta_description || ''}
+                                                    onChange={e => setSettings({ ...settings, cta_description: e.target.value })}
+                                                    className="w-full px-3 py-2.5 text-sm text-blue-gray-700 bg-white border border-blue-gray-200 rounded-lg"
+                                                    rows={3}
+                                                />
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={settings.cta_enabled !== 'false'}
+                                                    onChange={e => setSettings({ ...settings, cta_enabled: e.target.checked ? 'true' : 'false' })}
+                                                    className="w-5 h-5 text-blue-500 rounded"
+                                                />
+                                                <label className="text-sm font-medium text-blue-gray-700">Show CTA Section</label>
+                                            </div>
+                                        </div>
 
                                     <div className="flex justify-end pt-4 gap-3">
-                                        <Button variant="text" color="red">Reset Defaults</Button>
+                                        <Button 
+                                            variant="text" 
+                                            color="red"
+                                            onClick={() => {
+                                                if (confirm('Reset all settings to defaults?')) {
+                                                    setSettings({
+                                                        module_active: true,
+                                                        show_professionals: true,
+                                                        show_cta: true,
+                                                        features_enabled: true,
+                                                        professionals_enabled: true,
+                                                    });
+                                                }
+                                            }}
+                                            disabled={formLoading}
+                                        >
+                                            Reset Defaults
+                                        </Button>
                                         <Button
                                             type="submit"
                                             className="bg-blue-500 shadow-blue-500/20 hover:shadow-blue-500/40"
+                                            disabled={formLoading}
                                         >
-                                            Apply Changes
+                                            {formLoading ? 'Saving...' : 'Apply Changes'}
                                         </Button>
                                     </div>
                                 </form>
@@ -539,7 +892,7 @@ export default function HomeCare() {
                     </Typography>
                 </DialogHeader>
                 <DialogBody className="p-6 overflow-y-auto max-h-[70vh]">
-                    {selectedRequest && (
+                    {selectedRequest ? (
                         <div className="flex flex-col gap-6">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
@@ -571,7 +924,7 @@ export default function HomeCare() {
                                         Preferred Date
                                     </Typography>
                                     <Typography variant="paragraph" className="text-gray-700">
-                                        {new Date(selectedRequest.preferred_date).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                        {selectedRequest.preferred_date ? new Date(selectedRequest.preferred_date).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Not specified'}
                                     </Typography>
                                 </div>
                             </div>
@@ -581,7 +934,7 @@ export default function HomeCare() {
                                     Address
                                 </Typography>
                                 <Typography variant="paragraph" className="text-gray-700 bg-gray-50 p-3 rounded-lg border border-gray-100">
-                                    {selectedRequest.address}
+                                    {selectedRequest.address || 'Not provided'}
                                 </Typography>
                             </div>
 
@@ -613,25 +966,12 @@ export default function HomeCare() {
                                 />
                             </div>
 
-                            <div className="pt-4 border-t border-blue-gray-50">
-                                <Typography variant="small" color="blue-gray" className="font-semibold mb-3">
-                                    Financial Transaction (Mock)
-                                </Typography>
-                                <div className="bg-green-50/30 p-4 rounded-xl border border-green-100/50">
-                                    <div className="flex justify-between items-center mb-2">
-                                        <span className="text-xs text-gray-600 uppercase font-bold">Transaction ID</span>
-                                        <span className="font-monospace text-sm">TXN-882910442</span>
-                                    </div>
-                                    <div className="flex justify-between items-center mb-2">
-                                        <span className="text-xs text-gray-600 uppercase font-bold">Amount Paid</span>
-                                        <span className="font-bold text-green-700">$60.00</span>
-                                    </div>
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-xs text-gray-600 uppercase font-bold">Payment Method</span>
-                                        <span className="text-sm">UPI / Credit Card</span>
-                                    </div>
-                                </div>
-                            </div>
+                        </div>
+                    ) : (
+                        <div className="text-center py-8">
+                            <Typography variant="paragraph" className="text-gray-500">
+                                No request selected
+                            </Typography>
                         </div>
                     )}
                 </DialogBody>
@@ -644,24 +984,52 @@ export default function HomeCare() {
 
             <FormModal
                 open={serviceModalOpen}
-                onClose={() => setServiceModalOpen(false)}
+                onClose={() => {
+                    setServiceModalOpen(false);
+                    setSelectedService(null);
+                }}
                 formFields={serviceFormFields}
-                initialData={selectedService || {}}
+                initialData={selectedService ? {
+                    ...selectedService,
+                    image_url: selectedService.image,
+                    benefits: selectedService.benefits ? (Array.isArray(selectedService.benefits) ? selectedService.benefits.join(', ') : selectedService.benefits) : '',
+                    is_24_7: selectedService.is_24_7 ? "1" : "0",
+                    is_active: selectedService.is_active ? "1" : "0"
+                } : {}}
                 onSubmit={handleSubmitService}
                 title={selectedService ? "Edit Service" : "Add Service"}
                 submitLabel={selectedService ? "Update" : "Add"}
+                loading={formLoading}
             />
             <FormModal
                 open={professionalModalOpen}
-                onClose={() => setProfessionalModalOpen(false)}
+                onClose={() => {
+                    setProfessionalModalOpen(false);
+                    setSelectedProfessional(null);
+                }}
                 formFields={professionalFormFields}
-                initialData={selectedProfessional || {}}
+                initialData={selectedProfessional ? {
+                    ...selectedProfessional,
+                    is_active: selectedProfessional.is_active ? "1" : "0"
+                } : {}}
                 onSubmit={handleSubmitProfessional}
-                title={selectedProfessional ? "Edit Professional" : "Add Professional"}
-                submitLabel={selectedProfessional ? "Update" : "Add"}
+                title={selectedProfessional ? "Edit Professional" : "Assign Doctor to Home Care"}
+                submitLabel={selectedProfessional ? "Update" : "Assign"}
+                loading={formLoading}
             />
             <DeleteConfirmModal
-                open={deleteModalOpen}
+                open={deleteModalOpen && selectedProfessional && selectedProfessional.doctor_id && !selectedService}
+                onClose={() => {
+                    setDeleteModalOpen(false);
+                    setSelectedProfessional(null);
+                }}
+                onConfirm={confirmDeleteProfessional}
+                title="Remove Professional"
+                message="Are you sure you want to remove this doctor from the Home Care professionals section?"
+                itemName={selectedProfessional?.name}
+            />
+            <DeleteConfirmModal
+                open={deleteModalOpen && selectedService && !selectedProfessional}
                 onClose={() => setDeleteModalOpen(false)}
                 onConfirm={confirmDeleteService}
                 title="Delete Service"
