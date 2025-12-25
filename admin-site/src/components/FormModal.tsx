@@ -23,6 +23,7 @@ export interface FormField {
   fullWidth?: boolean;
   accept?: string;
   multiple?: boolean;
+  visible?: boolean;
 }
 
 export interface FormModalProps {
@@ -442,6 +443,11 @@ export function FormModal({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {formFields.map((field) => {
+              // Skip fields that are explicitly set to invisible
+              if (field.visible === false) {
+                return null;
+              }
+
               const errorMessage = errors[field.name] || field.error;
               return (
                 <div

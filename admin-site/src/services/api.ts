@@ -431,6 +431,29 @@ class ApiService {
     return this.delete<any>(`/appointments/${id}`);
   }
 
+  // Patient methods
+  async getPatients(page: number = 1, perPage: number = 10, search?: string) {
+    let endpoint = `/patients?page=${page}&per_page=${perPage}`;
+    if (search) endpoint += `&search=${search}`;
+    return this.get<any>(endpoint);
+  }
+
+  async getPatient(id: number) {
+    return this.get<any>(`/patients/${id}`);
+  }
+
+  async createPatient(data: any) {
+    return this.post<any>('/patients', data);
+  }
+
+  async updatePatient(id: number, data: any) {
+    return this.put<any>(`/patients/${id}`, data);
+  }
+
+  async deletePatient(id: number) {
+    return this.delete<any>(`/patients/${id}`);
+  }
+
   // Home Care methods
   async getHomeCareServices() {
     return this.get<any[]>('/admin/home-care/services');
