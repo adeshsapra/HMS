@@ -6,6 +6,7 @@ import { Button, Spinner } from "@material-tailwind/react";
 import { CalendarDaysIcon, CheckIcon, XMarkIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
 import { apiService } from "@/services/api";
 import { toast } from "react-toastify";
+import { useAuth } from "@/context/AuthContext";
 
 interface Appointment {
   id: number;
@@ -21,6 +22,7 @@ interface Appointment {
 }
 
 export default function Appointments(): JSX.Element {
+  const { user } = useAuth();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [pagination, setPagination] = useState({
@@ -35,6 +37,9 @@ export default function Appointments(): JSX.Element {
   const [openDeleteModal, setOpenDeleteModal] = useState<boolean>(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
+
+  // Check if current user is a doctor
+  const isDoctor = user?.role?.name === 'doctor';
 
   const fetchAppointments = async (page = 1) => {
     try {
@@ -343,7 +348,6 @@ export default function Appointments(): JSX.Element {
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h2 className="text-4xl font-bold text-blue-gray-800 mb-2">Appointments</h2>
-          <p className="text-blue-gray-600 text-base">Manage all patient appointments and schedules</p>
         </div>
         <div className="flex gap-3">
           <Button
