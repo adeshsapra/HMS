@@ -96,6 +96,33 @@ export const profileAPI = {
         },
     }),
     changePassword: (data: any) => api.post('/change-password', data),
+    changeEmail: (data: any) => api.post('/change-email', data),
+};
+
+// Patient Profile API for My Appointments
+export const patientProfileAPI = {
+    getMyAppointments: (params?: { status?: string; start_date?: string; end_date?: string; per_page?: number }) => {
+        const queryParams = new URLSearchParams();
+        if (params?.status) queryParams.append('status', params.status);
+        if (params?.start_date) queryParams.append('start_date', params.start_date);
+        if (params?.end_date) queryParams.append('end_date', params.end_date);
+        if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
+
+        const queryString = queryParams.toString();
+        return api.get(`/patient-profile/appointments${queryString ? '?' + queryString : ''}`);
+    },
+
+    getAppointmentDetails: (id: number) => api.get(`/patient-profile/appointments/${id}`),
+
+    rescheduleAppointment: (id: number, data: { appointment_date: string; appointment_time: string; reason?: string }) =>
+        api.put(`/patient-profile/appointments/${id}/reschedule`, data),
+
+    cancelAppointment: (id: number) => api.put(`/patient-profile/appointments/${id}/cancel`),
+
+    getAppointmentStatistics: () => api.get('/patient-profile/appointments/statistics'),
+
+    getAvailableTimeSlots: (doctorId: number, date: string) =>
+        api.get(`/patient-profile/doctors/${doctorId}/available-slots?date=${date}`),
 };
 
 export default api;
