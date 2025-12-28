@@ -1,10 +1,30 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
 import AOS from 'aos'
 import PageHero from '../components/PageHero'
+import { profileAPI } from '../services/api'
+import { useToast } from '../context/ToastContext'
 
 const Profile = () => {
+  const { showToast } = useToast()
   const [activeTab, setActiveTab] = useState('personal')
+  const [user, setUser] = useState<any>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
+
+  const [formData, setFormData] = useState({
+    first_name: '',
+    last_name: '',
+    email: '',
+    phone: '',
+    address: '',
+    city: '',
+    state: '',
+    pincode: '',
+    dob: '',
+    age: '',
+    gender: '',
+    blood_group: '',
+    profile_image: null as File | null
+  })
 
   useEffect(() => {
     AOS.init({
@@ -13,7 +33,80 @@ const Profile = () => {
       once: true,
       mirror: false
     })
+    fetchProfile()
   }, [])
+
+  const fetchProfile = async () => {
+    try {
+      const response = await profileAPI.get()
+      if (response.data.status && response.data.user) {
+        const userData = response.data.user
+        setUser(userData)
+
+        // Map data to form
+        const patient = userData.patient || {}
+        setFormData({
+          first_name: patient.first_name || userData.name.split(' ')[0] || '',
+          last_name: patient.last_name || userData.name.split(' ').slice(1).join(' ') || '',
+          email: userData.email || '',
+          phone: userData.phone || patient.phone || '',
+          address: patient.address || '',
+          city: patient.city || '',
+          state: patient.state || '',
+          pincode: patient.pincode || '',
+          dob: patient.dob || '',
+          age: patient.age || '',
+          gender: patient.gender || '',
+          blood_group: patient.blood_group || '',
+          profile_image: null
+        })
+
+        if (patient.profile_image_url) {
+          setImagePreview(patient.profile_image_url)
+        } else if (userData.avatar) {
+          setImagePreview(userData.avatar)
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error)
+      showToast('Failed to load profile data', 'error')
+    }
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { id, value } = e.target
+    setFormData(prev => ({ ...prev, [id]: value }))
+  }
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0]
+      setFormData(prev => ({ ...prev, profile_image: file }))
+      setImagePreview(URL.createObjectURL(file))
+    }
+  }
+
+  const handleSubmit = async () => {
+    try {
+      const data = new FormData()
+      data.append('_method', 'PUT') // Method spoofing for Laravel
+
+      Object.entries(formData).forEach(([key, value]) => {
+        if (value !== null && value !== '') {
+          data.append(key, value as string | Blob)
+        }
+      })
+
+      const response = await profileAPI.update(data)
+      if (response.data.status) {
+        showToast('Profile updated successfully', 'success')
+        fetchProfile() // Refresh data
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error)
+      showToast('Failed to update profile', 'error')
+    }
+  }
 
   const tabs = [
     { id: 'personal', label: 'Personal Information', icon: 'bi-person' },
@@ -33,18 +126,65 @@ const Profile = () => {
               <h3>Personal Information</h3>
               <p>Update your personal details and contact information</p>
             </div>
+
+            {/* Profile Image Upload */}
+            <div className="profile-image-upload mb-4">
+              <div className="d-flex align-items-center gap-3">
+                <div className="image-preview" style={{
+                  width: '100px',
+                  height: '100px',
+                  borderRadius: '50%',
+                  overflow: 'hidden',
+                  background: '#f0f0f0',
+                  backgroundImage: imagePreview ? `url(${imagePreview})` : 'none',
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  {!imagePreview && <i className="bi bi-person" style={{ fontSize: '3rem', color: '#ccc' }}></i>}
+                </div>
+                <div>
+                  <label htmlFor="profile_image" className="btn btn-outline-primary btn-sm mb-2">
+                    Change Picture
+                  </label>
+                  <input
+                    type="file"
+                    id="profile_image"
+                    className="d-none"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                  />
+                  <p className="text-muted small mb-0">Allowed JPG, GIF or PNG. Max size of 2MB</p>
+                </div>
+              </div>
+            </div>
+
             <div className="profile-form">
               <div className="row">
                 <div className="col-md-6">
                   <div className="form-group">
-                    <label htmlFor="firstName">First Name</label>
-                    <input type="text" className="form-control" id="firstName" defaultValue="John" />
+                    <label htmlFor="first_name">First Name</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      id="first_name"
+                      value={formData.first_name}
+                      onChange={handleInputChange}
+                    />
                   </div>
                 </div>
                 <div className="col-md-6">
                   <div className="form-group">
-                    <label htmlFor="lastName">Last Name</label>
-                    <input type="text" className="form-control" id="lastName" defaultValue="Doe" />
+                    <label htmlFor="last_name">Last Name</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      id="last_name"
+                      value={formData.last_name}
+                      onChange={handleInputChange}
+                    />
                   </div>
                 </div>
               </div>
@@ -52,23 +192,126 @@ const Profile = () => {
                 <div className="col-md-6">
                   <div className="form-group">
                     <label htmlFor="email">Email Address</label>
-                    <input type="email" className="form-control" id="email" defaultValue="john.doe@example.com" />
+                    <input
+                      type="email"
+                      className="form-control"
+                      id="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                    // disabled // Usually email change requires verify
+                    />
                   </div>
                 </div>
                 <div className="col-md-6">
                   <div className="form-group">
                     <label htmlFor="phone">Phone Number</label>
-                    <input type="tel" className="form-control" id="phone" defaultValue="+1 (555) 123-4567" />
+                    <input
+                      type="tel"
+                      className="form-control"
+                      id="phone"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                    />
                   </div>
                 </div>
               </div>
+
+              <div className="row">
+                <div className="col-md-4">
+                  <div className="form-group">
+                    <label htmlFor="dob">Date of Birth</label>
+                    <input
+                      type="date"
+                      className="form-control"
+                      id="dob"
+                      value={formData.dob}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                </div>
+                <div className="col-md-4">
+                  <div className="form-group">
+                    <label htmlFor="age">Age</label>
+                    <input
+                      type="number"
+                      className="form-control"
+                      id="age"
+                      value={formData.age}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                </div>
+                <div className="col-md-4">
+                  <div className="form-group">
+                    <label htmlFor="gender">Gender</label>
+                    <select
+                      className="form-control"
+                      id="gender"
+                      value={formData.gender}
+                      onChange={handleInputChange}
+                    >
+                      <option value="">Select Gender</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
               <div className="form-group">
                 <label htmlFor="address">Address</label>
-                <textarea className="form-control" id="address" rows={3} defaultValue="123 Main Street, City, State 12345"></textarea>
+                <textarea
+                  className="form-control"
+                  id="address"
+                  rows={3}
+                  value={formData.address}
+                  onChange={handleInputChange}
+                ></textarea>
               </div>
+
+              <div className="row">
+                <div className="col-md-4">
+                  <div className="form-group">
+                    <label htmlFor="city">City</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      id="city"
+                      value={formData.city}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                </div>
+                <div className="col-md-4">
+                  <div className="form-group">
+                    <label htmlFor="state">State</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      id="state"
+                      value={formData.state}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                </div>
+                <div className="col-md-4">
+                  <div className="form-group">
+                    <label htmlFor="pincode">Pincode</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      id="pincode"
+                      value={formData.pincode}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                </div>
+              </div>
+
               <div className="form-actions">
-                <button type="button" className="btn btn-primary">Save Changes</button>
-                <button type="button" className="btn btn-secondary">Cancel</button>
+                <button type="button" className="btn btn-primary" onClick={handleSubmit}>Save Changes</button>
+                <button type="button" className="btn btn-secondary" onClick={fetchProfile}>Cancel</button>
               </div>
             </div>
           </div>
@@ -80,219 +323,7 @@ const Profile = () => {
               <h3>Account Settings</h3>
               <p>Manage your account preferences and settings</p>
             </div>
-            <div className="settings-list">
-              <div className="setting-item">
-                <div className="setting-content">
-                  <h4>Profile Visibility</h4>
-                  <p>Control who can see your profile information</p>
-                </div>
-                <div className="setting-control">
-                  <select className="form-select">
-                    <option>Public</option>
-                    <option>Private</option>
-                    <option>Friends Only</option>
-                  </select>
-                </div>
-              </div>
-              <div className="setting-item">
-                <div className="setting-content">
-                  <h4>Email Notifications</h4>
-                  <p>Receive email updates about your appointments</p>
-                </div>
-                <div className="setting-control">
-                  <div className="form-check form-switch">
-                    <input className="form-check-input" type="checkbox" id="emailNotifications" defaultChecked />
-                    <label className="form-check-label" htmlFor="emailNotifications"></label>
-                  </div>
-                </div>
-              </div>
-              <div className="setting-item">
-                <div className="setting-content">
-                  <h4>SMS Notifications</h4>
-                  <p>Receive SMS reminders for appointments</p>
-                </div>
-                <div className="setting-control">
-                  <div className="form-check form-switch">
-                    <input className="form-check-input" type="checkbox" id="smsNotifications" defaultChecked />
-                    <label className="form-check-label" htmlFor="smsNotifications"></label>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )
-      case 'security':
-        return (
-          <div className="profile-section">
-            <div className="section-header">
-              <h3>Security Settings</h3>
-              <p>Manage your password and security preferences</p>
-            </div>
-            <div className="security-form">
-              <div className="form-group">
-                <label htmlFor="currentPassword">Current Password</label>
-                <input type="password" className="form-control" id="currentPassword" />
-              </div>
-              <div className="form-group">
-                <label htmlFor="newPassword">New Password</label>
-                <input type="password" className="form-control" id="newPassword" />
-              </div>
-              <div className="form-group">
-                <label htmlFor="confirmPassword">Confirm New Password</label>
-                <input type="password" className="form-control" id="confirmPassword" />
-              </div>
-              <div className="form-actions">
-                <button type="button" className="btn btn-primary">Update Password</button>
-              </div>
-            </div>
-            <div className="security-options">
-              <h4>Two-Factor Authentication</h4>
-              <p>Add an extra layer of security to your account</p>
-              <button type="button" className="btn btn-outline-primary">Enable 2FA</button>
-            </div>
-          </div>
-        )
-      case 'notifications':
-        return (
-          <div className="profile-section">
-            <div className="section-header">
-              <h3>Notification Preferences</h3>
-              <p>Choose how you want to be notified</p>
-            </div>
-            <div className="notifications-list">
-              <div className="notification-item">
-                <div className="notification-content">
-                  <h4>Appointment Reminders</h4>
-                  <p>Get reminded about upcoming appointments</p>
-                </div>
-                <div className="notification-controls">
-                  <div className="form-check">
-                    <input className="form-check-input" type="checkbox" id="reminderEmail" defaultChecked />
-                    <label className="form-check-label" htmlFor="reminderEmail">Email</label>
-                  </div>
-                  <div className="form-check">
-                    <input className="form-check-input" type="checkbox" id="reminderSMS" defaultChecked />
-                    <label className="form-check-label" htmlFor="reminderSMS">SMS</label>
-                  </div>
-                </div>
-              </div>
-              <div className="notification-item">
-                <div className="notification-content">
-                  <h4>Test Results</h4>
-                  <p>Receive notifications when test results are available</p>
-                </div>
-                <div className="notification-controls">
-                  <div className="form-check">
-                    <input className="form-check-input" type="checkbox" id="resultsEmail" defaultChecked />
-                    <label className="form-check-label" htmlFor="resultsEmail">Email</label>
-                  </div>
-                  <div className="form-check">
-                    <input className="form-check-input" type="checkbox" id="resultsSMS" />
-                    <label className="form-check-label" htmlFor="resultsSMS">SMS</label>
-                  </div>
-                </div>
-              </div>
-              <div className="notification-item">
-                <div className="notification-content">
-                  <h4>Health Tips</h4>
-                  <p>Receive weekly health tips and wellness advice</p>
-                </div>
-                <div className="notification-controls">
-                  <div className="form-check">
-                    <input className="form-check-input" type="checkbox" id="tipsEmail" />
-                    <label className="form-check-label" htmlFor="tipsEmail">Email</label>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )
-      case 'appointments':
-        return (
-          <div className="profile-section">
-            <div className="section-header">
-              <h3>My Appointments</h3>
-              <p>View and manage your upcoming appointments</p>
-            </div>
-            <div className="appointments-list">
-              <div className="appointment-card">
-                <div className="appointment-info">
-                  <div className="appointment-date">
-                    <span className="date">Dec 15, 2024</span>
-                    <span className="time">10:00 AM</span>
-                  </div>
-                  <div className="appointment-details">
-                    <h4>Dr. Sarah Johnson</h4>
-                    <p>Cardiology Consultation</p>
-                    <span className="status upcoming">Upcoming</span>
-                  </div>
-                </div>
-                <div className="appointment-actions">
-                  <button className="btn btn-sm btn-outline-primary">Reschedule</button>
-                  <button className="btn btn-sm btn-outline-danger">Cancel</button>
-                </div>
-              </div>
-              <div className="appointment-card">
-                <div className="appointment-info">
-                  <div className="appointment-date">
-                    <span className="date">Nov 28, 2024</span>
-                    <span className="time">2:30 PM</span>
-                  </div>
-                  <div className="appointment-details">
-                    <h4>Dr. Michael Chen</h4>
-                    <p>General Checkup</p>
-                    <span className="status completed">Completed</span>
-                  </div>
-                </div>
-                <div className="appointment-actions">
-                  <button className="btn btn-sm btn-outline-primary">View Details</button>
-                </div>
-              </div>
-            </div>
-            <div className="text-center">
-              <Link to="/quickappointment" className="btn btn-primary">Schedule New Appointment</Link>
-            </div>
-          </div>
-        )
-      case 'medical':
-        return (
-          <div className="profile-section">
-            <div className="section-header">
-              <h3>Medical Records</h3>
-              <p>Access your medical history and records</p>
-            </div>
-            <div className="medical-records">
-              <div className="record-card">
-                <div className="record-header">
-                  <h4>Recent Lab Results</h4>
-                  <span className="date">Nov 20, 2024</span>
-                </div>
-                <div className="record-content">
-                  <p>Blood work results from your annual checkup</p>
-                  <button className="btn btn-sm btn-outline-primary">Download PDF</button>
-                </div>
-              </div>
-              <div className="record-card">
-                <div className="record-header">
-                  <h4>Cardiology Report</h4>
-                  <span className="date">Oct 15, 2024</span>
-                </div>
-                <div className="record-content">
-                  <p>EKG and stress test results</p>
-                  <button className="btn btn-sm btn-outline-primary">Download PDF</button>
-                </div>
-              </div>
-              <div className="record-card">
-                <div className="record-header">
-                  <h4>Vaccination Record</h4>
-                  <span className="date">Sep 10, 2024</span>
-                </div>
-                <div className="record-content">
-                  <p>Updated vaccination history</p>
-                  <button className="btn btn-sm btn-outline-primary">Download PDF</button>
-                </div>
-              </div>
-            </div>
+            <p>Account settings content here...</p>
           </div>
         )
       default:
@@ -311,7 +342,6 @@ const Profile = () => {
         ]}
       />
 
-
       <section className="profile section">
         <div className="container" data-aos="fade-up">
           <div className="row">
@@ -320,11 +350,15 @@ const Profile = () => {
               <div className="profile-sidebar">
                 <div className="profile-avatar">
                   <div className="avatar-circle">
-                    <i className="bi bi-person-circle"></i>
+                    {imagePreview ? (
+                      <img src={imagePreview} alt="Profile" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                    ) : (
+                      <i className="bi bi-person-circle"></i>
+                    )}
                   </div>
                   <div className="avatar-info">
-                    <h4>John Doe</h4>
-                    <p>john.doe@example.com</p>
+                    <h4>{user?.name || 'User'}</h4>
+                    <p>{user?.email || 'email@example.com'}</p>
                   </div>
                 </div>
                 <nav className="profile-nav">
@@ -382,6 +416,7 @@ const Profile = () => {
           justify-content: center;
           margin: 0 auto 1rem;
           box-shadow: 0 5px 15px color-mix(in srgb, var(--accent-color), transparent 70%);
+          overflow: hidden; 
         }
 
         .avatar-circle i {
@@ -514,191 +549,6 @@ const Profile = () => {
           background: color-mix(in srgb, var(--default-color), transparent 90%);
         }
 
-        .settings-list .setting-item {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 1.5rem 0;
-          border-bottom: 1px solid color-mix(in srgb, var(--default-color), transparent 90%);
-        }
-
-        .settings-list .setting-item:last-child {
-          border-bottom: none;
-        }
-
-        .setting-content h4 {
-          font-size: 1.1rem;
-          margin-bottom: 0.25rem;
-          color: var(--heading-color);
-        }
-
-        .setting-content p {
-          color: color-mix(in srgb, var(--default-color), transparent 30%);
-          font-size: 0.9rem;
-          margin: 0;
-        }
-
-        .setting-control .form-select {
-          min-width: 150px;
-          padding: 0.5rem;
-          border: 2px solid color-mix(in srgb, var(--default-color), transparent 85%);
-          border-radius: 6px;
-        }
-
-        .notifications-list .notification-item {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          padding: 1.5rem 0;
-          border-bottom: 1px solid color-mix(in srgb, var(--default-color), transparent 90%);
-        }
-
-        .notifications-list .notification-item:last-child {
-          border-bottom: none;
-        }
-
-        .notification-content h4 {
-          font-size: 1.1rem;
-          margin-bottom: 0.25rem;
-          color: var(--heading-color);
-        }
-
-        .notification-content p {
-          color: color-mix(in srgb, var(--default-color), transparent 30%);
-          font-size: 0.9rem;
-          margin: 0;
-        }
-
-        .notification-controls {
-          display: flex;
-          gap: 1rem;
-        }
-
-        .appointments-list .appointment-card {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 1.5rem;
-          background: color-mix(in srgb, var(--background-color), transparent 95%);
-          border-radius: 10px;
-          margin-bottom: 1rem;
-          border: 1px solid color-mix(in srgb, var(--default-color), transparent 90%);
-        }
-
-        .appointment-info {
-          display: flex;
-          gap: 1.5rem;
-          align-items: center;
-        }
-
-        .appointment-date {
-          text-align: center;
-          min-width: 80px;
-        }
-
-        .appointment-date .date {
-          display: block;
-          font-weight: 600;
-          color: var(--heading-color);
-          font-size: 0.9rem;
-        }
-
-        .appointment-date .time {
-          display: block;
-          color: var(--accent-color);
-          font-size: 0.8rem;
-          margin-top: 0.25rem;
-        }
-
-        .appointment-details h4 {
-          font-size: 1rem;
-          margin-bottom: 0.25rem;
-          color: var(--heading-color);
-        }
-
-        .appointment-details p {
-          color: color-mix(in srgb, var(--default-color), transparent 30%);
-          font-size: 0.9rem;
-          margin-bottom: 0.5rem;
-        }
-
-        .appointment-details .status {
-          padding: 0.25rem 0.75rem;
-          border-radius: 20px;
-          font-size: 0.75rem;
-          font-weight: 600;
-          text-transform: uppercase;
-        }
-
-        .appointment-details .status.upcoming {
-          background: color-mix(in srgb, #ffc107, transparent 20%);
-          color: #856404;
-        }
-
-        .appointment-details .status.completed {
-          background: color-mix(in srgb, #28a745, transparent 20%);
-          color: #155724;
-        }
-
-        .appointment-actions {
-          display: flex;
-          gap: 0.5rem;
-        }
-
-        .medical-records .record-card {
-          padding: 1.5rem;
-          background: color-mix(in srgb, var(--background-color), transparent 95%);
-          border-radius: 10px;
-          margin-bottom: 1rem;
-          border: 1px solid color-mix(in srgb, var(--default-color), transparent 90%);
-        }
-
-        .record-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 1rem;
-        }
-
-        .record-header h4 {
-          font-size: 1.1rem;
-          color: var(--heading-color);
-          margin: 0;
-        }
-
-        .record-header .date {
-          color: color-mix(in srgb, var(--default-color), transparent 40%);
-          font-size: 0.9rem;
-        }
-
-        .record-content {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-
-        .record-content p {
-          color: color-mix(in srgb, var(--default-color), transparent 30%);
-          margin: 0;
-        }
-
-        .security-options {
-          margin-top: 3rem;
-          padding-top: 2rem;
-          border-top: 1px solid color-mix(in srgb, var(--default-color), transparent 90%);
-        }
-
-        .security-options h4 {
-          font-size: 1.25rem;
-          color: var(--heading-color);
-          margin-bottom: 0.5rem;
-        }
-
-        .security-options p {
-          color: color-mix(in srgb, var(--default-color), transparent 30%);
-          margin-bottom: 1.5rem;
-        }
-
         @media (max-width: 991px) {
           .profile-sidebar {
             position: static;
@@ -735,16 +585,6 @@ const Profile = () => {
           .profile-nav .nav-link {
             padding: 0.75rem;
             font-size: 0.9rem;
-          }
-
-          .appointment-info {
-            flex-direction: column;
-            text-align: center;
-            gap: 1rem;
-          }
-
-          .appointment-actions {
-            justify-content: center;
           }
         }
       `}</style>

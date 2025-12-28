@@ -88,5 +88,15 @@ export const homeCareAPI = {
     }) => api.post('/public/home-care/requests', data),
 };
 
+export const profileAPI = {
+    get: () => api.get('/profile'),
+    update: (data: FormData) => api.post('/profile', data, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    }),
+    changePassword: (data: any) => api.post('/change-password', data),
+};
+
 export default api;
 

@@ -443,10 +443,55 @@ class ApiService {
   }
 
   async createPatient(data: any) {
+    if (data instanceof FormData) {
+      const token = this.getAuthToken();
+      const url = `${API_BASE_URL}/patients`;
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        body: data,
+      });
+
+      const responseData = await response.json();
+      if (!response.ok) {
+        const error: any = new Error(responseData.message || 'Failed to register patient');
+        error.validationErrors = responseData.errors || {};
+        throw error;
+      }
+      return responseData;
+    }
     return this.post<any>('/patients', data);
   }
 
   async updatePatient(id: number, data: any) {
+    if (data instanceof FormData) {
+      const token = this.getAuthToken();
+      const url = `${API_BASE_URL}/patients/${id}`;
+
+      // Laravel requires POST with _method for FormData updates
+      data.append('_method', 'PUT');
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        body: data,
+      });
+
+      const responseData = await response.json();
+      if (!response.ok) {
+        const error: any = new Error(responseData.message || 'Failed to update patient');
+        error.validationErrors = responseData.errors || {};
+        throw error;
+      }
+      return responseData;
+    }
     return this.put<any>(`/patients/${id}`, data);
   }
 

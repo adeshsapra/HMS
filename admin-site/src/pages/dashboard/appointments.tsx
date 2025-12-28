@@ -57,7 +57,7 @@ export default function Appointments(): JSX.Element {
         // The controller returns the paginator object inside 'data'
         const paginator = response.data;
 
-        const mappedData = paginator.data.map((appt: any) => ({
+        let mappedData = paginator.data.map((appt: any) => ({
           id: appt.id,
           patientName: appt.patient_name || appt.user?.name || "Unknown",
           doctorName: appt.doctor ? `${appt.doctor.first_name} ${appt.doctor.last_name}` : "Unknown",
@@ -69,6 +69,11 @@ export default function Appointments(): JSX.Element {
           phone: appt.patient_phone || appt.user?.phone,
           original: appt
         }));
+
+        // For doctors, only show confirmed appointments
+        if (isDoctor) {
+          mappedData = mappedData.filter((appt: Appointment) => appt.status === "confirmed");
+        }
 
         setAppointments(mappedData);
 
@@ -286,7 +291,8 @@ export default function Appointments(): JSX.Element {
     const appointment = row as Appointment;
     const actions: ActionItem[] = [];
 
-    if (appointment.status === "pending") {
+    // Doctors cannot confirm appointments, only complete them
+    if (appointment.status === "pending" && !isDoctor) {
       actions.push({
         label: "Confirm",
         icon: <CheckIcon className="h-4 w-4" />,
@@ -306,6 +312,17 @@ export default function Appointments(): JSX.Element {
         color: "blue",
         onClick: () => handleStatusChange(appointment, "completed"),
       });
+      // Only non-doctors can cancel confirmed appointments
+      if (!isDoctor) {
+        actions.push({
+          label: "Cancel",
+          icon: <XMarkIcon className="h-4 w-4" />,
+          color: "red",
+          onClick: () => handleStatusChange(appointment, "cancelled"),
+        });
+      }
+    } else if (appointment.status === "pending" && isDoctor) {
+      // Doctors can see pending appointments but cannot interact with them
       actions.push({
         label: "Cancel",
         icon: <XMarkIcon className="h-4 w-4" />,
@@ -347,7 +364,14 @@ export default function Appointments(): JSX.Element {
     <div className="mt-12 mb-8">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h2 className="text-4xl font-bold text-blue-gray-800 mb-2">Appointments</h2>
+          <h2 className="text-4xl font-bold text-blue-gray-800 mb-2">
+            {isDoctor ? "My Appointments" : "Appointments Management"}
+          </h2>
+          {isDoctor && (
+            <p className="text-blue-gray-600">
+              View and manage your confirmed appointments. You can mark them as completed.
+            </p>
+          )}
         </div>
         <div className="flex gap-3">
           <Button
@@ -376,18 +400,18 @@ export default function Appointments(): JSX.Element {
         </div>
       ) : viewMode === "list" ? (
         <DataTable
-          title="Appointments Management"
+          title={isDoctor ? "My Confirmed Appointments" : "Appointments Management"}
           data={appointments}
           columns={columns}
-          onAdd={handleAdd}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
+          onAdd={!isDoctor ? handleAdd : undefined}
+          onEdit={!isDoctor ? handleEdit : undefined}
+          onDelete={!isDoctor ? handleDelete : undefined}
           onView={handleView}
           customActions={getCustomActions}
           searchable={true}
           filterable={true}
           exportable={true}
-          addButtonLabel="New Appointment"
+          addButtonLabel={!isDoctor ? "New Appointment" : undefined}
           searchPlaceholder="Search appointments..."
           pagination={{ // Pass pagination props
             currentPage: pagination.currentPage,

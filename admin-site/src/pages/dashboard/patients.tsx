@@ -8,9 +8,15 @@ import { useToast } from "@/context/ToastContext";
 
 interface Patient {
   id: number;
+  first_name: string;
+  last_name: string;
   name: string;
   email: string;
   phone: string;
+  gender?: string;
+  dob?: string;
+  age?: number;
+  blood_group?: string;
   status: string;
   avatar?: string;
   lastVisit: string;
@@ -152,6 +158,10 @@ export default function Patients(): JSX.Element {
     { key: "name", label: "Full Name" },
     { key: "email", label: "Email" },
     { key: "phone", label: "Phone" },
+    { key: "gender", label: "Gender" },
+    { key: "age", label: "Age" },
+    { key: "dob", label: "Date of Birth", type: "date" },
+    { key: "blood_group", label: "Blood Group" },
     { key: "status", label: "Status", type: "status" },
     { key: "registeredDate", label: "Registered Date", type: "date" },
     { key: "lastVisit", label: "Last Visit", type: "date" },
@@ -161,11 +171,24 @@ export default function Patients(): JSX.Element {
 
   const formFields: FormField[] = [
     {
-      name: "name",
-      label: "Full Name",
+      name: "profile_image",
+      label: "Profile Photo",
+      type: "file",
+      accept: "image/*",
+    },
+    {
+      name: "first_name",
+      label: "First Name",
       type: "text",
       required: true,
-      placeholder: "Enter patient name",
+      placeholder: "Enter first name",
+    },
+    {
+      name: "last_name",
+      label: "Last Name",
+      type: "text",
+      required: true,
+      placeholder: "Enter last name",
     },
     {
       name: "email",
@@ -188,6 +211,41 @@ export default function Patients(): JSX.Element {
       type: "text",
       required: true,
       placeholder: "+1 234-567-8900",
+    },
+    {
+      name: "gender",
+      label: "Gender",
+      type: "select",
+      options: [
+        { value: "Male", label: "Male" },
+        { value: "Female", label: "Female" },
+        { value: "Other", label: "Other" },
+      ],
+    },
+    {
+      name: "dob",
+      label: "Date of Birth",
+      type: "date",
+    },
+    {
+      name: "age",
+      label: "Age",
+      type: "number",
+    },
+    {
+      name: "blood_group",
+      label: "Blood Group",
+      type: "select",
+      options: [
+        { value: "A+", label: "A+" },
+        { value: "A-", label: "A-" },
+        { value: "B+", label: "B+" },
+        { value: "B-", label: "B-" },
+        { value: "O+", label: "O+" },
+        { value: "O-", label: "O-" },
+        { value: "AB+", label: "AB+" },
+        { value: "AB-", label: "AB-" },
+      ]
     },
     {
       name: "status",
@@ -245,13 +303,19 @@ export default function Patients(): JSX.Element {
   const handleSubmit = async (data: Record<string, any>): Promise<void> => {
     try {
       let response;
+      const formData = new FormData();
+      Object.entries(data).forEach(([key, value]) => {
+        if (value !== null && value !== undefined) {
+          formData.append(key, value);
+        }
+      });
 
       if (selectedPatient) {
         // Update existing patient
-        response = await apiService.updatePatient(selectedPatient.id, data);
+        response = await apiService.updatePatient(selectedPatient.id, formData);
       } else {
         // Register new patient
-        response = await apiService.createPatient(data);
+        response = await apiService.createPatient(formData);
       }
 
       if (response.success) {
