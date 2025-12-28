@@ -107,17 +107,18 @@ const MyAppointments = () => {
 
     // Get status badge class
     const getStatusBadgeClass = (status: string) => {
+        const baseClass = 'profile-appointment-status-badge'
         switch (status?.toLowerCase()) {
             case 'pending':
-                return 'status-badge pending'
+                return `${baseClass} pending`
             case 'confirmed':
-                return 'status-badge confirmed'
+                return `${baseClass} confirmed`
             case 'completed':
-                return 'status-badge completed'
+                return `${baseClass} completed`
             case 'cancelled':
-                return 'status-badge cancelled'
+                return `${baseClass} cancelled`
             default:
-                return 'status-badge pending'
+                return `${baseClass} pending`
         }
     }
 
@@ -256,25 +257,23 @@ const MyAppointments = () => {
     }, [])
 
     return (
-        <div className="my-appointments-container">
+        <div className="profile-appointment-container">
             <style>{`
-                :root {
-                    --background-color: #ffffff;
-                    --default-color: #2c3031;
-                    --heading-color: #18444c;
-                    --accent-color: #049ebb;
-                    --surface-color: #ffffff;
-                    --contrast-color: #ffffff;
-                }
-
-                .my-appointments-container {
+                .profile-appointment-container {
+                    --pa-bg-color: #ffffff;
+                    --pa-default-color: #2c3031;
+                    --pa-heading-color: #18444c;
+                    --pa-accent-color: #049ebb;
+                    --pa-surface-color: #ffffff;
+                    --pa-contrast-color: #ffffff;
+                    
                     width: 100%;
                     font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
                 }
 
                 /* --- Main Card Section --- */
-                .appointments-section {
-                    background: var(--surface-color);
+                .profile-appointment-section {
+                    background: var(--pa-surface-color);
                     border-radius: 20px;
                     padding: 2.5rem;
                     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
@@ -282,101 +281,101 @@ const MyAppointments = () => {
                     border: 1px solid rgba(0,0,0,0.02);
                 }
 
-                .appointments-section .section-header {
+                .profile-appointment-section-header {
                     margin-bottom: 2.5rem;
                     padding-bottom: 1.5rem;
-                    border-bottom: 1px solid color-mix(in srgb, var(--default-color), transparent 92%);
+                    border-bottom: 1px solid color-mix(in srgb, var(--pa-default-color), transparent 92%);
                 }
 
-                .appointments-section .section-header h3 {
+                .profile-appointment-section-header h3 {
                     font-size: 1.85rem;
-                    color: var(--heading-color);
+                    color: var(--pa-heading-color);
                     margin-bottom: 0.5rem;
                     font-weight: 700;
                     letter-spacing: -0.5px;
                 }
 
-                .appointments-section .section-header p {
-                    color: color-mix(in srgb, var(--default-color), transparent 30%);
+                .profile-appointment-section-header p {
+                    color: color-mix(in srgb, var(--pa-default-color), transparent 30%);
                     font-weight: 500;
                 }
 
                 /* --- Filters & Buttons --- */
-                .appointment-filters {
+                .profile-appointment-filters {
                     display: flex;
                     align-items: center;
                     gap: 1rem;
                 }
 
-                .appointment-filters .form-control {
+                .profile-appointment-filters .form-control {
                     min-width: 160px;
                     border-radius: 8px;
                     border: 1px solid #e0e0e0;
                     padding: 0.4rem 0.8rem;
                 }
                 
-                .appointment-filters .form-control:focus {
-                    border-color: var(--accent-color);
-                    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent-color), transparent 90%);
+                .profile-appointment-filters .form-control:focus {
+                    border-color: var(--pa-accent-color);
+                    box-shadow: 0 0 0 4px color-mix(in srgb, var(--pa-accent-color), transparent 90%);
                 }
 
-                .btn-refresh {
-                    color: var(--accent-color);
-                    border-color: var(--accent-color);
+                .profile-appointment-btn-refresh {
+                    color: var(--pa-accent-color);
+                    border-color: var(--pa-accent-color);
                     border-radius: 8px;
                     padding: 0.4rem 1rem;
                     transition: all 0.3s;
                 }
 
-                .btn-refresh:hover {
-                    background-color: var(--accent-color);
+                .profile-appointment-btn-refresh:hover {
+                    background-color: var(--pa-accent-color);
                     color: #fff;
                 }
 
                 /* --- Appointment Cards --- */
-                .appointments-list {
+                .profile-appointment-list {
                     display: flex;
                     flex-direction: column;
                     gap: 1.25rem;
                 }
 
-                .appointment-card {
-                    background: var(--surface-color);
-                    border: 1px solid color-mix(in srgb, var(--default-color), transparent 92%);
+                .profile-appointment-card {
+                    background: var(--pa-surface-color);
+                    border: 1px solid color-mix(in srgb, var(--pa-default-color), transparent 92%);
                     border-radius: 16px;
                     padding: 1.75rem;
                     transition: all 0.3s ease;
                     position: relative;
                 }
 
-                .appointment-card:hover {
-                    border-color: color-mix(in srgb, var(--accent-color), transparent 70%);
+                .profile-appointment-card:hover {
+                    border-color: color-mix(in srgb, var(--pa-accent-color), transparent 70%);
                     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
                     transform: translateY(-3px);
                 }
 
-                .appointment-header {
+                .profile-appointment-card-header {
                     display: flex;
                     justify-content: space-between;
                     align-items: flex-start;
                     margin-bottom: 1.25rem;
                 }
 
-                .appointment-doctor {
-                    color: var(--heading-color);
+                .profile-appointment-doctor {
+                    color: var(--pa-heading-color);
                     font-size: 1.15rem;
                     font-weight: 700;
                     margin-bottom: 0.25rem;
                 }
 
-                .appointment-specialty {
+                .profile-appointment-specialty {
                     font-size: 0.9rem;
-                    color: color-mix(in srgb, var(--default-color), transparent 40%);
+                    color: color-mix(in srgb, var(--pa-default-color), transparent 40%);
                     font-weight: 500;
                 }
 
                 /* --- Status Badges --- */
-                .status-badge {
+                .profile-appointment-status-badge {
                     padding: 0.5rem 1rem;
                     border-radius: 30px;
                     font-size: 0.75rem;
@@ -387,109 +386,111 @@ const MyAppointments = () => {
                     align-items: center;
                 }
 
-                .status-badge.pending { background: #fff8e1; color: #f57f17; }
-                .status-badge.confirmed { background: #e8f5e9; color: #2e7d32; }
-                .status-badge.completed { background: #e0f7fa; color: #006064; }
-                .status-badge.cancelled { background: #ffebee; color: #c62828; }
+                .profile-appointment-status-badge.pending { background: #fff8e1; color: #f57f17; }
+                .profile-appointment-status-badge.confirmed { background: #e8f5e9; color: #2e7d32; }
+                .profile-appointment-status-badge.completed { background: #e0f7fa; color: #006064; }
+                .profile-appointment-status-badge.cancelled { background: #ffebee; color: #c62828; }
 
                 /* --- Details Grid --- */
-                .appointment-details {
+                .profile-appointment-details {
                     display: grid;
                     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
                     gap: 1rem;
                     margin-bottom: 1.25rem;
                     padding-bottom: 1.25rem;
-                    border-bottom: 1px dashed color-mix(in srgb, var(--default-color), transparent 85%);
+                    border-bottom: 1px dashed color-mix(in srgb, var(--pa-default-color), transparent 85%);
                 }
 
-                .detail-item {
+                .profile-appointment-detail-item {
                     display: flex;
                     align-items: center;
                     gap: 0.75rem;
-                    color: var(--default-color);
+                    color: var(--pa-default-color);
                     font-size: 0.95rem;
                 }
 
-                .detail-icon-box {
+                .profile-appointment-icon-box {
                     width: 32px;
                     height: 32px;
                     border-radius: 8px;
-                    background: color-mix(in srgb, var(--accent-color), transparent 92%);
-                    color: var(--accent-color);
+                    background: color-mix(in srgb, var(--pa-accent-color), transparent 92%);
+                    color: var(--pa-accent-color);
                     display: flex;
                     align-items: center;
                     justify-content: center;
                 }
 
-                .appointment-reason {
-                    background: color-mix(in srgb, var(--heading-color), transparent 96%);
+                .profile-appointment-reason {
+                    background: color-mix(in srgb, var(--pa-heading-color), transparent 96%);
                     border-radius: 10px;
                     padding: 1rem;
                     margin-bottom: 1rem;
                     font-size: 0.9rem;
-                    color: var(--default-color);
+                    color: var(--pa-default-color);
                 }
 
                 /* --- Action Button --- */
-                .btn-action-trigger {
+                .profile-appointment-action-trigger {
                     width: 36px;
                     height: 36px;
                     border-radius: 50%;
                     border: 1px solid #eee;
                     background: white;
-                    color: var(--default-color);
+                    color: var(--pa-default-color);
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     transition: all 0.2s;
                 }
 
-                .btn-action-trigger:hover {
-                    background: var(--heading-color);
+                .profile-appointment-action-trigger:hover {
+                    background: var(--pa-heading-color);
                     color: white;
-                    border-color: var(--heading-color);
+                    border-color: var(--pa-heading-color);
                 }
 
-                /* --- Pagination --- */
-                .page-link {
-                    color: var(--heading-color);
+                /* --- Pagination (Scoped) --- */
+                .profile-appointment-page-link {
+                    color: var(--pa-heading-color);
                     border: none;
                     margin: 0 4px;
                     border-radius: 8px;
                     font-weight: 500;
+                    padding: 0.5rem 0.75rem;
+                    text-decoration: none;
                 }
                 
-                .page-item.active .page-link {
-                    background-color: var(--accent-color);
+                .profile-appointment-page-item.active .profile-appointment-page-link {
+                    background-color: var(--pa-accent-color);
                     color: white;
-                    box-shadow: 0 4px 10px color-mix(in srgb, var(--accent-color), transparent 50%);
+                    box-shadow: 0 4px 10px color-mix(in srgb, var(--pa-accent-color), transparent 50%);
                 }
 
                 /* --- PROFESSIONAL MODAL DESIGN --- */
                 
                 /* 1. Backdrop */
-                .custom-modal-backdrop {
+                .profile-appointment-modal-backdrop {
                     position: fixed;
                     top: 0;
                     left: 0;
                     width: 100%;
                     height: 100%;
-                    background: color-mix(in srgb, var(--heading-color), transparent 40%);
-                    backdrop-filter: blur(8px); /* Glassmorphism blur */
+                    background: color-mix(in srgb, var(--pa-heading-color), transparent 40%);
+                    backdrop-filter: blur(8px);
                     z-index: 1050;
                     display: flex;
-                    align-items: center; /* Center Vertically */
-                    justify-content: center; /* Center Horizontally */
+                    align-items: center;
+                    justify-content: center;
                     opacity: 0;
-                    animation: fadeIn 0.3s forwards;
+                    animation: paFadeIn 0.3s forwards;
                 }
 
                 /* 2. Modal Content Container */
-                .custom-modal-content {
-                    background: var(--surface-color);
+                .profile-appointment-modal-content {
+                    background: var(--pa-surface-color);
                     width: 90%;
                     max-width: 600px;
-                    border-radius: 24px; /* Soft rounded corners */
+                    border-radius: 24px;
                     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
                     display: flex;
                     flex-direction: column;
@@ -497,38 +498,38 @@ const MyAppointments = () => {
                     overflow: hidden;
                     opacity: 0;
                     transform: scale(0.95) translateY(20px);
-                    animation: scaleUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; /* Professional spring/ease */
+                    animation: paScaleUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
                 }
 
-                .custom-modal-content.large {
+                .profile-appointment-modal-content.large {
                     max-width: 800px;
                 }
 
                 /* 3. Header */
-                .custom-modal-header {
+                .profile-appointment-modal-header {
                     padding: 1.5rem 2rem;
-                    background: var(--surface-color);
+                    background: var(--pa-surface-color);
                     border-bottom: 1px solid rgba(0,0,0,0.05);
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
                 }
 
-                .custom-modal-title {
+                .profile-appointment-modal-title {
                     font-size: 1.4rem;
                     font-weight: 700;
-                    color: var(--heading-color);
+                    color: var(--pa-heading-color);
                     margin: 0;
                     display: flex;
                     align-items: center;
                     gap: 0.75rem;
                 }
                 
-                .custom-modal-title i {
-                    color: var(--accent-color);
+                .profile-appointment-modal-title i {
+                    color: var(--pa-accent-color);
                 }
 
-                .btn-close-custom {
+                .profile-appointment-btn-close {
                     background: transparent;
                     border: none;
                     font-size: 1.5rem;
@@ -538,21 +539,21 @@ const MyAppointments = () => {
                     line-height: 1;
                 }
                 
-                .btn-close-custom:hover {
-                    color: var(--heading-color);
+                .profile-appointment-btn-close:hover {
+                    color: var(--pa-heading-color);
                 }
 
                 /* 4. Body */
-                .custom-modal-body {
+                .profile-appointment-modal-body {
                     padding: 2rem;
                     overflow-y: auto;
                     max-height: 70vh;
                 }
 
                 /* 5. Footer */
-                .custom-modal-footer {
+                .profile-appointment-modal-footer {
                     padding: 1.5rem 2rem;
-                    background: color-mix(in srgb, var(--surface-color), #f9f9f9 50%);
+                    background: color-mix(in srgb, var(--pa-surface-color), #f9f9f9 50%);
                     border-top: 1px solid rgba(0,0,0,0.05);
                     display: flex;
                     justify-content: flex-end;
@@ -560,72 +561,72 @@ const MyAppointments = () => {
                 }
 
                 /* Form Styles inside Modal */
-                .modal-form-label {
+                .profile-appointment-modal-label {
                     font-size: 0.8rem;
                     font-weight: 700;
                     text-transform: uppercase;
                     letter-spacing: 0.5px;
-                    color: color-mix(in srgb, var(--heading-color), transparent 40%);
+                    color: color-mix(in srgb, var(--pa-heading-color), transparent 40%);
                     margin-bottom: 0.5rem;
                     display: block;
                 }
 
-                .modal-form-value {
+                .profile-appointment-modal-value {
                     font-size: 14px;
-                    color: var(--heading-color);
+                    color: var(--pa-heading-color);
                     font-weight: 500;
                 }
 
-                .modal-input {
+                .profile-appointment-modal-input {
                     display: block;
                     width: 100%;
                     padding: 0.75rem 1rem;
                     font-size: 1rem;
-                    color: var(--default-color);
+                    color: var(--pa-default-color);
                     background-color: #fff;
                     border: 1px solid #e0e0e0;
                     border-radius: 12px;
                     transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
                 }
 
-                .modal-input:focus {
-                    border-color: var(--accent-color);
+                .profile-appointment-modal-input:focus {
+                    border-color: var(--pa-accent-color);
                     outline: 0;
-                    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent-color), transparent 90%);
+                    box-shadow: 0 0 0 4px color-mix(in srgb, var(--pa-accent-color), transparent 90%);
                 }
 
                 /* Button Styles */
-                .btn-modal-secondary {
+                .profile-appointment-btn-secondary {
                     background: transparent;
                     border: 1px solid #ddd;
-                    color: var(--default-color);
+                    color: var(--pa-default-color);
                     padding: 0.6rem 1.25rem;
                     border-radius: 10px;
                     font-weight: 600;
                     transition: all 0.2s;
                 }
                 
-                .btn-modal-secondary:hover {
+                .profile-appointment-btn-secondary:hover {
                     background: #f5f5f5;
                 }
 
-                .btn-modal-primary {
-                    background: var(--accent-color);
-                    border: 1px solid var(--accent-color);
+                .profile-appointment-btn-primary {
+                    background: var(--pa-accent-color);
+                    border: 1px solid var(--pa-accent-color);
                     color: white;
                     padding: 0.6rem 1.5rem;
                     border-radius: 10px;
                     font-weight: 600;
-                    box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-color), transparent 60%);
+                    box-shadow: 0 4px 12px color-mix(in srgb, var(--pa-accent-color), transparent 60%);
                     transition: all 0.2s;
                 }
 
-                .btn-modal-primary:hover {
-                    background: color-mix(in srgb, var(--accent-color), black 10%);
+                .profile-appointment-btn-primary:hover {
+                    background: color-mix(in srgb, var(--pa-accent-color), black 10%);
                     transform: translateY(-1px);
                 }
                 
-                .btn-modal-danger {
+                .profile-appointment-btn-danger {
                     background: #ef4444;
                     border: none;
                     color: white;
@@ -635,16 +636,16 @@ const MyAppointments = () => {
                     box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
                 }
 
-                .btn-modal-danger:hover {
+                .profile-appointment-btn-danger:hover {
                     background: #dc2626;
                 }
 
                 /* Animations */
-                @keyframes fadeIn {
+                @keyframes paFadeIn {
                     to { opacity: 1; }
                 }
 
-                @keyframes scaleUp {
+                @keyframes paScaleUp {
                     to { 
                         opacity: 1; 
                         transform: scale(1) translateY(0);
@@ -652,7 +653,7 @@ const MyAppointments = () => {
                 }
 
                 /* --- RESCHEDULE TIME PICKER STYLES --- */
-                .reschedule-time-picker-wrapper {
+                .profile-appointment-reschedule-wrapper {
                     background: #f8fbfc;
                     border: 1px solid #e0e0e0;
                     border-radius: 12px;
@@ -660,31 +661,31 @@ const MyAppointments = () => {
                     margin-bottom: 20px;
                 }
 
-                .reschedule-time-display {
+                .profile-appointment-reschedule-display {
                     text-align: center;
                     font-size: 1.5rem;
                     font-weight: 800;
-                    color: var(--accent-color);
+                    color: var(--pa-accent-color);
                     margin-bottom: 15px;
                     letter-spacing: 1px;
                     border-bottom: 1px solid #eee;
                     padding-bottom: 10px;
                 }
 
-                .reschedule-time-selector {
+                .profile-appointment-reschedule-selector {
                     display: flex;
                     gap: 15px;
                     justify-content: space-between;
                 }
 
-                .reschedule-time-column {
+                .profile-appointment-reschedule-column {
                     flex: 1;
                     display: flex;
                     flex-direction: column;
                     gap: 8px;
                 }
 
-                .reschedule-time-label {
+                .profile-appointment-reschedule-label {
                     font-size: 0.75rem;
                     text-transform: uppercase;
                     color: #888;
@@ -693,63 +694,63 @@ const MyAppointments = () => {
                     margin-bottom: 5px;
                 }
 
-                .reschedule-time-grid {
+                .profile-appointment-reschedule-grid {
                     display: grid;
                     grid-template-columns: repeat(3, 1fr);
                     gap: 6px;
                 }
                 
-                .reschedule-time-grid.minutes {
+                .profile-appointment-reschedule-grid.minutes {
                     grid-template-columns: repeat(2, 1fr);
                 }
                 
-                .reschedule-time-grid.period {
+                .profile-appointment-reschedule-grid.period {
                     grid-template-columns: 1fr;
                 }
 
-                .reschedule-time-btn {
+                .profile-appointment-reschedule-btn {
                     background: white;
                     border: 1px solid #eee;
                     border-radius: 6px;
                     padding: 6px 0;
                     font-size: 0.9rem;
                     font-weight: 600;
-                    color: var(--default-color);
+                    color: var(--pa-default-color);
                     cursor: pointer;
                     transition: all 0.2s;
                     text-align: center;
                 }
 
-                .reschedule-time-btn:hover {
-                    border-color: var(--accent-color);
-                    color: var(--accent-color);
+                .profile-appointment-reschedule-btn:hover {
+                    border-color: var(--pa-accent-color);
+                    color: var(--pa-accent-color);
                 }
 
-                .reschedule-time-btn.active {
-                    background: var(--accent-color);
+                .profile-appointment-reschedule-btn.active {
+                    background: var(--pa-accent-color);
                     color: white;
-                    border-color: var(--accent-color);
+                    border-color: var(--pa-accent-color);
                     box-shadow: 0 4px 10px rgba(4, 158, 187, 0.3);
                 }
 
                 /* Responsive */
                 @media (max-width: 768px) {
-                    .appointments-section { padding: 1.5rem; }
-                    .appointment-header { flex-direction: column; gap: 0.5rem; }
-                    .custom-modal-content { width: 95%; margin: 1rem; max-height: 90vh; }
-                    .reschedule-time-selector { flex-direction: column; gap: 10px; }
-                    .reschedule-time-grid { grid-template-columns: repeat(4, 1fr); }
+                    .profile-appointment-section { padding: 1.5rem; }
+                    .profile-appointment-card-header { flex-direction: column; gap: 0.5rem; }
+                    .profile-appointment-modal-content { width: 95%; margin: 1rem; max-height: 90vh; }
+                    .profile-appointment-reschedule-selector { flex-direction: column; gap: 10px; }
+                    .profile-appointment-reschedule-grid { grid-template-columns: repeat(4, 1fr); }
                 }
             `}</style>
 
-            <div className="appointments-section">
-                <div className="section-header">
+            <div className="profile-appointment-section">
+                <div className="profile-appointment-section-header">
                     <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
                         <div>
                             <h3>My Appointments</h3>
                             <p className="mb-0">View and manage your appointment history</p>
                         </div>
-                        <div className="appointment-filters">
+                        <div className="profile-appointment-filters">
                             <select
                                 className="form-control"
                                 value={appointmentFilters.status}
@@ -762,7 +763,7 @@ const MyAppointments = () => {
                                 <option value="cancelled">Cancelled</option>
                             </select>
                             <button
-                                className="btn btn-outline-primary btn-refresh"
+                                className="btn btn-outline-primary profile-appointment-btn-refresh"
                                 onClick={() => fetchAppointments()}
                             >
                                 <i className="bi bi-arrow-clockwise me-1"></i>
@@ -774,7 +775,7 @@ const MyAppointments = () => {
 
                 {appointmentsLoading ? (
                     <div className="text-center py-5">
-                        <div className="spinner-border text-primary" role="status" style={{ color: 'var(--accent-color)' }}>
+                        <div className="spinner-border text-primary" role="status" style={{ color: 'var(--pa-accent-color)' }}>
                             <span className="visually-hidden">Loading...</span>
                         </div>
                         <p className="mt-3 text-muted">Loading your appointments...</p>
@@ -784,19 +785,19 @@ const MyAppointments = () => {
                         <div style={{ fontSize: '3rem', color: '#e0e0e0' }} className="mb-3">
                             <i className="bi bi-calendar-x"></i>
                         </div>
-                        <h4 style={{ color: 'var(--heading-color)' }}>No Appointments Found</h4>
+                        <h4 style={{ color: 'var(--pa-heading-color)' }}>No Appointments Found</h4>
                         <p className="text-muted">You don't have any appointments matching your criteria.</p>
                     </div>
                 ) : (
-                    <div className="appointments-list">
+                    <div className="profile-appointment-list">
                         {appointments.map((appointment) => (
-                            <div key={appointment.id} className="appointment-card">
-                                <div className="appointment-header">
+                            <div key={appointment.id} className="profile-appointment-card">
+                                <div className="profile-appointment-card-header">
                                     <div className="appointment-info">
-                                        <h5 className="appointment-doctor">
+                                        <h5 className="profile-appointment-doctor">
                                             {appointment.doctor_name}
                                         </h5>
-                                        <p className="appointment-specialty">
+                                        <p className="profile-appointment-specialty">
                                             {appointment.doctor_specialization}
                                         </p>
                                     </div>
@@ -808,21 +809,21 @@ const MyAppointments = () => {
                                     </div>
                                 </div>
 
-                                <div className="appointment-details">
-                                    <div className="detail-item">
-                                        <div className="detail-icon-box">
+                                <div className="profile-appointment-details">
+                                    <div className="profile-appointment-detail-item">
+                                        <div className="profile-appointment-icon-box">
                                             <i className="bi bi-calendar-event"></i>
                                         </div>
                                         <span>{formatAppointmentDate(appointment.appointment_date)}</span>
                                     </div>
-                                    <div className="detail-item">
-                                        <div className="detail-icon-box">
+                                    <div className="profile-appointment-detail-item">
+                                        <div className="profile-appointment-icon-box">
                                             <i className="bi bi-clock"></i>
                                         </div>
                                         <span>{appointment.appointment_time}</span>
                                     </div>
-                                    <div className="detail-item">
-                                        <div className="detail-icon-box">
+                                    <div className="profile-appointment-detail-item">
+                                        <div className="profile-appointment-icon-box">
                                             <i className="bi bi-building"></i>
                                         </div>
                                         <span>{appointment.department_name}</span>
@@ -832,7 +833,7 @@ const MyAppointments = () => {
                                 <div className="d-flex justify-content-between align-items-center">
                                     <div style={{ flex: 1 }}>
                                         {appointment.reason && (
-                                            <div className="appointment-reason mb-0 d-inline-block">
+                                            <div className="profile-appointment-reason mb-0 d-inline-block">
                                                 <i className="bi bi-chat-left-text me-2 text-primary"></i>
                                                 {appointment.reason.length > 50 ? appointment.reason.substring(0, 50) + '...' : appointment.reason}
                                             </div>
@@ -841,7 +842,7 @@ const MyAppointments = () => {
 
                                     <div className="dropdown">
                                         <button
-                                            className="btn-action-trigger dropdown-toggle no-arrow"
+                                            className="profile-appointment-action-trigger dropdown-toggle no-arrow"
                                             type="button"
                                             data-bs-toggle="dropdown"
                                         >
@@ -892,38 +893,38 @@ const MyAppointments = () => {
 
             {/* View Modal */}
             {viewModalOpen && selectedAppointment && (
-                <div className="custom-modal-backdrop" onClick={() => setViewModalOpen(false)}>
-                    <div className="custom-modal-content large" onClick={e => e.stopPropagation()}>
-                        <div className="custom-modal-header">
-                            <h5 className="custom-modal-title">
+                <div className="profile-appointment-modal-backdrop" onClick={() => setViewModalOpen(false)}>
+                    <div className="profile-appointment-modal-content large" onClick={e => e.stopPropagation()}>
+                        <div className="profile-appointment-modal-header">
+                            <h5 className="profile-appointment-modal-title">
                                 <i className="bi bi-file-medical"></i>
                                 Appointment Details
                             </h5>
-                            <button type="button" className="btn-close-custom" onClick={() => setViewModalOpen(false)}>
+                            <button type="button" className="profile-appointment-btn-close" onClick={() => setViewModalOpen(false)}>
                                 <i className="bi bi-x-lg"></i>
                             </button>
                         </div>
-                        <div className="custom-modal-body">
+                        <div className="profile-appointment-modal-body">
                             <div className="row g-4">
                                 <div className="col-md-6 border-end">
                                     <div className="mb-4">
-                                        <label className="modal-form-label">Doctor</label>
+                                        <label className="profile-appointment-modal-label">Doctor</label>
                                         <div className="d-flex align-items-center gap-3">
-                                            <div className="rounded-circle bg-light d-flex align-items-center justify-content-center" style={{ width: '50px', height: '50px', color: 'var(--accent-color)', fontSize: '1.5rem' }}>
+                                            <div className="rounded-circle bg-light d-flex align-items-center justify-content-center" style={{ width: '50px', height: '50px', color: 'var(--pa-accent-color)', fontSize: '1.5rem' }}>
                                                 <i className="bi bi-person-fill"></i>
                                             </div>
                                             <div>
-                                                <div className="modal-form-value">{selectedAppointment.doctor_name}</div>
+                                                <div className="profile-appointment-modal-value">{selectedAppointment.doctor_name}</div>
                                                 <small className="text-muted">{selectedAppointment.doctor_specialization}</small>
                                             </div>
                                         </div>
                                     </div>
                                     <div className="mb-4">
-                                        <label className="modal-form-label">Department</label>
-                                        <div className="modal-form-value">{selectedAppointment.department_name}</div>
+                                        <label className="profile-appointment-modal-label">Department</label>
+                                        <div className="profile-appointment-modal-value">{selectedAppointment.department_name}</div>
                                     </div>
                                     <div>
-                                        <label className="modal-form-label">Status</label>
+                                        <label className="profile-appointment-modal-label">Status</label>
                                         <span className={getStatusBadgeClass(selectedAppointment.status)}>
                                             {selectedAppointment.status}
                                         </span>
@@ -931,18 +932,18 @@ const MyAppointments = () => {
                                 </div>
                                 <div className="col-md-6 ps-md-4">
                                     <div className="mb-4">
-                                        <label className="modal-form-label">Date & Time</label>
-                                        <div className="modal-form-value">
+                                        <label className="profile-appointment-modal-label">Date & Time</label>
+                                        <div className="profile-appointment-modal-value">
                                             <i className="bi bi-calendar3 me-2 text-muted"></i>
                                             {formatAppointmentDate(selectedAppointment.appointment_date)}
                                         </div>
-                                        <div className="modal-form-value mt-1">
+                                        <div className="profile-appointment-modal-value mt-1">
                                             <i className="bi bi-clock me-2 text-muted"></i>
                                             {selectedAppointment.appointment_time}
                                         </div>
                                     </div>
                                     <div className="mb-0">
-                                        <label className="modal-form-label">Reason for Visit</label>
+                                        <label className="profile-appointment-modal-label">Reason for Visit</label>
                                         <p className="p-3 bg-light rounded-3 mb-0 text-secondary">
                                             {selectedAppointment.reason || "No reason provided."}
                                         </p>
@@ -950,8 +951,8 @@ const MyAppointments = () => {
                                 </div>
                             </div>
                         </div>
-                        <div className="custom-modal-footer">
-                            <button className="btn-modal-secondary" onClick={() => setViewModalOpen(false)}>
+                        <div className="profile-appointment-modal-footer">
+                            <button className="profile-appointment-btn-secondary" onClick={() => setViewModalOpen(false)}>
                                 Close
                             </button>
                         </div>
@@ -961,19 +962,19 @@ const MyAppointments = () => {
 
             {/* Reschedule Modal */}
             {rescheduleModalOpen && selectedAppointment && (
-                <div className="custom-modal-backdrop" onClick={() => setRescheduleModalOpen(false)}>
-                    <div className="custom-modal-content" onClick={e => e.stopPropagation()}>
-                        <div className="custom-modal-header">
-                            <h5 className="custom-modal-title">
+                <div className="profile-appointment-modal-backdrop" onClick={() => setRescheduleModalOpen(false)}>
+                    <div className="profile-appointment-modal-content" onClick={e => e.stopPropagation()}>
+                        <div className="profile-appointment-modal-header">
+                            <h5 className="profile-appointment-modal-title">
                                 <i className="bi bi-calendar-range"></i>
                                 Reschedule
                             </h5>
-                            <button type="button" className="btn-close-custom" onClick={() => setRescheduleModalOpen(false)}>
+                            <button type="button" className="profile-appointment-btn-close" onClick={() => setRescheduleModalOpen(false)}>
                                 <i className="bi bi-x-lg"></i>
                             </button>
                         </div>
                         <form onSubmit={handleRescheduleSubmit}>
-                            <div className="custom-modal-body">
+                            <div className="profile-appointment-modal-body">
                                 <div className="mb-4 p-3 rounded bg-light border">
                                     <div className="d-flex justify-content-between align-items-center">
                                         <small className="text-uppercase fw-bold text-muted">Current Appointment</small>
@@ -985,11 +986,11 @@ const MyAppointments = () => {
 
                                 <div className="row">
                                     <div className="col-md-12 mb-3">
-                                        <label className="modal-form-label">New Date</label>
+                                        <label className="profile-appointment-modal-label">New Date</label>
                                         <input
                                             name="appointment_date"
                                             type="date"
-                                            className="modal-input"
+                                            className="profile-appointment-modal-input"
                                             min={new Date().toISOString().split('T')[0]}
                                             defaultValue={selectedAppointment.appointment_date}
                                             required
@@ -998,9 +999,9 @@ const MyAppointments = () => {
                                 </div>
 
                                 <div className="mb-3">
-                                    <label className="modal-form-label">New Time</label>
-                                    <div className="reschedule-time-picker-wrapper">
-                                        <div className="reschedule-time-display">
+                                    <label className="profile-appointment-modal-label">New Time</label>
+                                    <div className="profile-appointment-reschedule-wrapper">
+                                        <div className="profile-appointment-reschedule-display">
                                             {rescheduleSelectedHour} : {rescheduleSelectedMinute} {rescheduleSelectedPeriod}
                                         </div>
                                         <div className="text-center mb-2">
@@ -1010,15 +1011,15 @@ const MyAppointments = () => {
                                             </small>
                                         </div>
 
-                                        <div className="reschedule-time-selector">
+                                        <div className="profile-appointment-reschedule-selector">
                                             {/* Hours Column */}
-                                            <div className="reschedule-time-column">
-                                                <span className="reschedule-time-label">Hour</span>
-                                                <div className="reschedule-time-grid">
+                                            <div className="profile-appointment-reschedule-column">
+                                                <span className="profile-appointment-reschedule-label">Hour</span>
+                                                <div className="profile-appointment-reschedule-grid">
                                                     {hoursList.map((h) => (
                                                         <div
                                                             key={h}
-                                                            className={`reschedule-time-btn ${rescheduleSelectedHour === h ? 'active' : ''}`}
+                                                            className={`profile-appointment-reschedule-btn ${rescheduleSelectedHour === h ? 'active' : ''}`}
                                                             onClick={() => setRescheduleSelectedHour(h)}
                                                             role="button"
                                                             tabIndex={0}
@@ -1035,13 +1036,13 @@ const MyAppointments = () => {
                                             </div>
 
                                             {/* Minutes Column */}
-                                            <div className="reschedule-time-column">
-                                                <span className="reschedule-time-label">Minute</span>
-                                                <div className="reschedule-time-grid minutes">
+                                            <div className="profile-appointment-reschedule-column">
+                                                <span className="profile-appointment-reschedule-label">Minute</span>
+                                                <div className="profile-appointment-reschedule-grid minutes">
                                                     {minutesList.map((m) => (
                                                         <div
                                                             key={m}
-                                                            className={`reschedule-time-btn ${rescheduleSelectedMinute === m ? 'active' : ''}`}
+                                                            className={`profile-appointment-reschedule-btn ${rescheduleSelectedMinute === m ? 'active' : ''}`}
                                                             onClick={() => setRescheduleSelectedMinute(m)}
                                                             role="button"
                                                             tabIndex={0}
@@ -1058,13 +1059,13 @@ const MyAppointments = () => {
                                             </div>
 
                                             {/* AM/PM Column */}
-                                            <div className="reschedule-time-column">
-                                                <span className="reschedule-time-label">Period</span>
-                                                <div className="reschedule-time-grid period">
+                                            <div className="profile-appointment-reschedule-column">
+                                                <span className="profile-appointment-reschedule-label">Period</span>
+                                                <div className="profile-appointment-reschedule-grid period">
                                                     {['AM', 'PM'].map((p) => (
                                                         <div
                                                             key={p}
-                                                            className={`reschedule-time-btn ${rescheduleSelectedPeriod === p ? 'active' : ''}`}
+                                                            className={`profile-appointment-reschedule-btn ${rescheduleSelectedPeriod === p ? 'active' : ''}`}
                                                             onClick={() => setRescheduleSelectedPeriod(p)}
                                                             role="button"
                                                             tabIndex={0}
@@ -1083,20 +1084,20 @@ const MyAppointments = () => {
                                     </div>
                                 </div>
                                 <div className="mb-3">
-                                    <label className="modal-form-label">Reason (Optional)</label>
+                                    <label className="profile-appointment-modal-label">Reason (Optional)</label>
                                     <textarea
                                         name="reason"
-                                        className="modal-input"
+                                        className="profile-appointment-modal-input"
                                         rows={3}
                                         placeholder="Why are you rescheduling?"
                                     ></textarea>
                                 </div>
                             </div>
-                            <div className="custom-modal-footer">
-                                <button type="button" className="btn-modal-secondary" onClick={() => setRescheduleModalOpen(false)}>
+                            <div className="profile-appointment-modal-footer">
+                                <button type="button" className="profile-appointment-btn-secondary" onClick={() => setRescheduleModalOpen(false)}>
                                     Cancel
                                 </button>
-                                <button type="submit" className="btn-modal-primary">
+                                <button type="submit" className="profile-appointment-btn-primary">
                                     Confirm Reschedule
                                 </button>
                             </div>
@@ -1107,35 +1108,35 @@ const MyAppointments = () => {
 
             {/* Delete/Cancel Modal */}
             {deleteModalOpen && selectedAppointment && (
-                <div className="custom-modal-backdrop" onClick={() => setDeleteModalOpen(false)}>
-                    <div className="custom-modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '450px' }}>
-                        <div className="custom-modal-header border-0 pb-0">
-                            <button type="button" className="btn-close-custom ms-auto" onClick={() => setDeleteModalOpen(false)}>
+                <div className="profile-appointment-modal-backdrop" onClick={() => setDeleteModalOpen(false)}>
+                    <div className="profile-appointment-modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '450px' }}>
+                        <div className="profile-appointment-modal-header border-0 pb-0">
+                            <button type="button" className="profile-appointment-btn-close ms-auto" onClick={() => setDeleteModalOpen(false)}>
                                 <i className="bi bi-x-lg"></i>
                             </button>
                         </div>
-                        <div className="custom-modal-body text-center pt-0">
+                        <div className="profile-appointment-modal-body text-center pt-0">
                             <div className="mb-3 text-danger" style={{ fontSize: '3rem' }}>
                                 <i className="bi bi-exclamation-circle"></i>
                             </div>
-                            <h4 className="mb-3" style={{ color: 'var(--heading-color)', fontWeight: 700 }}>Cancel Appointment?</h4>
+                            <h4 className="mb-3" style={{ color: 'var(--pa-heading-color)', fontWeight: 700 }}>Cancel Appointment?</h4>
                             <p className="text-muted mb-4">
                                 Are you sure you want to cancel your appointment with <strong>{selectedAppointment.doctor_name}</strong> on <strong>{formatAppointmentDate(selectedAppointment.appointment_date)}</strong>?
                                 <br /><br />
                                 This action cannot be undone.
                             </p>
                         </div>
-                        <div className="custom-modal-footer justify-content-center border-0 pt-0 pb-4">
+                        <div className="profile-appointment-modal-footer justify-content-center border-0 pt-0 pb-4">
                             <button
                                 type="button"
-                                className="btn-modal-secondary px-4"
+                                className="profile-appointment-btn-secondary px-4"
                                 onClick={() => setDeleteModalOpen(false)}
                             >
                                 No, Keep It
                             </button>
                             <button
                                 type="button"
-                                className="btn-modal-danger px-4"
+                                className="profile-appointment-btn-danger px-4"
                                 onClick={() => handleCancelAppointment(selectedAppointment.id)}
                             >
                                 Yes, Cancel It
