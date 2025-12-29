@@ -12,6 +12,9 @@ interface User {
     name: string;
     permissions?: Permission[];
   };
+  doctor?: any;
+  staff?: any;
+  patient?: any;
 }
 
 interface Permission {
@@ -52,7 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const profileResponse = await apiService.getProfile();
       if (profileResponse.status && profileResponse.user) {
         setUser(profileResponse.user);
-        
+
         // Load permissions
         try {
           const permResponse = await apiService.getCurrentUserPermissions();

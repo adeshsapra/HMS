@@ -110,7 +110,27 @@ class ApiService {
     return this.get<any>('/profile');
   }
 
-  async updateProfile(data: { name?: string; email?: string; phone?: string }) {
+  async updateProfile(data: any) {
+    if (data instanceof FormData) {
+      const token = this.getAuthToken();
+      const url = `${API_BASE_URL}/profile`;
+      data.append('_method', 'PUT');
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        body: data,
+      });
+
+      const responseData = await response.json();
+      if (!response.ok) {
+        throw new Error(responseData.message || 'Failed to update profile');
+      }
+      return responseData;
+    }
     return this.put<any>('/profile', data);
   }
 
