@@ -624,6 +624,48 @@ class ApiService {
   async getMedicalReportsByPatient(patientId: number) {
     return this.get<any>(`/medical-reports/patient/${patientId}`);
   }
+
+  // Laboratory methods
+  async getLabTests(page: number = 1, status?: string, search?: string) {
+    let url = `/lab?page=${page}`;
+    if (status) url += `&status=${status}`;
+    if (search) url += `&search=${search}`;
+    return this.get<any>(url);
+  }
+
+  async getLabStats() {
+    return this.get<any>('/lab/stats');
+  }
+
+  async collectLabSample(id: number, data: any) {
+    return this.post<any>(`/lab/tests/${id}/collect`, data);
+  }
+
+  async uploadLabReport(id: number, data: FormData) {
+    const token = this.getAuthToken();
+    const url = `${API_BASE_URL}/lab/tests/${id}/report`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: data,
+    });
+
+    const responseData = await response.json();
+    if (!response.ok) {
+      const error: any = new Error(responseData.message || 'Failed to upload report');
+      error.validationErrors = responseData.errors || {};
+      throw error;
+    }
+    return responseData;
+  }
+
+  async verifyLabReport(id: number, data: any) {
+    return this.post<any>(`/lab/tests/${id}/verify`, data);
+  }
 }
 
 export const apiService = new ApiService();
