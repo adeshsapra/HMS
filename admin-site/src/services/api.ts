@@ -576,6 +576,54 @@ class ApiService {
   async reorderHomeCareProfessionals(professionals: Array<{ id: number; sort_order: number }>) {
     return this.post<any>('/admin/home-care/professionals/reorder', { professionals });
   }
+
+  // Prescription methods
+  async getPrescriptions(page: number = 1, perPage: number = 10) {
+    return this.get<any>(`/prescriptions?page=${page}&per_page=${perPage}`);
+  }
+
+  async createPrescription(data: any) {
+    return this.post<any>('/prescriptions', data);
+  }
+
+  async getPrescription(id: number) {
+    return this.get<any>(`/prescriptions/${id}`);
+  }
+
+  async getPrescriptionByAppointment(appointmentId: number) {
+    return this.get<any>(`/prescriptions/appointment/${appointmentId}`);
+  }
+
+  // Medical Report methods
+  async getMedicalReports(page: number = 1, perPage: number = 10) {
+    return this.get<any>(`/medical-reports?page=${page}&per_page=${perPage}`);
+  }
+
+  async createMedicalReport(data: FormData) {
+    const token = this.getAuthToken();
+    const url = `${API_BASE_URL}/medical-reports`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: data,
+    });
+
+    const responseData = await response.json();
+    if (!response.ok) {
+      const error: any = new Error(responseData.message || 'Failed to upload report');
+      error.validationErrors = responseData.errors || {};
+      throw error;
+    }
+    return responseData;
+  }
+
+  async getMedicalReportsByPatient(patientId: number) {
+    return this.get<any>(`/medical-reports/patient/${patientId}`);
+  }
 }
 
 export const apiService = new ApiService();

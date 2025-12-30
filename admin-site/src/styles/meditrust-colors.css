@@ -1,0 +1,173 @@
+/* MediTrust Color Variables for Admin Site */
+/* Based on the main-site color scheme */
+
+:root {
+    --background-color: #ffffff;
+    --default-color: #2c3031;
+    --heading-color: #18444c;
+    --accent-color: #049ebb;
+    --surface-color: #ffffff;
+    --contrast-color: #ffffff;
+
+    /* Additional color variations */
+    --accent-light: color-mix(in srgb, var(--accent-color), transparent 90%);
+    --accent-medium: color-mix(in srgb, var(--accent-color), transparent 70%);
+    --accent-dark: color-mix(in srgb, var(--accent-color), black 20%);
+
+    --heading-light: color-mix(in srgb, var(--heading-color), transparent 20%);
+    --heading-medium: color-mix(in srgb, var(--heading-color), transparent 40%);
+
+    --default-light: color-mix(in srgb, var(--default-color), transparent 20%);
+    --default-medium: color-mix(in srgb, var(--default-color), transparent 40%);
+    --default-dark: color-mix(in srgb, var(--default-color), black 20%);
+
+    /* Background variations */
+    --background-light: #f2f8f9;
+    --background-dark: #021418;
+
+    /* Border colors */
+    --border-color: color-mix(in srgb, var(--default-color), transparent 85%);
+    --border-hover: color-mix(in srgb, var(--accent-color), transparent 60%);
+    --border-focus: var(--accent-color);
+
+    /* Shadow definitions */
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 8px 25px rgba(0, 0, 0, 0.15);
+    --shadow-hover: 0 10px 30px rgba(4, 158, 187, 0.15);
+
+    /* Status colors */
+    --success-color: #28a745;
+    --warning-color: #ffc107;
+    --error-color: #dc3545;
+    --info-color: #17a2b8;
+}
+
+/* Apply MediTrust colors to common elements */
+.meditrust-header {
+    background: linear-gradient(135deg, var(--accent-color), var(--heading-color));
+    color: var(--contrast-color);
+}
+
+.meditrust-accent {
+    color: var(--accent-color);
+}
+
+.meditrust-bg-accent {
+    background-color: var(--accent-color);
+    color: var(--contrast-color);
+}
+
+.meditrust-bg-light {
+    background-color: var(--background-light);
+}
+
+.meditrust-text-heading {
+    color: var(--heading-color);
+}
+
+.meditrust-text-default {
+    color: var(--default-color);
+}
+
+/* Button variations using MediTrust colors */
+.btn-meditrust-primary {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    color: var(--contrast-color);
+}
+
+.btn-meditrust-primary:hover {
+    background-color: var(--accent-dark);
+    border-color: var(--accent-dark);
+    color: var(--contrast-color);
+}
+
+.btn-meditrust-outline {
+    background-color: transparent;
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+}
+
+.btn-meditrust-outline:hover {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    color: var(--contrast-color);
+}
+
+/* Card styles with MediTrust colors */
+.card-meditrust {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+}
+
+.card-meditrust:hover {
+    box-shadow: var(--shadow-hover);
+    border-color: var(--border-hover);
+}
+
+/* Form styles with MediTrust colors */
+.form-control-meditrust {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+}
+
+.form-control-meditrust:focus {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--accent-color), transparent 85%);
+    outline: none;
+}
+
+/* Gradient backgrounds */
+.bg-gradient-meditrust {
+    background: linear-gradient(135deg, var(--accent-color), var(--heading-color));
+}
+
+.bg-gradient-light {
+    background: linear-gradient(135deg, var(--background-light), var(--surface-color));
+}
+
+/* Text gradients */
+.text-gradient-meditrust {
+    background: linear-gradient(135deg, var(--heading-color), var(--accent-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Badge styles */
+.badge-meditrust {
+    background-color: var(--accent-light);
+    color: var(--accent-color);
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* Status badges */
+.badge-success {
+    background-color: color-mix(in srgb, var(--success-color), transparent 85%);
+    color: var(--success-color);
+}
+
+.badge-warning {
+    background-color: color-mix(in srgb, var(--warning-color), transparent 85%);
+    color: #856404;
+}
+
+.badge-error {
+    background-color: color-mix(in srgb, var(--error-color), transparent 85%);
+    color: var(--error-color);
+}
+
+.badge-info {
+    background-color: color-mix(in srgb, var(--info-color), transparent 85%);
+    color: var(--info-color);
+}

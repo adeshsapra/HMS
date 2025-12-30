@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { DataTable, FormModal, ViewModal, DeleteConfirmModal, Column, FormField, ViewField, AppointmentCalendar } from "@/components";
+import { DataTable, FormModal, ViewModal, DeleteConfirmModal, Column, FormField, ViewField, AppointmentCalendar, PrescriptionModal } from "@/components";
 import { ActionItem } from "@/components/DataTable";
 import { patientsData, doctorsData } from "@/data/hms-data";
-import { Button, Spinner } from "@material-tailwind/react";
-import { CalendarDaysIcon, CheckIcon, XMarkIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
+import { Button } from "@material-tailwind/react";
+import { CalendarDaysIcon, CheckIcon, XMarkIcon, CheckCircleIcon, DocumentPlusIcon } from "@heroicons/react/24/outline";
 import { apiService } from "@/services/api";
 import { toast } from "react-toastify";
 import { useAuth } from "@/context/AuthContext";
@@ -35,6 +35,7 @@ export default function Appointments(): JSX.Element {
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [openViewModal, setOpenViewModal] = useState<boolean>(false);
   const [openDeleteModal, setOpenDeleteModal] = useState<boolean>(false);
+  const [openPrescriptionModal, setOpenPrescriptionModal] = useState<boolean>(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
 
@@ -70,9 +71,11 @@ export default function Appointments(): JSX.Element {
           original: appt
         }));
 
-        // For doctors, only show confirmed appointments
+        // Show only confirmed and completed appointments for all users
         if (isDoctor) {
-          mappedData = mappedData.filter((appt: Appointment) => appt.status === "confirmed");
+          mappedData = mappedData.filter((appt: Appointment) =>
+            appt.status === "confirmed" || appt.status === "completed"
+          );
         }
 
         setAppointments(mappedData);
@@ -167,6 +170,93 @@ export default function Appointments(): JSX.Element {
     { key: "reason", label: "Reason", fullWidth: true },
     { key: "phone", label: "Contact Phone" },
     { key: "status", label: "Status", type: "status" },
+    {
+      key: "prescriptionDetails",
+      label: "Prescription Details",
+      fullWidth: true,
+      render: (_, row) => {
+        const prescription = row.original?.prescription;
+        if (!prescription) return <span className="text-gray-400 italic text-sm">No prescription added</span>;
+        return (
+          <div className="bg-gray-50 p-4 rounded-xl border border-gray-200/60 shadow-sm space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="flex flex-col">
+                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Diagnosis</span>
+                <span className="text-sm font-semibold text-blue-gray-800">{prescription.diagnosis || 'N/A'}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Advice</span>
+                <span className="text-sm font-semibold text-blue-gray-800">{prescription.advice || 'N/A'}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Follow-up</span>
+                <span className="text-sm font-semibold text-blue-gray-800">{prescription.follow_up_date || 'N/A'}</span>
+              </div>
+            </div>
+          </div>
+        );
+      }
+    },
+    {
+      key: "prescriptionItems",
+      label: "Prescribed Medicines",
+      fullWidth: true,
+      render: (_, row) => {
+        const items = row.original?.prescription?.items;
+        if (!items || items.length === 0) return null;
+        return (
+          <div className="overflow-hidden rounded-xl border border-gray-200 shadow-sm mt-2">
+            <table className="w-full text-left text-sm text-gray-600">
+              <thead className="bg-gray-100/80 text-gray-700 font-bold uppercase text-xs tracking-wider">
+                <tr>
+                  <th className="p-3">Medicine</th>
+                  <th className="p-3">Dosage</th>
+                  <th className="p-3">Frequency</th>
+                  <th className="p-3">Duration</th>
+                  <th className="p-3">Instructions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 bg-white">
+                {items.map((item: any, i: number) => (
+                  <tr key={i} className="hover:bg-blue-50/30 transition-colors">
+                    <td className="p-3 font-semibold text-gray-900">{item.medicine_name}</td>
+                    <td className="p-3">{item.dosage}</td>
+                    <td className="p-3">{item.frequency}</td>
+                    <td className="p-3">{item.duration}</td>
+                    <td className="p-3 text-gray-500 italic">{item.instructions}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        );
+      }
+    },
+    {
+      key: "labTests",
+      label: "Lab Tests Records",
+      fullWidth: true,
+      render: (_, row) => {
+        // Handle both camelCase and snake_case just in case, though usually snake_case from API
+        const labs = row.original?.prescription?.lab_tests || row.original?.prescription?.labTests;
+        if (!labs || labs.length === 0) return null;
+
+        return (
+          <div className="flex flex-wrap gap-2 mt-2">
+            {labs.map((test: any, i: number) => (
+              <div key={i} className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-sm font-medium border border-blue-100 shadow-sm">
+                <span className="relative flex h-2 w-2">
+                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${test.status === 'completed' ? 'bg-green-400' : 'bg-blue-400'}`}></span>
+                  <span className={`relative inline-flex rounded-full h-2 w-2 ${test.status === 'completed' ? 'bg-green-500' : 'bg-blue-500'}`}></span>
+                </span>
+                {test.test_name}
+                {test.status && <span className="ml-1 text-xs opacity-60 uppercase">({test.status})</span>}
+              </div>
+            ))}
+          </div>
+        );
+      }
+    }
   ];
 
   const formFields: FormField[] = [
@@ -267,6 +357,11 @@ export default function Appointments(): JSX.Element {
     setOpenViewModal(true);
   };
 
+  const handlePrescribe = (appointment: Record<string, any>): void => {
+    setSelectedAppointment(appointment as Appointment);
+    setOpenPrescriptionModal(true);
+  };
+
   const handleStatusChange = async (appointment: Appointment, newStatus: string) => {
     try {
       // Optimistic update
@@ -306,12 +401,21 @@ export default function Appointments(): JSX.Element {
         onClick: () => handleStatusChange(appointment, "cancelled"),
       });
     } else if (appointment.status === "confirmed") {
+      if (isDoctor) {
+        actions.push({
+          label: "Prescribe",
+          icon: <DocumentPlusIcon className="h-4 w-4" />,
+          color: "blue",
+          onClick: () => handlePrescribe(appointment),
+        });
+      }
       actions.push({
         label: "Complete",
         icon: <CheckCircleIcon className="h-4 w-4" />,
-        color: "blue",
+        color: "green",
         onClick: () => handleStatusChange(appointment, "completed"),
       });
+
       // Only non-doctors can cancel confirmed appointments
       if (!isDoctor) {
         actions.push({
@@ -369,7 +473,7 @@ export default function Appointments(): JSX.Element {
           </h2>
           {isDoctor && (
             <p className="text-blue-gray-600">
-              View and manage your confirmed appointments. You can mark them as completed.
+              View and manage your confirmed and completed appointments. You can create prescriptions and mark them as completed.
             </p>
           )}
         </div>
@@ -400,7 +504,7 @@ export default function Appointments(): JSX.Element {
         </div>
       ) : viewMode === "list" ? (
         <DataTable
-          title={isDoctor ? "My Confirmed Appointments" : "Appointments Management"}
+          title={isDoctor ? "My Confirmed & Completed Appointments" : "Appointments Management"}
           data={appointments}
           columns={columns}
           onAdd={!isDoctor ? handleAdd : undefined}
@@ -463,7 +567,18 @@ export default function Appointments(): JSX.Element {
         message="Are you sure you want to delete this appointment?"
         itemName={selectedAppointment?.patientName}
       />
+
+      <PrescriptionModal
+        open={openPrescriptionModal}
+        onClose={() => {
+          setOpenPrescriptionModal(false);
+          setSelectedAppointment(null);
+        }}
+        appointment={selectedAppointment?.original}
+        onSuccess={() => {
+          fetchAppointments(pagination.currentPage);
+        }}
+      />
     </div>
   );
 }
-

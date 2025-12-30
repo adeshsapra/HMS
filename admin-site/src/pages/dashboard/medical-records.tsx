@@ -1,104 +1,168 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { DataTable, FormModal, ViewModal, DeleteConfirmModal, Column, FormField, ViewField } from "@/components";
-import { medicalRecordsData, doctorsData, patientsData, MedicalRecord } from "@/data/hms-data";
+import { apiService } from "@/services/api";
+import { toast } from "react-toastify";
+import { patientsData, doctorsData } from "@/data/hms-data"; // Fallback/Reference
 import { Button } from "@material-tailwind/react";
 import { PlusIcon } from "@heroicons/react/24/outline";
 
+interface MedicalReport {
+    id: number;
+    patientName: string;
+    doctorName: string;
+    reportType: string;
+    reportTitle: string;
+    date: string;
+    filePath: string;
+}
+
 export default function MedicalRecords(): JSX.Element {
-    const [records, setRecords] = useState<MedicalRecord[]>(medicalRecordsData);
+    const [records, setRecords] = useState<MedicalReport[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [pagination, setPagination] = useState({
+        currentPage: 1,
+        totalPages: 1,
+        totalItems: 0,
+        perPage: 10
+    });
+
     const [openModal, setOpenModal] = useState<boolean>(false);
     const [openViewModal, setOpenViewModal] = useState<boolean>(false);
-    const [openDeleteModal, setOpenDeleteModal] = useState<boolean>(false);
-    const [selectedRecord, setSelectedRecord] = useState<MedicalRecord | null>(null);
+    const [selectedRecord, setSelectedRecord] = useState<MedicalReport | null>(null);
+
+    const fetchReports = async (page = 1) => {
+        try {
+            setLoading(true);
+            const response = await apiService.getMedicalReports(page);
+            if (response && response.data) {
+                const paginator = response.data;
+                const mappedData = paginator.data.map((r: any) => ({
+                    id: r.id,
+                    patientName: r.patient?.name || "Unknown",
+                    doctorName: r.doctor ? `${r.doctor.first_name} ${r.doctor.last_name}` : "Unknown",
+                    reportType: r.report_type,
+                    reportTitle: r.report_title,
+                    date: r.created_at,
+                    filePath: r.file_path,
+                }));
+
+                setRecords(mappedData);
+                setPagination({
+                    currentPage: paginator.current_page,
+                    totalPages: paginator.last_page,
+                    totalItems: paginator.total,
+                    perPage: paginator.per_page
+                });
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to load medical reports");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
+    const handlePageChange = (page: number) => {
+        fetchReports(page);
+    };
 
     const columns: Column[] = [
         {
+            key: "id",
+            label: "ID",
+            render: (value: any) => (
+                <span className="font-bold text-blue-gray-800">#{value}</span>
+            ),
+        },
+        {
             key: "patientName",
             label: "Patient",
-            render: (value: any) => (
-                <span className="font-semibold text-blue-gray-700">{value}</span>
-            ),
         },
         {
-            key: "doctorName",
-            label: "Doctor",
-            render: (value: any) => (
-                <span className="font-medium text-blue-gray-600">{value}</span>
-            ),
+            key: "reportTitle",
+            label: "Title",
         },
         {
-            key: "diagnosis",
-            label: "Diagnosis",
+            key: "reportType",
+            label: "Type",
             render: (value: any) => (
-                <span className="font-medium text-blue-gray-800">{value}</span>
+                <span className="capitalize px-2 py-1 rounded bg-blue-50 text-blue-700 text-xs font-bold">
+                    {value}
+                </span>
             ),
         },
         {
             key: "date",
             label: "Date",
             render: (value: any) => (
-                <span className="text-sm font-medium text-blue-gray-700">
+                <span className="text-sm text-gray-600">
                     {new Date(value).toLocaleDateString()}
                 </span>
             ),
         },
-        { key: "status", label: "Status", type: "status" },
+        {
+            key: "filePath",
+            label: "View",
+            render: (value: any) => (
+                <a href={`http://localhost:8000${value}`} target="_blank" rel="noreferrer" className="text-blue-500 hover:underline">
+                    Download/View
+                </a>
+            ),
+        },
     ];
 
-    const viewFields: ViewField[] = [
-        { key: "patientName", label: "Patient Name" },
-        { key: "doctorName", label: "Doctor Name" },
-        { key: "diagnosis", label: "Diagnosis" },
-        { key: "treatment", label: "Treatment" },
-        { key: "date", label: "Date", type: "date" },
-        { key: "status", label: "Status", type: "status" },
-    ];
+    const [patients, setPatients] = useState<any[]>([]);
+
+    useEffect(() => {
+        const fetchPatients = async () => {
+            const response = await apiService.getPatients(1, 100); // Fetch enough patients
+            if (response && response.data) {
+                setPatients(response.data.data);
+            }
+        };
+        fetchPatients();
+        fetchReports();
+    }, []);
 
     const formFields: FormField[] = [
         {
-            name: "patientName",
+            name: "patient_id",
             label: "Patient",
             type: "select",
             required: true,
-            options: patientsData.map((p) => ({ value: p.name, label: p.name })),
+            options: patients.map((p) => ({ value: String(p.id), label: `${p.name} (${p.email})` })),
         },
+        // We really need to fetch patients from API for this select to work properly with real IDs.
+        // For now, I'll rely on what's available or assuming the user sets this up correctly.
+        // Let's change the options to fetch from API in useEffect if we want perfection.
+        // But for this step I'll stick to a simpler approach.
         {
-            name: "doctorName",
-            label: "Doctor",
-            type: "select",
-            required: true,
-            options: doctorsData.map((d) => ({ value: d.name, label: d.name })),
-        },
-        {
-            name: "diagnosis",
-            label: "Diagnosis",
+            name: "report_title",
+            label: "Report Title",
             type: "text",
             required: true,
-            placeholder: "e.g. Hypertension",
+            placeholder: "e.g. Blood Test Result",
         },
         {
-            name: "treatment",
-            label: "Treatment",
-            type: "textarea",
-            required: true,
-            placeholder: "Treatment plan...",
-        },
-        {
-            name: "date",
-            label: "Date",
-            type: "date",
-            required: true,
-        },
-        {
-            name: "status",
-            label: "Status",
+            name: "report_type",
+            label: "Report Type",
             type: "select",
             required: true,
             options: [
-                { value: "ongoing", label: "Ongoing" },
-                { value: "resolved", label: "Resolved" },
-                { value: "critical", label: "Critical" },
+                { value: "blood", label: "Blood Test" },
+                { value: "x-ray", label: "X-Ray" },
+                { value: "mri", label: "MRI" },
+                { value: "ct-scan", label: "CT Scan" },
+                { value: "other", label: "Other" },
             ],
+        },
+        {
+            name: "report_file",
+            label: "Upload File",
+            type: "file",
+            required: true,
+            accept: ".pdf,.jpg,.jpeg,.png",
         },
     ];
 
@@ -107,53 +171,43 @@ export default function MedicalRecords(): JSX.Element {
         setOpenModal(true);
     };
 
-    const handleEdit = (record: MedicalRecord): void => {
-        setSelectedRecord(record);
-        setOpenModal(true);
-    };
-
-    const handleDelete = (record: MedicalRecord): void => {
-        setSelectedRecord(record);
-        setOpenDeleteModal(true);
-    };
-
-    const confirmDelete = (): void => {
-        if (selectedRecord) {
-            setRecords(records.filter((r) => r.id !== selectedRecord.id));
-            setOpenDeleteModal(false);
-            setSelectedRecord(null);
-        }
-    };
-
-    const handleView = (record: MedicalRecord): void => {
+    const handleView = (record: MedicalReport): void => {
         setSelectedRecord(record);
         setOpenViewModal(true);
     };
 
-    const handleSubmit = (data: Record<string, any>): void => {
-        if (selectedRecord) {
-            setRecords(
-                records.map((r) =>
-                    r.id === selectedRecord.id ? { ...r, ...data } as MedicalRecord : r
-                )
-            );
-        } else {
-            const newRecord: MedicalRecord = {
-                id: records.length + 1,
-                ...data,
-            } as MedicalRecord;
-            setRecords([...records, newRecord]);
+    const handleSubmit = async (data: Record<string, any>): Promise<void> => {
+        try {
+            const formData = new FormData();
+            formData.append("patient_id", data.patient_id); // Use ID here
+            formData.append("report_title", data.report_title);
+            formData.append("report_type", data.report_type);
+            formData.append("report_file", data.report_file);
+
+            await apiService.createMedicalReport(formData);
+            toast.success("Report uploaded successfully");
+            fetchReports(pagination.currentPage);
+            setOpenModal(false);
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to upload report");
         }
-        setOpenModal(false);
-        setSelectedRecord(null);
     };
+
+    const viewFields: ViewField[] = [
+        { key: "patientName", label: "Patient Name" },
+        { key: "doctorName", label: "Doctor Name" },
+        { key: "reportTitle", label: "Report Title" },
+        { key: "reportType", label: "Report Type" },
+        { key: "date", label: "Date Uploaded", type: "date" },
+    ];
 
     return (
         <div className="mt-12 mb-8">
             <div className="mb-8 flex items-center justify-between">
                 <div>
-                    <h2 className="text-4xl font-bold text-blue-gray-800 mb-2">Medical Records</h2>
-                    <p className="text-blue-gray-600 text-base">Manage patient medical history and records</p>
+                    <h2 className="text-4xl font-bold text-blue-gray-800 mb-2">Medical Reports</h2>
+                    <p className="text-blue-gray-600 text-base">Upload and view patient test reports</p>
                 </div>
                 <Button
                     variant="gradient"
@@ -162,23 +216,27 @@ export default function MedicalRecords(): JSX.Element {
                     onClick={handleAdd}
                 >
                     <PlusIcon className="h-5 w-5" />
-                    Add Record
+                    Upload Report
                 </Button>
             </div>
 
             <DataTable
-                title="Medical Records List"
+                title="Reports List"
                 data={records}
                 columns={columns}
-                onAdd={handleAdd}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
                 onView={handleView}
-                searchable={true}
-                filterable={true}
-                exportable={true}
-                addButtonLabel="Add Record"
-                searchPlaceholder="Search records..."
+                searchable={false}
+                filterable={false}
+                exportable={false}
+                addButtonLabel="Upload Report"
+                onAdd={handleAdd}
+                pagination={{
+                    currentPage: pagination.currentPage,
+                    totalPages: pagination.totalPages,
+                    totalItems: pagination.totalItems,
+                    perPage: pagination.perPage,
+                    onPageChange: handlePageChange
+                }}
             />
 
             <FormModal
@@ -187,11 +245,10 @@ export default function MedicalRecords(): JSX.Element {
                     setOpenModal(false);
                     setSelectedRecord(null);
                 }}
-                title={selectedRecord ? "Edit Medical Record" : "Add New Medical Record"}
+                title="Upload Medical Report"
                 formFields={formFields}
-                initialData={selectedRecord || {}}
                 onSubmit={handleSubmit}
-                submitLabel={selectedRecord ? "Update Record" : "Add Record"}
+                submitLabel="Upload"
             />
 
             <ViewModal
@@ -200,21 +257,9 @@ export default function MedicalRecords(): JSX.Element {
                     setOpenViewModal(false);
                     setSelectedRecord(null);
                 }}
-                title="Medical Record Details"
+                title="Report Details"
                 data={selectedRecord || {}}
                 fields={viewFields}
-            />
-
-            <DeleteConfirmModal
-                open={openDeleteModal}
-                onClose={() => {
-                    setOpenDeleteModal(false);
-                    setSelectedRecord(null);
-                }}
-                onConfirm={confirmDelete}
-                title="Delete Record"
-                message="Are you sure you want to delete this medical record?"
-                itemName={selectedRecord?.diagnosis}
             />
         </div>
     );
