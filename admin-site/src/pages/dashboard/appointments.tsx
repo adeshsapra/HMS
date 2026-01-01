@@ -16,6 +16,8 @@ interface Appointment {
   date: string;
   time: string;
   status: string;
+  consultation_status?: string;
+  lab_status?: string;
   reason?: string;
   phone?: string;
   original?: any;
@@ -66,6 +68,8 @@ export default function Appointments(): JSX.Element {
           date: appt.appointment_date,
           time: appt.appointment_time,
           status: appt.status || "pending",
+          consultation_status: appt.consultation_status || "pending",
+          lab_status: appt.lab_status || "not_required",
           reason: appt.reason,
           phone: appt.patient_phone || appt.user?.phone,
           original: appt
@@ -152,6 +156,33 @@ export default function Appointments(): JSX.Element {
       render: (value: any) => (
         <span className="font-semibold text-blue-gray-800">{value}</span>
       ),
+    },
+    {
+      key: "consultation_status",
+      label: "Consultation",
+      render: (value: any) => {
+        const color = value === 'completed' ? 'green' : 'amber';
+        return (
+          <span className={`px-2 py-1 rounded-full text-xs font-bold uppercase bg-${color}-50 text-${color}-600 border border-${color}-100`}>
+            {value || 'pending'}
+          </span>
+        );
+      }
+    },
+    {
+      key: "lab_status",
+      label: "Lab Status",
+      render: (value: any) => {
+        let color = 'gray';
+        if (value === 'completed') color = 'green';
+        if (value === 'pending') color = 'amber';
+        if (value === 'reviewed') color = 'blue';
+        return (
+          <span className={`px-2 py-1 rounded-full text-xs font-bold uppercase bg-${color}-50 text-${color}-600 border border-${color}-100`}>
+            {value?.replace('_', ' ') || 'N/A'}
+          </span>
+        );
+      }
     },
     {
       key: "status",

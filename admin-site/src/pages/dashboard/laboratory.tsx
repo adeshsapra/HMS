@@ -39,13 +39,16 @@ interface LabTest {
     id: number;
     patient: {
       id: number;
-      first_name: string;
-      last_name: string;
-      patient_id: string;
+      first_name?: string;
+      last_name?: string;
+      name?: string;
+      patient_id?: string;
     };
     doctor: {
       id: number;
-      user: {
+      first_name?: string;
+      last_name?: string;
+      user?: {
         name: string;
       };
     };
@@ -112,7 +115,7 @@ export default function Laboratory(): JSX.Element {
       // Fetch Tests based on tab
       let statusFilter = "";
       if (activeTab === "pending_sample") statusFilter = "ordered";
-      else if (activeTab === "processing") statusFilter = "processing";
+      else if (activeTab === "sample_collected") statusFilter = "sample_collected";
       else if (activeTab === "completed") statusFilter = "completed";
 
       const testsRes = await apiService.getLabTests(1, statusFilter);
@@ -151,12 +154,13 @@ export default function Laboratory(): JSX.Element {
 
       const formData = new FormData();
       formData.append('report_title', reportData.report_title);
+      formData.append('report_category', 'lab'); // Default for lab orders
       formData.append('result_summary', reportData.result_summary);
       formData.append('report_file', reportData.file);
       formData.append('uploaded_by', String(staffId));
 
       await apiService.uploadLabReport(selectedTest.id, formData);
-      showToast("Report uploaded successfully!", "success");
+      showToast("Report uploaded & Lab Status Updated!", "success");
       setUploadModalOpen(false);
       fetchData();
     } catch (error: any) {
@@ -180,7 +184,7 @@ export default function Laboratory(): JSX.Element {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "ordered": return "blue";
-      case "processing": return "orange";
+      case "sample_collected": return "orange";
       case "completed": return "green";
       case "cancelled": return "red";
       default: return "gray";
@@ -228,31 +232,34 @@ export default function Laboratory(): JSX.Element {
 
       <Card className="h-full w-full border border-blue-gray-100 shadow-sm">
         <CardBody className="p-0">
-          {/* Fixed Tabs Section */}
           <div className="rounded-none border-b border-blue-gray-50 p-4">
-            <Tabs value={activeTab} onChange={(val) => setActiveTab(val)}>
+            <Tabs value={activeTab}>
               <TabsHeader className="max-w-4xl mx-auto bg-gray-100 p-1">
                 <div className="grid grid-cols-2 md:grid-cols-4 w-full">
                   <Tab
                     value="all"
+                    onClick={() => setActiveTab("all")}
                     className="text-center text-sm md:text-base py-2 hover:bg-white transition-colors"
                   >
                     All Tests
                   </Tab>
                   <Tab
                     value="pending_sample"
+                    onClick={() => setActiveTab("pending_sample")}
                     className="text-center text-sm md:text-base py-2 hover:bg-white transition-colors"
                   >
                     Pending Sample
                   </Tab>
                   <Tab
-                    value="processing"
+                    value="sample_collected"
+                    onClick={() => setActiveTab("sample_collected")}
                     className="text-center text-sm md:text-base py-2 hover:bg-white transition-colors"
                   >
-                    Processing
+                    Sample Collected
                   </Tab>
                   <Tab
                     value="completed"
+                    onClick={() => setActiveTab("completed")}
                     className="text-center text-sm md:text-base py-2 hover:bg-white transition-colors"
                   >
                     Completed
@@ -332,16 +339,23 @@ export default function Laboratory(): JSX.Element {
                       <td className="p-4 border-b border-blue-gray-50">
                         <div className="flex flex-col">
                           <Typography variant="small" color="blue-gray" className="font-normal">
-                            {test.prescription?.patient?.first_name || 'Unknown'} {test.prescription?.patient?.last_name || ''}
-                          </Typography>
-                          <Typography variant="small" color="gray" className="font-normal opacity-70 text-[11px]">
-                            ID: {test.prescription?.patient?.patient_id || 'N/A'}
+                            {/* Handle both User and Patient models */}
+                            {test.prescription?.patient
+                              ? (test.prescription.patient.first_name
+                                ? `${test.prescription.patient.first_name} ${test.prescription.patient.last_name || ''}`
+                                : (test.prescription.patient as any).name)
+                              : 'Unknown'}
                           </Typography>
                         </div>
                       </td>
                       <td className="p-4 border-b border-blue-gray-50">
                         <Typography variant="small" color="blue-gray" className="font-normal">
-                          {test.prescription?.doctor?.user?.name || 'No Doctor'}
+                          {/* Handle Doctor name via User or Name fields */}
+                          {test.prescription?.doctor
+                            ? (test.prescription.doctor.first_name
+                              ? `${test.prescription.doctor.first_name} ${test.prescription.doctor.last_name}`
+                              : test.prescription.doctor.user?.name)
+                            : 'No Doctor'}
                         </Typography>
                       </td>
                       <td className="p-4 border-b border-blue-gray-50">
@@ -376,7 +390,7 @@ export default function Laboratory(): JSX.Element {
                               <BeakerIcon className="h-3 w-3" /> Collect
                             </Button>
                           )}
-                          {test.status === 'processing' && !isDoctor && (
+                          {test.status === 'sample_collected' && !isDoctor && (
                             <Button
                               size="sm"
                               variant="filled"

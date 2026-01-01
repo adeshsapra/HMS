@@ -625,6 +625,10 @@ class ApiService {
     return this.get<any>(`/medical-reports/patient/${patientId}`);
   }
 
+  async verifyMedicalReport(id: number, data: any) {
+    return this.post<any>(`/medical-reports/${id}/verify`, data);
+  }
+
   // Laboratory methods
   async getLabTests(page: number = 1, status?: string, search?: string) {
     let url = `/lab?page=${page}`;
