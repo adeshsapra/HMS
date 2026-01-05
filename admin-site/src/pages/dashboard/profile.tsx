@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import {
+import React, { useState, useEffect, useMemo } from "react"; import {
   Card,
   CardBody,
   Avatar,
@@ -112,10 +111,12 @@ function DialogInputField({ label, value, show, toggle, onChange }: any) {
 }
 
 export function Profile(): JSX.Element {
-  const { user, refreshUser } = useAuth();
+  const { user, loading: authLoading, refreshUser } = useAuth(); // Rename loading to authLoading
   const { showToast } = useToast();
+
+  // Local state
   const [isEditing, setIsEditing] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false); // Renamed from 'loading' to avoid conflict
   const [openPasswordModal, setOpenPasswordModal] = useState(false);
   const [showPasswords, setShowPasswords] = useState({
     current: false,
@@ -123,12 +124,41 @@ export function Profile(): JSX.Element {
     confirm: false,
   });
 
+  // 1. DETERMINE IF ROLE DATA IS ACTUALLY LOADED
+  // This prevents the page from rendering "Basic Info" only while waiting for the "Doctor/Staff" object
+  const isDataReady = useMemo(() => {
+    if (authLoading || !user) return false;
+
+    const role = user?.role?.name?.toLowerCase();
+
+    // If user is a doctor, we MUST have user.doctor object
+    if (role === 'doctor') return !!user.doctor;
+
+    // If user is staff, we MUST have user.staff object
+    if (role === 'staff') return !!user.staff;
+
+    // If user is patient, we MUST have user.patient object
+    if (role === 'patient') return !!user.patient;
+
+    // Admins might not have extra relations, so they are ready
+    return true;
+  }, [user, authLoading]);
+
+  // 2. EFFECT: FETCH DATA IF MISSING
+  // If we have a user, but the relation data (doctor/staff) is missing, force a refresh
+  useEffect(() => {
+    if (!authLoading && user && !isDataReady) {
+      console.log("User loaded but role data missing... refreshing.");
+      refreshUser();
+    }
+  }, [authLoading, user, isDataReady, refreshUser]);
+
+  // Role Helpers (Safe to use now because we wait for isDataReady)
   const isDoctor = !!user?.doctor;
   const isStaff = !!user?.staff;
   const isPatient = !!user?.patient;
   const isMedicalStaff = isDoctor || isStaff;
   const isSuperAdmin = !!user && !isDoctor && !isStaff && !isPatient;
-  const roleName = user?.role?.name?.toUpperCase() || "USER";
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return "Not set";
@@ -243,7 +273,7 @@ export function Profile(): JSX.Element {
 
   const handleSave = async () => {
     try {
-      setLoading(true);
+      setSubmitting(true);
 
       const submitData = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
@@ -290,7 +320,7 @@ export function Profile(): JSX.Element {
       console.error("Failed to update profile:", error);
       showToast(error.message || "Failed to update profile", "error");
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
@@ -318,7 +348,7 @@ export function Profile(): JSX.Element {
       return;
     }
     try {
-      setLoading(true);
+      setSubmitting(true);
       await apiService.changePassword(
         passwordData.currentPassword,
         passwordData.newPassword,
@@ -335,7 +365,7 @@ export function Profile(): JSX.Element {
       setPasswordError(error.message || "Failed to change password");
       showToast(error.message || "Failed to change password", "error");
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
@@ -350,10 +380,23 @@ export function Profile(): JSX.Element {
       : [...currentDays, day];
     handleChange("working_days", newDays);
   };
-
   const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
+  if (authLoading || !isDataReady) {
+    return (
+      <div className="mt-6 px-4 lg:px-12 w-full max-w-[1600px] mx-auto flex justify-center items-center h-64">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+          <Typography variant="small" color="blue-gray" className="font-bold animate-pulse">
+            Loading profile details...
+          </Typography>
+        </div>
+      </div>
+    );
+  }
+
   return (
+
     <div className="mt-6 px-4 lg:px-12 w-full max-w-[1600px] mx-auto relative">
       {/* Header Section */}
       <div className="mb-6 animate-fade-in flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -1128,11 +1171,11 @@ export function Profile(): JSX.Element {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    <Button variant="text" color="red" size="sm" onClick={handleCancel} disabled={loading} className="px-4 py-2 rounded-xl font-bold text-[10px] lowercase first-letter:uppercase">
+                    <Button variant="text" color="red" size="sm" onClick={handleCancel} disabled={submitting} className="px-4 py-2 rounded-xl font-bold text-[10px] lowercase first-letter:uppercase">
                       Discard
                     </Button>
-                    <Button color="blue" variant="gradient" onClick={handleSave} disabled={loading} className="h-9 px-6 rounded-xl shadow-blue-100 shadow-lg font-bold text-[10px] tracking-tight">
-                      {loading ? "SAVING..." : "SAVE PROFILE"}
+                    <Button color="blue" variant="gradient" onClick={handleSave} disabled={submitting} className="h-9 px-6 rounded-xl shadow-blue-100 shadow-lg font-bold text-[10px] tracking-tight">
+                      {submitting ? "SAVING..." : "SAVE PROFILE"}
                     </Button>
                   </div>
                 </CardBody>
@@ -1160,8 +1203,8 @@ export function Profile(): JSX.Element {
             </div>
           </DialogBody>
           <DialogFooter className="px-8 pb-10 pt-2 flex flex-col gap-3">
-            <Button color="blue" fullWidth size="md" onClick={handleChangePassword} disabled={loading} className="rounded-xl h-11 font-bold shadow-sm">
-              {loading ? "UPDATING..." : "UPDATE PASSWORD"}
+            <Button color="blue" fullWidth size="md" onClick={handleChangePassword} disabled={submitting} className="rounded-xl h-11 font-bold shadow-sm">
+              {submitting ? "UPDATING..." : "UPDATE PASSWORD"}
             </Button>
             <Button variant="text" color="red" fullWidth onClick={() => setOpenPasswordModal(false)} className="rounded-xl h-10 font-bold uppercase text-[10px]">
               Cancel
