@@ -116,9 +116,16 @@ export default function MedicalRecords(): JSX.Element {
 
     useEffect(() => {
         const fetchPatients = async () => {
-            const response = await apiService.getPatients(1, 100); // Fetch enough patients
-            if (response && response.data) {
-                setPatients(response.data.data);
+            try {
+                const response = await apiService.getPatients(1, 100); // Fetch enough patients
+                if (response && response.data && response.data.data) {
+                    setPatients(response.data.data);
+                } else {
+                    setPatients([]);
+                }
+            } catch (error) {
+                console.error("Failed to fetch patients:", error);
+                setPatients([]);
             }
         };
         fetchPatients();
@@ -131,7 +138,7 @@ export default function MedicalRecords(): JSX.Element {
             label: "Patient",
             type: "select",
             required: true,
-            options: patients.map((p) => ({ value: String(p.id), label: `${p.name} (${p.email})` })),
+            options: (patients || []).map((p) => ({ value: String(p.id), label: `${p.name} (${p.email})` })),
         },
         // We really need to fetch patients from API for this select to work properly with real IDs.
         // For now, I'll rely on what's available or assuming the user sets this up correctly.

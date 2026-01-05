@@ -452,7 +452,7 @@ class ApiService {
   }
 
   // Patient methods
-  async getPatients(page: number = 1, perPage: number = 10, search?: string) {
+  async getPatients(page: number = 1, perPage: number = 10, search?: string): Promise<ApiResponse<any>> {
     let endpoint = `/patients?page=${page}&per_page=${perPage}`;
     if (search) endpoint += `&search=${search}`;
     return this.get<any>(endpoint);
@@ -595,11 +595,11 @@ class ApiService {
   }
 
   // Medical Report methods
-  async getMedicalReports(page: number = 1, perPage: number = 10) {
+  async getMedicalReports(page: number = 1, perPage: number = 10): Promise<ApiResponse<any>> {
     return this.get<any>(`/medical-reports?page=${page}&per_page=${perPage}`);
   }
 
-  async createMedicalReport(data: FormData) {
+  async createMedicalReport(data: FormData): Promise<ApiResponse<any>> {
     const token = this.getAuthToken();
     const url = `${API_BASE_URL}/medical-reports`;
 
@@ -669,6 +669,155 @@ class ApiService {
 
   async verifyLabReport(id: number, data: any) {
     return this.post<any>(`/lab/tests/${id}/verify`, data);
+  }
+
+  // Pharmacy methods
+  async getPharmacyPrescriptions(params?: {
+    status?: string;
+    patient_id?: number;
+    date_from?: string;
+    date_to?: string;
+    page?: number;
+    per_page?: number;
+  }) {
+    let endpoint = '/pharmacy/prescriptions?';
+    const queryParams = new URLSearchParams();
+
+    if (params?.status) queryParams.append('status', params.status);
+    if (params?.patient_id) queryParams.append('patient_id', params.patient_id.toString());
+    if (params?.date_from) queryParams.append('date_from', params.date_from);
+    if (params?.date_to) queryParams.append('date_to', params.date_to);
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
+
+    endpoint += queryParams.toString();
+    return this.get<any>(endpoint);
+  }
+
+  async getPharmacyPrescriptionDetails(id: number) {
+    return this.get<any>(`/pharmacy/prescriptions/${id}`);
+  }
+
+  async dispensePrescription(prescriptionId: number, data: {
+    items: Array<{
+      prescription_item_id: number;
+      quantity_dispensed: number;
+      notes?: string;
+    }>;
+  }) {
+    return this.post<any>(`/pharmacy/prescriptions/${prescriptionId}/dispense`, data);
+  }
+
+  async getMedicines(params?: {
+    search?: string;
+    category?: string;
+    low_stock_only?: boolean;
+    status?: string;
+    page?: number;
+    per_page?: number;
+  }) {
+    let endpoint = '/pharmacy/medicines?';
+    const queryParams = new URLSearchParams();
+
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.category) queryParams.append('category', params.category);
+    if (params?.low_stock_only) queryParams.append('low_stock_only', 'true');
+    if (params?.status) queryParams.append('status', params.status);
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
+
+    endpoint += queryParams.toString();
+    return this.get<any>(endpoint);
+  }
+
+  async createMedicine(data: {
+    name: string;
+    generic_name?: string;
+    manufacturer?: string;
+    category: 'tablet' | 'capsule' | 'syrup' | 'injection' | 'other';
+    unit: string;
+    current_stock: number;
+    min_stock_level: number;
+    max_stock_level?: number;
+    unit_price: number;
+    selling_price: number;
+    expiry_date?: string;
+    batch_number?: string;
+    status?: 'active' | 'inactive' | 'discontinued';
+  }) {
+    return this.post<any>('/pharmacy/medicines', data);
+  }
+
+  async updateMedicine(id: number, data: Partial<{
+    name: string;
+    generic_name: string;
+    manufacturer: string;
+    category: 'tablet' | 'capsule' | 'syrup' | 'injection' | 'other';
+    unit: string;
+    current_stock: number;
+    min_stock_level: number;
+    max_stock_level: number;
+    unit_price: number;
+    selling_price: number;
+    expiry_date: string;
+    batch_number: string;
+    status: 'active' | 'inactive' | 'discontinued';
+  }>) {
+    return this.put<any>(`/pharmacy/medicines/${id}`, data);
+  }
+
+  async deleteMedicine(id: number) {
+    return this.delete<any>(`/pharmacy/medicines/${id}`);
+  }
+
+  async restockMedicine(id: number, data: {
+    quantity: number;
+    batch_number?: string;
+    expiry_date?: string;
+    unit_price?: number;
+    notes?: string;
+  }) {
+    return this.post<any>(`/pharmacy/medicines/${id}/restock`, data);
+  }
+
+  async getLowStockAlerts(params?: {
+    page?: number;
+    per_page?: number;
+  }) {
+    let endpoint = '/pharmacy/low-stock-alerts?';
+    const queryParams = new URLSearchParams();
+
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
+
+    endpoint += queryParams.toString();
+    return this.get<any>(endpoint);
+  }
+
+  async getDispensingHistory(params?: {
+    prescription_id?: number;
+    patient_id?: number;
+    medicine_id?: number;
+    date_from?: string;
+    date_to?: string;
+    dispensed_by?: number;
+    page?: number;
+    per_page?: number;
+  }) {
+    let endpoint = '/pharmacy/dispensing-history?';
+    const queryParams = new URLSearchParams();
+
+    if (params?.prescription_id) queryParams.append('prescription_id', params.prescription_id.toString());
+    if (params?.patient_id) queryParams.append('patient_id', params.patient_id.toString());
+    if (params?.medicine_id) queryParams.append('medicine_id', params.medicine_id.toString());
+    if (params?.date_from) queryParams.append('date_from', params.date_from);
+    if (params?.date_to) queryParams.append('date_to', params.date_to);
+    if (params?.dispensed_by) queryParams.append('dispensed_by', params.dispensed_by.toString());
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
+
+    endpoint += queryParams.toString();
+    return this.get<any>(endpoint);
   }
 }
 

@@ -4,6 +4,7 @@ import PageHero from '../components/PageHero'
 import { profileAPI } from '../services/api'
 import { useToast } from '../context/ToastContext'
 import MyAppointments from '../components/MyAppointments'
+import MyMedicalRecords from '../components/MyMedicalRecords'
 
 const Profile = () => {
   const { showToast } = useToast()
@@ -752,6 +753,8 @@ const Profile = () => {
         )
       case 'appointments':
         return <MyAppointments />
+      case 'medical':
+        return <MyMedicalRecords />
       default:
         return null
     }

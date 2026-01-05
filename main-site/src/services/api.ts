@@ -123,6 +123,19 @@ export const patientProfileAPI = {
 
     getAvailableTimeSlots: (doctorId: number, date: string) =>
         api.get(`/patient-profile/doctors/${doctorId}/available-slots?date=${date}`),
+
+    getMyMedicalRecords: (params?: { category?: string; status?: string; start_date?: string; end_date?: string; per_page?: number; page?: number }) => {
+        const queryParams = new URLSearchParams();
+        if (params?.category) queryParams.append('category', params.category);
+        if (params?.status) queryParams.append('status', params.status);
+        if (params?.start_date) queryParams.append('start_date', params.start_date);
+        if (params?.end_date) queryParams.append('end_date', params.end_date);
+        if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
+        if (params?.page) queryParams.append('page', params.page.toString());
+
+        const queryString = queryParams.toString();
+        return api.get(`/patient-profile/medical-records${queryString ? '?' + queryString : ''}`);
+    },
 };
 
 export default api;
