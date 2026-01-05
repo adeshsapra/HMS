@@ -23,7 +23,7 @@ import {
   RectangleStackIcon,
   UserCircleIcon,
   BellIcon,
-  PlusIcon,
+  ClipboardDocumentListIcon,
   ListBulletIcon,
   DocumentChartBarIcon,
   ShieldCheckIcon,
@@ -142,19 +142,19 @@ export const routes: Route[] = [
     layout: "dashboard",
     pages: [
       {
-        icon: <PlusIcon {...icon} />,
+        icon: <ClipboardDocumentListIcon {...icon} />,
         name: "prescriptions",
         path: "/prescriptions",
         element: <Prescriptions />,
         permission: "view-prescriptions",
       },
-      {
-        icon: <PlusIcon {...icon} />,
-        name: "medical records",
-        path: "/medical-records",
-        element: <MedicalRecords />,
-        permission: "view-medical-records",
-      },
+      // {
+      //   icon: <PlusIcon {...icon} />,
+      //   name: "medical records",
+      //   path: "/medical-records",
+      //   element: <MedicalRecords />,
+      //   permission: "view-medical-records",
+      // },
       {
         icon: <DocumentChartBarIcon {...icon} />,
         name: "patient reports",
