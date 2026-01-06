@@ -14,8 +14,8 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
         color: currentPage === index ? "blue" : "blue-gray",
         onClick: () => onPageChange(index),
         className: `rounded-full w-9 h-9 flex items-center justify-center transition-all duration-300 font-bold text-sm ${currentPage === index
-                ? "shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/40"
-                : "hover:bg-blue-gray-50 text-blue-gray-500"
+            ? "shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/40"
+            : "hover:bg-blue-gray-50 text-blue-gray-500"
             }`,
     } as any);
 
@@ -47,8 +47,6 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
         }
         return pages;
     };
-
-    if (totalPages <= 1) return null;
 
     return (
         <div className="flex items-center gap-4 bg-white p-2 rounded-xl border border-blue-gray-50 shadow-sm">

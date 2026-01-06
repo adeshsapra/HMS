@@ -19,15 +19,18 @@ export default function PatientReports(): JSX.Element {
     const [loading, setLoading] = useState(true);
     const [openViewModal, setOpenViewModal] = useState<boolean>(false);
     const [selectedReport, setSelectedReport] = useState<any | null>(null);
+    const [currentPage, setCurrentPage] = useState<number>(1);
+    const [totalPages, setTotalPages] = useState<number>(1);
+    const [totalRecords, setTotalRecords] = useState<number>(0);
     const { user } = useAuth(); // Need to access auth context
     const { showToast } = useToast();
     const isDoctor = user?.role?.name === 'doctor';
 
-    const fetchReports = async () => {
+    const fetchReports = async (page: number = 1) => {
         setLoading(true);
         try {
-            // Fetch all reports using the generic endpoint
-            const response = await apiService.getMedicalReports();
+            // Fetch all reports using the generic endpoint with pagination
+            const response = await apiService.getMedicalReports(page, 10);
             if (response.status && response.data) {
                 // Map the pagination data if necessary, or just the data array
                 const data = response.data.data.map((report: any) => ({
@@ -43,6 +46,9 @@ export default function PatientReports(): JSX.Element {
                     original: report
                 }));
                 setReports(data);
+                setTotalPages(response.data.last_page || 1);
+                setTotalRecords(response.data.total || 0);
+                setCurrentPage(page);
             }
         } catch (error) {
             console.error("Failed to fetch reports", error);
@@ -52,8 +58,12 @@ export default function PatientReports(): JSX.Element {
     };
 
     useEffect(() => {
-        fetchReports();
+        fetchReports(1);
     }, []);
+
+    const handlePageChange = (page: number) => {
+        fetchReports(page);
+    };
 
     const handleVerify = async () => {
         if (!selectedReport) return;
@@ -153,6 +163,13 @@ export default function PatientReports(): JSX.Element {
                 filterable={true}
                 exportable={true}
                 searchPlaceholder="Search reports..."
+                pagination={{
+                    currentPage: currentPage,
+                    totalPages: totalPages,
+                    totalItems: totalRecords,
+                    perPage: 10,
+                    onPageChange: handlePageChange
+                }}
             />
 
             <Dialog open={openViewModal} handler={() => setOpenViewModal(false)} size="lg">

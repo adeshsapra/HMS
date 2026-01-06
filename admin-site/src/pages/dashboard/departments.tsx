@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { DataTable, FormModal, ViewModal, DeleteConfirmModal, Column, FormField, ViewField } from "@/components";
+import { DataTable, FormModal, ViewModal, DeleteConfirmModal, Column, FormField, ViewField, Pagination } from "@/components";
 import { Button } from "@material-tailwind/react";
 import { BuildingOfficeIcon } from "@heroicons/react/24/outline";
 import { apiService } from "@/services/api";
+
+// Get default page size from settings or use 10 as default
+const DEFAULT_PAGE_SIZE = parseInt(localStorage.getItem('settings_page_size') || '10', 10);
 
 interface Department {
   id: number;
@@ -28,16 +31,22 @@ export default function Departments(): JSX.Element {
   const [openDeleteModal, setOpenDeleteModal] = useState<boolean>(false);
   const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null);
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+
   useEffect(() => {
     fetchDepartments();
-  }, []);
+  }, [currentPage, pageSize]);
 
   const fetchDepartments = async () => {
     try {
       setLoading(true);
-      const response = await apiService.getDepartments();
+      const response = await apiService.getDepartments(currentPage, pageSize);
       if (response.success && response.data) {
-        setDepartments(response.data);
+        setDepartments(response.data.data || []);
+        setTotalPages(response.data.last_page || 1);
       }
     } catch (error: any) {
       alert(error.message || "Failed to fetch departments");
@@ -318,7 +327,23 @@ export default function Departments(): JSX.Element {
         exportable={true}
         addButtonLabel="Add Department"
         searchPlaceholder="Search departments..."
+        pagination={{
+          currentPage,
+          totalPages,
+          onPageChange: setCurrentPage,
+        }}
       />
+
+      {/* Pagination Component */}
+      {totalPages > 1 && (
+        <div className="flex justify-center mt-6">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        </div>
+      )}
 
       <FormModal
         open={openModal}

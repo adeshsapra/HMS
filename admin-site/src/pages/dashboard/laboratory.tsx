@@ -27,6 +27,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { apiService } from "@/services/api";
 import { useToast } from "@/context/ToastContext";
+import { Pagination } from "@/components/Pagination";
 
 // Types
 interface LabTest {
@@ -80,6 +81,10 @@ export default function Laboratory(): JSX.Element {
   const { showToast } = useToast();
   const [currentUser, setCurrentUser] = useState<any>(null);
 
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
   // Modal States
   const [collectModalOpen, setCollectModalOpen] = useState(false);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
@@ -102,10 +107,11 @@ export default function Laboratory(): JSX.Element {
     if (userStr) {
       setCurrentUser(JSON.parse(userStr));
     }
-    fetchData();
+    setCurrentPage(1); // Reset to page 1 when tab changes
+    fetchData(1);
   }, [activeTab]);
 
-  const fetchData = async () => {
+  const fetchData = async (page: number = 1) => {
     setLoading(true);
     try {
       // Fetch Stats
@@ -118,8 +124,9 @@ export default function Laboratory(): JSX.Element {
       else if (activeTab === "sample_collected") statusFilter = "sample_collected";
       else if (activeTab === "completed") statusFilter = "completed";
 
-      const testsRes = await apiService.getLabTests(1, statusFilter);
-      setTests(testsRes.data);
+      const testsRes = await apiService.getLabTests(page, statusFilter);
+      setTests(testsRes.data?.data || testsRes.data || []);
+      setTotalPages(testsRes.data?.last_page || testsRes.data?.total_pages || 1);
     } catch (error) {
       console.error("Error fetching lab data:", error);
     } finally {
@@ -192,6 +199,12 @@ export default function Laboratory(): JSX.Element {
   };
 
   const isDoctor = currentUser?.role_id === 2 || currentUser?.role?.name === 'doctor' || currentUser?.role === 'doctor'; // Basic check, refine based on actual role structure
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    fetchData(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
     <div className="mt-8">
@@ -424,6 +437,15 @@ export default function Laboratory(): JSX.Element {
                 )}
               </tbody>
             </table>
+          </div>
+
+          {/* Pagination */}
+          <div className="flex justify-end py-4 mx-5">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
           </div>
         </CardBody>
       </Card>

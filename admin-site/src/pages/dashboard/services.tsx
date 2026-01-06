@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { DataTable, FormModal, ViewModal, DeleteConfirmModal, Column, FormField, ViewField } from "@/components";
+import { DataTable, FormModal, ViewModal, DeleteConfirmModal, Column, FormField, ViewField, Pagination } from "@/components";
 import { Button } from "@material-tailwind/react";
 import { BriefcaseIcon } from "@heroicons/react/24/outline";
 import { apiService } from "@/services/api";
+
+// Get default page size from settings or use 10 as default
+const DEFAULT_PAGE_SIZE = parseInt(localStorage.getItem('settings_page_size') || '10', 10);
 
 interface Service {
   id: number;
@@ -36,17 +39,22 @@ export default function Services(): JSX.Element {
   const [openDeleteModal, setOpenDeleteModal] = useState<boolean>(false);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+
   useEffect(() => {
     fetchServices();
-    fetchDepartments();
-  }, []);
+  }, [currentPage, pageSize]);
 
   const fetchServices = async () => {
     try {
       setLoading(true);
-      const response = await apiService.getServices();
+      const response = await apiService.getServices(currentPage, pageSize);
       if (response.success && response.data) {
-        setServices(response.data);
+        setServices(response.data.data || []);
+        setTotalPages(response.data.last_page || 1);
       }
     } catch (error: any) {
       alert(error.message || "Failed to fetch services");
@@ -57,9 +65,9 @@ export default function Services(): JSX.Element {
 
   const fetchDepartments = async () => {
     try {
-      const response = await apiService.getDepartments();
+      const response = await apiService.getDepartments(1, 100); // Get first 100 departments for dropdown
       if (response.success && response.data) {
-        setDepartments(response.data);
+        setDepartments(response.data.data || []);
       }
     } catch (error: any) {
       console.error("Failed to fetch departments:", error);
@@ -319,7 +327,23 @@ export default function Services(): JSX.Element {
         exportable={true}
         addButtonLabel="Add Service"
         searchPlaceholder="Search services..."
+        pagination={{
+          currentPage,
+          totalPages,
+          onPageChange: setCurrentPage,
+        }}
       />
+
+      {/* Pagination Component */}
+      {totalPages > 1 && (
+        <div className="flex justify-center mt-6">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        </div>
+      )}
 
       <FormModal
         open={openModal}

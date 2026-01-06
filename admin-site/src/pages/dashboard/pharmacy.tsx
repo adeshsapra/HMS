@@ -35,6 +35,9 @@ import { apiService } from "@/services/api";
 import { useToast } from "@/context/ToastContext";
 import { DataTable, Column } from "@/components";
 
+// Get default page size from settings or use 10 as default
+const DEFAULT_PAGE_SIZE = parseInt(localStorage.getItem('settings_page_size') || '10', 10);
+
 export default function Pharmacy(): JSX.Element {
   const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState("pending");
@@ -128,7 +131,7 @@ export default function Pharmacy(): JSX.Element {
       const response = await apiService.getPharmacyPrescriptions({
         status: "pending_dispense",
         page: prescriptionPage,
-        per_page: 10,
+        per_page: DEFAULT_PAGE_SIZE,
       });
       setPrescriptions(response.data?.data || []);
       setPrescriptionTotalPages(response.data?.last_page || 1);
@@ -144,7 +147,7 @@ export default function Pharmacy(): JSX.Element {
       setLoading(true);
       const response = await apiService.getMedicines({
         page: medicinePage,
-        per_page: 10,
+        per_page: DEFAULT_PAGE_SIZE,
       });
       setMedicines(response.data?.data || []);
       setMedicineTotalPages(response.data?.last_page || 1);
@@ -172,7 +175,7 @@ export default function Pharmacy(): JSX.Element {
       setLoading(true);
       const response = await apiService.getDispensingHistory({
         page: historyPage,
-        per_page: 10,
+        per_page: DEFAULT_PAGE_SIZE,
       });
       setDispensingHistory(response.data?.data || []);
       setHistoryTotalPages(response.data?.last_page || 1);
@@ -201,7 +204,7 @@ export default function Pharmacy(): JSX.Element {
       setLoading(true);
       const response = await apiService.getPharmacyPrescriptionDetails(prescription.id);
       const prescriptionData = response.data;
-      
+
       // Initialize dispense items
       const items = prescriptionData.items.map((item: any) => ({
         prescription_item_id: item.id,
@@ -584,36 +587,32 @@ export default function Pharmacy(): JSX.Element {
               <Tab
                 value="pending"
                 onClick={() => setActiveTab("pending")}
-                className={`py-4 font-semibold text-sm transition-colors duration-300 ${
-                  activeTab === "pending" ? "text-blue-500" : "text-blue-gray-500 hover:text-blue-700"
-                }`}
+                className={`py-4 font-semibold text-sm transition-colors duration-300 ${activeTab === "pending" ? "text-blue-500" : "text-blue-gray-500 hover:text-blue-700"
+                  }`}
               >
                 Pending Prescriptions
               </Tab>
               <Tab
                 value="inventory"
                 onClick={() => setActiveTab("inventory")}
-                className={`py-4 font-semibold text-sm transition-colors duration-300 ${
-                  activeTab === "inventory" ? "text-blue-500" : "text-blue-gray-500 hover:text-blue-700"
-                }`}
+                className={`py-4 font-semibold text-sm transition-colors duration-300 ${activeTab === "inventory" ? "text-blue-500" : "text-blue-gray-500 hover:text-blue-700"
+                  }`}
               >
                 Medicine Inventory
               </Tab>
               <Tab
                 value="history"
                 onClick={() => setActiveTab("history")}
-                className={`py-4 font-semibold text-sm transition-colors duration-300 ${
-                  activeTab === "history" ? "text-blue-500" : "text-blue-gray-500 hover:text-blue-700"
-                }`}
+                className={`py-4 font-semibold text-sm transition-colors duration-300 ${activeTab === "history" ? "text-blue-500" : "text-blue-gray-500 hover:text-blue-700"
+                  }`}
               >
                 Dispensing History
               </Tab>
               <Tab
                 value="alerts"
                 onClick={() => setActiveTab("alerts")}
-                className={`py-4 font-semibold text-sm transition-colors duration-300 ${
-                  activeTab === "alerts" ? "text-blue-500" : "text-blue-gray-500 hover:text-blue-700"
-                }`}
+                className={`py-4 font-semibold text-sm transition-colors duration-300 ${activeTab === "alerts" ? "text-blue-500" : "text-blue-gray-500 hover:text-blue-700"
+                  }`}
               >
                 Low Stock Alerts {stats.lowStockCount > 0 && (
                   <Chip value={stats.lowStockCount} color="red" size="sm" className="ml-2" />
@@ -835,8 +834,8 @@ export default function Pharmacy(): JSX.Element {
                       selectedPrescription.status === "dispensed"
                         ? "green"
                         : selectedPrescription.status === "partially_dispensed"
-                        ? "yellow"
-                        : "blue"
+                          ? "yellow"
+                          : "blue"
                     }
                     size="sm"
                   />
@@ -864,17 +863,17 @@ export default function Pharmacy(): JSX.Element {
                             item.availability?.status === "available"
                               ? "Available"
                               : item.availability?.status === "low_stock"
-                              ? "Low Stock"
-                              : item.availability?.status === "out_of_stock"
-                              ? "Out of Stock"
-                              : "Not in Catalog"
+                                ? "Low Stock"
+                                : item.availability?.status === "out_of_stock"
+                                  ? "Out of Stock"
+                                  : "Not in Catalog"
                           }
                           color={
                             item.availability?.status === "available"
                               ? "green"
                               : item.availability?.status === "low_stock"
-                              ? "yellow"
-                              : "red"
+                                ? "yellow"
+                                : "red"
                           }
                           size="sm"
                         />

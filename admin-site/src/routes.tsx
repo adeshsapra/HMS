@@ -43,7 +43,6 @@ import {
 } from "@/pages/dashboard";
 import { SignIn } from "@/pages/auth";
 
-// Import all HMS pages
 import Appointments from "@/pages/dashboard/appointments";
 import Patients from "@/pages/dashboard/patients";
 import Doctors from "@/pages/dashboard/doctors";

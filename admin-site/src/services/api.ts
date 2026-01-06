@@ -337,8 +337,8 @@ class ApiService {
   }
 
   // Department methods
-  async getDepartments() {
-    return this.get<any[]>('/departments');
+  async getDepartments(page: number = 1, perPage: number = 10) {
+    return this.get<any>(`/departments?page=${page}&per_page=${perPage}`);
   }
 
   async getDepartment(id: number) {
@@ -403,8 +403,8 @@ class ApiService {
   }
 
   // Service methods
-  async getServices() {
-    return this.get<any[]>('/services');
+  async getServices(page: number = 1, perPage: number = 10) {
+    return this.get<any>(`/services?page=${page}&per_page=${perPage}`);
   }
 
   async getService(id: number) {
