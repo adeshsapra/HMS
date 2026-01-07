@@ -57,61 +57,108 @@
 .hc-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.75rem;
-  padding: 0.875rem 2rem;
+  padding: 1rem 2.5rem;
   border-radius: 50px;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 1rem;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   cursor: pointer;
   border: none;
   font-family: var(--nav-font);
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
 }
 
 .hc-btn-primary {
-  background-color: var(--accent-color);
-  color: var(--contrast-color);
-  box-shadow: 0 4px 14px -4px color-mix(in srgb, var(--accent-color), transparent 50%);
+  background: linear-gradient(135deg, var(--accent-color) 0%, color-mix(in srgb, var(--accent-color), black 10%) 100%);
+  color: #ffffff !important;
+  box-shadow: 0 10px 20px -5px color-mix(in srgb, var(--accent-color), transparent 50%);
+}
+
+.hc-btn-primary::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: 0.5s;
+  z-index: -1;
+}
+
+.hc-btn-primary:hover::after {
+  left: 100%;
 }
 
 .hc-btn-primary:hover {
-  background-color: color-mix(in srgb, var(--accent-color), black 10%);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px -6px color-mix(in srgb, var(--accent-color), transparent 30%);
-  color: var(--contrast-color);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 15px 30px -8px color-mix(in srgb, var(--accent-color), transparent 30%);
+  color: #ffffff !important;
 }
 
 .hc-btn-outline {
-  background-color: transparent;
-  border: 2px solid var(--contrast-color);
-  color: var(--contrast-color);
-  margin-left: 1rem;
+  background-color: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(4px);
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  color: #ffffff !important;
+  margin-left: 0;
+  /* Managed by gap in container */
 }
 
 .hc-btn-outline:hover {
-  background-color: var(--contrast-color);
-  color: var(--accent-color);
-  transform: translateY(-2px);
+  background-color: #ffffff;
+  color: var(--accent-color) !important;
+  transform: translateY(-3px) scale(1.02);
+  border-color: #ffffff;
+  box-shadow: 0 10px 20px -5px rgba(255, 255, 255, 0.3);
+}
+
+.hc-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Badge Enhancements */
+.hc-badge-new {
+  font-size: 0.75rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  background: rgba(255, 255, 255, 0.2) !important;
+  backdrop-filter: blur(8px);
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  padding: 0.5rem 1.25rem !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  display: inline-block;
+  margin-bottom: 1.5rem;
 }
 
 /* Section Titles */
 .hc-section-title {
   text-align: center;
-  margin-bottom: 3rem;
+  margin-bottom: 4rem;
+  position: relative;
 }
 
 .hc-section-title h2 {
-  font-size: 2.5rem;
-  font-weight: 700;
+  font-size: 2.8rem;
+  font-weight: 800;
   color: var(--heading-color);
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
   font-family: var(--heading-font);
+  letter-spacing: -0.5px;
 }
 
 .hc-section-title p {
-  color: color-mix(in srgb, var(--default-color), transparent 30%);
-  max-width: 600px;
+  color: #64748b;
+  max-width: 650px;
   margin: 0 auto;
+  font-size: 1.1rem;
+  line-height: 1.6;
 }
 
 /* Card Grid & Service Cards */
@@ -123,19 +170,20 @@
 }
 
 .hc-service-card {
-  background: var(--surface-color);
-  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
-  transition: all 0.3s ease;
-  border: 1px solid color-mix(in srgb, var(--default-color), transparent 90%);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
+  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+  border: 1px solid rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
 }
 
 .hc-service-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  transform: translateY(-12px);
+  box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.12);
   border-color: var(--accent-color);
 }
 
@@ -153,16 +201,23 @@
 }
 
 .hc-card-icon {
-  background: color-mix(in srgb, var(--accent-color), transparent 90%);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent-color), transparent 90%) 0%, color-mix(in srgb, var(--accent-color), transparent 85%) 100%);
   color: var(--accent-color);
-  width: 50px;
-  height: 50px;
-  border-radius: 12px;
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
+  font-size: 1.8rem;
+  margin-bottom: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.hc-service-card:hover .hc-card-icon {
+  background: var(--accent-color);
+  color: #ffffff;
+  transform: rotate(-5deg) scale(1.1);
 }
 
 .hc-card-title {
@@ -202,17 +257,21 @@
 }
 
 .hc-feature-box {
-  background: var(--surface-color);
-  padding: 2rem;
-  border-radius: 12px;
+  background: #ffffff;
+  padding: 2.5rem 2rem;
+  border-radius: 20px;
   text-align: center;
-  transition: all 0.3s;
-  border: 1px solid color-mix(in srgb, var(--default-color), transparent 95%);
+  transition: all 0.4s ease;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .hc-feature-box:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+  transform: translateY(-10px);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.08);
   border-color: var(--accent-color);
 }
 
@@ -225,15 +284,16 @@
 
 /* Professional Cards */
 .hc-prof-card {
-  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-  border: 1px solid color-mix(in srgb, var(--default-color), transparent 95%);
-  background: var(--surface-color);
+  transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+  border: 1px solid rgba(0, 0, 0, 0.04) !important;
+  background: #ffffff !important;
+  border-radius: 20px !important;
 }
 
 .hc-prof-card:hover {
-  transform: translateY(-10px);
-  box-shadow: 0 30px 60px -12px rgba(50, 50, 93, 0.15), 0 18px 36px -18px rgba(0, 0, 0, 0.2) !important;
-  border-color: var(--accent-color);
+  transform: translateY(-15px);
+  box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.15) !important;
+  border-color: var(--accent-color) !important;
 }
 
 .bg-gradient-dark {
@@ -646,13 +706,13 @@
   .booking-steps {
     padding: 3rem 2rem 5rem;
   }
-  
+
   .step-indicator {
     width: 48px;
     height: 48px;
     font-size: 1.2rem;
   }
-  
+
   .step-label {
     font-size: 0.7rem;
   }
@@ -662,18 +722,18 @@
   .booking-steps {
     padding: 2.5rem 1.5rem 4.5rem;
   }
-  
+
   .step-indicator {
     width: 44px;
     height: 44px;
     font-size: 1.1rem;
   }
-  
+
   .step-label {
     font-size: 0.65rem;
     bottom: -24px;
   }
-  
+
   .booking-steps::before,
   .booking-steps::after {
     top: 70px;
@@ -699,15 +759,15 @@
     margin: 1rem;
     border-radius: 16px;
   }
-  
+
   .booking-header {
     padding: 1.5rem;
   }
-  
+
   .booking-header h2 {
     font-size: 1.5rem;
   }
-  
+
   .booking-header p {
     font-size: 0.9rem;
   }
@@ -717,20 +777,20 @@
     flex-wrap: wrap;
     gap: 0.5rem;
   }
-  
+
   .step-item {
     flex: 0 0 calc(33.333% - 0.5rem);
     min-width: 0;
     margin-bottom: 1.5rem;
   }
-  
+
   .step-indicator {
     width: 40px;
     height: 40px;
     font-size: 1rem;
     margin-bottom: 0.5rem;
   }
-  
+
   .step-label {
     font-size: 0.6rem;
     bottom: -20px;
@@ -740,13 +800,13 @@
     line-height: 1.2;
     padding: 0 2px;
   }
-  
+
   /* Hide progress line on mobile, show dots instead */
   .booking-steps::before,
   .booking-steps::after {
     display: none;
   }
-  
+
   /* Add connecting dots between steps */
   .step-item:not(:last-child)::after {
     content: '';
@@ -758,7 +818,7 @@
     background: color-mix(in srgb, var(--default-color), transparent 70%);
     z-index: 1;
   }
-  
+
   .step-item.active::after,
   .step-item.completed::after {
     background: var(--accent-color);
@@ -767,27 +827,27 @@
   .booking-body {
     padding: 1.5rem;
   }
-  
+
   .info-grid {
     grid-template-columns: 1fr !important;
     gap: 15px;
   }
-  
+
   .unified-scheduler-box {
     padding: 1.5rem !important;
   }
-  
+
   .unified-scheduler-box .row {
     flex-direction: column;
   }
-  
+
   .unified-scheduler-box .col-lg-6 {
     border-right: none !important;
     border-bottom: 1px solid #e5e7eb;
     padding-bottom: 1.5rem !important;
     margin-bottom: 1.5rem;
   }
-  
+
   .unified-scheduler-box .col-lg-6:last-child {
     border-bottom: none;
     margin-bottom: 0;
@@ -800,75 +860,75 @@
     margin: 0.5rem;
     border-radius: 12px;
   }
-  
+
   .booking-header {
     padding: 1.25rem;
   }
-  
+
   .booking-header h2 {
     font-size: 1.25rem;
   }
-  
+
   .booking-header p {
     font-size: 0.85rem;
   }
-  
+
   .booking-steps {
     padding: 1.5rem 0.25rem 3rem;
   }
-  
+
   .step-item {
     flex: 0 0 calc(50% - 0.25rem);
     margin-bottom: 2rem;
   }
-  
+
   .step-indicator {
     width: 36px;
     height: 36px;
     font-size: 0.9rem;
   }
-  
+
   .step-label {
     font-size: 0.55rem;
     bottom: -18px;
   }
-  
+
   .booking-body {
     padding: 1.25rem;
   }
-  
+
   .booking-footer {
     flex-direction: column;
     gap: 0.75rem;
   }
-  
+
   .booking-footer .btn {
     width: 100%;
     justify-content: center;
   }
-  
+
   .patient-details-box,
   .review-summary-container {
     padding: 1.25rem !important;
   }
-  
+
   .review-card-item {
     margin-bottom: 1rem;
   }
-  
+
   .payment-method-chip {
     padding: 1rem !important;
   }
-  
+
   .time-preview-display h2 {
     font-size: 2rem !important;
   }
-  
+
   .selector-grid-hours,
   .selector-grid-minutes {
     gap: 0.5rem;
   }
-  
+
   .selector-chip {
     padding: 0.5rem 0.75rem;
     font-size: 0.85rem;
@@ -880,17 +940,17 @@
     flex: 0 0 100%;
     margin-bottom: 1.5rem;
   }
-  
+
   .step-item:not(:last-child)::after {
     display: none;
   }
-  
+
   .step-indicator {
     width: 32px;
     height: 32px;
     font-size: 0.8rem;
   }
-  
+
   .step-label {
     font-size: 0.5rem;
   }
@@ -901,54 +961,54 @@
   .calendar-grid {
     gap: 4px;
   }
-  
+
   .calendar-day {
     font-size: 0.8rem;
     padding: 0.25rem;
   }
-  
+
   .calendar-weekday {
     font-size: 0.65rem;
     padding-bottom: 4px;
   }
-  
+
   .time-preview-display {
     padding: 1rem !important;
     margin-bottom: 1.5rem !important;
   }
-  
+
   .time-preview-display h2 {
     font-size: 2rem !important;
   }
-  
+
   .selector-grid-hours {
     grid-template-columns: repeat(4, 1fr);
     gap: 0.5rem;
   }
-  
+
   .selector-grid-minutes {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.5rem;
   }
-  
+
   .selector-chip {
     padding: 0.5rem 0.75rem;
     font-size: 0.85rem;
   }
-  
+
   .period-toggle-v2 {
     flex-direction: column;
     gap: 0.5rem;
   }
-  
+
   .period-btn-v2 {
     width: 100%;
   }
-  
+
   .patient-details-box .row {
     margin: 0;
   }
-  
+
   .patient-details-box .col-md-8,
   .patient-details-box .col-md-4,
   .patient-details-box .col-md-6 {
@@ -956,42 +1016,42 @@
     padding-right: 0;
     margin-bottom: 1rem;
   }
-  
+
   .review-summary-container .row {
     margin: 0;
   }
-  
+
   .review-card-item {
     margin-bottom: 1rem;
   }
-  
+
   .review-card-header {
     padding: 0.75rem;
     font-size: 0.85rem;
   }
-  
+
   .review-card-body {
     padding: 1rem;
   }
-  
+
   .review-card-body h5,
   .review-card-body h6 {
     font-size: 0.95rem;
   }
-  
+
   .payment-method-chip {
     padding: 1rem !important;
   }
-  
+
   .payment-method-chip i {
     font-size: 1.5rem !important;
   }
-  
+
   .payment-interaction-area {
     min-height: auto !important;
     padding: 1.5rem !important;
   }
-  
+
   .payment-receipt-ui {
     padding: 1.5rem !important;
   }
@@ -1002,48 +1062,48 @@
     flex-wrap: wrap;
     gap: 0.5rem;
   }
-  
+
   .current-month {
     font-size: 0.95rem;
     order: 3;
     width: 100%;
     text-align: center;
   }
-  
+
   .calendar-nav-btn {
     width: 28px;
     height: 28px;
     font-size: 0.8rem;
   }
-  
+
   .time-preview-display h2 {
     font-size: 1.75rem !important;
     letter-spacing: 1px !important;
   }
-  
+
   .time-preview-display small {
     font-size: 0.7rem !important;
   }
-  
+
   .selector-label {
     font-size: 0.7rem !important;
   }
-  
+
   .booking-label {
     font-size: 0.9rem;
   }
-  
+
   .booking-input {
     font-size: 0.95rem;
     padding: 0.65rem 0.85rem;
   }
-  
+
   .review-card-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
   }
-  
+
   .review-prof-img {
     width: 40px !important;
     height: 40px !important;

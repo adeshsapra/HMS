@@ -54,6 +54,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const profileResponse = await apiService.getProfile();
       if (profileResponse.status && profileResponse.user) {
+        // Strict Security: Patients are NEVER allowed in the admin panel
+        const roleName = profileResponse.user.role?.name?.toLowerCase();
+        if (roleName === 'patient') {
+          console.error('Access denied: Patients cannot access the admin panel.');
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('user');
+          setUser(null);
+          setLoading(false);
+          return;
+        }
+
         setUser(profileResponse.user);
 
         // Load permissions
@@ -70,6 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error('Failed to load user:', error);
       localStorage.removeItem('auth_token');
       localStorage.removeItem('user');
+      setUser(null);
     } finally {
       setLoading(false);
     }
@@ -83,6 +95,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const response = await apiService.login(email, password);
       if (response.status && response.user) {
+        // Strict Security: Patients are NEVER allowed in the admin panel
+        const roleName = response.user.role?.name?.toLowerCase();
+        if (roleName === 'patient') {
+          throw new Error('Access Restricted: Administrative panel access is limited to authorized clinical and operational staff. Please use the Patient Portal for all personal healthcare management.');
+        }
+
         setUser(response.user);
         // Load permissions after successful login
         try {

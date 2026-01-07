@@ -15,6 +15,12 @@ export function useFilteredRoutes(routes: Route[]): Route[] {
     return [];
   }
 
+  // Strict Security Check: Patients are NEVER allowed to access or see admin panel routes.
+  // This ensures the sidebar and all navigation elements are completely hidden.
+  if (user.role?.name?.toLowerCase() === 'patient') {
+    return [];
+  }
+
   // If user has no permissions, only show pages without permission requirement (like profile)
   if (!permissions || permissions.length === 0) {
     return routes
@@ -58,7 +64,7 @@ export function useFilteredRoutes(routes: Route[]): Route[] {
         if (page.permission) {
           return hasPermission(page.permission);
         }
-        
+
         // Pages without permission requirement (like profile) are accessible to all authenticated users
         // But only if user is authenticated (which we already checked)
         return true;
@@ -76,6 +82,6 @@ export function useFilteredRoutes(routes: Route[]): Route[] {
       }
       return null;
     })
-      .filter((route) => route !== null) as Route[];
+    .filter((route) => route !== null) as Route[];
 }
 

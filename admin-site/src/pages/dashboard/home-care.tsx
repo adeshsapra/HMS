@@ -180,7 +180,7 @@ export default function HomeCare() {
     const handleSubmitService = async (data: any) => {
         try {
             setFormLoading(true);
-            
+
             // Convert string booleans to actual booleans
             if (data.is_24_7 === "1" || data.is_24_7 === "true") data.is_24_7 = true;
             else if (data.is_24_7 === "0" || data.is_24_7 === "false") data.is_24_7 = false;
@@ -363,17 +363,19 @@ export default function HomeCare() {
         },
         { key: "specialization", label: "Clinical Role", render: (val: any) => val || 'N/A' },
         { key: "experience_years", label: "Experience", render: (val: any) => val ? `${val} Years` : 'N/A' },
-        { key: "home_care_rating", label: "Rating", render: (val: any) => {
-            if (val == null) return 'N/A';
-            const numVal = typeof val === 'number' ? val : parseFloat(String(val));
-            return isNaN(numVal) ? 'N/A' : numVal.toFixed(1);
-        }},
+        {
+            key: "home_care_rating", label: "Rating", render: (val: any) => {
+                if (val == null) return 'N/A';
+                const numVal = typeof val === 'number' ? val : parseFloat(String(val));
+                return isNaN(numVal) ? 'N/A' : numVal.toFixed(1);
+            }
+        },
         { key: "sort_order", label: "Order" },
         { key: "is_active", label: "Status", render: (val: any) => val ? <Chip value="Active" color="green" size="sm" /> : <Chip value="Inactive" color="gray" size="sm" /> },
     ];
 
     // Filter out doctors that are already assigned
-    const availableDoctors = doctorsList.filter((doctor: any) => 
+    const availableDoctors = doctorsList.filter((doctor: any) =>
         !professionals.some((prof: any) => prof.doctor_id === doctor.id)
     );
 
@@ -693,163 +695,163 @@ export default function HomeCare() {
                                         />
                                     </div>
 
+                                    <div>
+                                        <label className="block text-sm font-medium text-blue-gray-700 mb-2">Hero Image URL</label>
+                                        <input
+                                            type="text"
+                                            value={settings.hero_image || settings.banner_image || settings.home_care_image || ''}
+                                            onChange={e => setSettings({ ...settings, hero_image: e.target.value })}
+                                            className="w-full px-3 py-2.5 text-sm text-blue-gray-700 bg-white border border-blue-gray-200 rounded-lg transition-all focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div>
-                                            <label className="block text-sm font-medium text-blue-gray-700 mb-2">Hero Image URL</label>
+                                            <label className="block text-sm font-medium text-blue-gray-700 mb-2">Hero Title</label>
                                             <input
                                                 type="text"
-                                                value={settings.hero_image || settings.banner_image || settings.home_care_image || ''}
-                                                onChange={e => setSettings({ ...settings, hero_image: e.target.value })}
+                                                value={settings.hero_title || ''}
+                                                onChange={e => setSettings({ ...settings, hero_title: e.target.value })}
                                                 className="w-full px-3 py-2.5 text-sm text-blue-gray-700 bg-white border border-blue-gray-200 rounded-lg transition-all focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                                             />
                                         </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-blue-gray-700 mb-2">Hero Subtitle</label>
+                                            <input
+                                                type="text"
+                                                value={settings.hero_subtitle || ''}
+                                                onChange={e => setSettings({ ...settings, hero_subtitle: e.target.value })}
+                                                className="w-full px-3 py-2.5 text-sm text-blue-gray-700 bg-white border border-blue-gray-200 rounded-lg transition-all focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                            />
+                                        </div>
+                                    </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <Typography variant="h6" color="blue-gray" className="mb-3">Features Section</Typography>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                             <div>
-                                                <label className="block text-sm font-medium text-blue-gray-700 mb-2">Hero Title</label>
+                                                <label className="block text-sm font-medium text-blue-gray-700 mb-2">Features Title</label>
                                                 <input
                                                     type="text"
-                                                    value={settings.hero_title || ''}
-                                                    onChange={e => setSettings({ ...settings, hero_title: e.target.value })}
-                                                    className="w-full px-3 py-2.5 text-sm text-blue-gray-700 bg-white border border-blue-gray-200 rounded-lg transition-all focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                                    value={settings.features_title || ''}
+                                                    onChange={e => setSettings({ ...settings, features_title: e.target.value })}
+                                                    className="w-full px-3 py-2.5 text-sm text-blue-gray-700 bg-white border border-blue-gray-200 rounded-lg"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-blue-gray-700 mb-2">Hero Subtitle</label>
+                                                <label className="block text-sm font-medium text-blue-gray-700 mb-2">Features Subtitle</label>
                                                 <input
                                                     type="text"
-                                                    value={settings.hero_subtitle || ''}
-                                                    onChange={e => setSettings({ ...settings, hero_subtitle: e.target.value })}
-                                                    className="w-full px-3 py-2.5 text-sm text-blue-gray-700 bg-white border border-blue-gray-200 rounded-lg transition-all focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                                    value={settings.features_subtitle || ''}
+                                                    onChange={e => setSettings({ ...settings, features_subtitle: e.target.value })}
+                                                    className="w-full px-3 py-2.5 text-sm text-blue-gray-700 bg-white border border-blue-gray-200 rounded-lg"
                                                 />
                                             </div>
                                         </div>
-
-                                        <div>
-                                            <Typography variant="h6" color="blue-gray" className="mb-3">Features Section</Typography>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                                <div>
-                                                    <label className="block text-sm font-medium text-blue-gray-700 mb-2">Features Title</label>
-                                                    <input
-                                                        type="text"
-                                                        value={settings.features_title || ''}
-                                                        onChange={e => setSettings({ ...settings, features_title: e.target.value })}
-                                                        className="w-full px-3 py-2.5 text-sm text-blue-gray-700 bg-white border border-blue-gray-200 rounded-lg"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-blue-gray-700 mb-2">Features Subtitle</label>
-                                                    <input
-                                                        type="text"
-                                                        value={settings.features_subtitle || ''}
-                                                        onChange={e => setSettings({ ...settings, features_subtitle: e.target.value })}
-                                                        className="w-full px-3 py-2.5 text-sm text-blue-gray-700 bg-white border border-blue-gray-200 rounded-lg"
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={settings.features_enabled !== 'false'}
-                                                    onChange={e => setSettings({ ...settings, features_enabled: e.target.checked ? 'true' : 'false' })}
-                                                    className="w-5 h-5 text-blue-500 rounded"
-                                                />
-                                                <label className="text-sm font-medium text-blue-gray-700">Show Features Section</label>
-                                            </div>
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="checkbox"
+                                                checked={settings.features_enabled !== 'false'}
+                                                onChange={e => setSettings({ ...settings, features_enabled: e.target.checked ? 'true' : 'false' })}
+                                                className="w-5 h-5 text-blue-500 rounded"
+                                            />
+                                            <label className="text-sm font-medium text-blue-gray-700">Show Features Section</label>
                                         </div>
+                                    </div>
 
-                                        <div>
-                                            <Typography variant="h6" color="blue-gray" className="mb-3">Professionals Section</Typography>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                                <div>
-                                                    <label className="block text-sm font-medium text-blue-gray-700 mb-2">Professionals Title</label>
-                                                    <input
-                                                        type="text"
-                                                        value={settings.professionals_title || ''}
-                                                        onChange={e => setSettings({ ...settings, professionals_title: e.target.value })}
-                                                        className="w-full px-3 py-2.5 text-sm text-blue-gray-700 bg-white border border-blue-gray-200 rounded-lg"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-blue-gray-700 mb-2">Professionals Subtitle</label>
-                                                    <input
-                                                        type="text"
-                                                        value={settings.professionals_subtitle || ''}
-                                                        onChange={e => setSettings({ ...settings, professionals_subtitle: e.target.value })}
-                                                        className="w-full px-3 py-2.5 text-sm text-blue-gray-700 bg-white border border-blue-gray-200 rounded-lg"
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-2 mb-4">
+                                    <div>
+                                        <Typography variant="h6" color="blue-gray" className="mb-3">Professionals Section</Typography>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                            <div>
+                                                <label className="block text-sm font-medium text-blue-gray-700 mb-2">Professionals Title</label>
                                                 <input
-                                                    type="checkbox"
-                                                    checked={settings.professionals_enabled !== 'false'}
-                                                    onChange={e => setSettings({ ...settings, professionals_enabled: e.target.checked ? 'true' : 'false' })}
-                                                    className="w-5 h-5 text-blue-500 rounded"
+                                                    type="text"
+                                                    value={settings.professionals_title || ''}
+                                                    onChange={e => setSettings({ ...settings, professionals_title: e.target.value })}
+                                                    className="w-full px-3 py-2.5 text-sm text-blue-gray-700 bg-white border border-blue-gray-200 rounded-lg"
                                                 />
-                                                <label className="text-sm font-medium text-blue-gray-700">Show Professionals Section</label>
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-blue-gray-700 mb-2">Maximum Doctors to Display</label>
+                                                <label className="block text-sm font-medium text-blue-gray-700 mb-2">Professionals Subtitle</label>
                                                 <input
-                                                    type="number"
-                                                    min="1"
-                                                    max="12"
-                                                    value={settings.professionals_limit || '4'}
-                                                    onChange={e => setSettings({ ...settings, professionals_limit: e.target.value })}
+                                                    type="text"
+                                                    value={settings.professionals_subtitle || ''}
+                                                    onChange={e => setSettings({ ...settings, professionals_subtitle: e.target.value })}
                                                     className="w-full px-3 py-2.5 text-sm text-blue-gray-700 bg-white border border-blue-gray-200 rounded-lg"
-                                                    placeholder="4"
                                                 />
-                                                <Typography variant="small" className="text-gray-500 font-normal mt-1">
-                                                    Number of doctors to show (automatically pulled from active doctors in your database)
-                                                </Typography>
                                             </div>
                                         </div>
-
+                                        <div className="flex items-center gap-2 mb-4">
+                                            <input
+                                                type="checkbox"
+                                                checked={settings.professionals_enabled !== 'false'}
+                                                onChange={e => setSettings({ ...settings, professionals_enabled: e.target.checked ? 'true' : 'false' })}
+                                                className="w-5 h-5 text-blue-500 rounded"
+                                            />
+                                            <label className="text-sm font-medium text-blue-gray-700">Show Professionals Section</label>
+                                        </div>
                                         <div>
-                                            <Typography variant="h6" color="blue-gray" className="mb-3">CTA Section</Typography>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                                <div>
-                                                    <label className="block text-sm font-medium text-blue-gray-700 mb-2">CTA Title</label>
-                                                    <input
-                                                        type="text"
-                                                        value={settings.cta_title || ''}
-                                                        onChange={e => setSettings({ ...settings, cta_title: e.target.value })}
-                                                        className="w-full px-3 py-2.5 text-sm text-blue-gray-700 bg-white border border-blue-gray-200 rounded-lg"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-blue-gray-700 mb-2">CTA Phone</label>
-                                                    <input
-                                                        type="text"
-                                                        value={settings.cta_phone || ''}
-                                                        onChange={e => setSettings({ ...settings, cta_phone: e.target.value })}
-                                                        className="w-full px-3 py-2.5 text-sm text-blue-gray-700 bg-white border border-blue-gray-200 rounded-lg"
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="mb-4">
-                                                <label className="block text-sm font-medium text-blue-gray-700 mb-2">CTA Description</label>
-                                                <textarea
-                                                    value={settings.cta_description || ''}
-                                                    onChange={e => setSettings({ ...settings, cta_description: e.target.value })}
-                                                    className="w-full px-3 py-2.5 text-sm text-blue-gray-700 bg-white border border-blue-gray-200 rounded-lg"
-                                                    rows={3}
-                                                />
-                                            </div>
-                                            <div className="flex items-center gap-2">
+                                            <label className="block text-sm font-medium text-blue-gray-700 mb-2">Maximum Doctors to Display</label>
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                max="12"
+                                                value={settings.professionals_limit || '4'}
+                                                onChange={e => setSettings({ ...settings, professionals_limit: e.target.value })}
+                                                className="w-full px-3 py-2.5 text-sm text-blue-gray-700 bg-white border border-blue-gray-200 rounded-lg"
+                                                placeholder="4"
+                                            />
+                                            <Typography variant="small" className="text-gray-500 font-normal mt-1">
+                                                Number of doctors to show (automatically pulled from active doctors in your database)
+                                            </Typography>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <Typography variant="h6" color="blue-gray" className="mb-3">CTA Section</Typography>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                            <div>
+                                                <label className="block text-sm font-medium text-blue-gray-700 mb-2">CTA Title</label>
                                                 <input
-                                                    type="checkbox"
-                                                    checked={settings.cta_enabled !== 'false'}
-                                                    onChange={e => setSettings({ ...settings, cta_enabled: e.target.checked ? 'true' : 'false' })}
-                                                    className="w-5 h-5 text-blue-500 rounded"
+                                                    type="text"
+                                                    value={settings.cta_title || ''}
+                                                    onChange={e => setSettings({ ...settings, cta_title: e.target.value })}
+                                                    className="w-full px-3 py-2.5 text-sm text-blue-gray-700 bg-white border border-blue-gray-200 rounded-lg"
                                                 />
-                                                <label className="text-sm font-medium text-blue-gray-700">Show CTA Section</label>
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-blue-gray-700 mb-2">CTA Phone</label>
+                                                <input
+                                                    type="text"
+                                                    value={settings.cta_phone || ''}
+                                                    onChange={e => setSettings({ ...settings, cta_phone: e.target.value })}
+                                                    className="w-full px-3 py-2.5 text-sm text-blue-gray-700 bg-white border border-blue-gray-200 rounded-lg"
+                                                />
                                             </div>
                                         </div>
+                                        <div className="mb-4">
+                                            <label className="block text-sm font-medium text-blue-gray-700 mb-2">CTA Description</label>
+                                            <textarea
+                                                value={settings.cta_description || ''}
+                                                onChange={e => setSettings({ ...settings, cta_description: e.target.value })}
+                                                className="w-full px-3 py-2.5 text-sm text-blue-gray-700 bg-white border border-blue-gray-200 rounded-lg"
+                                                rows={3}
+                                            />
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="checkbox"
+                                                checked={settings.cta_enabled !== 'false'}
+                                                onChange={e => setSettings({ ...settings, cta_enabled: e.target.checked ? 'true' : 'false' })}
+                                                className="w-5 h-5 text-blue-500 rounded"
+                                            />
+                                            <label className="text-sm font-medium text-blue-gray-700">Show CTA Section</label>
+                                        </div>
+                                    </div>
 
                                     <div className="flex justify-end pt-4 gap-3">
-                                        <Button 
-                                            variant="text" 
+                                        <Button
+                                            variant="text"
                                             color="red"
                                             onClick={() => {
                                                 if (confirm('Reset all settings to defaults?')) {
@@ -1036,6 +1038,6 @@ export default function HomeCare() {
                 message="Are you sure you want to delete this home care service?"
                 itemName={selectedService?.title}
             />
-        </div>
+        </div >
     );
 }

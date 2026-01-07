@@ -245,42 +245,30 @@ export default function Laboratory(): JSX.Element {
 
       <Card className="h-full w-full border border-blue-gray-100 shadow-sm">
         <CardBody className="p-0">
-          <div className="rounded-none border-b border-blue-gray-50 p-4">
-            <Tabs value={activeTab}>
-              <TabsHeader className="max-w-4xl mx-auto bg-gray-100 p-1">
-                <div className="grid grid-cols-2 md:grid-cols-4 w-full">
-                  <Tab
-                    value="all"
-                    onClick={() => setActiveTab("all")}
-                    className="text-center text-sm md:text-base py-2 hover:bg-white transition-colors"
-                  >
-                    All Tests
-                  </Tab>
-                  <Tab
-                    value="pending_sample"
-                    onClick={() => setActiveTab("pending_sample")}
-                    className="text-center text-sm md:text-base py-2 hover:bg-white transition-colors"
-                  >
-                    Pending Sample
-                  </Tab>
-                  <Tab
-                    value="sample_collected"
-                    onClick={() => setActiveTab("sample_collected")}
-                    className="text-center text-sm md:text-base py-2 hover:bg-white transition-colors"
-                  >
-                    Sample Collected
-                  </Tab>
-                  <Tab
-                    value="completed"
-                    onClick={() => setActiveTab("completed")}
-                    className="text-center text-sm md:text-base py-2 hover:bg-white transition-colors"
-                  >
-                    Completed
-                  </Tab>
-                </div>
-              </TabsHeader>
-            </Tabs>
-          </div>
+          <Tabs value={activeTab} className="w-full">
+            <TabsHeader
+              className="bg-transparent border-b border-blue-gray-50 px-6 rounded-none"
+              indicatorProps={{
+                className: "bg-blue-500/10 shadow-none border-b-2 border-blue-500 rounded-none !z-0",
+              }}
+            >
+              {[
+                { label: "All Tests", value: "all" },
+                { label: "Pending Sample", value: "pending_sample" },
+                { label: "Sample Collected", value: "sample_collected" },
+                { label: "Completed", value: "completed" },
+              ].map(({ label, value }) => (
+                <Tab
+                  key={value}
+                  value={value}
+                  onClick={() => setActiveTab(value)}
+                  className={`py-4 font-semibold text-sm transition-colors duration-300 ${activeTab === value ? "text-blue-500" : "text-blue-gray-500 hover:text-blue-700"}`}
+                >
+                  {label}
+                </Tab>
+              ))}
+            </TabsHeader>
+          </Tabs>
 
           <div className="overflow-x-auto">
             <table className="w-full min-w-max table-auto text-left">

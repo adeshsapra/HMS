@@ -4,35 +4,37 @@ import { Link } from "react-router-dom";
 interface PageHeroProps {
     title: string;
     description?: string;
-    bgImage?: string; 
+    bgImage?: string;
     breadcrumbs?: Array<{ label: string; path?: string }>;
+    children?: React.ReactNode;
 }
 
 const PageHero = ({
     title,
     description,
     breadcrumbs,
+    children,
     // A clean, modern hospital corridor image
-    bgImage = 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=1920&auto=format&fit=crop' 
+    bgImage = 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=1920&auto=format&fit=crop'
 }: PageHeroProps) => {
     return (
         <section className="modern-hero-section">
             {/* Background Image Wrapper with Parallax */}
-            <div 
-                className="hero-bg-image" 
+            <div
+                className="hero-bg-image"
                 style={{ backgroundImage: `url(${bgImage})` }}
             ></div>
-            
+
             {/* Dark Overlay for contrast */}
             <div className="hero-overlay"></div>
 
             <div className="container position-relative z-2">
                 <div className="row justify-content-center">
                     <div className="col-lg-10 col-xl-8">
-                        
+
                         {/* THE GLASS CARD */}
                         <div className="glass-content-card">
-                            
+
                             {/* Decorative Glow Blob behind text */}
                             <div className="glow-effect"></div>
 
@@ -67,6 +69,13 @@ const PageHero = ({
 
                             {/* Description */}
                             {description && <p className="hero-description">{description}</p>}
+
+                            {/* Custom Content (Buttons, Badges, etc) */}
+                            {children && (
+                                <div className="hero-custom-content mt-4 animate-fade-in">
+                                    {children}
+                                </div>
+                            )}
                         </div>
 
                     </div>

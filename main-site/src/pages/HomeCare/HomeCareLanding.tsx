@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import "./HomeCare.css";
 import { homeCareAPI } from "../../services/api";
+import PageHero from "../../components/PageHero";
 
 interface HomeCareService {
   id: number;
@@ -52,8 +53,13 @@ const HomeCareLanding = () => {
   const [settings, setSettings] = useState<HomeCareSettings>({});
   const [doctors, setDoctors] = useState<any[]>([]);
 
+  const initialized = useRef(false);
+
   useEffect(() => {
     window.scrollTo(0, 0);
+    if (initialized.current) return;
+    initialized.current = true;
+
     fetchData();
   }, []);
 
@@ -62,10 +68,11 @@ const HomeCareLanding = () => {
       setLoading(true);
       setError(null);
 
-      // First fetch services and settings
-      const [servicesRes, settingsRes] = await Promise.all([
+      // Fetch all required data in parallel to reduce load time
+      const [servicesRes, settingsRes, professionalsRes] = await Promise.all([
         homeCareAPI.getServices(),
         homeCareAPI.getSettings(),
+        homeCareAPI.getProfessionals(),
       ]);
 
       if (servicesRes.data.success) {
@@ -79,50 +86,37 @@ const HomeCareLanding = () => {
         doctorsLimit = parseInt(loadedSettings.professionals_limit || "4", 10);
       }
 
-      // Fetch assigned professionals from home care API
-      try {
-        const professionalsRes = await homeCareAPI.getProfessionals();
-        if (professionalsRes.data.success) {
-          // Use assigned professionals, limited by settings
-          const assignedProfessionals = (
-            professionalsRes.data.data || []
-          ).slice(0, doctorsLimit);
-          setDoctors(assignedProfessionals);
-        }
-      } catch (doctorErr) {
-        console.error("Error fetching professionals:", doctorErr);
-        // Don't fail the whole page if professionals fail to load
-        setDoctors([]);
+      if (professionalsRes.data.success) {
+        const assignedProfessionals = (
+          professionalsRes.data.data || []
+        ).slice(0, doctorsLimit);
+        setDoctors(assignedProfessionals);
       }
     } catch (err: any) {
       console.error("Error fetching home care data:", err);
       setError(
         err.response?.data?.message ||
-          "Failed to load home care services. Please try again later."
+        "Failed to load home care services. Please try again later."
       );
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div
-        className="home-care-container d-flex justify-content-center align-items-center"
-        style={{ minHeight: "80vh" }}
-      >
-        <div
-          className="spinner-border text-primary"
-          role="status"
-          style={{ width: "3rem", height: "3rem" }}
-        >
-          <span className="visually-hidden">Loading...</span>
-        </div>
-      </div>
-    );
-  }
+  const heroImage =
+    settings.hero_image ||
+    settings.home_care_image ||
+    "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=2070";
+  const heroTitle =
+    settings.hero_title ||
+    settings.home_care_title ||
+    "Healthcare at Your Doorstep";
+  const heroSubtitle =
+    settings.hero_subtitle ||
+    settings.home_care_subtitle ||
+    "Professional medical care in the comfort and safety of your own home.";
 
-  if (error) {
+  if (error && !services.length) {
     return (
       <div
         className="home-care-container d-flex justify-content-center align-items-center"
@@ -140,44 +134,32 @@ const HomeCareLanding = () => {
     );
   }
 
-  const heroImage =
-    settings.hero_image ||
-    settings.home_care_image ||
-    "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=2070";
-  const heroTitle =
-    settings.hero_title ||
-    settings.home_care_title ||
-    "Healthcare at Your Doorstep";
-  const heroSubtitle =
-    settings.hero_subtitle ||
-    settings.home_care_subtitle ||
-    "Professional medical care in the comfort and safety of your own home.";
-
   return (
     <div className="home-care-container">
       {/* Hero Section */}
-      <section
-        className="hc-hero"
-        style={{ backgroundImage: `url(${heroImage})` }}
+      <PageHero
+        title={heroTitle}
+        description={heroSubtitle}
+        bgImage={heroImage}
+        breadcrumbs={[
+          { label: "Home", path: "/" },
+          { label: "Home Care" }
+        ]}
       >
-        <div className="container">
-          <div className="hc-hero-content animate-fade-in">
-            <span className="badge bg-primary-subtle text-primary rounded-pill px-3 py-2 mb-3 fw-bold border border-primary">
-              NEW FEATURE
-            </span>
-            <h1>{heroTitle}</h1>
-            <p>{heroSubtitle}</p>
-            <div className="d-flex gap-3 flex-wrap">
-              <Link to="/home-care/booking" className="hc-btn hc-btn-primary">
-                <i className="bi bi-calendar-check"></i> Book a Visit
-              </Link>
-              <a href="#services" className="hc-btn hc-btn-outline">
-                Explore Services
-              </a>
-            </div>
+        <div className="d-flex flex-column align-items-center mt-2">
+          <span className="badge rounded-pill hc-badge-new mb-4">
+            <i className="bi bi-stars me-2"></i>New Feature
+          </span>
+          <div className="d-flex gap-4 flex-wrap justify-content-center">
+            <Link to="/home-care/booking" className="hc-btn hc-btn-primary">
+              <i className="bi bi-calendar-check"></i> Book a Visit
+            </Link>
+            <a href="#services" className="hc-btn hc-btn-outline">
+              <i className="bi bi-grid"></i> Explore Services
+            </a>
           </div>
         </div>
-      </section>
+      </PageHero>
 
       {/* Services Section */}
       <section id="services" className="py-5">
@@ -275,12 +257,19 @@ const HomeCareLanding = () => {
             </div>
           ) : (
             <div className="text-center py-5 border rounded-4 bg-light">
-              <i className="bi bi-search display-1 text-muted mb-3 d-block"></i>
-              <h4>No Services Found</h4>
-              <p className="text-muted">
-                We currently don't have any home care services listed. Please
-                check back later.
-              </p>
+              {loading ? (
+                <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Loading...</span>
+                </div>
+              ) : (
+                <>
+                  <i className="bi bi-search display-1 text-muted mb-3 d-block"></i>
+                  <h4>No Services Found</h4>
+                  <p className="text-muted">
+                    {error || "We currently don't have any home care services listed. Please check back later."}
+                  </p>
+                </>
+              )}
             </div>
           )}
         </div>
@@ -321,9 +310,8 @@ const HomeCareLanding = () => {
                   <div className="modal-body p-4 pt-0">
                     <div className="hc-card-icon mb-3">
                       <i
-                        className={`bi ${
-                          selectedService.icon || "bi-activity"
-                        }`}
+                        className={`bi ${selectedService.icon || "bi-activity"
+                          }`}
                       ></i>
                     </div>
                     <h2 className="fw-bold mb-2">{selectedService.title}</h2>
@@ -456,7 +444,7 @@ const HomeCareLanding = () => {
                     if (path.startsWith("http")) return path;
                     const API_URL =
                       import.meta.env.VITE_API_BASE_URL ||
-                      "http://localhost:8000/api";
+                      "http://127.0.0.1:8000/api";
                     return API_URL.replace("/api", "") + "/storage/" + path;
                   };
 
@@ -561,11 +549,18 @@ const HomeCareLanding = () => {
               </div>
             ) : (
               <div className="text-center py-5">
-                <i className="bi bi-person-x display-1 text-muted mb-3 d-block"></i>
-                <p className="text-muted">
-                  No professionals available at the moment. Please check back
-                  later.
-                </p>
+                {loading ? (
+                  <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                ) : (
+                  <>
+                    <i className="bi bi-person-x display-1 text-muted mb-3 d-block"></i>
+                    <p className="text-muted">
+                      No professionals available at the moment. Please check back later.
+                    </p>
+                  </>
+                )}
               </div>
             )}
           </div>

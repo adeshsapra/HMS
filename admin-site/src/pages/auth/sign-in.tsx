@@ -6,7 +6,7 @@ import {
   Alert,
 } from "@material-tailwind/react";
 import { useNavigate } from "react-router-dom";
-import { HeartIcon, LockClosedIcon, EnvelopeIcon } from "@heroicons/react/24/outline";
+import { HeartIcon, LockClosedIcon, EnvelopeIcon, ShieldCheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useAuth } from "@/context/AuthContext";
 import { getFirstAccessiblePage } from "@/utils/getFirstAccessiblePage";
 
@@ -54,9 +54,29 @@ export function SignIn(): JSX.Element {
 
           <form className="space-y-6" onSubmit={handleSubmit}>
             {error && (
-              <Alert color="red" className="mb-4">
-                {error}
-              </Alert>
+              <div className={`mb-6 p-4 rounded-2xl border flex items-start gap-4 animate-shake ${error.toLowerCase().includes('access denied')
+                ? 'bg-red-50 border-red-100 text-red-800 shadow-sm'
+                : 'bg-orange-50 border-orange-100 text-orange-800'
+                }`}>
+                <div className={`p-2 rounded-xl shrink-0 ${error.toLowerCase().includes('access denied') ? 'bg-red-100' : 'bg-orange-100'
+                  }`}>
+                  <ShieldCheckIcon className="h-5 w-5" />
+                </div>
+                <div className="flex-1">
+                  <Typography variant="small" className="font-black uppercase tracking-wider text-[10px] mb-0.5">
+                    {error.toLowerCase().includes('access denied') ? 'Security Protocol' : 'Authentication Error'}
+                  </Typography>
+                  <Typography variant="small" className="font-bold leading-tight">
+                    {error}
+                  </Typography>
+                </div>
+                <button
+                  onClick={() => setError("")}
+                  className="p-1 hover:bg-black/5 rounded-lg transition-colors"
+                >
+                  <XMarkIcon className="h-4 w-4 opacity-40" />
+                </button>
+              </div>
             )}
             <div>
               <Typography variant="small" color="gray" className="mb-2 font-medium">
