@@ -819,6 +819,73 @@ class ApiService {
     endpoint += queryParams.toString();
     return this.get<any>(endpoint);
   }
+
+  // Room Management
+  async getRoomTypes() {
+    return this.get<any[]>('/room-types');
+  }
+
+  async createRoomType(data: any) {
+    return this.post<any>('/room-types', data);
+  }
+
+  async updateRoomType(id: number, data: any) {
+    return this.put<any>(`/room-types/${id}`, data);
+  }
+
+  async deleteRoomType(id: number) {
+    return this.delete<any>(`/room-types/${id}`);
+  }
+
+  async getRooms(params?: { type_id?: number; status?: string }) {
+    return this.get<any[]>('/rooms');
+  }
+
+  async createRoom(data: any) {
+    return this.post<any>('/rooms', data);
+  }
+
+  async updateRoom(id: number, data: any) {
+    return this.put<any>(`/rooms/${id}`, data);
+  }
+
+  async deleteRoom(id: number) {
+    return this.delete<any>(`/rooms/${id}`);
+  }
+
+  async getBeds(params?: { room_id?: number; status?: string }) {
+    let url = '/beds?';
+    if (params?.room_id) url += `room_id=${params.room_id}&`;
+    if (params?.status) url += `status=${params.status}&`;
+    return this.get<any[]>(url);
+  }
+
+  async createBed(data: any) {
+    return this.post<any>('/beds', data);
+  }
+
+  async updateBed(id: number, data: any) {
+    return this.put<any>(`/beds/${id}`, data);
+  }
+
+  async deleteBed(id: number) {
+    return this.delete<any>(`/beds/${id}`);
+  }
+
+  async getAdmissions(params?: { status?: string; patient_id?: number }) {
+    let url = '/admissions?';
+    if (params?.status) url += `status=${params.status}&`;
+    if (params?.patient_id) url += `patient_id=${params.patient_id}&`;
+    return this.get<any[]>(url);
+  }
+
+  async admitPatient(data: any) {
+    return this.post<any>('/admissions', data);
+  }
+
+  async dischargePatient(admissionId: number, data: { discharge_date: string }) {
+    return this.post<any>(`/admissions/${admissionId}/discharge`, data);
+  }
 }
 
 export const apiService = new ApiService();
