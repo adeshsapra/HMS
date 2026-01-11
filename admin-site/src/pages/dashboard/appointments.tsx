@@ -3,7 +3,7 @@ import { DataTable, FormModal, ViewModal, DeleteConfirmModal, Column, FormField,
 import { ActionItem } from "@/components/DataTable";
 import { patientsData, doctorsData } from "@/data/hms-data";
 import { Button } from "@material-tailwind/react";
-import { CalendarDaysIcon, CheckIcon, XMarkIcon, CheckCircleIcon, DocumentPlusIcon } from "@heroicons/react/24/outline";
+import { CalendarDaysIcon, CheckIcon, XMarkIcon, CheckCircleIcon, DocumentPlusIcon, HomeModernIcon } from "@heroicons/react/24/outline";
 import { apiService } from "@/services/api";
 import { toast } from "react-toastify";
 import { useAuth } from "@/context/AuthContext";
@@ -38,6 +38,7 @@ export default function Appointments(): JSX.Element {
   const [openViewModal, setOpenViewModal] = useState<boolean>(false);
   const [openDeleteModal, setOpenDeleteModal] = useState<boolean>(false);
   const [openPrescriptionModal, setOpenPrescriptionModal] = useState<boolean>(false);
+  const [openAdmissionModal, setOpenAdmissionModal] = useState<boolean>(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
 
@@ -353,6 +354,23 @@ export default function Appointments(): JSX.Element {
     },
   ];
 
+  const admissionFields: FormField[] = [
+    {
+      name: "admission_date",
+      label: "Recommended Date",
+      type: "date",
+      required: true,
+    },
+    {
+      name: "notes",
+      label: "Reason for Admission",
+      type: "textarea",
+      required: true,
+      placeholder: "Clinical reason for recommending admission...",
+      fullWidth: true,
+    }
+  ];
+
   const handleAdd = (): void => {
     setSelectedAppointment(null);
     setOpenModal(true);
@@ -392,6 +410,8 @@ export default function Appointments(): JSX.Element {
     setSelectedAppointment(appointment as Appointment);
     setOpenPrescriptionModal(true);
   };
+
+
 
   const handleStatusChange = async (appointment: Appointment, newStatus: string) => {
     try {
@@ -438,6 +458,13 @@ export default function Appointments(): JSX.Element {
           icon: <DocumentPlusIcon className="h-4 w-4" />,
           color: "blue",
           onClick: () => handlePrescribe(appointment),
+        });
+        // Add Admission Recommendation action
+        actions.push({
+          label: "Admit",
+          icon: <HomeModernIcon className="h-4 w-4" />,
+          color: "purple",
+          onClick: () => handleRecommendAdmission(appointment),
         });
       }
       actions.push({
@@ -492,6 +519,42 @@ export default function Appointments(): JSX.Element {
     } catch (error) {
       console.error(error);
       toast.error("Failed to save appointment");
+    }
+  };
+
+  const handleRecommendAdmission = (appointment: Record<string, any>): void => {
+    // Check if patient exists (must be a registered patient)
+    const patientId = appointment.original?.user?.patient?.id;
+    if (!patientId) {
+      toast.error("Cannot recommend admission: This patient is not registered in the system.");
+      return;
+    }
+    setSelectedAppointment(appointment as Appointment);
+    setOpenAdmissionModal(true);
+  };
+
+  const handleAdmissionSubmit = async (data: any) => {
+    if (!selectedAppointment?.original) return;
+
+    const patientId = selectedAppointment.original.user?.patient?.id;
+    if (!patientId) {
+      toast.error("Patient ID not found.");
+      return;
+    }
+
+    try {
+      await apiService.admitPatient({
+        patient_id: patientId,
+        doctor_id: selectedAppointment.original.doctor_id,
+        admission_date: data.admission_date,
+        notes: data.notes,
+        status: 'pending' // Pending recommendation
+      });
+      toast.success("Patient recommended for admission.");
+      setOpenAdmissionModal(false);
+      // Optionally update appointment status to handled/completed?
+    } catch (error: any) {
+      toast.error(error.message || "Failed to recommend admission");
     }
   };
 
@@ -574,6 +637,20 @@ export default function Appointments(): JSX.Element {
         initialData={selectedAppointment || {}}
         onSubmit={handleSubmit}
         submitLabel={selectedAppointment ? "Update Appointment" : "Create Appointment"}
+      />
+
+      {/* Admission Recommendation Modal */}
+      <FormModal
+        open={openAdmissionModal}
+        onClose={() => {
+          setOpenAdmissionModal(false);
+          setSelectedAppointment(null);
+        }}
+        title="Recommend Admission"
+        formFields={admissionFields}
+        initialData={{ admission_date: new Date().toISOString().split('T')[0] }}
+        onSubmit={handleAdmissionSubmit}
+        submitLabel="Submit Recommendation"
       />
 
       <ViewModal

@@ -11,13 +11,18 @@ import {
   Typography,
 } from "@material-tailwind/react";
 import { DataTable, FormModal, DeleteConfirmModal, Column, FormField } from "@/components";
+import { ActionItem } from "@/components/DataTable";
+import ViewDetailsModal from "./ViewDetailsModal";
+import ProcessAdmissionModal from "./ProcessAdmissionModal";
 import apiService from "@/services/api";
 import {
   HomeModernIcon,
   UserGroupIcon,
   ArchiveBoxIcon,
   ClipboardDocumentCheckIcon,
-  Squares2X2Icon
+  Squares2X2Icon,
+  UserPlusIcon,
+  ArrowRightOnRectangleIcon
 } from "@heroicons/react/24/solid";
 import { toast } from "react-toastify";
 
@@ -89,21 +94,24 @@ export default function Rooms(): JSX.Element {
   // Modal States
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [openDeleteModal, setOpenDeleteModal] = useState<boolean>(false);
+  const [openProcessAdmissionModal, setOpenProcessAdmissionModal] = useState<boolean>(false);
+
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
-  const [modalType, setModalType] = useState<"room" | "roomType" | "bed" | "admission">("roomType");
+  const [modalType, setModalType] = useState<"room" | "roomType" | "bed" | "admission" | "discharge">("roomType");
+
+  // View Modal States
+  const [openViewModal, setOpenViewModal] = useState<boolean>(false);
+  const [viewItemId, setViewItemId] = useState<number | null>(null);
+  const [viewType, setViewType] = useState<"room" | "roomType" | "bed" | "admission">("roomType");
 
   // Fetch Data
   const fetchData = async () => {
     try {
-      // We'll fetch all basic data initially to populate stats, 
-      // though typically this should be a single stats API call or lazy loaded.
-      // For now, let's fetch in parallel to get stats right.
-
       const [roomsRes, roomTypesRes, bedsRes, admissionsRes] = await Promise.all([
         apiService.getRooms(),
         apiService.getRoomTypes(),
         apiService.getBeds(),
-        apiService.getAdmissions({ status: 'admitted' }) // Get active admissions for stats
+        apiService.getAdmissions() // Get all admissions
       ]);
 
       const roomsData = Array.isArray(roomsRes) ? roomsRes : (roomsRes.data || []);
@@ -119,7 +127,7 @@ export default function Rooms(): JSX.Element {
       // Calculate Stats
       const totalRooms = roomsData.length;
       const totalBeds = bedsData.length;
-      const activeAdmissions = admissionsData.length;
+      const activeAdmissions = admissionsData.filter((a: any) => a.status === 'admitted').length;
       const availableBeds = bedsData.filter((b: any) => b.status === 'available').length;
 
       setStats([
@@ -137,7 +145,7 @@ export default function Rooms(): JSX.Element {
 
   useEffect(() => {
     fetchData();
-  }, [activeTab]); // Refresh when tab changes or initial load
+  }, [activeTab]);
 
   // --- Columns Configuration ---
 
@@ -162,10 +170,15 @@ export default function Rooms(): JSX.Element {
   ];
 
   const admissionColumns: Column[] = [
-    { key: "patient.name", label: "Patient", render: (val, row) => <span className="font-bold">{row.patient?.name || '-'}</span> },
-    { key: "doctor.name", label: "Doctor", render: (val, row) => <span className="text-blue-500">{row.doctor?.name || '-'}</span> },
-    { key: "room.room_number", label: "Room", render: (val, row) => row.room?.room_number || '-' },
-    { key: "bed.bed_number", label: "Bed", render: (val, row) => row.bed?.bed_number || '-' },
+    { key: "patient.name", label: "Patient", render: (val, row) => <span className="font-bold">{row.patient?.name || row.patient?.first_name + ' ' + row.patient?.last_name || '-'}</span> },
+    { key: "doctor.name", label: "Doctor", render: (val, row) => <span className="text-blue-500">{row.doctor?.first_name ? row.doctor.first_name + ' ' + row.doctor.last_name : (row.doctor?.name || '-')}</span> },
+    {
+      key: "room_info", label: "Assigned To", render: (val, row) => (
+        row.status === 'admitted'
+          ? <><span className="font-semibold text-blue-900">Rm {row.room?.room_number}</span> <span className="text-gray-400">/</span> <span className="font-semibold text-gray-700">Bed {row.bed?.bed_number}</span></>
+          : <span className="text-gray-400 italic">Not assigned</span>
+      )
+    },
     { key: "admission_date", label: "Admit Date", render: (val) => new Date(val).toLocaleDateString() },
     { key: "status", label: "Status", type: "status" },
   ];
@@ -216,6 +229,10 @@ export default function Rooms(): JSX.Element {
           options: [{ value: 'available', label: 'Available' }, { value: 'occupied', label: 'Occupied' }, { value: 'maintenance', label: 'Maintenance' }]
         },
       ];
+    } else if (modalType === "discharge") {
+      return [
+        { name: "discharge_date", label: "Discharge Date", type: "date", required: true },
+      ];
     }
     return [];
   };
@@ -227,7 +244,7 @@ export default function Rooms(): JSX.Element {
     if (activeTab === "room-types") setModalType("roomType");
     else if (activeTab === "rooms") setModalType("room");
     else if (activeTab === "beds") setModalType("bed");
-    else setModalType("admission");
+    else setModalType("admission"); // Not really used for now as we don't have manual 'add admission' button except via recommendation logic or maybe generic
     setOpenModal(true);
   };
 
@@ -236,7 +253,11 @@ export default function Rooms(): JSX.Element {
     if (activeTab === "room-types") setModalType("roomType");
     else if (activeTab === "rooms") setModalType("room");
     else if (activeTab === "beds") setModalType("bed");
-    else setModalType("admission");
+    else {
+      // Edit admission? Maybe just notes.
+      // For now preventing full edit of admission here to avoid conflicts.
+      return;
+    }
     setOpenModal(true);
   };
 
@@ -247,6 +268,55 @@ export default function Rooms(): JSX.Element {
     else if (activeTab === "beds") setModalType("bed");
     else setModalType("admission");
     setOpenDeleteModal(true);
+  };
+
+  const handleView = (item: any) => {
+    if (activeTab === "room-types") {
+      setViewType("roomType");
+      setViewItemId(item.id);
+    } else if (activeTab === "rooms") {
+      setViewType("room");
+      setViewItemId(item.id);
+    } else if (activeTab === "beds") {
+      setViewType("bed");
+      setViewItemId(item.id);
+    } else {
+      setViewType("admission");
+      setViewItemId(item.id);
+    }
+    setOpenViewModal(true);
+  };
+
+  // Admission Actions
+  const handleAdmit = (item: any) => {
+    setSelectedItem(item);
+    setOpenProcessAdmissionModal(true);
+  };
+
+  const handleDischarge = (item: any) => {
+    setSelectedItem(item);
+    setModalType("discharge");
+    setOpenModal(true); // Re-using FormModal for discharge date input
+  };
+
+  const getAdmissionActions = (row: any): ActionItem[] => {
+    const actions: ActionItem[] = [];
+    if (row.status === 'pending') {
+      actions.push({
+        label: "Admit",
+        icon: <UserPlusIcon className="h-4 w-4" />,
+        color: "green",
+        onClick: () => handleAdmit(row)
+      });
+    } else if (row.status === 'admitted') {
+      actions.push({
+        label: "Discharge",
+        icon: <ArrowRightOnRectangleIcon className="h-4 w-4" />,
+        color: "red",
+        onClick: () => handleDischarge(row)
+      });
+    }
+    return actions;
   };
 
   const handleSubmit = async (data: any) => {
@@ -260,10 +330,12 @@ export default function Rooms(): JSX.Element {
       } else if (modalType === "bed") {
         if (selectedItem) await apiService.updateBed(selectedItem.id, data);
         else await apiService.createBed(data);
+      } else if (modalType === "discharge") {
+        if (selectedItem) await apiService.dischargePatient(selectedItem.id, { discharge_date: data.discharge_date });
       }
       setOpenModal(false);
       fetchData();
-      toast.success(`${modalType.replace(/([A-Z])/g, ' $1').trim()} saved successfully`);
+      toast.success(`${modalType === 'discharge' ? 'Patient discharged' : 'Operation completed'} successfully`);
     } catch (error) {
       console.error("Operation failed", error);
       toast.error(`Operation failed: ${(error as any).message}`);
@@ -304,7 +376,7 @@ export default function Rooms(): JSX.Element {
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
           {stats.map((stat) => (
-            <Card key={stat.title} className="shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
+            <Card key={stat.title} className={`shadow-lg border border-gray-100 hover:shadow-xl transition-shadow border-l-4 border-l-${stat.color}-500`}>
               <CardBody className="p-4 flex items-center justify-between">
                 <div>
                   <Typography variant="small" className="font-normal text-blue-gray-600 mb-1">
@@ -354,6 +426,7 @@ export default function Rooms(): JSX.Element {
                 onAdd={handleAdd}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
+                onView={handleView}
                 searchable={true}
                 addButtonLabel="Add Category"
               />
@@ -366,6 +439,7 @@ export default function Rooms(): JSX.Element {
                 onAdd={handleAdd}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
+                onView={handleView}
                 searchable={true}
                 filterable={false}
                 addButtonLabel="Add Room"
@@ -379,20 +453,20 @@ export default function Rooms(): JSX.Element {
                 onAdd={handleAdd}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
+                onView={handleView}
                 searchable={true}
                 addButtonLabel="Add Bed"
               />
             </TabPanel>
             <TabPanel value="admissions">
               <DataTable
-                title="Active Admissions"
+                title="Patient Admissions"
                 data={admissions}
                 columns={admissionColumns}
-                onAdd={handleAdd}
-                onEdit={handleEdit}
+                onAdd={undefined} // No direct add, use recommendation flow
                 onDelete={handleDelete}
+                customActions={getAdmissionActions} // Add custom actions logic
                 searchable={true}
-                addButtonLabel="Admit Patient"
               />
             </TabPanel>
           </TabsBody>
@@ -402,11 +476,23 @@ export default function Rooms(): JSX.Element {
       <FormModal
         open={openModal}
         onClose={() => setOpenModal(false)}
-        title={selectedItem ? `Edit ${modalType.replace(/([A-Z])/g, ' $1').trim()}` : `Add ${modalType.replace(/([A-Z])/g, ' $1').trim()}`}
+        title={
+          modalType === 'discharge'
+            ? "Discharge Patient"
+            : (selectedItem ? `Edit ${modalType.replace(/([A-Z])/g, ' $1').trim()}` : `Add ${modalType.replace(/([A-Z])/g, ' $1').trim()}`)
+        }
         formFields={getFormFields()}
-        initialData={selectedItem || {}}
+        initialData={selectedItem || (modalType === 'discharge' ? { discharge_date: new Date().toISOString().split('T')[0] } : {})}
         onSubmit={handleSubmit}
-        submitLabel="Save Changes"
+        submitLabel={modalType === 'discharge' ? "Confirm Discharge" : "Save Changes"}
+      />
+
+      {/* Process Admission Modal */}
+      <ProcessAdmissionModal
+        open={openProcessAdmissionModal}
+        onClose={() => setOpenProcessAdmissionModal(false)}
+        admission={selectedItem}
+        onSuccess={fetchData}
       />
 
       <DeleteConfirmModal
@@ -416,6 +502,13 @@ export default function Rooms(): JSX.Element {
         title="Confirm Delete"
         message="Are you sure you want to delete this item? This action from the system cannot be undone."
         itemName={selectedItem?.id}
+      />
+
+      <ViewDetailsModal
+        open={openViewModal}
+        onClose={() => setOpenViewModal(false)}
+        type={viewType}
+        itemId={viewItemId}
       />
     </div>
   );

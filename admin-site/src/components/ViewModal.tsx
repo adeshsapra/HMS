@@ -10,21 +10,29 @@ import {
   Chip,
   IconButton,
   Tooltip,
+  Card,
 } from "@material-tailwind/react";
 import {
   XMarkIcon,
-  CheckCircleIcon,
   DocumentDuplicateIcon,
   CheckIcon,
+  CalendarDaysIcon,
+  CurrencyDollarIcon,
+  UserCircleIcon,
+  EnvelopeIcon,
+  PhoneIcon,
+  IdentificationIcon,
+  TagIcon,
 } from "@heroicons/react/24/outline";
-import { StatusBadge } from "./StatusBadge"; // Ensure this path is correct
 
+// --- Types & Interfaces ---
 export interface ViewField {
   key: string;
   label: string;
-  type?: "status" | "avatar" | "currency" | "date" | "badge";
-  color?: string;
-  fullWidth?: boolean;
+  type?: "text" | "status" | "avatar" | "currency" | "date" | "badge" | "email" | "phone" | "longtext";
+  color?: string; // For badges/chips
+  fullWidth?: boolean; // Forces field to span full row
+  icon?: React.ElementType; // Optional icon for the label
   render?: (value: any, row: Record<string, any>) => React.ReactNode;
 }
 
@@ -32,141 +40,108 @@ export interface ViewModalProps {
   open: boolean;
   onClose: () => void;
   title: string;
+  subtitle?: string; // e.g. "ID: #12345"
   data: Record<string, any> | null;
   fields: ViewField[];
 }
 
+// --- Helper: Status Badge Component (Inline) ---
+const StatusBadge = ({ status }: { status: string }) => {
+  const s = status?.toLowerCase() || "";
+  let color = "blue-gray";
+  if (["active", "available", "completed", "paid"].includes(s)) color = "green";
+  if (["inactive", "maintenance", "cancelled", "rejected"].includes(s)) color = "red";
+  if (["pending", "processing", "occupied"].includes(s)) color = "orange";
+
+  return (
+    <Chip
+      size="sm"
+      variant="ghost"
+      color={color as any}
+      value={status}
+      className="rounded-full px-3 py-1 font-bold uppercase tracking-wider text-[10px]"
+    />
+  );
+};
+
+// --- Main Component ---
 export function ViewModal({
   open,
   onClose,
   title,
+  subtitle,
   data,
   fields,
 }: ViewModalProps): JSX.Element | null {
-  const [copied, setCopied] = useState<string | null>(null);
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   if (!data) return null;
 
-  // Function to handle copying text to clipboard
+  // Separate Avatar/Header fields from Data fields
+  const avatarField = fields.find((f) => f.type === "avatar");
+  const dataFields = fields.filter((f) => f.type !== "avatar");
+
+  // Copy Logic
   const handleCopy = (text: string, key: string) => {
+    if (!text) return;
     navigator.clipboard.writeText(text);
-    setCopied(key);
-    setTimeout(() => setCopied(null), 2000);
+    setCopiedKey(key);
+    setTimeout(() => setCopiedKey(null), 2000);
   };
 
-  const renderValue = (field: ViewField, value: any): JSX.Element => {
-    // 1. Avatar Type (Enhanced Hero Style)
-    if (field.type === "avatar") {
-      const avatarUrl = field.render ? field.render(value, data) : value;
-      return (
-        <div className="flex flex-col items-center justify-center w-full py-4">
-          <div className="relative group/avatar">
-            <Avatar
-              src={(avatarUrl as string) || "/img/team-1.jpeg"}
-              alt="Avatar"
-              size="xxl"
-              variant="rounded" // Changed to rounded for a modern app feel
-              className="h-28 w-28 object-cover border-4 border-white shadow-xl rounded-2xl"
-              onError={(e: any) => {
-                e.target.src = "/img/team-1.jpeg";
-              }}
-            />
-          </div>
-        </div>
-      );
+  // Determine Icon based on field type if not provided
+  const getFieldIcon = (field: ViewField) => {
+    if (field.icon) return field.icon;
+    switch (field.type) {
+      case "email": return EnvelopeIcon;
+      case "phone": return PhoneIcon;
+      case "date": return CalendarDaysIcon;
+      case "currency": return CurrencyDollarIcon;
+      case "badge": return TagIcon;
+      case "status": return UserCircleIcon;
+      default: return IdentificationIcon;
     }
+  };
 
-    // 2. Custom Render
-    if (field.render) {
-      return <div className="w-full">{field.render(value, data)}</div>;
+  const renderValue = (field: ViewField, value: any) => {
+    if (field.render) return field.render(value, data);
+    if (value === null || value === undefined || value === "")
+      return <span className="text-gray-400 italic text-sm">N/A</span>;
+
+    switch (field.type) {
+      case "status":
+        return <StatusBadge status={value} />;
+      case "badge":
+        return (
+          <Chip
+            variant="gradient"
+            size="sm"
+            value={value}
+            color={(field.color as any) || "blue"}
+            className="rounded-md px-2 font-medium capitalize"
+          />
+        );
+      case "currency":
+        return (
+          <Typography variant="h6" className="text-blue-gray-900 font-bold">
+            {new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(Number(value))}
+          </Typography>
+        );
+      case "date":
+        return (
+          <Typography className="text-sm font-medium text-blue-gray-800">
+            {new Date(value).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
+          </Typography>
+        );
+      case "email":
+        return <a href={`mailto:${value}`} className="text-blue-600 hover:underline text-sm font-medium">{value}</a>;
+      case "phone":
+        return <a href={`tel:${value}`} className="text-blue-600 hover:underline text-sm font-medium">{value}</a>;
+      case "longtext":
+        return <Typography className="text-sm text-gray-600 whitespace-pre-line leading-relaxed">{value}</Typography>;
+      default:
+        return <Typography className="text-sm font-semibold text-blue-gray-900">{String(value)}</Typography>;
     }
-
-    // 3. Status Type
-    if (field.type === "status") {
-      // Using your existing StatusBadge or a fallback
-      return <StatusBadge status={value} size="lg" />;
-    }
-
-    // 4. Currency
-    if (field.type === "currency") {
-      return (
-        <Typography
-          variant="h6"
-          color="blue-gray"
-          className="font-bold tracking-tight"
-        >
-          {new Intl.NumberFormat("en-US", {
-            style: "currency",
-            currency: "USD",
-          }).format(parseFloat(value || "0"))}
-        </Typography>
-      );
-    }
-
-    // 5. Date
-    if (field.type === "date" && value) {
-      return (
-        <div className="flex items-center gap-2 text-blue-gray-800 font-medium">
-          {/* Simple Calendar Icon */}
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-blue-500/70">
-            <path d="M12.75 12.75a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM7.5 15.75a.75.75 0 100-1.5 .75.75 0 000 1.5zM8.25 17.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM9.75 15.75a.75.75 0 100-1.5 .75.75 0 000 1.5zM10.5 17.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM12 15.75a.75.75 0 100-1.5 .75.75 0 000 1.5zM12.75 17.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM14.25 15.75a.75.75 0 100-1.5 .75.75 0 000 1.5zM15 17.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM16.5 15.75a.75.75 0 100-1.5 .75.75 0 000 1.5zM15 12.75a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM16.5 13.5a.75.75 0 100-1.5 .75.75 0 000 1.5z" />
-            <path fillRule="evenodd" d="M6.75 2.25A.75.75 0 017.5 3v1.5h9V3A.75.75 0 0118 3v1.5h.75a3 3 0 013 3v11.25a3 3 0 01-3 3H5.25a3 3 0 01-3-3V7.5a3 3 0 013-3H6V3a.75.75 0 01.75-.75zm13.5 9a1.5 1.5 0 00-1.5-1.5H5.25a1.5 1.5 0 00-1.5 1.5v7.5a1.5 1.5 0 001.5 1.5h13.5a1.5 1.5 0 001.5-1.5v-7.5z" clipRule="evenodd" />
-          </svg>
-          {new Date(value).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          })}
-        </div>
-      );
-    }
-
-    // 6. Badges
-    if (field.type === "badge") {
-      return (
-        <Chip
-          variant="ghost"
-          size="sm"
-          color={(field.color || "blue") as any}
-          value={value}
-          className="rounded-full px-3 capitalize font-bold tracking-wide"
-        />
-      );
-    }
-
-    // 7. Default Text with Copy functionality
-    const stringValue = String(value || "");
-    const isEmpty = !value;
-
-    return (
-      <div className="flex items-center justify-between w-full group">
-        <Typography
-          variant="paragraph"
-          className={`font-medium text-sm ${isEmpty ? "text-gray-400 italic" : "text-blue-gray-900"
-            }`}
-        >
-          {isEmpty ? "Not provided" : stringValue}
-        </Typography>
-
-        {!isEmpty && (
-          <Tooltip content={copied === field.key ? "Copied!" : "Copy value"}>
-            <IconButton
-              variant="text"
-              color={copied === field.key ? "green" : "blue-gray"}
-              size="sm"
-              className="opacity-0 group-hover:opacity-100 transition-opacity ml-2 w-6 h-6 rounded-full"
-              onClick={() => handleCopy(stringValue, field.key)}
-            >
-              {copied === field.key ? (
-                <CheckIcon className="h-3.5 w-3.5" />
-              ) : (
-                <DocumentDuplicateIcon className="h-3.5 w-3.5" />
-              )}
-            </IconButton>
-          </Tooltip>
-        )}
-      </div>
-    );
   };
 
   return (
@@ -174,85 +149,128 @@ export function ViewModal({
       open={open}
       handler={onClose}
       size="lg"
-      className="!max-w-3xl bg-white shadow-2xl rounded-xl overflow-hidden"
-      animate={{
-        mount: { scale: 1, y: 0 },
-        unmount: { scale: 0.9, y: -100 },
-      }}
+      className="bg-transparent shadow-none"
+      animate={{ mount: { scale: 1, y: 0 }, unmount: { scale: 0.95, y: -20 } }}
     >
-      {/* --- OLD HEADER DESIGN (RESTORED) --- */}
-      <DialogHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white py-5 px-6">
-        <div className="flex items-center justify-between w-full">
-          <Typography variant="h5" className="font-bold text-white tracking-wide">
-            {title}
-          </Typography>
-          <IconButton
-            variant="text"
-            color="white"
-            onClick={onClose}
-            className="rounded-full hover:bg-white/20 transition-colors"
-          >
+      <Card className="mx-auto w-full max-w-[850px] overflow-hidden rounded-xl shadow-2xl">
+
+        {/* --- 1. PROFESSIONAL HEADER --- */}
+        <DialogHeader className="relative bg-white border-b border-gray-100 p-6 flex items-center justify-between z-10">
+          <div className="flex items-center gap-4">
+            {/* Dynamic Icon based on Title context or generic */}
+            <div className="h-10 w-10 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center">
+              <IdentificationIcon className="h-6 w-6" />
+            </div>
+            <div>
+              <Typography variant="h5" color="blue-gray" className="font-bold tracking-tight">
+                {title}
+              </Typography>
+              {subtitle && (
+                <Typography variant="small" className="text-gray-500 font-medium">
+                  {subtitle}
+                </Typography>
+              )}
+            </div>
+          </div>
+          <IconButton variant="text" color="blue-gray" onClick={onClose} className="rounded-full hover:bg-gray-50">
             <XMarkIcon className="h-5 w-5" />
           </IconButton>
-        </div>
-      </DialogHeader>
-      {/* ------------------------------------ */}
+        </DialogHeader>
 
-      <DialogBody className="p-8 bg-white overflow-y-auto max-h-[70vh] custom-scrollbar">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {fields.map((field) => {
-            const isAvatar = field.type === "avatar";
-            const colSpan = field.fullWidth || isAvatar ? "md:col-span-2" : "";
+        <DialogBody className="p-0 bg-gray-50/50 overflow-y-auto max-h-[75vh]">
+          <div className="p-6 md:p-8 space-y-8">
 
-            return (
-              <div
-                key={field.key}
-                className={`
-                  relative transition-all duration-300 rounded-lg p-3
-                  ${isAvatar
-                    ? "bg-transparent flex justify-center mb-2"
-                    : "bg-gray-50 hover:bg-blue-50/50 border border-transparent hover:border-blue-100/50"
-                  }
-                  ${colSpan}
-                `}
-              >
-                {!isAvatar && (
-                  <Typography
-                    variant="small"
-                    className="font-bold text-blue-gray-400 uppercase tracking-widest text-[10px] mb-2"
-                  >
-                    {field.label}
+            {/* --- 2. HERO SECTION (Only if Avatar exists) --- */}
+            {avatarField && (
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row items-center gap-6">
+                <Avatar
+                  src={avatarField.render ? (avatarField.render(data[avatarField.key], data) as string) : data[avatarField.key] || "/img/placeholder.jpg"}
+                  alt="Profile"
+                  size="xxl"
+                  variant="rounded"
+                  className="h-24 w-24 border border-gray-200 shadow-sm"
+                />
+                <div className="text-center md:text-left flex-1">
+                  {/* Finds the first text field to use as the Main Name if specific key logic isn't added */}
+                  <Typography variant="h4" color="blue-gray" className="font-bold mb-1">
+                    {data[dataFields.find(f => f.key.includes('name'))?.key || dataFields[0].key]}
                   </Typography>
-                )}
-
-                <div className={isAvatar ? "w-full flex justify-center" : "pl-1"}>
-                  {renderValue(field, data[field.key])}
+                  <div className="flex flex-wrap justify-center md:justify-start gap-2">
+                    {/* Render Status badge here if exists */}
+                    {dataFields.find(f => f.type === 'status') &&
+                      renderValue(dataFields.find(f => f.type === 'status')!, data[dataFields.find(f => f.type === 'status')!.key])
+                    }
+                  </div>
                 </div>
               </div>
-            );
-          })}
-        </div>
-      </DialogBody>
+            )}
 
-      <DialogFooter className="bg-white border-t border-blue-gray-50 px-6 py-4 flex justify-end gap-2">
-        <Button
-          variant="text"
-          color="blue-gray"
-          onClick={onClose}
-          className="font-semibold text-gray-600 hover:bg-gray-100"
-        >
-          Close
-        </Button>
-        <Button
-          variant="gradient"
-          color="blue"
-          onClick={onClose}
-          className="px-6 shadow-md hover:shadow-lg flex items-center gap-2"
-        >
-          <CheckCircleIcon className="h-4 w-4" />
-          Done
-        </Button>
-      </DialogFooter>
+            {/* --- 3. DATA GRID --- */}
+            <div>
+              <Typography variant="small" className="font-bold text-gray-400 uppercase tracking-widest mb-4 ml-1">
+                Details Information
+              </Typography>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {dataFields.filter(f => f.type !== 'avatar' && !f.key.includes('name')).map((field) => {
+                  const value = data[field.key];
+                  const Icon = getFieldIcon(field);
+                  const isLongText = field.type === "longtext" || field.fullWidth;
+
+                  return (
+                    <div
+                      key={field.key}
+                      className={`
+                        bg-white p-4 rounded-xl border border-gray-200/60 shadow-[0_2px_4px_rgba(0,0,0,0.02)]
+                        hover:border-blue-200 hover:shadow-md transition-all duration-200 group
+                        ${isLongText ? "md:col-span-2" : "md:col-span-1"}
+                      `}
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Icon className="h-4 w-4 text-blue-500" />
+                          <Typography variant="small" className="font-bold text-gray-500 uppercase text-[11px] tracking-wide">
+                            {field.label}
+                          </Typography>
+                        </div>
+
+                        {/* Copy Button (Only for text/email/phone) */}
+                        {value && ["text", "email", "phone", undefined].includes(field.type) && (
+                          <Tooltip content={copiedKey === field.key ? "Copied!" : "Copy"}>
+                            <button
+                              onClick={() => handleCopy(String(value), field.key)}
+                              className="text-gray-300 hover:text-blue-500 transition-colors"
+                            >
+                              {copiedKey === field.key ? (
+                                <CheckIcon className="h-4 w-4 text-green-500" />
+                              ) : (
+                                <DocumentDuplicateIcon className="h-4 w-4" />
+                              )}
+                            </button>
+                          </Tooltip>
+                        )}
+                      </div>
+
+                      <div className="pl-6 border-l-2 border-transparent group-hover:border-blue-100 transition-colors">
+                        {renderValue(field, value)}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </DialogBody>
+
+        <DialogFooter className="bg-white border-t border-gray-100 px-6 py-4 flex justify-between items-center">
+          <Typography variant="small" className="text-gray-400 font-normal">
+            Viewing details for ID: <span className="text-gray-600 font-mono">{data.id || 'N/A'}</span>
+          </Typography>
+          <Button variant="gradient" color="blue-gray" onClick={onClose} className="rounded-lg shadow-none hover:shadow-md">
+            Close
+          </Button>
+        </DialogFooter>
+      </Card>
     </Dialog>
   );
 }

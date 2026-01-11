@@ -45,8 +45,8 @@ export default function Departments(): JSX.Element {
       setLoading(true);
       const response = await apiService.getDepartments(currentPage, pageSize);
       if (response.success && response.data) {
-        setDepartments(response.data.data || []);
-        setTotalPages(response.data.last_page || 1);
+        setDepartments(response.data || []);
+        setTotalPages(response.meta?.last_page || 1);
       }
     } catch (error: any) {
       alert(error.message || "Failed to fetch departments");

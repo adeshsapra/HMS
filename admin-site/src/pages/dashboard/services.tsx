@@ -53,8 +53,8 @@ export default function Services(): JSX.Element {
       setLoading(true);
       const response = await apiService.getServices(currentPage, pageSize);
       if (response.success && response.data) {
-        setServices(response.data.data || []);
-        setTotalPages(response.data.last_page || 1);
+        setServices(response.data || []);
+        setTotalPages(response.meta?.last_page || 1);
       }
     } catch (error: any) {
       alert(error.message || "Failed to fetch services");
@@ -67,7 +67,7 @@ export default function Services(): JSX.Element {
     try {
       const response = await apiService.getDepartments(1, 100); // Get first 100 departments for dropdown
       if (response.success && response.data) {
-        setDepartments(response.data.data || []);
+        setDepartments(response.data || []);
       }
     } catch (error: any) {
       console.error("Failed to fetch departments:", error);
