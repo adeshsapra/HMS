@@ -8,8 +8,18 @@ import {
     Select,
     Option,
     Input,
-    Typography
+    Typography,
+    Card,
+    CardBody,
+    Avatar
 } from "@material-tailwind/react";
+import {
+    HomeModernIcon,
+    ArchiveBoxIcon,
+    CalendarDaysIcon,
+    CheckCircleIcon,
+    ExclamationTriangleIcon
+} from "@heroicons/react/24/solid";
 import apiService from "@/services/api";
 import { toast } from "react-toastify";
 
@@ -29,6 +39,7 @@ export default function ProcessAdmissionModal({
     const [rooms, setRooms] = useState<any[]>([]);
     const [availableBeds, setAvailableBeds] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
+    const [selectedRoomDetails, setSelectedRoomDetails] = useState<any>(null);
 
     // Form State
     const [selectedRoom, setSelectedRoom] = useState<string>("");
@@ -41,17 +52,21 @@ export default function ProcessAdmissionModal({
             setAdmissionDate(new Date().toISOString().split('T')[0]);
             setSelectedRoom("");
             setSelectedBed("");
+            setSelectedRoomDetails(null);
         }
     }, [open]);
 
     useEffect(() => {
-        // When room changes, fetch beds for that room
-        if (selectedRoom) {
+        // When room changes, fetch beds for that room and set room details
+        if (selectedRoom && rooms.length > 0) {
+            const room = rooms.find(r => r.id.toString() === selectedRoom);
+            setSelectedRoomDetails(room);
             fetchBeds(Number(selectedRoom));
         } else {
+            setSelectedRoomDetails(null);
             setAvailableBeds([]);
         }
-    }, [selectedRoom]);
+    }, [selectedRoom, rooms]);
 
     const fetchRooms = async () => {
         try {
@@ -101,82 +116,88 @@ export default function ProcessAdmissionModal({
     if (!admission) return null;
 
     return (
-        <Dialog open={open} handler={onClose} size="sm">
-            <DialogHeader className="flex flex-col items-start gap-1">
+        <Dialog open={open} handler={onClose} size="lg">
+            <DialogHeader>
                 <Typography variant="h5" color="blue-gray">
-                    Admit Patient
-                </Typography>
-                <Typography variant="small" className="font-normal text-gray-600">
-                    Admitting: <span className="font-bold text-blue-600">{admission.patient?.name}</span>
+                    Admit Patient: {admission.patient?.name}
                 </Typography>
             </DialogHeader>
-            <DialogBody className="flex flex-col gap-4">
+            <DialogBody className="space-y-4">
                 {/* Room Selection */}
                 <div>
+                    <Typography variant="small" className="font-medium mb-2">Select Room</Typography>
                     <Select
-                        label="Select Room"
-                        value={selectedRoom}
-                        onChange={(val) => setSelectedRoom(val || "")}
-                        containerProps={{ className: "min-w-[100px]" }}
+                        key={`room-select-${rooms.length}`}
+                        label="Choose a room"
+                        value={selectedRoom || ""}
+                        onChange={(val) => {
+                            const value = val || "";
+                            setSelectedRoom(value);
+                        }}
+                        disabled={rooms.length === 0}
                     >
                         {rooms.map((room) => (
                             <Option key={room.id} value={room.id.toString()}>
-                                {room.room_number} ({room.floor}) - {room.room_type?.name}
+                                Room {room.room_number} ({room.floor}) - {room.room_type?.name}
                             </Option>
                         ))}
                     </Select>
                 </div>
 
                 {/* Bed Selection */}
-                <div>
-                    <Select
-                        label="Select Bed"
-                        value={selectedBed}
-                        onChange={(val) => setSelectedBed(val || "")}
-                        disabled={!selectedRoom}
-                        containerProps={{ className: "min-w-[100px]" }}
-                    >
-                        {availableBeds.length > 0 ? (
-                            availableBeds.map((bed) => (
-                                <Option key={bed.id} value={bed.id.toString()}>
-                                    Bed {bed.bed_number}
-                                </Option>
-                            ))
-                        ) : (
-                            <Option value="" disabled>No available beds in this room</Option>
-                        )}
-                    </Select>
-                </div>
+                {selectedRoom && (
+                    <div>
+                        <Typography variant="small" className="font-medium mb-2">Select Bed</Typography>
+                        <div className="grid grid-cols-3 gap-2">
+                            {availableBeds.length > 0 ? (
+                                availableBeds.map((bed) => (
+                                    <Button
+                                        key={bed.id}
+                                        variant={selectedBed === bed.id.toString() ? "filled" : "outlined"}
+                                        color={selectedBed === bed.id.toString() ? "blue" : "gray"}
+                                        onClick={() => setSelectedBed(bed.id.toString())}
+                                        className="p-2"
+                                    >
+                                        Bed {bed.bed_number}
+                                    </Button>
+                                ))
+                            ) : (
+                                <Typography variant="small" color="gray" className="col-span-3 text-center py-4">
+                                    No available beds in this room
+                                </Typography>
+                            )}
+                        </div>
+                    </div>
+                )}
 
                 {/* Date Selection */}
                 <div>
+                    <Typography variant="small" className="font-medium mb-2">Admission Date</Typography>
                     <Input
                         crossOrigin={undefined}
                         type="date"
-                        label="Admission Date"
                         value={admissionDate}
                         onChange={(e) => setAdmissionDate(e.target.value)}
                     />
                 </div>
 
                 {admission.notes && (
-                    <div className="bg-amber-50 p-3 rounded-lg border border-amber-100">
-                        <Typography variant="small" className="font-bold text-amber-900">Doctor's Recommendation:</Typography>
-                        <Typography variant="small" className="text-amber-800 italic">{admission.notes}</Typography>
+                    <div className="bg-amber-50 p-3 rounded border border-amber-200">
+                        <Typography variant="small" className="font-bold text-amber-900">Doctor's Note:</Typography>
+                        <Typography variant="small" className="text-amber-800">{admission.notes}</Typography>
                     </div>
                 )}
-
             </DialogBody>
             <DialogFooter>
-                <Button
-                    variant="text"
-                    color="red"
-                    onClick={onClose}
-                    className="mr-1"
-                >
+                <Button variant="text" color="red" onClick={onClose}>
                     Cancel
                 </Button>
-                <Button variant="gradient" color="blue" onClick={handleSubmit} disabled={loading}>
+                <Button
+                    variant="gradient"
+                    color="blue"
+                    onClick={handleSubmit}
+                    disabled={loading || !selectedRoom || !selectedBed}
+                >
                     {loading ? "Processing..." : "Confirm Admission"}
                 </Button>
             </DialogFooter>

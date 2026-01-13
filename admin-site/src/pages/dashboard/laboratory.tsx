@@ -15,6 +15,8 @@ import {
   DialogFooter,
   Input,
   Textarea,
+  Select,
+  Option,
 } from "@material-tailwind/react";
 import {
   BeakerIcon,
@@ -24,6 +26,10 @@ import {
   DocumentArrowUpIcon,
   EyeIcon,
   CheckBadgeIcon,
+  PencilIcon,
+  TrashIcon,
+  PlusIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { apiService } from "@/services/api";
 import { useToast } from "@/context/ToastContext";
@@ -100,6 +106,18 @@ export default function Laboratory(): JSX.Element {
     report_title: "",
     result_summary: "",
     file: null as File | null,
+  });
+
+  // Manage Lab Tests State
+  const [manageTestsModalOpen, setManageTestsModalOpen] = useState(false);
+  const [testFormModalOpen, setTestFormModalOpen] = useState(false);
+  const [catalogTests, setCatalogTests] = useState<any[]>([]);
+  const [editingTest, setEditingTest] = useState<any>(null);
+  const [testFormData, setTestFormData] = useState({
+    test_name: "",
+    price: "",
+    description: "",
+    status: "active",
   });
 
   useEffect(() => {
@@ -206,13 +224,93 @@ export default function Laboratory(): JSX.Element {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // Lab Test Functionality
+  const fetchCatalogTests = async () => {
+    try {
+      const res = await apiService.getLabTestCatalog();
+      setCatalogTests(res.data || []);
+    } catch (error) {
+      console.error("Failed to fetch catalog tests", error);
+    }
+  };
+
+  useEffect(() => {
+    if (manageTestsModalOpen) {
+      fetchCatalogTests();
+    }
+  }, [manageTestsModalOpen]);
+
+  const handleSaveTest = async () => {
+    if (!testFormData.test_name || !testFormData.price) {
+      showToast("Please fill in required fields", "error");
+      return;
+    }
+
+    try {
+      if (editingTest) {
+        await apiService.updateLabCatalogTest(editingTest.id, testFormData);
+        showToast("Lab test updated successfully", "success");
+      } else {
+        await apiService.createLabCatalogTest(testFormData);
+        showToast("Lab test created successfully", "success");
+      }
+      setTestFormModalOpen(false);
+      fetchCatalogTests();
+    } catch (error: any) {
+      showToast(error.message || "Failed to save lab test", "error");
+    }
+  };
+
+  const handleDeleteTest = async (id: number) => {
+    if (!window.confirm("Are you sure you want to delete this test?")) return;
+    try {
+      await apiService.deleteLabCatalogTest(id);
+      showToast("Lab test deleted successfully", "success");
+      fetchCatalogTests();
+    } catch (error: any) {
+      showToast(error.message || "Failed to delete lab test", "error");
+    }
+  };
+
+  const openTestForm = (test: any = null) => {
+    if (test) {
+      setEditingTest(test);
+      setTestFormData({
+        test_name: test.test_name,
+        price: test.price,
+        description: test.description || "",
+        status: test.status,
+      });
+    } else {
+      setEditingTest(null);
+      setTestFormData({
+        test_name: "",
+        price: "",
+        description: "",
+        status: "active",
+      });
+    }
+    setTestFormModalOpen(true);
+  };
+
   return (
     <div className="mt-8">
       <div className="mb-6 flex flex-col justify-between gap-8 md:flex-row md:items-center">
-        <div>
-          <h2 className="text-2xl font-bold text-blue-gray-800">Laboratory</h2>
-          <p className="text-blue-gray-600">Manage lab tests, samples, and reports</p>
+        <div className="flex items-center gap-2">
+          <BeakerIcon className="h-6 w-6 text-blue-500" />
+          <div>
+            <h2 className="text-2xl font-bold text-blue-gray-800">Laboratory</h2>
+            <p className="text-blue-gray-600">Manage lab tests, samples, and reports</p>
+          </div>
         </div>
+        {!isDoctor && (
+          <Button
+            className="flex items-center gap-2 bg-blue-500"
+            onClick={() => setManageTestsModalOpen(true)}
+          >
+            <PlusIcon className="h-4 w-4" /> Manage Lab Tests
+          </Button>
+        )}
       </div>
 
       {/* Stats Cards */}
@@ -306,8 +404,7 @@ export default function Laboratory(): JSX.Element {
                   <tr>
                     <td colSpan={5} className="p-8 text-center text-blue-gray-500">
                       <div className="flex justify-center items-center">
-                        <ClockIcon className="h-5 w-5 mr-2 animate-pulse" />
-                        Loading...
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
                       </div>
                     </td>
                   </tr>
@@ -530,6 +627,109 @@ export default function Laboratory(): JSX.Element {
               VERIFY REPORT
             </Button>
           )}
+        </DialogFooter>
+      </Dialog>
+
+      {/* Manage Tests Modal (List) */}
+      <Dialog open={manageTestsModalOpen} handler={() => setManageTestsModalOpen(false)} size="lg">
+        <DialogHeader className="justify-between">
+          <div className="flex items-center gap-2">
+            <Typography variant="h5" color="blue-gray">Manage Lab Tests</Typography>
+            <Chip value={`${catalogTests.length} Tests`} size="sm" variant="ghost" className="rounded-full" />
+          </div>
+          <div className="flex gap-2">
+            <Button size="sm" color="blue" className="flex items-center gap-2" onClick={() => openTestForm()}>
+              <PlusIcon className="h-4 w-4" /> Add Test
+            </Button>
+            <IconButton variant="text" onClick={() => setManageTestsModalOpen(false)}>
+              <XMarkIcon className="h-5 w-5" />
+            </IconButton>
+          </div>
+        </DialogHeader>
+        <DialogBody className="h-[60vh] overflow-y-auto p-0">
+          <table className="w-full min-w-max table-auto text-left">
+            <thead>
+              <tr className="bg-blue-gray-50/50 sticky top-0 z-10">
+                <th className="p-4 border-b border-blue-gray-50">Test Name</th>
+                <th className="p-4 border-b border-blue-gray-50">Price</th>
+                <th className="p-4 border-b border-blue-gray-50">Status</th>
+                <th className="p-4 border-b border-blue-gray-50 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {catalogTests.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="p-8 text-center text-gray-500">No lab tests found.</td>
+                </tr>
+              ) : (
+                catalogTests.map((test) => (
+                  <tr key={test.id} className="hover:bg-gray-50 border-b border-blue-gray-50">
+                    <td className="p-4">
+                      <div className="font-bold text-blue-gray-800">{test.test_name}</div>
+                      <div className="text-xs text-gray-500">{test.description}</div>
+                    </td>
+                    <td className="p-4 font-medium">${Number(test.price).toFixed(2)}</td>
+                    <td className="p-4">
+                      <Chip
+                        value={test.status}
+                        color={test.status === 'active' ? 'green' : 'gray'}
+                        size="sm"
+                        variant="ghost"
+                        className="rounded-full w-max uppercase"
+                      />
+                    </td>
+                    <td className="p-4 text-right">
+                      <div className="flex justify-end gap-2">
+                        <IconButton size="sm" variant="text" color="blue" onClick={() => openTestForm(test)}>
+                          <PencilIcon className="h-4 w-4" />
+                        </IconButton>
+                        <IconButton size="sm" variant="text" color="red" onClick={() => handleDeleteTest(test.id)}>
+                          <TrashIcon className="h-4 w-4" />
+                        </IconButton>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </DialogBody>
+      </Dialog>
+
+      {/* Add/Edit Test Form Modal */}
+      <Dialog open={testFormModalOpen} handler={() => setTestFormModalOpen(false)} size="xs">
+        <DialogHeader>{editingTest ? 'Edit Lab Test' : 'Add New Lab Test'}</DialogHeader>
+        <DialogBody className="flex flex-col gap-4">
+          <Input
+            label="Test Name"
+            value={testFormData.test_name}
+            onChange={(e) => setTestFormData({ ...testFormData, test_name: e.target.value })}
+            crossOrigin={undefined}
+          />
+          <Input
+            label="Price ($)"
+            type="number"
+            value={testFormData.price}
+            onChange={(e) => setTestFormData({ ...testFormData, price: e.target.value })}
+            crossOrigin={undefined}
+          />
+          <Textarea
+            label="Description"
+            value={testFormData.description}
+            onChange={(e) => setTestFormData({ ...testFormData, description: e.target.value })}
+          />
+          <Select
+            label="Status"
+            value={testFormData.status}
+            onChange={(val) => setTestFormData({ ...testFormData, status: val as string })}
+          >
+            <Option value="active">Active</Option>
+            <Option value="inactive">Inactive</Option>
+          </Select>
+        </DialogBody>
+        <DialogFooter>
+          <Button variant="text" onClick={() => setTestFormModalOpen(false)} className="mr-1">Cancel</Button>
+          <Button variant="gradient" color="blue" onClick={handleSaveTest}>Save</Button>
         </DialogFooter>
       </Dialog>
     </div>

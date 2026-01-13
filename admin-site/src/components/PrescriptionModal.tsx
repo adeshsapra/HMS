@@ -63,10 +63,25 @@ export function PrescriptionModal({
     const [medicines, setMedicines] = useState<MedicineItem[]>([
         { medicine_name: "", dosage: "", frequency: "", duration: "", instructions: "" },
     ]);
-    const [labTests, setLabTests] = useState<LabTestItem[]>([]);
+    const [labTests, setLabTests] = useState<{ lab_test_catalog_id: string; test_name: string; priority: string }[]>([]);
+    const [availableTests, setAvailableTests] = useState<any[]>([]);
     const [validationErrors, setValidationErrors] = useState<{ [key: string]: string }>({});
     const [medicineErrors, setMedicineErrors] = useState<{ [key: number]: { [key: string]: string } }>({});
     const { showToast } = useToast();
+
+    React.useEffect(() => {
+        if (open) {
+            const fetchTests = async () => {
+                try {
+                    const res = await apiService.getLabTestCatalog();
+                    setAvailableTests(res.data || []);
+                } catch (err) {
+                    console.error("Failed to fetch lab tests", err);
+                }
+            };
+            fetchTests();
+        }
+    }, [open]);
 
     const handleAddMedicine = () => {
         setMedicines([
@@ -88,7 +103,7 @@ export function PrescriptionModal({
     };
 
     const handleAddLabTest = () => {
-        setLabTests([...labTests, { test_name: "", priority: "normal" }]);
+        setLabTests([...labTests, { lab_test_catalog_id: "", test_name: "", priority: "normal" }]);
     };
 
     const handleRemoveLabTest = (index: number) => {
@@ -99,7 +114,17 @@ export function PrescriptionModal({
 
     const handleLabTestChange = (index: number, field: string, value: string) => {
         const newTests = [...labTests];
-        newTests[index] = { ...newTests[index], [field]: value };
+        if (field === "lab_test_catalog_id") {
+            // Find test name from available tests
+            const selectedTest = availableTests.find(t => t.id.toString() === value);
+            newTests[index] = {
+                ...newTests[index],
+                lab_test_catalog_id: value,
+                test_name: selectedTest ? selectedTest.test_name : ""
+            };
+        } else {
+            newTests[index] = { ...newTests[index], [field]: value };
+        }
         setLabTests(newTests);
     };
 
@@ -178,6 +203,7 @@ export function PrescriptionModal({
                     instructions: med.instructions.trim()
                 })),
                 lab_tests: labTests.filter((t) => t.test_name.trim()).map(test => ({
+                    lab_test_catalog_id: test.lab_test_catalog_id,
                     test_name: test.test_name.trim(),
                     priority: test.priority || 'normal'
                 })),
@@ -583,15 +609,25 @@ export function PrescriptionModal({
                                     {labTests.map((test, index) => (
                                         <div key={index} className="flex gap-3 items-start pt-2">
                                             <div className="flex-grow">
-                                                <div className={`custom-input-wrapper ${test.test_name ? 'input-has-value' : ''}`}>
-                                                    <label className="custom-input-label">Test Name</label>
-                                                    <input
-                                                        type="text"
-                                                        value={test.test_name}
-                                                        onChange={(e) => handleLabTestChange(index, "test_name", e.target.value)}
-                                                        className="custom-input"
-                                                        placeholder="Enter test name"
-                                                    />
+                                                <div className={`custom-select-wrapper ${test.lab_test_catalog_id ? 'select-has-value' : ''}`}>
+                                                    <label className="custom-select-label">Test Name</label>
+                                                    <select
+                                                        value={test.lab_test_catalog_id}
+                                                        onChange={(e) => handleLabTestChange(index, "lab_test_catalog_id", e.target.value)}
+                                                        className="custom-select"
+                                                    >
+                                                        <option value="">Select Lab Test</option>
+                                                        {availableTests.map((t) => (
+                                                            <option key={t.id} value={t.id}>
+                                                                {t.test_name} (${Number(t.price).toFixed(2)})
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                    <div className="custom-select-arrow">
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                                                        </svg>
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div className="w-36">

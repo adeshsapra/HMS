@@ -76,6 +76,7 @@ interface DashboardStat {
 
 export default function Rooms(): JSX.Element {
   const [activeTab, setActiveTab] = useState("room-types");
+  const [loading, setLoading] = useState(true);
 
   // Data States
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -101,11 +102,12 @@ export default function Rooms(): JSX.Element {
 
   // View Modal States
   const [openViewModal, setOpenViewModal] = useState<boolean>(false);
-  const [viewItemId, setViewItemId] = useState<number | null>(null);
+  const [viewItem, setViewItem] = useState<any>(null);
   const [viewType, setViewType] = useState<"room" | "roomType" | "bed" | "admission">("roomType");
 
   // Fetch Data
   const fetchData = async () => {
+    setLoading(true);
     try {
       const [roomsRes, roomTypesRes, bedsRes, admissionsRes] = await Promise.all([
         apiService.getRooms(),
@@ -140,6 +142,8 @@ export default function Rooms(): JSX.Element {
     } catch (error) {
       console.error("Failed to fetch data", error);
       toast.error("Failed to load dashboard data");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -273,16 +277,16 @@ export default function Rooms(): JSX.Element {
   const handleView = (item: any) => {
     if (activeTab === "room-types") {
       setViewType("roomType");
-      setViewItemId(item.id);
+      setViewItem(item);
     } else if (activeTab === "rooms") {
       setViewType("room");
-      setViewItemId(item.id);
+      setViewItem(item);
     } else if (activeTab === "beds") {
       setViewType("bed");
-      setViewItemId(item.id);
+      setViewItem(item);
     } else {
       setViewType("admission");
-      setViewItemId(item.id);
+      setViewItem(item);
     }
     setOpenViewModal(true);
   };
@@ -418,57 +422,66 @@ export default function Rooms(): JSX.Element {
             </TabsHeader>
           </div>
           <TabsBody className="p-4">
-            <TabPanel value="room-types">
-              <DataTable
-                title="Room Categories"
-                data={roomTypes}
-                columns={roomTypeColumns}
-                onAdd={handleAdd}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                onView={handleView}
-                searchable={true}
-                addButtonLabel="Add Category"
-              />
-            </TabPanel>
-            <TabPanel value="rooms">
-              <DataTable
-                title="Hospital Rooms"
-                data={rooms}
-                columns={roomColumns}
-                onAdd={handleAdd}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                onView={handleView}
-                searchable={true}
-                filterable={false}
-                addButtonLabel="Add Room"
-              />
-            </TabPanel>
-            <TabPanel value="beds">
-              <DataTable
-                title="Bed Management"
-                data={beds}
-                columns={bedColumns}
-                onAdd={handleAdd}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                onView={handleView}
-                searchable={true}
-                addButtonLabel="Add Bed"
-              />
-            </TabPanel>
-            <TabPanel value="admissions">
-              <DataTable
-                title="Patient Admissions"
-                data={admissions}
-                columns={admissionColumns}
-                onAdd={undefined} // No direct add, use recommendation flow
-                onDelete={handleDelete}
-                customActions={getAdmissionActions} // Add custom actions logic
-                searchable={true}
-              />
-            </TabPanel>
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+              </div>
+            ) : (
+              <>
+                <TabPanel value="room-types">
+                  <DataTable
+                    title="Room Categories"
+                    data={roomTypes}
+                    columns={roomTypeColumns}
+                    onAdd={handleAdd}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    onView={handleView}
+                    searchable={true}
+                    addButtonLabel="Add Category"
+                  />
+                </TabPanel>
+                <TabPanel value="rooms">
+                  <DataTable
+                    title="Hospital Rooms"
+                    data={rooms}
+                    columns={roomColumns}
+                    onAdd={handleAdd}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    onView={handleView}
+                    searchable={true}
+                    filterable={false}
+                    addButtonLabel="Add Room"
+                  />
+                </TabPanel>
+                <TabPanel value="beds">
+                  <DataTable
+                    title="Bed Management"
+                    data={beds}
+                    columns={bedColumns}
+                    onAdd={handleAdd}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    onView={handleView}
+                    searchable={true}
+                    addButtonLabel="Add Bed"
+                  />
+                </TabPanel>
+                <TabPanel value="admissions">
+                  <DataTable
+                    title="Patient Admissions"
+                    data={admissions}
+                    columns={admissionColumns}
+                    onAdd={undefined} // No direct add, use recommendation flow
+                    onDelete={handleDelete}
+                    onView={handleView}
+                    customActions={getAdmissionActions} // Add custom actions logic
+                    searchable={true}
+                  />
+                </TabPanel>
+              </>
+            )}
           </TabsBody>
         </Tabs>
       </Card>
@@ -508,7 +521,7 @@ export default function Rooms(): JSX.Element {
         open={openViewModal}
         onClose={() => setOpenViewModal(false)}
         type={viewType}
-        itemId={viewItemId}
+        item={viewItem}
       />
     </div>
   );

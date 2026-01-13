@@ -641,6 +641,23 @@ class ApiService {
         return this.get<any>('/lab/stats');
     }
 
+    // Lab Catalog methods
+    async getLabTestCatalog() {
+        return this.get<any[]>('/lab/catalog');
+    }
+
+    async createLabCatalogTest(data: any) {
+        return this.post<any>('/lab/catalog', data);
+    }
+
+    async updateLabCatalogTest(id: number, data: any) {
+        return this.put<any>(`/lab/catalog/${id}`, data);
+    }
+
+    async deleteLabCatalogTest(id: number) {
+        return this.delete<any>(`/lab/catalog/${id}`);
+    }
+
     async collectLabSample(id: number, data: any) {
         return this.post<any>(`/lab/tests/${id}/collect`, data);
     }

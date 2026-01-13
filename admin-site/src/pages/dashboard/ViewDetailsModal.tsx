@@ -9,7 +9,6 @@ import {
     Card,
     CardBody,
     Chip,
-    Spinner,
     Avatar,
     Tooltip,
 } from "@material-tailwind/react";
@@ -26,6 +25,11 @@ import {
     CheckCircleIcon,
     ExclamationCircleIcon,
     NoSymbolIcon,
+    BriefcaseIcon,
+    DocumentTextIcon,
+    BeakerIcon,
+    CalculatorIcon,
+    ClockIcon,
 } from "@heroicons/react/24/outline";
 import apiService from "@/services/api";
 
@@ -33,7 +37,7 @@ interface ViewDetailsModalProps {
     open: boolean;
     onClose: () => void;
     type: "room" | "bed" | "roomType" | "admission";
-    itemId: number | null;
+    item: any;
 }
 
 // Helper component for consistent label/value alignment
@@ -57,42 +61,35 @@ export default function ViewDetailsModal({
     open,
     onClose,
     type,
-    itemId,
+    item,
 }: ViewDetailsModalProps): JSX.Element {
     const [data, setData] = useState<any>(null);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState<boolean>(false);
 
     useEffect(() => {
-        if (open && itemId) {
-            fetchDetails();
-        } else {
-            setData(null);
-        }
-    }, [open, itemId, type]);
-
-    const fetchDetails = async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            let response;
-            if (type === "room") response = await apiService.getRoom(itemId!);
-            else if (type === "bed") response = await apiService.getBed(itemId!);
-            else if (type === "roomType") response = await apiService.getRoomType(itemId!);
-            else if (type === "admission") response = await apiService.getAdmission(itemId!);
-
-            let itemData = response;
-            if (response && typeof response === "object" && "data" in response) {
-                itemData = response.data;
+        const fetchDetails = async () => {
+            if (open && item) {
+                if (type === "admission") {
+                    setLoading(true);
+                    try {
+                        const response = await apiService.getAdmission(item.id);
+                        setData(response.data);
+                    } catch (error) {
+                        console.error("Failed to fetch admission details", error);
+                        setData(item); // Fallback to passed item
+                    } finally {
+                        setLoading(false);
+                    }
+                } else {
+                    setData(item);
+                }
+            } else {
+                setData(null);
             }
-            setData(itemData);
-        } catch (err: any) {
-            console.error("Failed to fetch details", err);
-            setError(err.message || "Failed to load details");
-        } finally {
-            setLoading(false);
-        }
-    };
+        };
+
+        fetchDetails();
+    }, [open, item, type]);
 
     const getStatusConfig = (status: string) => {
         const s = status?.toLowerCase() || "";
@@ -116,24 +113,6 @@ export default function ViewDetailsModal({
     };
 
     const renderContent = () => {
-        if (loading) {
-            return (
-                <div className="flex flex-col justify-center items-center py-20 h-full">
-                    <Spinner className="h-12 w-12 text-blue-500 mb-4" />
-                    <Typography color="gray" className="font-medium animate-pulse">Loading details...</Typography>
-                </div>
-            );
-        }
-
-        if (error) {
-            return (
-                <div className="flex flex-col items-center py-12 text-red-500 bg-red-50 rounded-lg">
-                    <ExclamationCircleIcon className="h-12 w-12 mb-2" />
-                    <Typography variant="h6">{error}</Typography>
-                </div>
-            );
-        }
-
         if (!data) return null;
 
         /* -------------------------------------------------------------------------- */
@@ -327,66 +306,226 @@ export default function ViewDetailsModal({
         /*                            ADMISSION VIEW                                  */
         /* -------------------------------------------------------------------------- */
         else if (type === "admission") {
+            // Early return if data isn't fully loaded yet to prevent calculation errors
+            if (!data || !data.admission_date) {
+                return (
+                    <div className="flex flex-col items-center justify-center p-12 text-gray-400">
+                        <ClockIcon className="h-10 w-10 animate-spin mb-4 opacity-20" />
+                        <Typography>Preparing patient records...</Typography>
+                    </div>
+                );
+            }
+
+            const calculateDays = (start: string, end?: string) => {
+                if (!start) return 1;
+                const s = new Date(start);
+                const e = end ? new Date(end) : new Date();
+                if (isNaN(s.getTime())) return 1;
+                const diffTime = Math.abs(e.getTime() - s.getTime());
+                return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
+            };
+
+            const days = calculateDays(data.admission_date, data.discharge_date);
+            const dailyCharge = Number(data.room?.room_type?.daily_charge || 0);
+            const totalRoomCharge = days * dailyCharge;
+
             return (
-                <div className="space-y-6">
+                <div className="space-y-8">
+                    {/* Main Header */}
                     <div className="bg-white rounded-xl shadow-sm border border-blue-gray-100 p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                         <div className="flex items-center gap-4">
-                            <Avatar
-                                variant="rounded"
-                                size="lg"
-                                alt="patient"
-                                src="/api/placeholder/150/150"
-                                className="bg-blue-50 text-blue-500 p-2"
-                                withBorder={false}
-                            />
+                            <div className="h-16 w-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center shadow-inner">
+                                <UserCircleIcon className="h-10 w-10" />
+                            </div>
                             <div>
                                 <Typography variant="h4" color="blue-gray" className="font-bold">
-                                    {data.patient?.name || "Unknown Patient"}
+                                    {data.patient?.name || (data.patient?.first_name ? `${data.patient.first_name} ${data.patient.last_name}` : "Unknown Patient")}
                                 </Typography>
-                                <Typography color="gray" className="font-medium opacity-70">
-                                    Patient ID: #{data.patient_id}
-                                </Typography>
-                            </div>
-                        </div>
-                        <StatusBadge status={data.status} />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <Card className="shadow-sm border border-blue-gray-100">
-                            <div className="bg-gray-50 px-4 py-3 border-b border-blue-gray-50 flex items-center gap-2">
-                                <InformationCircleIcon className="h-5 w-5 text-blue-500" />
-                                <Typography variant="small" className="font-bold text-blue-gray-700 uppercase">
-                                    Admission Details
-                                </Typography>
-                            </div>
-                            <CardBody className="p-6 grid gap-6">
-                                <InfoItem icon={CalendarDaysIcon} label="Admission Date" value={data.admission_date} />
-                                <InfoItem icon={UserCircleIcon} label="Doctor" value={data.doctor?.name || data.doctor?.first_name + ' ' + data.doctor?.last_name} />
-                                <InfoItem icon={HomeModernIcon} label="Room" value={data.room ? `Room ${data.room.room_number}` : 'Not assigned'} />
-                                <InfoItem icon={ArchiveBoxIcon} label="Bed" value={data.bed ? `Bed ${data.bed.bed_number}` : 'Not assigned'} />
-                            </CardBody>
-                        </Card>
-
-                        <Card className="shadow-sm border border-blue-gray-100">
-                            <div className="bg-gray-50 px-4 py-3 border-b border-blue-gray-50 flex items-center gap-2">
-                                <CheckCircleIcon className="h-5 w-5 text-green-500" />
-                                <Typography variant="small" className="font-bold text-blue-gray-700 uppercase">
-                                    Clinical Notes
-                                </Typography>
-                            </div>
-                            <CardBody className="p-6">
-                                <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-100 text-yellow-900">
-                                    <Typography className="text-sm italic">
-                                        "{data.notes || 'No notes provided.'}"
+                                <div className="flex items-center gap-2 mt-0.5">
+                                    <Chip size="sm" variant="ghost" value={`ID: #${data.patient_id}`} className="rounded-md" />
+                                    <Typography variant="small" className="text-gray-500 font-medium">
+                                        Admission #{data.id}
                                     </Typography>
                                 </div>
-                                {data.discharge_date && (
-                                    <div className="mt-4 pt-4 border-t border-gray-100">
-                                        <InfoItem icon={CalendarDaysIcon} label="Discharged On" value={data.discharge_date} />
+                            </div>
+                        </div>
+                        <div className="flex flex-col items-end gap-2">
+                            <StatusBadge status={data.status} />
+                            {data.discharge_date && (
+                                <Typography variant="small" className="text-red-500 font-bold flex items-center gap-1">
+                                    <ClockIcon className="h-4 w-4" /> Discharged
+                                </Typography>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        {/* Left Column: Basic Info & Billing */}
+                        <div className="lg:col-span-1 space-y-6">
+                            {/* Stay Details */}
+                            <Card className="shadow-sm border border-blue-gray-100">
+                                <div className="bg-gray-50 px-4 py-3 border-b border-blue-gray-50 flex items-center gap-2">
+                                    <InformationCircleIcon className="h-5 w-5 text-blue-500" />
+                                    <Typography variant="small" className="font-bold text-blue-gray-700 uppercase">
+                                        Stay Information
+                                    </Typography>
+                                </div>
+                                <CardBody className="p-5 space-y-5">
+                                    <InfoItem icon={CalendarDaysIcon} label="Admitted" value={new Date(data.admission_date).toLocaleDateString()} />
+                                    {data.discharge_date && <InfoItem icon={CalendarDaysIcon} label="Discharged" value={new Date(data.discharge_date).toLocaleDateString()} />}
+                                    <InfoItem icon={UserCircleIcon} label="Doctor" value={data.doctor?.name || (data.doctor?.first_name ? `${data.doctor.first_name} ${data.doctor.last_name}` : "-")} />
+                                    <InfoItem icon={HomeModernIcon} label="Location" value={data.room ? `Room ${data.room.room_number} / Bed ${data.bed?.bed_number}` : 'Not assigned'} />
+                                </CardBody>
+                            </Card>
+
+                            {/* Billing Summary */}
+                            <Card className="shadow-sm border-2 border-green-100 bg-green-50/20">
+                                <div className="bg-green-100/50 px-4 py-3 border-b border-green-100 flex items-center gap-2">
+                                    <CalculatorIcon className="h-5 w-5 text-green-600" />
+                                    <Typography variant="small" className="font-bold text-green-700 uppercase">
+                                        Room Charges
+                                    </Typography>
+                                </div>
+                                <CardBody className="p-5 space-y-4">
+                                    <div className="flex justify-between items-center text-sm">
+                                        <span className="text-gray-600">Daily Rate:</span>
+                                        <span className="font-bold text-gray-800">${dailyCharge.toFixed(2)}</span>
                                     </div>
-                                )}
-                            </CardBody>
-                        </Card>
+                                    <div className="flex justify-between items-center text-sm">
+                                        <span className="text-gray-600">Total Days:</span>
+                                        <span className="font-bold text-gray-800">{days} Day(s)</span>
+                                    </div>
+                                    <div className="pt-3 border-t border-green-100 flex justify-between items-center">
+                                        <span className="font-bold text-green-700">Estimated Total:</span>
+                                        <span className="text-xl font-black text-green-700">${totalRoomCharge.toFixed(2)}</span>
+                                    </div>
+                                    <Typography variant="small" className="text-[10px] text-gray-400 italic text-center">
+                                        * Final billing may include additional services and taxes.
+                                    </Typography>
+                                </CardBody>
+                            </Card>
+
+                            {/* Clinical Notes */}
+                            <Card className="shadow-sm border border-blue-gray-100">
+                                <div className="bg-gray-50 px-4 py-3 border-b border-blue-gray-50 flex items-center gap-2">
+                                    <DocumentTextIcon className="h-5 w-5 text-orange-500" />
+                                    <Typography variant="small" className="font-bold text-blue-gray-700 uppercase">
+                                        Notes
+                                    </Typography>
+                                </div>
+                                <CardBody className="p-5">
+                                    <Typography variant="small" className="text-gray-600 italic leading-relaxed">
+                                        {data.notes ? `"${data.notes}"` : "No special clinical notes recorded for this admission period."}
+                                    </Typography>
+                                </CardBody>
+                            </Card>
+                        </div>
+
+                        {/* Right Column: Clinical Data */}
+                        <div className="lg:col-span-2 space-y-6">
+                            {/* Prescriptions & Medicines */}
+                            <Card className="shadow-sm border border-blue-gray-100">
+                                <div className="bg-blue-gray-50/50 px-6 py-4 border-b border-blue-gray-100 flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <BriefcaseIcon className="h-5 w-5 text-blue-600" />
+                                        <Typography variant="h6" color="blue-gray" className="font-bold">
+                                            Medications & Prescriptions
+                                        </Typography>
+                                    </div>
+                                    <Chip size="sm" color="blue" variant="ghost" value={`${data.prescriptions?.length || 0} Records`} />
+                                </div>
+                                <CardBody className="p-0">
+                                    {data.prescriptions && data.prescriptions.length > 0 ? (
+                                        <div className="divide-y divide-gray-100">
+                                            {data.prescriptions.map((px: any) => (
+                                                <div key={px.id} className="p-6 hover:bg-gray-50/50 transition-colors">
+                                                    <div className="flex justify-between items-start mb-4">
+                                                        <div>
+                                                            <Typography variant="small" className="font-bold text-blue-600 uppercase tracking-tight">
+                                                                #{px.id} - {new Date(px.created_at).toLocaleDateString()}
+                                                            </Typography>
+                                                            <Typography variant="h6" color="blue-gray" className="font-bold">
+                                                                {px.diagnosis || "General Consultation"}
+                                                            </Typography>
+                                                        </div>
+                                                        <Chip size="sm" variant="outlined" value={px.status} className="capitalize" />
+                                                    </div>
+
+                                                    {px.items && px.items.length > 0 ? (
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                                                            {px.items.map((item: any) => (
+                                                                <div key={item.id} className="flex items-center gap-3 bg-white p-3 rounded-lg border border-gray-100 shadow-sm">
+                                                                    <div className="h-8 w-8 bg-blue-50 text-blue-500 rounded flex items-center justify-center shrink-0">
+                                                                        <DocumentTextIcon className="h-4 w-4" />
+                                                                    </div>
+                                                                    <div className="min-w-0">
+                                                                        <Typography variant="small" className="font-bold text-gray-800 truncate">
+                                                                            {item.medicine_name || "Medicine"}
+                                                                        </Typography>
+                                                                        <Typography variant="small" className="text-gray-500 truncate text-[11px]">
+                                                                            {item.dosage} • {item.frequency} • {item.duration}
+                                                                        </Typography>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        <Typography variant="small" className="text-gray-400 italic">No medicines listed.</Typography>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="p-12 text-center text-gray-400">
+                                            <DocumentTextIcon className="h-10 w-10 mx-auto mb-2 opacity-20" />
+                                            <Typography>No prescriptions found for this admission.</Typography>
+                                        </div>
+                                    )}
+                                </CardBody>
+                            </Card>
+
+                            {/* Lab Tests */}
+                            <Card className="shadow-sm border border-blue-gray-100">
+                                <div className="bg-blue-gray-50/50 px-6 py-4 border-b border-blue-gray-100 flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <BeakerIcon className="h-5 w-5 text-indigo-600" />
+                                        <Typography variant="h6" color="blue-gray" className="font-bold">
+                                            Laboratory Investigations
+                                        </Typography>
+                                    </div>
+                                    <Chip size="sm" color="indigo" variant="ghost" value={`${data.all_lab_tests?.length || 0} Tests`} />
+                                </div>
+                                <CardBody className="p-6">
+                                    {data.all_lab_tests && data.all_lab_tests.length > 0 ? (
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            {data.all_lab_tests.map((test: any) => (
+                                                <div key={test.id} className="p-4 rounded-xl border-l-4 border-l-indigo-500 bg-indigo-50/30 flex justify-between items-center">
+                                                    <div>
+                                                        <Typography variant="small" className="font-bold text-indigo-900">
+                                                            {test.test_name}
+                                                        </Typography>
+                                                        <Typography variant="small" className="text-indigo-600/70 text-[11px] font-medium uppercase mt-0.5">
+                                                            Priority: {test.priority}
+                                                        </Typography>
+                                                    </div>
+                                                    <Chip
+                                                        size="sm"
+                                                        color={test.status === 'completed' ? 'green' : 'orange'}
+                                                        value={test.status}
+                                                        className="font-bold"
+                                                    />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="py-8 text-center text-gray-400">
+                                            <BeakerIcon className="h-10 w-10 mx-auto mb-2 opacity-20" />
+                                            <Typography>No lab tests ordered for this patient.</Typography>
+                                        </div>
+                                    )}
+                                </CardBody>
+                            </Card>
+                        </div>
                     </div>
                 </div>
             );
@@ -489,8 +628,17 @@ export default function ViewDetailsModal({
                     </div>
                 </DialogHeader>
 
-                <DialogBody className="p-6 md:p-8 overflow-y-auto bg-gray-50/50 flex-1">
-                    {renderContent()}
+                <DialogBody className="p-6 md:p-8 overflow-y-auto bg-gray-50/50 flex-1 relative min-h-[400px]">
+                    {loading ? (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/60 backdrop-blur-sm z-50">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
+                            <Typography variant="h6" color="blue-gray" className="animate-pulse">
+                                Fetching comprehensive records...
+                            </Typography>
+                        </div>
+                    ) : (
+                        renderContent()
+                    )}
                 </DialogBody>
 
                 <DialogFooter className="bg-white border-t border-gray-100 px-6 py-4 shrink-0 flex justify-end gap-3">
