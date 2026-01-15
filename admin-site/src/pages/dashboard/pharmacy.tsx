@@ -55,7 +55,7 @@ export default function Pharmacy(): JSX.Element {
   const [viewPrescriptionModal, setViewPrescriptionModal] = useState(false);
   const [selectedPrescription, setSelectedPrescription] = useState<any>(null);
   const [dispenseModal, setDispenseModal] = useState(false);
-  const [dispenseItems, setDispenseItems] = useState<any[]>([]);
+  const [dispenseData, setDispenseData] = useState<any>(null);
 
   // Medicines state
   const [medicines, setMedicines] = useState<any[]>([]);
@@ -108,6 +108,12 @@ export default function Pharmacy(): JSX.Element {
       loadDispensingHistory();
     }
   }, [activeTab]);
+
+  useEffect(() => {
+    if (!dispenseModal) {
+      setDispenseData(null);
+    }
+  }, [dispenseModal]);
 
   const loadStats = async () => {
     try {
@@ -212,19 +218,20 @@ export default function Pharmacy(): JSX.Element {
         quantity_prescribed: item.quantity_prescribed,
         quantity_dispensed: item.quantity_dispensed,
         remaining: item.quantity_prescribed - item.quantity_dispensed,
-        max_quantity: Math.min(
+        max_quantity: Math.max(0, Math.min(
           item.quantity_prescribed - item.quantity_dispensed,
-          item.availability?.current_stock || 0
-        ),
+          item.availability?.current_stock ?? 0
+        )),
         availability: item.availability,
         quantity_to_dispense: 0,
         notes: "",
       }));
 
-      setDispenseItems(items);
-      setSelectedPrescription(prescriptionData);
+      setDispenseData({ prescription: prescriptionData, items });
+      console.log('Dispense modal data:', { prescription: prescriptionData, items });
       setDispenseModal(true);
     } catch (error: any) {
+      console.error('Error in handleDispenseClick:', error);
       showToast(error.message || "Failed to load prescription details", "error");
     } finally {
       setLoading(false);
@@ -234,7 +241,8 @@ export default function Pharmacy(): JSX.Element {
   const handleDispenseSubmit = async () => {
     try {
       setLoading(true);
-      const validItems = dispenseItems
+      const items = dispenseData?.items || [];
+      const validItems = items
         .filter((item) => item.quantity_to_dispense > 0)
         .map((item) => ({
           prescription_item_id: item.prescription_item_id,
@@ -247,7 +255,7 @@ export default function Pharmacy(): JSX.Element {
         return;
       }
 
-      await apiService.dispensePrescription(selectedPrescription.id, {
+      await apiService.dispensePrescription(dispenseData?.prescription?.id, {
         items: validItems,
       });
 
@@ -720,7 +728,7 @@ export default function Pharmacy(): JSX.Element {
                       render: (value: any) => `$${parseFloat(value).toFixed(2)}`,
                     },
                     {
-                      key: "dispensedByUser",
+                      key: "dispensed_by",
                       label: "Dispensed By",
                       render: (value: any) => value?.name || "N/A",
                     },
@@ -798,7 +806,7 @@ export default function Pharmacy(): JSX.Element {
       </Card>
 
       {/* View Prescription Details Modal */}
-      <Dialog open={viewPrescriptionModal} handler={setViewPrescriptionModal} size="xl">
+      <Dialog open={viewPrescriptionModal} handler={() => setViewPrescriptionModal(!viewPrescriptionModal)} size="xl">
         <DialogHeader>Prescription Details</DialogHeader>
         <DialogBody>
           {selectedPrescription && (
@@ -928,95 +936,112 @@ export default function Pharmacy(): JSX.Element {
       </Dialog>
 
       {/* Dispense Modal */}
-      <Dialog open={dispenseModal} handler={setDispenseModal} size="xl">
+      <Dialog open={dispenseModal} handler={() => setDispenseModal(!dispenseModal)} size="lg">
         <DialogHeader>Dispense Medicines</DialogHeader>
-        <DialogBody>
-          {selectedPrescription && (
-            <div className="space-y-4">
-              <div className="mb-4">
-                <Typography variant="small" color="blue-gray">
-                  Patient: {selectedPrescription.patient?.name || "N/A"}
-                </Typography>
-                <Typography variant="small" color="blue-gray">
-                  Prescription Date: {new Date(selectedPrescription.created_at).toLocaleDateString()}
-                </Typography>
-              </div>
-              {dispenseItems.map((item, index) => (
-                <Card key={index} className="border border-blue-gray-100 p-4">
-                  <Typography variant="h6" color="blue-gray" className="mb-2">
-                    {item.medicine_name}
-                  </Typography>
-                  <div className="grid grid-cols-2 gap-2 text-sm mb-4">
-                    <div>
-                      <span className="text-blue-gray-600">Prescribed: </span>
-                      <span className="font-semibold">{item.quantity_prescribed} units</span>
-                    </div>
-                    <div>
-                      <span className="text-blue-gray-600">Available Stock: </span>
-                      <span className="font-semibold">
-                        {item.availability?.current_stock || 0} {item.availability?.unit || "units"}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-blue-gray-600">Max to Dispense: </span>
-                      <span className="font-semibold">{item.max_quantity} units</span>
-                    </div>
-                    {item.availability?.selling_price && (
-                      <div>
-                        <span className="text-blue-gray-600">Unit Price: </span>
-                        <span className="font-semibold">
-                          ${parseFloat(item.availability.selling_price).toFixed(2)}
-                        </span>
-                      </div>
-                    )}
+        <DialogBody className="overflow-y-auto">
+          {(() => {
+            try {
+              const prescription = dispenseData?.prescription;
+              const items = dispenseData?.items || [];
+              return prescription ? (
+                <div className="space-y-4">
+                  <div className="mb-4">
+                    <Typography variant="small" color="blue-gray">
+                      Patient: {prescription.patient?.name || "N/A"}
+                    </Typography>
+                    <Typography variant="small" color="blue-gray">
+                      Prescription Date: {new Date(prescription.created_at).toLocaleDateString()}
+                    </Typography>
                   </div>
-                  <div className="space-y-2">
-                    <Input
-                      label="Quantity to Dispense"
-                      type="number"
-                      min="0"
-                      max={item.max_quantity}
-                      value={item.quantity_to_dispense}
-                      onChange={(e) => {
-                        const newItems = [...dispenseItems];
-                        newItems[index].quantity_to_dispense = parseInt(e.target.value) || 0;
-                        setDispenseItems(newItems);
-                      }}
-                      crossOrigin={undefined}
-                    />
-                    <Textarea
-                      label="Notes (Optional)"
-                      value={item.notes}
-                      onChange={(e) => {
-                        const newItems = [...dispenseItems];
-                        newItems[index].notes = e.target.value;
-                        setDispenseItems(newItems);
-                      }}
-                    />
-                    {item.quantity_to_dispense > 0 && item.availability?.selling_price && (
-                      <Typography variant="small" color="blue-gray">
-                        Total: $
-                        {(item.quantity_to_dispense * parseFloat(item.availability.selling_price)).toFixed(2)}
+                  {items.map((item, index) => (
+                    <Card key={index} className="border border-blue-gray-100 p-4">
+                      <Typography variant="h6" color="blue-gray" className="mb-2">
+                        {item.medicine_name}
                       </Typography>
-                    )}
+                      <div className="grid grid-cols-2 gap-2 text-sm mb-4">
+                        <div>
+                          <span className="text-blue-gray-600">Prescribed: </span>
+                          <span className="font-semibold">{item.quantity_prescribed} units</span>
+                        </div>
+                        <div>
+                          <span className="text-blue-gray-600">Available Stock: </span>
+                          <span className="font-semibold">
+                            {item.availability?.current_stock || 0} {item.availability?.unit || "units"}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-blue-gray-600">Max to Dispense: </span>
+                          <span className="font-semibold">{item.max_quantity} units</span>
+                        </div>
+                        {item.availability?.selling_price && (
+                          <div>
+                            <span className="text-blue-gray-600">Unit Price: </span>
+                            <span className="font-semibold">
+                              ${parseFloat(item.availability?.selling_price || "0").toFixed(2)}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Input
+                          label="Quantity to Dispense"
+                          type="number"
+                          min="0"
+                          max={item.max_quantity}
+                          value={item.quantity_to_dispense}
+                          onChange={(e) => {
+                            const newItems = [...items];
+                            newItems[index].quantity_to_dispense = parseInt(e.target.value) || 0;
+                            setDispenseData({ ...dispenseData, items: newItems });
+                          }}
+                          crossOrigin={undefined}
+                        />
+                        <Textarea
+                          label="Notes (Optional)"
+                          value={item.notes}
+                          onChange={(e) => {
+                            const newItems = [...items];
+                            newItems[index].notes = e.target.value;
+                            setDispenseData({ ...dispenseData, items: newItems });
+                          }}
+                        />
+                        {item.quantity_to_dispense > 0 && item.availability?.selling_price && (
+                          <Typography variant="small" color="blue-gray">
+                            Total: $
+                            {(item.quantity_to_dispense * parseFloat(item.availability?.selling_price || "0")).toFixed(2)}
+                          </Typography>
+                        )}
+                      </div>
+                    </Card>
+                  ))}
+                  <div className="mt-4 p-4 bg-blue-gray-50 rounded">
+                    <Typography variant="h6" color="blue-gray">
+                      Total Amount: $
+                      {items
+                        .reduce((sum, item) => {
+                          if (item.quantity_to_dispense > 0 && item.availability?.selling_price) {
+                            return sum + item.quantity_to_dispense * parseFloat(item.availability?.selling_price || "0");
+                          }
+                          return sum;
+                        }, 0)
+                        .toFixed(2)}
+                    </Typography>
                   </div>
-                </Card>
-              ))}
-              <div className="mt-4 p-4 bg-blue-gray-50 rounded">
-                <Typography variant="h6" color="blue-gray">
-                  Total Amount: $
-                  {dispenseItems
-                    .reduce((sum, item) => {
-                      if (item.quantity_to_dispense > 0 && item.availability?.selling_price) {
-                        return sum + item.quantity_to_dispense * parseFloat(item.availability.selling_price);
-                      }
-                      return sum;
-                    }, 0)
-                    .toFixed(2)}
-                </Typography>
-              </div>
-            </div>
-          )}
+                </div>
+              ) : (
+                <div className="flex justify-center items-center p-8">
+                  <Typography>No prescription data available</Typography>
+                </div>
+              );
+            } catch (error) {
+              console.error('Error rendering dispense modal:', error);
+              return (
+                <div className="flex justify-center items-center p-8">
+                  <Typography color="red">Error loading prescription details. Please try again.</Typography>
+                </div>
+              );
+            }
+          })()}
         </DialogBody>
         <DialogFooter>
           <Button variant="text" color="red" onClick={() => setDispenseModal(false)}>
@@ -1029,7 +1054,7 @@ export default function Pharmacy(): JSX.Element {
       </Dialog>
 
       {/* Add/Edit Medicine Modal */}
-      <Dialog open={medicineModal} handler={setMedicineModal} size="lg">
+      <Dialog open={medicineModal} handler={() => setMedicineModal(!medicineModal)} size="lg">
         <DialogHeader>
           {selectedMedicine ? "Edit Medicine" : "Add New Medicine"}
         </DialogHeader>
@@ -1171,7 +1196,7 @@ export default function Pharmacy(): JSX.Element {
       </Dialog>
 
       {/* Delete Medicine Confirmation Modal */}
-      <Dialog open={deleteMedicineModal} handler={setDeleteMedicineModal} size="sm">
+      <Dialog open={deleteMedicineModal} handler={() => setDeleteMedicineModal(!deleteMedicineModal)} size="sm">
         <DialogHeader>Delete Medicine</DialogHeader>
         <DialogBody>
           <Typography>
@@ -1189,7 +1214,7 @@ export default function Pharmacy(): JSX.Element {
       </Dialog>
 
       {/* Restock Modal */}
-      <Dialog open={restockModal} handler={setRestockModal} size="md">
+      <Dialog open={restockModal} handler={() => setRestockModal(!restockModal)} size="md">
         <DialogHeader>Restock Medicine</DialogHeader>
         <DialogBody>
           {selectedMedicine && (

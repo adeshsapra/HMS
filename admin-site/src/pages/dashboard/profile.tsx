@@ -1185,7 +1185,7 @@ export function Profile(): JSX.Element {
         }
 
         {/* Security Dialog */}
-        <Dialog open={openPasswordModal} handler={setOpenPasswordModal} size="xs" className="rounded-[2rem] shadow-2xl">
+        <Dialog open={openPasswordModal} handler={() => setOpenPasswordModal(!openPasswordModal)} size="xs" className="rounded-[2rem] shadow-2xl">
           <DialogHeader className="flex flex-col gap-1 items-center pt-8 px-8">
             <Typography variant="h5" color="blue-gray" className="font-black">Identity Verification</Typography>
             <Typography variant="small" color="gray" className="font-bold opacity-40 text-center uppercase tracking-widest px-4">Secure your professional clinical registry.</Typography>
