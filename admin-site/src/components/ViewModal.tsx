@@ -29,7 +29,7 @@ import {
 export interface ViewField {
   key: string;
   label: string;
-  type?: "text" | "status" | "avatar" | "currency" | "date" | "badge" | "email" | "phone" | "longtext";
+  type?: "text" | "status" | "avatar" | "currency" | "date" | "datetime" | "badge" | "email" | "phone" | "longtext";
   color?: string; // For badges/chips
   fullWidth?: boolean; // Forces field to span full row
   icon?: React.ElementType; // Optional icon for the label
@@ -43,6 +43,7 @@ export interface ViewModalProps {
   subtitle?: string; // e.g. "ID: #12345"
   data: Record<string, any> | null;
   fields: ViewField[];
+  actionButton?: React.ReactNode;
 }
 
 // --- Helper: Status Badge Component (Inline) ---
@@ -72,6 +73,7 @@ export function ViewModal({
   subtitle,
   data,
   fields,
+  actionButton,
 }: ViewModalProps): JSX.Element | null {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
@@ -96,6 +98,7 @@ export function ViewModal({
       case "email": return EnvelopeIcon;
       case "phone": return PhoneIcon;
       case "date": return CalendarDaysIcon;
+      case "datetime": return CalendarDaysIcon;
       case "currency": return CurrencyDollarIcon;
       case "badge": return TagIcon;
       case "status": return UserCircleIcon;
@@ -131,6 +134,18 @@ export function ViewModal({
         return (
           <Typography className="text-sm font-medium text-blue-gray-800">
             {new Date(value).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
+          </Typography>
+        );
+      case "datetime":
+        return (
+          <Typography className="text-sm font-medium text-blue-gray-800">
+            {new Date(value).toLocaleString("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
           </Typography>
         );
       case "email":
@@ -266,9 +281,12 @@ export function ViewModal({
           <Typography variant="small" className="text-gray-400 font-normal">
             Viewing details for ID: <span className="text-gray-600 font-mono">{data.id || 'N/A'}</span>
           </Typography>
-          <Button variant="gradient" color="blue-gray" onClick={onClose} className="rounded-lg shadow-none hover:shadow-md">
-            Close
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="gradient" color="blue-gray" onClick={onClose} className="rounded-lg shadow-none hover:shadow-md">
+              Close
+            </Button>
+            {actionButton}
+          </div>
         </DialogFooter>
       </Card>
     </Dialog>

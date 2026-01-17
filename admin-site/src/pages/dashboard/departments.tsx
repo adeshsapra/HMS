@@ -314,35 +314,30 @@ export default function Departments(): JSX.Element {
         </Button>
       </div>
 
-      <DataTable
-        title="Department Management"
-        data={departments}
-        columns={columns}
-        onAdd={handleAdd}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        onView={handleView}
-        searchable={true}
-        filterable={true}
-        exportable={true}
-        addButtonLabel="Add Department"
-        searchPlaceholder="Search departments..."
-        pagination={{
-          currentPage,
-          totalPages,
-          onPageChange: setCurrentPage,
-        }}
-      />
-
-      {/* Pagination Component */}
-      {totalPages > 1 && (
-        <div className="flex justify-center mt-6">
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
         </div>
+      ) : (
+        <DataTable
+          title="Department Management"
+          data={departments}
+          columns={columns}
+          onAdd={handleAdd}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onView={handleView}
+          searchable={true}
+          filterable={true}
+          exportable={true}
+          addButtonLabel="Add Department"
+          searchPlaceholder="Search departments..."
+          pagination={{
+            currentPage,
+            totalPages,
+            onPageChange: setCurrentPage,
+          }}
+        />
       )}
 
       <FormModal
