@@ -927,6 +927,58 @@ class ApiService {
     async dischargePatient(admissionId: number, data: { discharge_date: string }) {
         return this.post<any>(`/admissions/${admissionId}/discharge`, data);
     }
+
+    // Billing methods
+    async getBills(params?: {
+        patient_id?: number;
+        status?: string;
+        page?: number;
+        per_page?: number;
+    }) {
+        let endpoint = '/billing/bills?';
+        const queryParams = new URLSearchParams();
+
+        if (params?.patient_id) queryParams.append('patient_id', params.patient_id.toString());
+        if (params?.status) queryParams.append('status', params.status);
+        if (params?.page) queryParams.append('page', params.page.toString());
+        if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
+
+        endpoint += queryParams.toString();
+        return this.get<any>(endpoint);
+    }
+
+    async getBill(id: number) {
+        return this.get<any>(`/billing/bills/${id}`);
+    }
+
+    async finalizeBill(id: number) {
+        return this.post<any>(`/billing/bills/${id}/finalize`);
+    }
+
+    async getBillPdfUrl(id: number) {
+        const token = this.getAuthToken();
+        const url = `${API_BASE_URL}/billing/bills/${id}/pdf`;
+
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/pdf',
+                ...(token && { Authorization: `Bearer ${token}` }),
+            },
+        });
+
+        if (!response.ok) {
+            try {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to download PDF');
+            } catch (e) {
+                throw new Error('Failed to download PDF');
+            }
+        }
+
+        const blob = await response.blob();
+        return window.URL.createObjectURL(blob);
+    }
 }
 
 export const apiService = new ApiService();
