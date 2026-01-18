@@ -123,7 +123,7 @@ const SignIn = () => {
 
             <div className="form-header">
               <h1>Welcome Back</h1>
-              <p>Please enter your credentials to access the hospital admin panel.</p>
+              <p>Please enter your credentials to access your personal patient portal.</p>
             </div>
 
             <form onSubmit={handleSubmit} className="modern-form" noValidate>
@@ -217,7 +217,7 @@ const SignIn = () => {
             </form>
 
             <div className="form-footer">
-              <p>New staff member? <Link to="/sign-up">Create an account</Link></p>
+              <p>New patient? <Link to="/sign-up">Create an account</Link></p>
 
               <div className="social-login">
                 <span>Or sign in with</span>

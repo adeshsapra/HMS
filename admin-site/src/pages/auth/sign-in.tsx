@@ -54,17 +54,17 @@ export function SignIn(): JSX.Element {
 
           <form className="space-y-6" onSubmit={handleSubmit}>
             {error && (
-              <div className={`mb-6 p-4 rounded-2xl border flex items-start gap-4 animate-shake ${error.toLowerCase().includes('access denied')
+              <div className={`mb-6 p-4 rounded-2xl border flex items-start gap-4 animate-shake ${error.toLowerCase().includes('access denied') || error.toLowerCase().includes('access restricted')
                 ? 'bg-red-50 border-red-100 text-red-800 shadow-sm'
                 : 'bg-orange-50 border-orange-100 text-orange-800'
                 }`}>
-                <div className={`p-2 rounded-xl shrink-0 ${error.toLowerCase().includes('access denied') ? 'bg-red-100' : 'bg-orange-100'
+                <div className={`p-2 rounded-xl shrink-0 ${error.toLowerCase().includes('access denied') || error.toLowerCase().includes('access restricted') ? 'bg-red-100' : 'bg-orange-100'
                   }`}>
                   <ShieldCheckIcon className="h-5 w-5" />
                 </div>
                 <div className="flex-1">
                   <Typography variant="small" className="font-black uppercase tracking-wider text-[10px] mb-0.5">
-                    {error.toLowerCase().includes('access denied') ? 'Security Protocol' : 'Authentication Error'}
+                    {error.toLowerCase().includes('access denied') || error.toLowerCase().includes('access restricted') ? 'Security Protocol' : 'Authentication Error'}
                   </Typography>
                   <Typography variant="small" className="font-bold leading-tight">
                     {error}
