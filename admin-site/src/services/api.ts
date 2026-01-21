@@ -929,19 +929,14 @@ class ApiService {
     }
 
     // Billing methods
-    async getBills(params?: {
-        patient_id?: number;
-        status?: string;
-        page?: number;
-        per_page?: number;
-    }) {
+    async getBills(params?: { patient_id?: number; status?: string; per_page?: number; page?: number }) {
         let endpoint = '/billing/bills?';
         const queryParams = new URLSearchParams();
 
         if (params?.patient_id) queryParams.append('patient_id', params.patient_id.toString());
         if (params?.status) queryParams.append('status', params.status);
-        if (params?.page) queryParams.append('page', params.page.toString());
         if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
+        if (params?.page) queryParams.append('page', params.page.toString());
 
         endpoint += queryParams.toString();
         return this.get<any>(endpoint);
@@ -955,9 +950,61 @@ class ApiService {
         return this.post<any>(`/billing/bills/${id}/finalize`);
     }
 
-    async getBillPdfUrl(id: number) {
+    async downloadInvoice(id: number) {
         const token = this.getAuthToken();
         const url = `${API_BASE_URL}/billing/bills/${id}/pdf`;
+
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Accept': 'text/html',
+                ...(token && { Authorization: `Bearer ${token}` }),
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to download invoice');
+        }
+
+        const html = await response.text();
+        return html;
+    }
+
+    // Payment methods
+    async getPayments(params?: { bill_id?: number; patient_id?: number; payment_status?: string; payment_mode?: string; per_page?: number; page?: number }) {
+        let endpoint = '/payments?';
+        const queryParams = new URLSearchParams();
+
+        if (params?.bill_id) queryParams.append('bill_id', params.bill_id.toString());
+        if (params?.patient_id) queryParams.append('patient_id', params.patient_id.toString());
+        if (params?.payment_status) queryParams.append('payment_status', params.payment_status);
+        if (params?.payment_mode) queryParams.append('payment_mode', params.payment_mode);
+        if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
+        if (params?.page) queryParams.append('page', params.page.toString());
+
+        endpoint += queryParams.toString();
+        return this.get<any>(endpoint);
+    }
+
+    async getPayment(id: number) {
+        return this.get<any>(`/payments/${id}`);
+    }
+
+    async collectCash(data: { bill_id: number; amount: number; notes?: string }) {
+        return this.post<any>('/payments/collect-cash', data);
+    }
+
+    async initiateOnlinePayment(data: { bill_id: number; amount: number; payment_gateway: string }) {
+        return this.post<any>('/payments/initiate-online', data);
+    }
+
+    async verifyPayment(id: number, data: { transaction_id: string; gateway_response?: any; status: string }) {
+        return this.post<any>(`/payments/${id}/verify`, data);
+    }
+
+    async generateReceipt(id: number) {
+        const token = this.getAuthToken();
+        const url = `${API_BASE_URL}/payments/${id}/receipt`;
 
         const response = await fetch(url, {
             method: 'GET',
@@ -968,16 +1015,15 @@ class ApiService {
         });
 
         if (!response.ok) {
-            try {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Failed to download PDF');
-            } catch (e) {
-                throw new Error('Failed to download PDF');
-            }
+            throw new Error('Failed to generate receipt');
         }
 
         const blob = await response.blob();
         return window.URL.createObjectURL(blob);
+    }
+
+    async getPaymentStatistics() {
+        return this.get<any>('/payments/statistics/summary');
     }
 }
 

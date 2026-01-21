@@ -138,5 +138,79 @@ export const patientProfileAPI = {
     },
 };
 
+// Billing API
+export const billingAPI = {
+    getBills: (params?: { patient_id?: number; status?: string; per_page?: number; page?: number }) => {
+        const queryParams = new URLSearchParams();
+        if (params?.patient_id) queryParams.append('patient_id', params.patient_id.toString());
+        if (params?.status) queryParams.append('status', params.status);
+        if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
+        if (params?.page) queryParams.append('page', params.page.toString());
+
+        const queryString = queryParams.toString();
+        return api.get(`/billing/bills${queryString ? '?' + queryString : ''}`);
+    },
+
+    getBillById: (id: number) => api.get(`/billing/bills/${id}`),
+
+    finalizeBill: (id: number) => api.post(`/billing/bills/${id}/finalize`),
+
+    downloadInvoice: (id: number) => api.get(`/billing/bills/${id}/pdf`, {
+        responseType: 'blob'
+    }),
+};
+
+// Payment API
+export const paymentAPI = {
+    getPayments: (params?: { bill_id?: number; patient_id?: number; payment_status?: string; payment_mode?: string; per_page?: number; page?: number }) => {
+        const queryParams = new URLSearchParams();
+        if (params?.bill_id) queryParams.append('bill_id', params.bill_id.toString());
+        if (params?.patient_id) queryParams.append('patient_id', params.patient_id.toString());
+        if (params?.payment_status) queryParams.append('payment_status', params.payment_status);
+        if (params?.payment_mode) queryParams.append('payment_mode', params.payment_mode);
+        if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
+        if (params?.page) queryParams.append('page', params.page.toString());
+
+        const queryString = queryParams.toString();
+        return api.get(`/payments${queryString ? '?' + queryString : ''}`);
+    },
+
+    getPaymentById: (id: number) => api.get(`/payments/${id}`),
+
+    collectCash: (data: { bill_id: number; amount: number; notes?: string }) =>
+        api.post('/payments/collect-cash', data),
+
+    initiateOnlinePayment: (data: { bill_id: number; amount: number; payment_gateway: string }) =>
+        api.post('/payments/initiate-online', data),
+
+    verifyPayment: (id: number, data: { transaction_id: string; gateway_response?: any; status: string }) =>
+        api.post(`/payments/${id}/verify`, data),
+
+    generateReceipt: (id: number) => api.get(`/payments/${id}/receipt`, {
+        responseType: 'blob'
+    }),
+
+    getStatistics: () => api.get('/payments/statistics/summary'),
+};
+
+// Unified ApiService export for backward compatibility
+export const ApiService = {
+    // Billing methods
+    getBills: () => billingAPI.getBills(),
+    getBillById: (id: number) => billingAPI.getBillById(id),
+    finalizeBill: (id: number) => billingAPI.finalizeBill(id),
+    downloadInvoice: (id: number) => billingAPI.downloadInvoice(id),
+
+    // Payment methods
+    getPayments: (params?: any) => paymentAPI.getPayments(params),
+    getPaymentById: (id: number) => paymentAPI.getPaymentById(id),
+    collectCash: (data: any) => paymentAPI.collectCash(data),
+    initiateOnlinePayment: (data: any) => paymentAPI.initiateOnlinePayment(data),
+    verifyPayment: (id: number, data: any) => paymentAPI.verifyPayment(id, data),
+    generateReceipt: (id: number) => paymentAPI.generateReceipt(id),
+    getPaymentStatistics: () => paymentAPI.getStatistics(),
+};
+
 export default api;
+
 

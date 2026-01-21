@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { DataTable, FormModal, ViewModal, DeleteConfirmModal, Column, FormField, ViewField } from "@/components";
 import { billingData, patientsData, Bill } from "@/data/hms-data";
 import { Button } from "@material-tailwind/react";
-import { CurrencyDollarIcon } from "@heroicons/react/24/outline";
+import { CurrencyDollarIcon, PrinterIcon } from "@heroicons/react/24/outline";
 
 export default function Bills(): JSX.Element {
     const [bills, setBills] = useState<Bill[]>(billingData);
@@ -133,7 +133,68 @@ export default function Bills(): JSX.Element {
         setOpenViewModal(true);
     };
 
-    const handleSubmit = (data: Record<string, any>): void => {
+    const handlePrintInvoice = (bill: Bill): void => {
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) return;
+
+        const invoiceHTML = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Invoice - ${bill.invoiceNo}</title>
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 20px; }
+                    .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px; }
+                    .invoice-title { font-size: 24px; font-weight: bold; }
+                    .invoice-details { display: flex; justify-content: space-between; margin-bottom: 30px; }
+                    .bill-info { flex: 1; }
+                    .patient-info { flex: 1; }
+                    .amount-section { text-align: right; font-size: 18px; font-weight: bold; margin-top: 20px; }
+                    .status { padding: 5px 10px; border-radius: 4px; color: white; }
+                    .paid { background-color: green; }
+                    .pending { background-color: orange; }
+                    .overdue { background-color: red; }
+                    @media print { body { margin: 0; } }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h1 class="invoice-title">HMS Hospital</h1>
+                    <p>Medical Invoice</p>
+                </div>
+
+                <div class="invoice-details">
+                    <div class="bill-info">
+                        <h3>Invoice Details</h3>
+                        <p><strong>Invoice No:</strong> ${bill.invoiceNo}</p>
+                        <p><strong>Date:</strong> ${new Date(bill.date).toLocaleDateString()}</p>
+                        <p><strong>Payment Method:</strong> ${bill.paymentMethod}</p>
+                    </div>
+                    <div class="patient-info">
+                        <h3>Patient Information</h3>
+                        <p><strong>Name:</strong> ${bill.patientName}</p>
+                    </div>
+                </div>
+
+                <div class="amount-section">
+                    <p><strong>Total Amount: $${bill.amount.toFixed(2)}</strong></p>
+                    <p><span class="status ${bill.status.toLowerCase()}">${bill.status.toUpperCase()}</span></p>
+                </div>
+
+                <div style="margin-top: 50px; text-align: center; font-size: 12px; color: #666;">
+                    <p>Thank you for choosing HMS Hospital</p>
+                    <p>For any queries, please contact billing@hmshospital.com</p>
+                </div>
+            </body>
+            </html>
+        `;
+
+        printWindow.document.write(invoiceHTML);
+        printWindow.document.close();
+        printWindow.print();
+    };
+
+    const handleSubmit = async (data: Record<string, any>): Promise<void> => {
         if (selectedBill) {
             setBills(
                 bills.map((b) =>
@@ -178,6 +239,14 @@ export default function Bills(): JSX.Element {
                 onEdit={handleEdit}
                 onDelete={handleDelete}
                 onView={handleView}
+                customActions={(bill: Bill) => [
+                    {
+                        label: "Print Invoice",
+                        icon: <PrinterIcon className="h-4 w-4" />,
+                        onClick: () => handlePrintInvoice(bill),
+                        color: "blue",
+                    },
+                ]}
                 searchable={true}
                 filterable={true}
                 exportable={true}

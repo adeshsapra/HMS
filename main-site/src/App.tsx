@@ -28,6 +28,7 @@ import SignIn from './pages/SignIn'
 import SignUp from './pages/SignUp'
 import NotFound from './pages/NotFound'
 import Profile from './pages/Profile'
+import Payment from './pages/Payment'
 // Home Care Pages
 import HomeCareLanding from './pages/HomeCare/HomeCareLanding'
 import BookingWizard from './pages/HomeCare/BookingWizard'
@@ -96,6 +97,7 @@ function App() {
             <Route path="/sign-in" element={<SignIn />} />
             <Route path="/sign-up" element={<SignUp />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/payment" element={<Payment />} />
 
             {/* Home Care Routes */}
             <Route path="/home-care" element={<HomeCareLanding />} />

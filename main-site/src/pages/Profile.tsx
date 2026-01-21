@@ -5,6 +5,7 @@ import { profileAPI } from '../services/api'
 import { useToast } from '../context/ToastContext'
 import MyAppointments from '../components/MyAppointments'
 import MyMedicalRecords from '../components/MyMedicalRecords'
+import MyBills from '../components/MyBills'
 
 const Profile = () => {
   const { showToast } = useToast()
@@ -226,7 +227,8 @@ const Profile = () => {
     { id: 'security', label: 'Security', icon: 'bi-shield-lock' },
     { id: 'notifications', label: 'Notifications', icon: 'bi-bell' },
     { id: 'appointments', label: 'My Appointments', icon: 'bi-calendar-check' },
-    { id: 'medical', label: 'Medical Records', icon: 'bi-file-medical' }
+    { id: 'medical', label: 'Medical Records', icon: 'bi-file-medical' },
+    { id: 'bills', label: 'Bills & Payments', icon: 'bi-receipt' }
   ]
 
   const renderTabContent = () => {
@@ -755,6 +757,8 @@ const Profile = () => {
         return <MyAppointments />
       case 'medical':
         return <MyMedicalRecords />
+      case 'bills':
+        return <MyBills />
       default:
         return null
     }
