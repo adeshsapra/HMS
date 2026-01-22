@@ -64,6 +64,7 @@ import Laboratory from "@/pages/dashboard/laboratory";
 import Rooms from "@/pages/dashboard/rooms";
 import Schedules from "@/pages/dashboard/schedules";
 import Emergency from "@/pages/dashboard/emergency";
+import NotificationDetails from "@/pages/dashboard/notification-details";
 import { Roles, Permissions, RolePermissions, UserRoles } from "@/pages/dashboard";
 
 const icon = {
@@ -76,6 +77,7 @@ export interface RoutePage {
   path: string;
   element: ReactElement;
   permission?: string; // Permission required to access this route
+  hidden?: boolean; // Whether to hide from sidebar
 }
 
 export interface Route {
@@ -379,6 +381,13 @@ export const routes: Route[] = [
         path: "/notifications",
         element: <Notifications />,
         permission: "view-notifications",
+      },
+      {
+        icon: <BellIcon {...icon} />,
+        name: "notification details",
+        path: "/notifications/:id",
+        element: <NotificationDetails />,
+        hidden: true,
       },
     ],
   },

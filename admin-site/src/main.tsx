@@ -17,6 +17,7 @@ import { ThemeProvider } from "@material-tailwind/react";
 import { MaterialTailwindControllerProvider } from "@/context";
 import { AuthProvider } from "@/context/AuthContext";
 import { ToastProvider } from "@/context/ToastContext";
+import { NotificationProvider } from "@/context/NotificationContext";
 import "../public/css/tailwind.css";
 import "./styles/forms.css";
 
@@ -26,9 +27,11 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
             <ThemeProvider>
                 <MaterialTailwindControllerProvider>
                     <AuthProvider>
-                        <ToastProvider>
-                            <App />
-                        </ToastProvider>
+                        <NotificationProvider>
+                            <ToastProvider>
+                                <App />
+                            </ToastProvider>
+                        </NotificationProvider>
                     </AuthProvider>
                 </MaterialTailwindControllerProvider>
             </ThemeProvider>

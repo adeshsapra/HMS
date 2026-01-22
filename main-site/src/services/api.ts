@@ -13,7 +13,7 @@ const api: AxiosInstance = axios.create({
 // Request interceptor to add auth token
 api.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem('auth_token');
+        const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
@@ -32,6 +32,7 @@ api.interceptors.response.use(
             // Unauthorized - clear token and redirect to login
             localStorage.removeItem('auth_token');
             localStorage.removeItem('user');
+            sessionStorage.removeItem('auth_token');
             window.location.href = '/sign-in';
         }
         return Promise.reject(error);
@@ -136,6 +137,34 @@ export const patientProfileAPI = {
         const queryString = queryParams.toString();
         return api.get(`/patient-profile/medical-records${queryString ? '?' + queryString : ''}`);
     },
+};
+
+export const notificationAPI = {
+    getAll: (page: number = 1, perPage: number = 20, filters?: { category?: string; type?: string; unread?: boolean }) => {
+        let endpoint = `/notifications?page=${page}&per_page=${perPage}`;
+        if (filters?.category) endpoint += `&category=${filters.category}`;
+        if (filters?.type) endpoint += `&type=${filters.type}`;
+        if (filters?.unread) endpoint += `&unread=true`;
+        return api.get(endpoint);
+    },
+
+    getById: (id: string) =>
+        api.get(`/notifications/${id}`),
+
+    markAsRead: (id: string) =>
+        api.patch(`/notifications/${id}/read`),
+
+    markAllRead: () =>
+        api.patch('/notifications/mark-all-read'),
+
+    delete: (id: string) =>
+        api.delete(`/notifications/${id}`),
+
+    clearAll: () =>
+        api.delete('/notifications/clear-all'),
+
+    getStats: () =>
+        api.get('/notifications/stats'),
 };
 
 // Billing API

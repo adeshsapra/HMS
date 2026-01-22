@@ -862,6 +862,39 @@ class ApiService {
         return this.get<any>(endpoint);
     }
 
+    // Notification methods
+    async getNotifications(page: number = 1, perPage: number = 20, filters?: { category?: string; type?: string; unread?: boolean }) {
+        let endpoint = `/notifications?page=${page}&per_page=${perPage}`;
+        if (filters?.category) endpoint += `&category=${filters.category}`;
+        if (filters?.type) endpoint += `&type=${filters.type}`;
+        if (filters?.unread) endpoint += `&unread=true`;
+        return this.get<any>(endpoint);
+    }
+
+    async getNotification(id: string) {
+        return this.get<any>(`/notifications/${id}`);
+    }
+
+    async markNotificationAsRead(id: string) {
+        return this.request<any>(`/notifications/${id}/read`, { method: 'PATCH' });
+    }
+
+    async markAllNotificationsAsRead() {
+        return this.request<any>('/notifications/mark-all-read', { method: 'PATCH' });
+    }
+
+    async deleteNotification(id: string) {
+        return this.delete<any>(`/notifications/${id}`);
+    }
+
+    async clearAllNotifications() {
+        return this.delete<any>('/notifications/clear-all');
+    }
+
+    async getNotificationStats() {
+        return this.get<any>('/notifications/stats');
+    }
+
     // Room Management
     async getRoomTypes() {
         return this.get<any[]>('/room-types');

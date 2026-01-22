@@ -15,6 +15,10 @@ import {
   setFixedNavbar,
 } from "@/context";
 
+// Global singleton to prevent duplicate GitHub API calls (StrictMode)
+let isGitHubFetchPending = false;
+let githubFetchPromise: Promise<void> | null = null;
+
 function formatNumber(number: number, decPlaces: number): string {
   decPlaces = Math.pow(10, decPlaces);
 
@@ -54,11 +58,30 @@ export function Configurator(): JSX.Element {
   };
 
   React.useEffect(() => {
-    fetch(
+    // Use singleton pattern to prevent duplicate GitHub API calls
+    if (isGitHubFetchPending) {
+      // Wait for existing fetch
+      githubFetchPromise?.then(() => {
+        // Stars already set by first mount
+      });
+      return;
+    }
+
+    isGitHubFetchPending = true;
+    githubFetchPromise = fetch(
       "https://api.github.com/repos/creativetimofficial/material-tailwind-dashboard-react"
     )
       .then((response) => response.json())
-      .then((data: { stargazers_count: number }) => setStars(formatNumber(data.stargazers_count, 1)));
+      .then((data: { stargazers_count: number }) => {
+        setStars(formatNumber(data.stargazers_count, 1));
+      })
+      .catch((error) => {
+        console.error('Failed to fetch GitHub stars:', error);
+      })
+      .finally(() => {
+        isGitHubFetchPending = false;
+        githubFetchPromise = null;
+      });
   }, []);
 
   return (

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import NotificationBell from "./NotificationBell";
 
 const Header = () => {
   const [isMobileNavActive, setIsMobileNavActive] = useState(false);
@@ -383,6 +384,7 @@ const Header = () => {
 
         {/* Auth Buttons - Right Side */}
         <div className="d-flex align-items-center header-auth-buttons">
+          {isAuthenticated && <NotificationBell />}
           {!isAuthenticated ? (
             <Link
               to="/sign-in"

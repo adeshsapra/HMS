@@ -147,7 +147,7 @@ const MyMedicalRecords = () => {
       try {
         const apiBaseUrl =
           import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
-        const token = localStorage.getItem("auth_token");
+        const token = localStorage.getItem("auth_token") || sessionStorage.getItem("auth_token");
 
         if (!token) {
           showToast("Authentication required", "error");
@@ -195,7 +195,7 @@ const MyMedicalRecords = () => {
     try {
       const apiBaseUrl =
         import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
-      const token = localStorage.getItem("auth_token");
+      const token = localStorage.getItem("auth_token") || sessionStorage.getItem("auth_token");
 
       if (!token) {
         showToast("Authentication required", "error");
@@ -217,7 +217,7 @@ const MyMedicalRecords = () => {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(
           errorData.message ||
-            `Failed to download file: ${response.status} ${response.statusText}`
+          `Failed to download file: ${response.status} ${response.statusText}`
         );
       }
 
@@ -959,9 +959,8 @@ const MyMedicalRecords = () => {
                 ).map((page) => (
                   <button
                     key={page}
-                    className={`profile-medical-record-page-link ${
-                      recordsPagination.current_page === page ? "active" : ""
-                    }`}
+                    className={`profile-medical-record-page-link ${recordsPagination.current_page === page ? "active" : ""
+                      }`}
                     onClick={() => fetchMedicalRecords(page)}
                   >
                     {page}
