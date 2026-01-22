@@ -76,12 +76,12 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
     useEffect(() => {
         audioRef.current = new Audio(NOTIFICATION_SOUND);
         audioRef.current.volume = 0.5;
-        
+
         // Check browser notification permission
         if ('Notification' in window && Notification.permission === 'granted') {
             browserNotificationEnabled.current = true;
         }
-        
+
         return () => {
             if (audioRef.current) {
                 audioRef.current.pause();
@@ -99,7 +99,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
 
     const showBrowserNotification = useCallback((notification: Notification) => {
         if (!browserNotificationEnabled.current || !('Notification' in window)) return;
-        
+
         if (Notification.permission === 'granted') {
             const notif = new Notification(notification.data.title, {
                 body: notification.data.message,
@@ -108,7 +108,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
                 tag: notification.id,
                 requireInteraction: notification.data.priority === 'high',
             });
-            
+
             notif.onclick = () => {
                 window.focus();
                 notif.close();
@@ -124,18 +124,18 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
             console.warn('Browser does not support notifications');
             return false;
         }
-        
+
         if (Notification.permission === 'granted') {
             browserNotificationEnabled.current = true;
             return true;
         }
-        
+
         if (Notification.permission !== 'denied') {
             const permission = await Notification.requestPermission();
             browserNotificationEnabled.current = permission === 'granted';
             return permission === 'granted';
         }
-        
+
         return false;
     }, []);
 
@@ -146,7 +146,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
                 // Wait for the existing promise
                 return initialFetchPromise;
             }
-            
+
             isInitialFetchPending = true;
             initialFetchPromise = (async () => {
                 try {
@@ -159,7 +159,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
                         setUnreadCount(response.unread_count || 0);
                         setHasMoreNotifications(notifs.length >= 20);
                         setCurrentPage(page);
-                        
+
                         if (response.stats) {
                             setStats(response.stats);
                         }
@@ -173,13 +173,13 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
                     initialFetchPromise = null;
                 }
             })();
-            
+
             return initialFetchPromise;
         }
-        
+
         // For pagination (page > 1), use ref-based guard
         if (fetchInProgress.current) return;
-        
+
         try {
             fetchInProgress.current = true;
             setLoading(true);
@@ -187,18 +187,18 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
             const response = await apiService.getNotifications(page, 20);
             if (response.status) {
                 const notifs = response.data?.data || [];
-                
+
                 // Append and remove duplicates
                 setNotifications(prev => {
                     const existingIds = new Set(prev.map(n => n.id));
                     const newNotifs = notifs.filter((n: Notification) => !existingIds.has(n.id));
                     return [...prev, ...newNotifs];
                 });
-                
+
                 setUnreadCount(response.unread_count || 0);
                 setHasMoreNotifications(notifs.length >= 20);
                 setCurrentPage(page);
-                
+
                 if (response.stats) {
                     setStats(response.stats);
                 }
@@ -310,7 +310,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
                     authEndpoint: `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'}/broadcasting/auth`,
                     auth: {
                         headers: {
-                            Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+                            Authorization: `Bearer ${localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token')}`,
                         },
                     },
                 });
@@ -333,7 +333,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
                     console.error('WebSocket error:', err);
                     setIsConnected(false);
                     setError('WebSocket connection error');
-                    
+
                     // Attempt reconnection after 5 seconds
                     if (!isCleanupCalled) {
                         reconnectTimeout = setTimeout(() => {
@@ -352,13 +352,13 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
                 echo.private(`App.Models.User.${user.id}`)
                     .notification((notification: any) => {
                         console.log('New notification received:', notification);
-                        
+
                         setNotifications(prev => {
                             // Check for duplicates
                             if (prev.some(n => n.id === notification.id)) {
                                 return prev;
                             }
-                            
+
                             return [{
                                 id: notification.id || Date.now().toString(),
                                 data: notification,
@@ -366,9 +366,9 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
                                 created_at: new Date().toISOString()
                             }, ...prev];
                         });
-                        
+
                         setUnreadCount(prev => prev + 1);
-                        
+
                         // Play sound and show browser notification
                         playNotificationSound();
                         showBrowserNotification({
