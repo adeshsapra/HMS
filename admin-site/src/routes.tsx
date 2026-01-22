@@ -28,6 +28,7 @@ import {
   DocumentChartBarIcon,
   ShieldCheckIcon,
   KeyIcon,
+  LinkIcon,
 } from "@heroicons/react/24/solid";
 import {
   Home,
@@ -40,6 +41,7 @@ import {
   Medicines,
   HealthPackages,
   HomeCare,
+  Integrations,
 } from "@/pages/dashboard";
 import { SignIn } from "@/pages/auth";
 
@@ -255,6 +257,13 @@ export const routes: Route[] = [
         path: "/inventory",
         element: <Inventory />,
         permission: "view-inventory",
+      },
+      {
+        icon: <LinkIcon {...icon} />,
+        name: "integrations",
+        path: "/integrations",
+        element: <Integrations />,
+        permission: "view-settings",
       },
     ],
   },

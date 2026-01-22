@@ -43,7 +43,19 @@ class ApiService {
             }
 
             if (!response.ok) {
-                const errorMessage = data.message || data.error || 'An error occurred';
+                let errorMessage = data.message || data.error || 'An error occurred';
+
+                // If there are detailed validation errors from Laravel (data.errors), join them
+                if (data.errors && typeof data.errors === 'object') {
+                    const validationMessages = Object.values(data.errors)
+                        .flat()
+                        .filter(msg => typeof msg === 'string')
+                        .join(' ');
+                    if (validationMessages) {
+                        errorMessage = `${errorMessage} ${validationMessages}`;
+                    }
+                }
+
                 throw new Error(errorMessage);
             }
 
@@ -795,6 +807,19 @@ class ApiService {
         notes?: string;
     }) {
         return this.post<any>(`/pharmacy/medicines/${id}/restock`, data);
+    }
+
+    async getGatewaySettings() {
+        return this.get<any[]>('/gateway-settings');
+    }
+
+    async saveGatewaySettings(data: {
+        gateway_name: string;
+        mode: 'sandbox' | 'live';
+        client_id: string;
+        secret_key: string;
+    }) {
+        return this.post<any>('/gateway-settings', data);
     }
 
     async getLowStockAlerts(params?: {

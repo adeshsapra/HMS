@@ -23,7 +23,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { apiService } from '@/services/api';
 import DataTable from '@/components/DataTable';
-import { toast } from 'react-toastify';
+import { useToast } from '@/context/ToastContext';
 
 interface Bill {
     id: number;
@@ -56,6 +56,7 @@ interface Payment {
 }
 
 const Billing = () => {
+    const { showToast } = useToast();
     const [bills, setBills] = useState<Bill[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -99,7 +100,7 @@ const Billing = () => {
                 setTotalPages(response.data?.last_page || 1);
             }
         } catch (error: any) {
-            toast.error(error.message || 'Failed to fetch bills');
+            showToast(error.message || 'Failed to fetch bills', 'error');
         } finally {
             setLoading(false);
         }
@@ -122,12 +123,12 @@ const Billing = () => {
 
         const amount = parseFloat(paymentAmount);
         if (isNaN(amount) || amount <= 0) {
-            toast.error('Please enter a valid amount');
+            showToast('Please enter a valid amount', 'error');
             return;
         }
 
         if (amount > selectedBill.due_amount) {
-            toast.error('Payment amount cannot exceed due amount');
+            showToast('Payment amount cannot exceed due amount', 'error');
             return;
         }
 
@@ -140,12 +141,12 @@ const Billing = () => {
             });
 
             if (response.success) {
-                toast.success('Payment collected successfully');
+                showToast('Payment collected successfully', 'success');
                 setShowPaymentModal(false);
                 fetchBills();
             }
         } catch (error: any) {
-            toast.error(error.message || 'Failed to collect payment');
+            showToast(error.message || 'Failed to collect payment', 'error');
         } finally {
             setProcessingPayment(false);
         }
@@ -159,11 +160,11 @@ const Billing = () => {
         try {
             const response = await apiService.finalizeBill(bill.id);
             if (response.success) {
-                toast.success('Bill finalized successfully');
+                showToast('Bill finalized successfully', 'success');
                 fetchBills();
             }
         } catch (error: any) {
-            toast.error(error.message || 'Failed to finalize bill');
+            showToast(error.message || 'Failed to finalize bill', 'error');
         }
     };
 
@@ -182,7 +183,7 @@ const Billing = () => {
                 }
             }
         } catch (error: any) {
-            toast.error('Failed to generate invoice');
+            showToast('Failed to generate invoice', 'error');
         }
     };
 
