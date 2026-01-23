@@ -982,7 +982,7 @@ class ApiService {
         const response = await fetch(url, {
             method: 'GET',
             headers: {
-                'Accept': 'text/html',
+                'Accept': 'application/pdf',
                 ...(token && { Authorization: `Bearer ${token}` }),
             },
         });
@@ -991,9 +991,10 @@ class ApiService {
             throw new Error('Failed to download invoice');
         }
 
-        const html = await response.text();
-        return html;
+        const blob = await response.blob();
+        return window.URL.createObjectURL(blob);
     }
+
 
     // Payment methods
     async getPayments(params?: { bill_id?: number; patient_id?: number; payment_status?: string; payment_mode?: string; per_page?: number; page?: number }) {

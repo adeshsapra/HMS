@@ -77,9 +77,32 @@ const MyBills = () => {
         navigate('/payment', { state: { bill } });
     };
 
-    const handleDownloadInvoice = (e: React.MouseEvent, _billId: number) => {
+    const handleDownloadInvoice = async (e: React.MouseEvent, billId: number) => {
         e.stopPropagation();
-        showToast('Invoice download will be available soon', 'info');
+        try {
+            showToast('Generating invoice PDF...', 'info');
+            const response = await ApiService.downloadInvoice(billId);
+
+            // Create a blob from the response data
+            const blob = new Blob([response.data], { type: 'application/pdf' });
+            const url = window.URL.createObjectURL(blob);
+
+            // Create a temporary link element and trigger download
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `Invoice-${billId}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+
+            // Cleanup
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+
+            showToast('Invoice downloaded successfully', 'success');
+        } catch (error: any) {
+            console.error('Error downloading invoice:', error);
+            showToast('Failed to download invoice', 'error');
+        }
     };
 
     // Helper to get colors based on status

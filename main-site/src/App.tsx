@@ -29,6 +29,9 @@ import SignUp from './pages/SignUp'
 import NotFound from './pages/NotFound'
 import Profile from './pages/Profile'
 import Payment from './pages/Payment'
+import SuccessPayment from './pages/SuccessPayment'
+import CancelPayment from './pages/CancelPayment'
+import ProtectedRoute from './components/ProtectedRoute'
 // Home Care Pages
 import HomeCareLanding from './pages/HomeCare/HomeCareLanding'
 import BookingWizard from './pages/HomeCare/BookingWizard'
@@ -96,8 +99,26 @@ function App() {
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/sign-in" element={<SignIn />} />
             <Route path="/sign-up" element={<SignUp />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/payment" element={<Payment />} />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } />
+            <Route path="/payment" element={
+              <ProtectedRoute>
+                <Payment />
+              </ProtectedRoute>
+            } />
+            <Route path="/payment/success" element={
+              <ProtectedRoute>
+                <SuccessPayment />
+              </ProtectedRoute>
+            } />
+            <Route path="/payment/cancel" element={
+              <ProtectedRoute>
+                <CancelPayment />
+              </ProtectedRoute>
+            } />
 
             {/* Home Care Routes */}
             <Route path="/home-care" element={<HomeCareLanding />} />

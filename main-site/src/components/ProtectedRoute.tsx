@@ -1,26 +1,25 @@
-import React, { type JSX } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Preloader from './Preloader';
 
 interface ProtectedRouteProps {
-    children: JSX.Element;
+    children: React.ReactNode;
 }
 
-const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     const { isAuthenticated, isLoading } = useAuth();
     const location = useLocation();
 
     if (isLoading) {
-        // You might want to render a loading spinner here
-        return null;
+        return <Preloader />;
     }
 
     if (!isAuthenticated) {
-        // Redirect to login page but save the attempted url
+        // Redirect to sign-in but save the location they were trying to go to
         return <Navigate to="/sign-in" state={{ from: location }} replace />;
     }
 
-    return children;
+    return <>{children}</>;
 };
 
 export default ProtectedRoute;

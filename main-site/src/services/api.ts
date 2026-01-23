@@ -13,7 +13,7 @@ const api: AxiosInstance = axios.create({
 // Request interceptor to add auth token
 api.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem('auth_token');
+        const token = localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
@@ -32,6 +32,7 @@ api.interceptors.response.use(
             // Unauthorized - clear token and redirect to login
             localStorage.removeItem('auth_token');
             localStorage.removeItem('user');
+            sessionStorage.removeItem('auth_token');
             window.location.href = '/sign-in';
         }
         return Promise.reject(error);
@@ -207,6 +208,8 @@ export const ApiService = {
     collectCash: (data: any) => paymentAPI.collectCash(data),
     initiateOnlinePayment: (data: any) => paymentAPI.initiateOnlinePayment(data),
     verifyPayment: (id: number, data: any) => paymentAPI.verifyPayment(id, data),
+    getPayPalConfig: () => api.get('/payments/paypal/config'),
+    capturePayPalPayment: (token: string) => api.post('/payments/paypal-capture', { token }),
     generateReceipt: (id: number) => paymentAPI.generateReceipt(id),
     getPaymentStatistics: () => paymentAPI.getStatistics(),
 };
