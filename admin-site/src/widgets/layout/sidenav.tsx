@@ -171,7 +171,7 @@ export function Sidenav({ brandImg = "/img/logo-ct.png", brandName = "HMS Admin 
                       {/* Collapsible Section Content */}
                       {(!sidenavCollapsed ? isExpanded : true) && (
                         <ul className={`flex flex-col ${sidenavCollapsed ? "gap-2" : "gap-1"}`}>
-                          {pages.map(({ icon, name, path }) => (
+                          {pages.filter(p => !p.hidden).map(({ icon, name, path }) => (
                             <li key={name}>
                               <NavLink to={`/${layout}${path}`}>
                                 {({ isActive }) => (
@@ -226,7 +226,7 @@ export function Sidenav({ brandImg = "/img/logo-ct.png", brandName = "HMS Admin 
                   ) : (
                     /* Non-collapsible Section (Dashboard) */
                     <ul className={`flex flex-col ${sidenavCollapsed ? "gap-2" : "gap-1"}`}>
-                      {pages.map(({ icon, name, path }) => (
+                      {pages.filter(p => !p.hidden).map(({ icon, name, path }) => (
                         <li key={name}>
                           <NavLink to={`/${layout}${path}`}>
                             {({ isActive }) => (

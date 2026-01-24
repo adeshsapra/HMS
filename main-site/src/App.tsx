@@ -2,6 +2,7 @@ import { Routes, Route, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
 import { ToastProvider } from './context/ToastContext'
 import { AuthProvider } from './context/AuthContext'
+import { NotificationProvider } from './context/NotificationContext'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import ScrollTop from './components/ScrollTop'
@@ -28,6 +29,8 @@ import SignIn from './pages/SignIn'
 import SignUp from './pages/SignUp'
 import NotFound from './pages/NotFound'
 import Profile from './pages/Profile'
+import Notifications from './pages/Notifications'
+import NotificationDetails from './pages/NotificationDetails'
 import Payment from './pages/Payment'
 import SuccessPayment from './pages/SuccessPayment'
 import CancelPayment from './pages/CancelPayment'
@@ -76,30 +79,33 @@ function App() {
 
   return (
     <AuthProvider>
-      <ToastProvider>
-        {!isAuthPage && <Preloader />}
-        {!isAuthPage && <Header />}
-        <main className={isAuthPage ? "main-auth" : "main"}>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/departments" element={<Departments />} />
-            <Route path="/department-details/:id" element={<DepartmentDetails />} />
-            <Route path="/doctors" element={<Doctors />} />
-            <Route path="/services" element={<Services />} />
-            <Route path="/service-details/:id" element={<ServiceDetails />} />
-            <Route path="/quickappointment" element={<QuickAppointment />} />
-            <Route path="/appointment" element={<Appointment />} />
-            <Route path="/doctors/:id" element={<DoctorDetails />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/testimonials" element={<Testimonials />} />
-            <Route path="/faq" element={<FAQ />} />
-            <Route path="/gallery" element={<Gallery />} />
-            <Route path="/terms" element={<Terms />} />
-            <Route path="/privacy" element={<Privacy />} />
-            <Route path="/sign-in" element={<SignIn />} />
-            <Route path="/sign-up" element={<SignUp />} />
-            <Route path="/profile" element={
+      <NotificationProvider>
+        <ToastProvider>
+          {!isAuthPage && <Preloader />}
+          {!isAuthPage && <Header />}
+          <main className={isAuthPage ? "main-auth" : "main"}>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/departments" element={<Departments />} />
+              <Route path="/department-details/:id" element={<DepartmentDetails />} />
+              <Route path="/doctors" element={<Doctors />} />
+              <Route path="/services" element={<Services />} />
+              <Route path="/service-details/:id" element={<ServiceDetails />} />
+              <Route path="/quickappointment" element={<QuickAppointment />} />
+              <Route path="/appointment" element={<Appointment />} />
+              <Route path="/doctors/:id" element={<DoctorDetails />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/testimonials" element={<Testimonials />} />
+              <Route path="/faq" element={<FAQ />} />
+              <Route path="/gallery" element={<Gallery />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/sign-in" element={<SignIn />} />
+              <Route path="/sign-up" element={<SignUp />} />
+              <Route path="/notifications" element={<Notifications />} />
+              <Route path="/notifications/:id" element={<NotificationDetails />} />
+              <Route path="/profile" element={
               <ProtectedRoute>
                 <Profile />
               </ProtectedRoute>
@@ -120,16 +126,17 @@ function App() {
               </ProtectedRoute>
             } />
 
-            {/* Home Care Routes */}
-            <Route path="/home-care" element={<HomeCareLanding />} />
-            <Route path="/home-care/booking" element={<BookingWizard />} />
+              {/* Home Care Routes */}
+              <Route path="/home-care" element={<HomeCareLanding />} />
+              <Route path="/home-care/booking" element={<BookingWizard />} />
 
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </main>
-        {!isAuthPage && <Footer />}
-        {!isAuthPage && <ScrollTop />}
-      </ToastProvider>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </main>
+          {!isAuthPage && <Footer />}
+          {!isAuthPage && <ScrollTop />}
+        </ToastProvider>
+      </NotificationProvider>
     </AuthProvider>
   )
 }
