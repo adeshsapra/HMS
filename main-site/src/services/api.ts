@@ -238,6 +238,9 @@ export const ApiService = {
     verifyPayment: (id: number, data: any) => paymentAPI.verifyPayment(id, data),
     getPayPalConfig: () => api.get('/payments/paypal/config'),
     capturePayPalPayment: (token: string) => api.post('/payments/paypal-capture', { token }),
+    getRazorpayConfig: () => api.get('/payments/razorpay/config'),
+    captureRazorpayPayment: (data: { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string }) =>
+        api.post('/payments/razorpay-capture', data),
     generateReceipt: (id: number) => paymentAPI.generateReceipt(id),
     getPaymentStatistics: () => paymentAPI.getStatistics(),
 };
