@@ -13,6 +13,7 @@
     "vite": "^7.2.2"
   },
   "dependencies": {
+    "@paypal/react-paypal-js": "^8.9.2",
     "@types/react": "^19.2.4",
     "@types/react-dom": "^19.2.3",
     "aos": "^2.3.4",

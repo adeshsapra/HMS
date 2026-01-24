@@ -170,22 +170,16 @@ const Billing = () => {
 
     const handlePrintInvoice = async (billId: number) => {
         try {
-            const html = await apiService.downloadInvoice(billId);
-            if (html) {
-                // Open HTML in new window for printing
-                const printWindow = window.open('', '_blank');
-                if (printWindow) {
-                    printWindow.document.write(html);
-                    printWindow.document.close();
-                    printWindow.onload = () => {
-                        printWindow.print();
-                    };
-                }
+            const url = await apiService.downloadInvoice(billId);
+            if (url) {
+                // Open PDF in new window for viewing/printing
+                window.open(url, '_blank');
             }
         } catch (error: any) {
             showToast('Failed to generate invoice', 'error');
         }
     };
+
 
     const getStatusColor = (status: string) => {
         const colors: Record<string, string> = {

@@ -82,11 +82,16 @@ class AuthService {
     }
 
     setUser(user: User): void {
-        localStorage.setItem('user', JSON.stringify(user));
+        const remember = !!localStorage.getItem('auth_token');
+        if (remember) {
+            localStorage.setItem('user', JSON.stringify(user));
+        } else {
+            sessionStorage.setItem('user', JSON.stringify(user));
+        }
     }
 
     getUser(): User | null {
-        const userStr = localStorage.getItem('user');
+        const userStr = localStorage.getItem('user') || sessionStorage.getItem('user');
         return userStr ? JSON.parse(userStr) : null;
     }
 
@@ -94,6 +99,7 @@ class AuthService {
         localStorage.removeItem('auth_token');
         localStorage.removeItem('user');
         sessionStorage.removeItem('auth_token');
+        sessionStorage.removeItem('user');
     }
 
     isAuthenticated(): boolean {

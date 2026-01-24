@@ -236,6 +236,8 @@ export const ApiService = {
     collectCash: (data: any) => paymentAPI.collectCash(data),
     initiateOnlinePayment: (data: any) => paymentAPI.initiateOnlinePayment(data),
     verifyPayment: (id: number, data: any) => paymentAPI.verifyPayment(id, data),
+    getPayPalConfig: () => api.get('/payments/paypal/config'),
+    capturePayPalPayment: (token: string) => api.post('/payments/paypal-capture', { token }),
     generateReceipt: (id: number) => paymentAPI.generateReceipt(id),
     getPaymentStatistics: () => paymentAPI.getStatistics(),
 };
