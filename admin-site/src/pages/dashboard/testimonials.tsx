@@ -1,45 +1,176 @@
-import React, { useState } from "react";
-import { DataTable, FormModal, ViewModal, DeleteConfirmModal, Column, FormField, ViewField } from "@/components";
-import { testimonialsData } from "@/data/hms-data";
-import { Avatar, Typography, Button } from "@material-tailwind/react";
-import { ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
+import React, { useState, useEffect } from "react";
+import { DataTable, ViewModal, DeleteConfirmModal, Column, ViewField } from "@/components";
+import {
+  Avatar,
+  Typography,
+  Chip,
+  Input,
+  IconButton,
+  Card,
+  CardBody,
+  Tabs,
+  TabsHeader,
+  Tab,
+} from "@material-tailwind/react";
+import {
+  CheckCircleIcon,
+  XCircleIcon,
+  MagnifyingGlassIcon,
+} from "@heroicons/react/24/outline";
+import { apiService } from "@/services/api";
+import { useToast } from "@/context/ToastContext";
 
 interface Testimonial {
   id: number;
-  patientName: string;
+  name: string;
+  role: string;
+  message: string;
   rating: number;
-  comment: string;
-  date: string;
-  status: string;
-  avatar?: string;
+  status: "pending" | "approved" | "rejected";
+  image_url: string;
+  created_at: string;
 }
 
 export default function Testimonials(): JSX.Element {
-  const [testimonials, setTestimonials] = useState<Testimonial[]>(testimonialsData);
-  const [openModal, setOpenModal] = useState<boolean>(false);
+  const { showToast } = useToast();
+  const [activeTab, setActiveTab] = useState("all");
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
   const [openViewModal, setOpenViewModal] = useState<boolean>(false);
   const [openDeleteModal, setOpenDeleteModal] = useState<boolean>(false);
-  const [selectedTestimonial, setSelectedTestimonial] = useState<Testimonial | null>(null);
+  const [selectedTestimonial, setSelectedTestimonial] =
+    useState<Testimonial | null>(null);
+
+  // Pagination state
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    perPage: 10,
+  });
+
+  // Search
+  const [searchQuery, setSearchQuery] = useState<string>("");
+
+  const tabs = [
+    { label: "All Reviews", value: "all" },
+    { label: "Pending", value: "pending" },
+    { label: "Approved", value: "approved" },
+    { label: "Rejected", value: "rejected" },
+  ];
+
+  useEffect(() => {
+    fetchTestimonials(pagination.currentPage);
+  }, [pagination.currentPage, activeTab, searchQuery]);
+
+  const fetchTestimonials = async (page = 1) => {
+    try {
+      setLoading(true);
+      const response = await apiService.getTestimonials({
+        page: page,
+        per_page: pagination.perPage,
+        status: activeTab === "all" ? "" : activeTab,
+        search: searchQuery,
+      });
+
+      if (response.status) {
+        setTestimonials(response.data);
+        setPagination((prev) => ({
+          ...prev,
+          currentPage: response.meta.current_page,
+          totalPages: response.meta.last_page,
+          totalItems: response.meta.total,
+        }));
+      }
+    } catch (error: any) {
+      showToast(error.message || "Failed to fetch testimonials", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdateStatus = async (
+    id: number,
+    status: "approved" | "rejected"
+  ) => {
+    try {
+      const response = await apiService.updateTestimonialStatus(id, status);
+      if (response.status) {
+        showToast(`Testimonial ${status} successfully`, "success");
+        fetchTestimonials(pagination.currentPage);
+      }
+    } catch (error: any) {
+      showToast(error.message || "Failed to update status", "error");
+    }
+  };
+
+  const handleDelete = (testimonial: Record<string, any>): void => {
+    setSelectedTestimonial(testimonial as Testimonial);
+    setOpenDeleteModal(true);
+  };
+
+  const confirmDelete = async (): Promise<void> => {
+    if (selectedTestimonial) {
+      try {
+        const response = await apiService.deleteTestimonial(
+          selectedTestimonial.id
+        );
+        if (response.status) {
+          showToast("Testimonial deleted successfully", "success");
+          fetchTestimonials(pagination.currentPage);
+          setOpenDeleteModal(false);
+          setSelectedTestimonial(null);
+        }
+      } catch (error: any) {
+        showToast(error.message || "Failed to delete testimonial", "error");
+      }
+    }
+  };
+
+  const handleView = (testimonial: Record<string, any>): void => {
+    setSelectedTestimonial(testimonial as Testimonial);
+    setOpenViewModal(true);
+  };
+
+  const getFullImageUrl = (path: string | null) => {
+    if (!path) return "/img/team-1.jpeg";
+    if (path.startsWith('http')) return path;
+    const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:8000';
+    return `${baseUrl}/storage/${path}`;
+  };
 
   const columns: Column[] = [
     {
-      key: "avatar",
+      key: "image_url",
       label: "Photo",
-      render: (value: any, row: Testimonial) => (
-        <Avatar 
-          src={row.avatar || "/img/team-1.jpeg"} 
-          alt={row.patientName} 
-          size="sm" 
-          variant="rounded" 
-          className="border-2 border-blue-gray-100 shadow-sm" 
+      render: (value: any, row: Record<string, any>) => (
+        <Avatar
+          src={getFullImageUrl(value)}
+          alt={row.name}
+          size="sm"
+          variant="rounded"
+          className="border-2 border-blue-gray-100 shadow-sm"
+          onError={(e) => {
+            (e.target as HTMLImageElement).src = "/img/team-1.jpeg";
+          }}
         />
       ),
     },
     {
-      key: "patientName",
+      key: "name",
       label: "Patient",
-      render: (value: any) => (
-        <span className="font-bold text-blue-gray-800">{value}</span>
+      render: (value: any, row: Record<string, any>) => (
+        <div className="flex flex-col">
+          <Typography variant="small" color="blue-gray" className="font-bold">
+            {value}
+          </Typography>
+          <Typography
+            variant="small"
+            className="text-xs text-blue-gray-400 font-normal"
+          >
+            {row.role}
+          </Typography>
+        </div>
       ),
     },
     {
@@ -47,26 +178,30 @@ export default function Testimonials(): JSX.Element {
       label: "Rating",
       render: (value: any) => (
         <div className="flex items-center gap-1">
-          <Typography className="text-sm font-bold text-blue-gray-800">
-            {"⭐".repeat(value)} ({value}/5)
+          <Typography className="text-sm font-bold text-amber-500">
+            {"★".repeat(value)}
+            {"☆".repeat(5 - value)}
+          </Typography>
+          <Typography className="text-xs text-blue-gray-400 font-normal">
+            ({value}/5)
           </Typography>
         </div>
       ),
     },
     {
-      key: "comment",
+      key: "message",
       label: "Comment",
       render: (value: any) => (
-        <Typography className="text-sm text-blue-gray-600 max-w-md truncate">
-          {value}
+        <Typography className="text-xs text-blue-gray-600 max-w-[250px] truncate italic">
+          "{value}"
         </Typography>
       ),
     },
     {
-      key: "date",
+      key: "created_at",
       label: "Date",
       render: (value: any) => (
-        <span className="text-sm font-medium text-blue-gray-700">
+        <span className="text-xs font-medium text-blue-gray-700">
           {new Date(value).toLocaleDateString()}
         </span>
       ),
@@ -74,157 +209,156 @@ export default function Testimonials(): JSX.Element {
     {
       key: "status",
       label: "Status",
-      type: "status",
+      render: (value: any) => {
+        const colors: Record<string, string> = {
+          approved: "green",
+          pending: "amber",
+          rejected: "red",
+        };
+        return (
+          <Chip
+            variant="gradient"
+            color={(colors[value] as any) || "blue-gray"}
+            value={value}
+            className="py-0.5 px-2 text-[10px] font-medium"
+          />
+        );
+      },
+    },
+    {
+      key: "moderation",
+      label: "Moderation",
+      render: (_, row: Record<string, any>) => (
+        <div className="flex items-center gap-1">
+          {row.status !== "approved" && (
+            <IconButton
+              variant="text"
+              color="green"
+              size="sm"
+              className="rounded-full hover:bg-green-50"
+              onClick={() => handleUpdateStatus(row.id, "approved")}
+              title="Approve"
+            >
+              <CheckCircleIcon className="h-5 w-5" />
+            </IconButton>
+          )}
+          {row.status !== "rejected" && (
+            <IconButton
+              variant="text"
+              color="red"
+              size="sm"
+              className="rounded-full hover:bg-red-50"
+              onClick={() => handleUpdateStatus(row.id, "rejected")}
+              title="Reject"
+            >
+              <XCircleIcon className="h-5 w-5" />
+            </IconButton>
+          )}
+        </div>
+      ),
     },
   ];
 
   const viewFields: ViewField[] = [
-    { key: "avatar", label: "Photo", type: "avatar" },
-    { key: "patientName", label: "Patient Name" },
+    { key: "image_url", label: "Photo", type: "avatar" },
+    { key: "name", label: "Patient Name" },
+    { key: "role", label: "Role/Title" },
     { key: "rating", label: "Rating" },
-    { key: "comment", label: "Comment", fullWidth: true },
-    { key: "date", label: "Date", type: "date" },
+    { key: "message", label: "Message", fullWidth: true },
+    { key: "created_at", label: "Date", type: "date" },
     { key: "status", label: "Status", type: "status" },
   ];
 
-  const formFields: FormField[] = [
-    {
-      name: "patientName",
-      label: "Patient Name",
-      type: "text",
-      required: true,
-      placeholder: "Enter patient name",
-    },
-    {
-      name: "rating",
-      label: "Rating",
-      type: "select",
-      required: true,
-      options: [
-        { value: "5", label: "5 Stars" },
-        { value: "4", label: "4 Stars" },
-        { value: "3", label: "3 Stars" },
-        { value: "2", label: "2 Stars" },
-        { value: "1", label: "1 Star" },
-      ],
-    },
-    {
-      name: "comment",
-      label: "Comment",
-      type: "textarea",
-      required: true,
-      placeholder: "Enter patient testimonial...",
-      fullWidth: true,
-    },
-    {
-      name: "status",
-      label: "Status",
-      type: "select",
-      required: true,
-      options: [
-        { value: "approved", label: "Approved" },
-        { value: "pending", label: "Pending" },
-        { value: "rejected", label: "Rejected" },
-      ],
-    },
-  ];
-
-  const handleAdd = (): void => {
-    setSelectedTestimonial(null);
-    setOpenModal(true);
-  };
-
-  const handleEdit = (testimonial: Testimonial): void => {
-    setSelectedTestimonial(testimonial);
-    setOpenModal(true);
-  };
-
-  const handleDelete = (testimonial: Testimonial): void => {
-    setSelectedTestimonial(testimonial);
-    setOpenDeleteModal(true);
-  };
-
-  const confirmDelete = (): void => {
-    if (selectedTestimonial) {
-      setTestimonials(testimonials.filter((t) => t.id !== selectedTestimonial.id));
-      setOpenDeleteModal(false);
-      setSelectedTestimonial(null);
-    }
-  };
-
-  const handleView = (testimonial: Testimonial): void => {
-    setSelectedTestimonial(testimonial);
-    setOpenViewModal(true);
-  };
-
-  const handleSubmit = (data: Record<string, any>): void => {
-    if (selectedTestimonial) {
-      setTestimonials(
-        testimonials.map((t) =>
-          t.id === selectedTestimonial.id
-            ? { ...t, ...data, avatar: t.avatar, date: t.date, rating: Number(data.rating) }
-            : t
-        )
-      );
-    } else {
-      const newTestimonial: Testimonial = {
-        id: testimonials.length + 1,
-        ...data,
-        avatar: "/img/team-1.jpeg",
-        date: new Date().toISOString().split("T")[0],
-        rating: Number(data.rating),
-      } as Testimonial;
-      setTestimonials([...testimonials, newTestimonial]);
-    }
-    setOpenModal(false);
-    setSelectedTestimonial(null);
-  };
-
   return (
     <div className="mt-12 mb-8">
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h2 className="text-4xl font-bold text-blue-gray-800 mb-2">Testimonials</h2>
-          <p className="text-blue-gray-600 text-base">Manage patient testimonials and reviews</p>
-        </div>
-        <Button
-          variant="gradient"
-          color="blue"
-          className="flex items-center gap-2 shadow-lg hover:shadow-xl transition-all"
-          onClick={handleAdd}
-        >
-          <ChatBubbleLeftRightIcon className="h-5 w-5" />
-          Add Testimonial
-        </Button>
+      <div className="mb-6">
+        <Typography variant="h2" color="blue-gray" className="mb-2">
+          Testimonials Management
+        </Typography>
+        <Typography variant="small" color="blue-gray" className="font-normal opacity-70">
+          Manage patient testimonials and reviews appearing on the public site
+        </Typography>
       </div>
 
-      <DataTable
-        title="Testimonial Management"
-        data={testimonials}
-        columns={columns}
-        onAdd={handleAdd}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        onView={handleView}
-        searchable={true}
-        filterable={true}
-        exportable={true}
-        addButtonLabel="Add Testimonial"
-        searchPlaceholder="Search testimonials..."
-      />
+      <Card className="border border-blue-gray-100 shadow-sm overflow-hidden">
+        <CardBody className="p-0">
+          <Tabs value={activeTab}>
+            <TabsHeader
+              className="bg-transparent border-b border-blue-gray-50 px-6 rounded-none"
+              indicatorProps={{
+                className: "bg-blue-500/10 shadow-none border-b-2 border-blue-500 rounded-none !z-0",
+              }}
+            >
+              {tabs.map(({ label, value }) => (
+                <Tab
+                  key={value}
+                  value={value}
+                  onClick={() => {
+                    setActiveTab(value);
+                    setPagination((prev) => ({ ...prev, currentPage: 1 }));
+                  }}
+                  className={`py-4 font-semibold text-sm transition-colors duration-300 ${activeTab === value ? "text-blue-500" : "text-blue-gray-500 hover:text-blue-700"
+                    }`}
+                >
+                  {label}
+                </Tab>
+              ))}
+            </TabsHeader>
 
-      <FormModal
-        open={openModal}
-        onClose={() => {
-          setOpenModal(false);
-          setSelectedTestimonial(null);
-        }}
-        title={selectedTestimonial ? "Edit Testimonial" : "Add New Testimonial"}
-        formFields={formFields}
-        initialData={selectedTestimonial || {}}
-        onSubmit={handleSubmit}
-        submitLabel={selectedTestimonial ? "Update Testimonial" : "Add Testimonial"}
-      />
+            <div className="p-6">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                <div className="w-full md:w-96">
+                  <Input
+                    label="Search reviews..."
+                    icon={<MagnifyingGlassIcon className="h-5 w-5" />}
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setPagination((prev) => ({ ...prev, currentPage: 1 }));
+                    }}
+                    crossOrigin={undefined}
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Typography variant="small" color="blue-gray" className="font-bold">
+                    {activeTab.toUpperCase()} REVIEWS:
+                  </Typography>
+                  <Chip
+                    value={pagination.totalItems}
+                    color="blue"
+                    variant="ghost"
+                    size="sm"
+                    className="rounded-full"
+                  />
+                </div>
+              </div>
+
+              {loading ? (
+                <div className="flex items-center justify-center py-20">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                </div>
+              ) : (
+                <DataTable
+                  title="Patient Reviews List"
+                  data={testimonials}
+                  columns={columns}
+                  onView={handleView}
+                  onDelete={handleDelete}
+                  searchable={false}
+                  pagination={{
+                    currentPage: pagination.currentPage,
+                    totalPages: pagination.totalPages,
+                    totalItems: pagination.totalItems,
+                    perPage: pagination.perPage,
+                    onPageChange: (page) =>
+                      setPagination((prev) => ({ ...prev, currentPage: page })),
+                  }}
+                />
+              )}
+            </div>
+          </Tabs>
+        </CardBody>
+      </Card>
 
       <ViewModal
         open={openViewModal}
@@ -245,10 +379,9 @@ export default function Testimonials(): JSX.Element {
         }}
         onConfirm={confirmDelete}
         title="Delete Testimonial"
-        message="Are you sure you want to delete this testimonial?"
-        itemName={selectedTestimonial?.patientName}
+        message="Are you sure you want to permanently delete this testimonial? This action cannot be undone."
+        itemName={selectedTestimonial?.name}
       />
     </div>
   );
 }
-

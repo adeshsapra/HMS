@@ -21,7 +21,7 @@ import {
     ExclamationTriangleIcon
 } from "@heroicons/react/24/solid";
 import apiService from "@/services/api";
-import { toast } from "react-toastify";
+import { useToast } from "@/context/ToastContext";
 
 interface ProcessAdmissionModalProps {
     open: boolean;
@@ -36,6 +36,7 @@ export default function ProcessAdmissionModal({
     admission,
     onSuccess
 }: ProcessAdmissionModalProps): JSX.Element {
+    const { showToast } = useToast();
     const [rooms, setRooms] = useState<any[]>([]);
     const [availableBeds, setAvailableBeds] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
@@ -85,13 +86,13 @@ export default function ProcessAdmissionModal({
             setAvailableBeds(beds);
         } catch (error) {
             console.error("Failed to fetch beds", error);
-            toast.error("Failed to load available beds.");
+            showToast("Failed to load available beds.", "error");
         }
     };
 
     const handleSubmit = async () => {
         if (!admission || !selectedBed || !selectedRoom || !admissionDate) {
-            toast.error("Please fill all fields.");
+            showToast("Please fill all fields.", "error");
             return;
         }
 
@@ -102,12 +103,12 @@ export default function ProcessAdmissionModal({
                 bed_id: Number(selectedBed),
                 admission_date: admissionDate
             });
-            toast.success("Patient successfully admitted.");
+            showToast("Patient successfully admitted.", "success");
             onSuccess();
             onClose();
         } catch (error: any) {
             console.error(error);
-            toast.error(error.message || "Failed to admit patient.");
+            showToast(error.message || "Failed to admit patient.", "error");
         } finally {
             setLoading(false);
         }

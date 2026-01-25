@@ -88,6 +88,13 @@ class ApiService {
         });
     }
 
+    async patch<T>(endpoint: string, data?: any): Promise<ApiResponse<T>> {
+        return this.request<T>(endpoint, {
+            method: 'PATCH',
+            body: JSON.stringify(data),
+        });
+    }
+
     async delete<T>(endpoint: string): Promise<ApiResponse<T>> {
         return this.request<T>(endpoint, { method: 'DELETE' });
     }
@@ -1057,8 +1064,21 @@ class ApiService {
         return this.post<any>('/payments/initiate-online', data);
     }
 
-    async verifyPayment(id: number, data: { transaction_id: string; gateway_response?: any; status: string }) {
+    async updatePaymentStatus(id: number, data: { transaction_id: string; gateway_response?: any; status: string }) {
         return this.post<any>(`/payments/${id}/verify`, data);
+    }
+
+    // Contact Enquiry methods
+    async getContactEnquiries() {
+        return this.get<any[]>('/contact-enquiries');
+    }
+
+    async updateContactEnquiryStatus(id: number, status: 'unread' | 'read' | 'replied') {
+        return this.patch<any>(`/contact-enquiries/${id}`, { status });
+    }
+
+    async deleteContactEnquiry(id: number) {
+        return this.delete<any>(`/contact-enquiries/${id}`);
     }
 
     async generateReceipt(id: number) {
@@ -1083,6 +1103,26 @@ class ApiService {
 
     async getPaymentStatistics() {
         return this.get<any>('/payments/statistics/summary');
+    }
+    async getTestimonials(params?: { page?: number; per_page?: number; status?: string; search?: string }) {
+        let endpoint = '/admin/testimonials?';
+        const queryParams = new URLSearchParams();
+
+        if (params?.page) queryParams.append('page', params.page.toString());
+        if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
+        if (params?.status) queryParams.append('status', params.status);
+        if (params?.search) queryParams.append('search', params.search);
+
+        endpoint += queryParams.toString();
+        return this.get<any>(endpoint);
+    }
+
+    async updateTestimonialStatus(id: number, status: 'pending' | 'approved' | 'rejected') {
+        return this.put<any>(`/admin/testimonials/${id}/status`, { status });
+    }
+
+    async deleteTestimonial(id: number) {
+        return this.delete<any>(`/admin/testimonials/${id}`);
     }
 }
 

@@ -4,7 +4,7 @@ import { ActionItem } from "@/components/DataTable";
 import { Button } from "@material-tailwind/react";
 import { CalendarDaysIcon, CheckIcon, XMarkIcon, CheckCircleIcon, DocumentPlusIcon, HomeModernIcon } from "@heroicons/react/24/outline";
 import { apiService } from "@/services/api";
-import { toast } from "react-toastify";
+import { useToast } from "@/context/ToastContext";
 import { useAuth } from "@/context/AuthContext";
 
 interface Appointment {
@@ -25,6 +25,7 @@ interface Appointment {
 
 export default function Appointments(): JSX.Element {
     const { user } = useAuth();
+    const { showToast } = useToast();
     const [appointments, setAppointments] = useState<Appointment[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [pagination, setPagination] = useState({
@@ -103,7 +104,7 @@ export default function Appointments(): JSX.Element {
             }
         } catch (error) {
             console.error("Error fetching appointments:", error);
-            toast.error("Failed to load appointments");
+            showToast("Failed to load appointments", "error");
         } finally {
             setLoading(false);
         }
@@ -439,12 +440,12 @@ export default function Appointments(): JSX.Element {
         if (selectedAppointment) {
             try {
                 await apiService.deleteAppointment(selectedAppointment.id);
-                toast.success(`Appointment #${selectedAppointment.id} for ${selectedAppointment.patientName} has been deleted.`);
+                showToast(`Appointment #${selectedAppointment.id} for ${selectedAppointment.patientName} has been deleted.`, "success");
                 fetchAppointments(pagination.currentPage);
             } catch (error: any) {
                 console.error(error);
                 const errorMessage = error.response?.data?.message || error.message || "Failed to delete appointment";
-                toast.error(errorMessage);
+                showToast(errorMessage, "error");
             }
             setOpenDeleteModal(false);
             setSelectedAppointment(null);
@@ -475,11 +476,11 @@ export default function Appointments(): JSX.Element {
             await apiService.updateAppointment(appointment.id, {
                 status: newStatus,
             });
-            toast.success(`Appointment status updated to ${newStatus.toUpperCase()}`);
+            showToast(`Appointment status updated to ${newStatus.toUpperCase()}`, "success");
         } catch (error: any) {
             console.error(error);
             const errorMessage = error.response?.data?.message || "Failed to update status";
-            toast.error(errorMessage);
+            showToast(errorMessage, "error");
             // Revert optimistic update
             fetchAppointments(pagination.currentPage);
         }
@@ -565,10 +566,10 @@ export default function Appointments(): JSX.Element {
             let response;
             if (selectedAppointment) {
                 response = await apiService.updateAppointment(selectedAppointment.id, payload);
-                toast.success("Appointment updated successfully");
+                showToast("Appointment updated successfully", "success");
             } else {
                 response = await apiService.createAppointment(payload);
-                toast.success("Appointment created successfully");
+                showToast("Appointment created successfully", "success");
             }
 
             fetchAppointments(pagination.currentPage);
@@ -577,7 +578,7 @@ export default function Appointments(): JSX.Element {
         } catch (error: any) {
             console.error(error);
             const errorMessage = error.response?.data?.message || error.message || "Failed to save appointment";
-            toast.error(errorMessage);
+            showToast(errorMessage, "error");
         }
     };
 
@@ -585,7 +586,7 @@ export default function Appointments(): JSX.Element {
         // Check if patient exists (must be a registered patient)
         const patientId = appointment.original?.user?.patient?.id;
         if (!patientId) {
-            toast.error("Cannot recommend admission: This patient is not registered in the system.");
+            showToast("Cannot recommend admission: This patient is not registered in the system.", "error");
             return;
         }
         setSelectedAppointment(appointment as Appointment);
@@ -597,7 +598,7 @@ export default function Appointments(): JSX.Element {
 
         const patientId = selectedAppointment.original.user?.patient?.id;
         if (!patientId) {
-            toast.error("Process Failed: This patient doesn't have a full medical profile required for admission.");
+            showToast("Process Failed: This patient doesn't have a full medical profile required for admission.", "error");
             return;
         }
 
@@ -609,12 +610,12 @@ export default function Appointments(): JSX.Element {
                 notes: data.notes,
                 status: 'pending' // Pending recommendation
             });
-            toast.success(`Admission recommendation for ${selectedAppointment.patientName} has been submitted.`);
+            showToast(`Admission recommendation for ${selectedAppointment.patientName} has been submitted.`, "success");
             setOpenAdmissionModal(false);
         } catch (error: any) {
             console.error(error);
             const errorMessage = error.response?.data?.message || error.message || "Failed to recommend admission";
-            toast.error(errorMessage);
+            showToast(errorMessage, "error");
         }
     };
 

@@ -24,7 +24,7 @@ import {
   UserPlusIcon,
   ArrowRightOnRectangleIcon
 } from "@heroicons/react/24/solid";
-import { toast } from "react-toastify";
+import { useToast } from "@/context/ToastContext";
 
 // Interfaces
 interface RoomType {
@@ -75,6 +75,7 @@ interface DashboardStat {
 }
 
 export default function Rooms(): JSX.Element {
+  const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState("room-types");
   const [loading, setLoading] = useState(true);
 
@@ -141,7 +142,7 @@ export default function Rooms(): JSX.Element {
 
     } catch (error) {
       console.error("Failed to fetch data", error);
-      toast.error("Failed to load dashboard data");
+      showToast("Failed to load dashboard data", "error");
     } finally {
       setLoading(false);
     }
@@ -339,10 +340,10 @@ export default function Rooms(): JSX.Element {
       }
       setOpenModal(false);
       fetchData();
-      toast.success(`${modalType === 'discharge' ? 'Patient discharged' : 'Operation completed'} successfully`);
+      showToast(`${modalType === 'discharge' ? 'Patient discharged' : 'Operation completed'} successfully`, "success");
     } catch (error) {
       console.error("Operation failed", error);
-      toast.error(`Operation failed: ${(error as any).message}`);
+      showToast(`Operation failed: ${(error as any).message}`, "error");
     }
   };
 
@@ -356,10 +357,10 @@ export default function Rooms(): JSX.Element {
 
       setOpenDeleteModal(false);
       fetchData();
-      toast.success("Deleted successfully");
+      showToast("Deleted successfully", "success");
     } catch (error) {
       console.error("Delete failed", error);
-      toast.error(`Delete failed: ${(error as any).message}`);
+      showToast(`Delete failed: ${(error as any).message}`, "error");
     }
   };
 

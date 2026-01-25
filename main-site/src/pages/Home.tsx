@@ -2,7 +2,13 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import AOS from "aos";
 import axios from "axios";
-import { homeCareAPI } from "../services/api";
+import {
+  departmentAPI,
+  serviceAPI,
+  doctorAPI,
+  homeCareAPI,
+  testimonialAPI,
+} from "../services/api";
 import "../billing-toggle.css";
 
 interface HealthPackage {
@@ -25,6 +31,8 @@ const Home = () => {
   // Home Care State
   const [homeCareServices, setHomeCareServices] = useState<any[]>([]);
   const [homeCareSettings, setHomeCareSettings] = useState<any>({});
+  const [testimonials, setTestimonials] = useState<any[]>([]);
+  const [loadingTestimonials, setLoadingTestimonials] = useState(true);
 
   useEffect(() => {
     AOS.init({
@@ -35,6 +43,7 @@ const Home = () => {
     });
     fetchPackages();
     fetchHomeCareData();
+    fetchTestimonials();
   }, []);
 
   const fetchHomeCareData = async () => {
@@ -52,6 +61,20 @@ const Home = () => {
     }
   };
 
+  const fetchTestimonials = async () => {
+    try {
+      setLoadingTestimonials(true);
+      const response = await testimonialAPI.getAll();
+      if (response.data.status) {
+        setTestimonials(response.data.data.slice(0, 4));
+      }
+    } catch (error) {
+      console.error("Error fetching testimonials:", error);
+    } finally {
+      setLoadingTestimonials(false);
+    }
+  };
+
   const fetchPackages = async () => {
     try {
       const API_URL =
@@ -65,231 +88,30 @@ const Home = () => {
     }
   };
 
+  const getFullImageUrl = (path: string | null) => {
+    if (!path) return "/assets/img/person/person-m-12.webp";
+    if (path.startsWith("http")) return path;
+    const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace("/api", "") || "http://localhost:8000";
+    return `${baseUrl}/storage/${path}`;
+  };
+
   return (
     <div className="index-page">
       <style
         dangerouslySetInnerHTML={{
           __html: `
-        /* --- Global Button Theme Overrides --- */
-        .btn-primary, .btn-primary:active, .btn-primary:focus {
-          background-color: #049EBB !important;
-          border-color: #049EBB !important;
-          color: white !important;
-        }
-        .btn-primary:hover {
-          background-color: #049cbbc4 !important;
-          border-color: #049cbbc4 !important;
-        }
-        .btn-outline, .btn-outline:active, .btn-outline:focus {
-          border: 2px solid #049EBB !important;
-          color: #049EBB !important;
-          background: transparent !important;
-        }
-        .btn-outline:hover {
-          background: #049EBB !important;
-          color: white !important;
-        }
-        .btn-outline-primary {
-           color: #049EBB !important;
-           border-color: #049EBB !important;
-        }
-        .btn-outline-primary:hover {
-           background-color: #049EBB !important;
-           color: white !important;
-        }
+  /* --- Global Button Theme Overrides --- */
+  transition: all 0.2s;
+}
+        .btn-submit-custom: hover, .btn-submit-custom: active, .btn-submit-custom:focus {
+  background-color: #049EBB!important;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 15px - 3px rgba(4, 158, 187, 0.3);
+}
 
-        /* --- Home Care Button Specific Override --- */
-        .home-care-btn, 
-        .home-care-btn:hover, 
-        .home-care-btn:focus, 
-        .home-care-btn:active,
-        .home-care-btn:visited {
-            background-color: #049EBB !important;
-            border-color: #049EBB !important;
-            color: #ffffff !important;
-            opacity: 1 !important;
-            box-shadow: 0 4px 6px -1px rgba(4, 158, 187, 0.25) !important;
-            outline: none !important;
-        }
-        .home-care-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(4, 158, 187, 0.4) !important;
-        }
-
-        /* --- Modal Styles --- */
-        .home-care-modal-overlay {
-          position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-          background: rgba(15, 23, 42, 0.75);
-          backdrop-filter: blur(8px);
-          z-index: 9999;
-          display: flex; align-items: center; justify-content: center;
-          padding: 1rem;
-          animation: fadeIn 0.3s ease;
-        }
-        .home-care-modal-content {
-          background: #ffffff;
-          width: 100%; margin: auto;
-          max-width: 650px;
-          border-radius: 20px;
-          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-          padding: 0;
-          max-height: 90vh;
-          overflow: hidden;
-          position: relative;
-          display: flex; flex-direction: column;
-          animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        /* --- Improved Scrollbar --- */
-        .home-care-modal-content::-webkit-scrollbar {
-          width: 10px;
-        }
-        .home-care-modal-content::-webkit-scrollbar-track {
-          background: transparent;
-          margin-top: 24px;
-          margin-bottom: 24px;
-        }
-        .home-care-modal-content::-webkit-scrollbar-thumb {
-          background-color: #cbd5e1;
-          border-radius: 20px;
-          border: 3px solid transparent;
-          background-clip: content-box;
-        }
-        .home-care-modal-content::-webkit-scrollbar-thumb:hover {
-          background-color: #94a3b8;
-        }
-
-        /* --- Service Card Styles --- */
-        .home-care-card {
-            background: #ffffff;
-            padding: 1.5rem;
-            border-left: 4px solid #049EBB;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            /* border-radius already handled by bootstrap class, but we can enforce if needed */
-        }
-        
-        .home-care-card h4 {
-            color: #1e293b; font-weight: 700; margin-bottom: 0.5rem; transition: color 0.3s;
-        }
-        .home-care-card p {
-            color: #64748b; transition: color 0.3s;
-        }
-        .home-care-card i {
-            color: #049EBB; transition: color 0.3s;
-        }
-        
-        .badge-24-7 {
-             position: absolute; top: 15px; right: 15px; font-size: 0.7rem;
-             background: rgba(4, 158, 187, 0.1);
-             color: #049EBB;
-             border: 1px solid rgba(4, 158, 187, 0.2);
-             transition: all 0.3s;
-        }
-
-        /* Hover State */
-        .home-care-card:hover {
-            background: #049EBB;
-            transform: translateY(-5px);
-            box-shadow: 0 20px 25px -5px rgba(4, 158, 187, 0.25);
-            border-left-color: rgba(255, 255, 255, 0.3);
-        }
-
-        .home-care-card:hover h4,
-        .home-care-card:hover p,
-        .home-care-card:hover i {
-            color: #ffffff !important;
-        }
-        
-        .home-care-card:hover .badge-24-7 {
-            background: rgba(255, 255, 255, 0.2);
-            color: #ffffff;
-            border-color: rgba(255, 255, 255, 0.3);
-        }
-
-        .modal-header-custom {
-          background: #049EBB;
-          padding: 20px 30px;
-          display: flex; justify-content: space-between; align-items: center;
-          margin-bottom: 0;
-          color: white;
-        }
-        .modal-title-custom {
-          font-size: 1.5rem; font-weight: 600; color: white; letter-spacing: -0.5px; margin: 0;
-        }
-        .btn-close-custom {
-          background: transparent; border: none; width: auto; height: auto;
-          padding: 0;
-          display: flex; align-items: center; justify-content: center; cursor: pointer;
-          transition: all 0.2s; color: white; font-size: 1.5rem;
-        }
-        .btn-close-custom:hover { opacity: 0.8; }
-        
-        .modal-body-custom {
-            padding: 30px;
-            overflow-y: auto;
-            flex: 1;
-        }
-        
-        .form-group-custom { margin-bottom: 1.5rem; }
-        .form-label-custom {
-          font-weight: 600; font-size: 0.925rem; color: #334155; margin-bottom: 0.5rem; display: block;
-        }
-        .form-control-custom {
-          width: 100%; padding: 0.875rem 1rem;
-          border: 2px solid #e2e8f0; border-radius: 10px;
-          font-size: 1rem; color: #0f172a; transition: all 0.2s;
-          background: #f8fafc;
-        }
-        .form-control-custom:focus {
-          background: #fff; border-color: #049EBB; outline: none;
-          box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
-        }
-        
-        .services-grid {
-          display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;
-          margin-top: 0.5rem;
-        }
-        @media (max-width: 640px) {
-          .services-grid { grid-template-columns: repeat(2, 1fr); }
-        }
-        .service-card-select {
-          border: 2px solid #e2e8f0; border-radius: 16px; padding: 1rem;
-          cursor: pointer; transition: all 0.2s; text-align: center;
-          background: #fff; position: relative; overflow: hidden;
-          display: flex; flex-direction: column; align-items: center; justify-content: center;
-          min-height: 110px;
-        }
-        .service-card-select:hover { border-color: #cbd5e1; transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-        .service-card-select.active {
-          border-color: #049EBB; background: #eff6ff; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
-        }
-        .service-card-select i { font-size: 1.75rem; color: #94a3b8; margin-bottom: 0.5rem; transition: color 0.2s; }
-        .service-card-select.active i { color: #049EBB; }
-        .service-card-select h5 { font-size: 0.95rem; font-weight: 600; color: #334155; margin: 0; line-height: 1.3; }
-        .service-card-select.active h5 { color: #1e293b; }
-        .check-badge {
-          position: absolute; top: 10px; right: 10px; width: 20px; height: 20px;
-          background: #049EBB; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-          color: white; font-size: 0.75rem; transform: scale(0); transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        .service-card-select.active .check-badge { transform: scale(1); }
-
-        .btn-submit-custom {
-          background-color: #049EBB !important;
-          color: white; border: none; padding: 1rem 2rem; border-radius: 10px;
-          font-weight: 600; font-size: 1rem; width: 100%; box-shadow: 0 4px 6px -1px rgba(4, 158, 187, 0.25);
-          transition: all 0.2s;
-        }
-        .btn-submit-custom:hover, .btn-submit-custom:active, .btn-submit-custom:focus {
-          background-color: #049EBB !important;
-          transform: translateY(-1px);
-          box-shadow: 0 10px 15px -3px rgba(4, 158, 187, 0.3);
-        }
-
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
-        `,
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+`,
         }}
       />
       {/* Hero Section */}
@@ -500,7 +322,7 @@ const Home = () => {
               >
                 <div className="service-card">
                   <div className="service-icon">
-                    <i className={`fas ${service.icon}`}></i>
+                    <i className={`fas ${service.icon} `}></i>
                   </div>
                   <div className="service-content">
                     <h3>{service.title}</h3>
@@ -651,11 +473,11 @@ const Home = () => {
                 <div className="doctor-card">
                   <div className="doctor-image">
                     <img
-                      src={`/assets/img/health/${doctor.img}`}
+                      src={`/ assets / img / health / ${doctor.img} `}
                       alt={doctor.name}
                       className="img-fluid"
                     />
-                    <div className={`availability-badge ${doctor.badgeClass}`}>
+                    <div className={`availability - badge ${doctor.badgeClass} `}>
                       {doctor.badge}
                     </div>
                   </div>
@@ -667,13 +489,12 @@ const Home = () => {
                       {[...Array(5)].map((_, i) => (
                         <i
                           key={i}
-                          className={`bi bi-star${
-                            i < Math.floor(doctor.stars)
-                              ? "-fill"
-                              : i < doctor.stars
+                          className={`bi bi - star${i < Math.floor(doctor.stars)
+                            ? "-fill"
+                            : i < doctor.stars
                               ? "-half"
                               : ""
-                          }`}
+                            } `}
                         ></i>
                       ))}
                       <span className="rating-text">({doctor.rating})</span>
@@ -859,14 +680,14 @@ const Home = () => {
                 <div className="department-card">
                   <div className="department-image">
                     <img
-                      src={`/assets/img/health/${dept.img}`}
+                      src={`/ assets / img / health / ${dept.img} `}
                       alt={`${dept.title} Department`}
                       className="img-fluid"
                     />
                   </div>
                   <div className="department-content">
                     <div className="department-icon">
-                      <i className={`fas ${dept.icon}`}></i>
+                      <i className={`fas ${dept.icon} `}></i>
                     </div>
                     <h3>{dept.title}</h3>
                     <p>{dept.desc}</p>
@@ -1102,9 +923,8 @@ const Home = () => {
                 ].map((contact, idx) => (
                   <div key={idx} className="col-md-6 mb-4">
                     <div
-                      className={`contact-card ${
-                        contact.urgent ? "urgent" : ""
-                      }`}
+                      className={`contact - card ${contact.urgent ? "urgent" : ""
+                        } `}
                     >
                       <div className="card-icon">
                         <i className={contact.icon}></i>
@@ -1128,7 +948,7 @@ const Home = () => {
                       </div>
                       <div className="card-action">
                         <a
-                          href={`tel:${contact.phone.replace(/\D/g, "")}`}
+                          href={`tel:${contact.phone.replace(/\D/g, "")} `}
                           className="btn btn-contact"
                         >
                           Call Now
@@ -1249,9 +1069,8 @@ const Home = () => {
                             </span>
                           )}
                           <i
-                            className={`bi ${
-                              service.icon || "bi-activity"
-                            } fs-3 mb-2 d-block`}
+                            className={`bi ${service.icon || "bi-activity"
+                              } fs - 3 mb - 2 d - block`}
                           ></i>
                           <h4>{service.title}</h4>
                           <p className="m-0 small text-muted">
@@ -1313,26 +1132,23 @@ const Home = () => {
           <div className="d-flex justify-content-center mt-4">
             <div className="billing-toggle-wrapper">
               <div
-                className={`billing-option ${
-                  billingCycle === "monthly" ? "active" : ""
-                }`}
+                className={`billing - option ${billingCycle === "monthly" ? "active" : ""
+                  } `}
                 onClick={() => setBillingCycle("monthly")}
               >
                 Monthly
               </div>
               <div
-                className={`billing-option ${
-                  billingCycle === "yearly" ? "active" : ""
-                }`}
+                className={`billing - option ${billingCycle === "yearly" ? "active" : ""
+                  } `}
                 onClick={() => setBillingCycle("yearly")}
               >
                 Yearly
                 {/* <span className="discount-badge">Save 20%</span> */}
               </div>
               <div
-                className={`slider-bg ${
-                  billingCycle === "yearly" ? "slide-right" : ""
-                }`}
+                className={`slider - bg ${billingCycle === "yearly" ? "slide-right" : ""
+                  } `}
               ></div>
             </div>
           </div>
@@ -1348,7 +1164,7 @@ const Home = () => {
                 data-aos-delay={100 * (idx + 1)}
               >
                 <div
-                  className={`package-card ${pkg.featured ? "featured" : ""}`}
+                  className={`package - card ${pkg.featured ? "featured" : ""} `}
                 >
                   {pkg.featured && (
                     <div className="popular-badge">Best Value</div>
@@ -1383,9 +1199,8 @@ const Home = () => {
 
                   <Link
                     to="/book-package"
-                    className={`btn-package ${
-                      pkg.featured ? "filled" : "outline"
-                    }`}
+                    className={`btn - package ${pkg.featured ? "filled" : "outline"
+                      } `}
                   >
                     {billingCycle === "monthly"
                       ? "Book Monthly Plan"
@@ -1441,7 +1256,7 @@ const Home = () => {
               >
                 <div className="workflow-step">
                   <div className="step-icon">
-                    <i className={`bi ${item.icon}`}></i>
+                    <i className={`bi ${item.icon} `}></i>
                     <div className="step-count">{item.step}</div>
                   </div>
                   <h4>{item.title}</h4>
@@ -1522,80 +1337,64 @@ const Home = () => {
               </div>
 
               <div className="row g-4">
-                {[
-                  {
-                    name: "Sarah Jenkins",
-                    treatment: "Cardiology",
-                    img: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=2588&auto=format&fit=crop",
-                    text: "Dr. Mitchell saved my life. The level of care I received during my heart surgery was phenomenal. The nurses were angels.",
-                    delay: 100,
-                  },
-                  {
-                    name: "Michael Ross",
-                    treatment: "Orthopedics",
-                    img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=2574&auto=format&fit=crop",
-                    text: "I was back on my feet in weeks after my knee replacement. The rehabilitation facility here is world-class.",
-                    delay: 200,
-                  },
-                  {
-                    name: "Emily & Baby Leo",
-                    treatment: "Maternity",
-                    img: "https://images.unsplash.com/photo-1554774853-d39f79c2a36a?q=80&w=2574&auto=format&fit=crop",
-                    text: "Giving birth here was a dream. The private suites are comfortable and the midwives were so supportive throughout.",
-                    delay: 300,
-                  },
-                  {
-                    name: "David Chen",
-                    treatment: "Neurology",
-                    img: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=2574&auto=format&fit=crop",
-                    text: "Professional, clean, and efficient. I never had to wait long for my appointments, and the diagnosis was spot on.",
-                    delay: 400,
-                  },
-                ].map((review, idx) => (
-                  <div
-                    className="col-md-6"
-                    key={idx}
-                    data-aos="fade-up"
-                    data-aos-delay={review.delay}
-                  >
-                    <div className="review-card-premium h-100">
-                      <div className="review-card-qoute">
-                        <i className="bi bi-quote"></i>
-                      </div>
-                      <div className="patient-profile">
-                        <div className="patient-img-container">
-                          <img
-                            src={review.img}
-                            alt={review.name}
-                            className="patient-img-premium"
-                          />
-                          <div className="verified-badge">
-                            <i className="bi bi-patch-check-fill"></i>
+                {testimonials.length > 0 ? (
+                  testimonials.map((review, idx) => (
+                    <div
+                      className="col-md-6"
+                      key={review.id}
+                      data-aos="fade-up"
+                      data-aos-delay={100 * (idx + 1)}
+                    >
+                      <div className="review-card-premium h-100">
+                        <div className="review-card-qoute">
+                          <i className="bi bi-quote"></i>
+                        </div>
+                        <div className="patient-profile">
+                          <div className="patient-img-container">
+                            <img
+                              src={getFullImageUrl(review.image_url)}
+                              alt={review.name}
+                              className="patient-img-premium"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = '/assets/img/person/person-m-12.webp';
+                              }}
+                            />
+                            <div className="verified-badge">
+                              <i className="bi bi-patch-check-fill"></i>
+                            </div>
+                          </div>
+                          <div className="patient-info">
+                            <h5>{review.name}</h5>
+                            <span className="treatment-tag">
+                              {review.role}
+                            </span>
                           </div>
                         </div>
-                        <div className="patient-info">
-                          <h5>{review.name}</h5>
-                          <span className="treatment-tag">
-                            {review.treatment}
+                        <p className="review-text-premium mt-3">
+                          "{review.message}"
+                        </p>
+                        <div className="review-meta mt-auto pt-3 border-top border-light d-flex justify-content-between align-items-center">
+                          <div className="star-row-premium">
+                            {[...Array(5)].map((_, i) => (
+                              <i key={i} className={`bi ${i < review.rating ? 'bi-star-fill' : 'bi-star'} `} style={{ color: i < review.rating ? '#ffc107' : '#e4e5e9' }}></i>
+                            ))}
+                          </div>
+                          <span className="review-date small text-muted">
+                            Verified Patient
                           </span>
                         </div>
                       </div>
-                      <p className="review-text-premium mt-3">
-                        "{review.text}"
-                      </p>
-                      <div className="review-meta mt-auto pt-3 border-top border-light d-flex justify-content-between align-items-center">
-                        <div className="star-row-premium">
-                          {[...Array(5)].map((_, i) => (
-                            <i key={i} className="bi bi-star-fill"></i>
-                          ))}
-                        </div>
-                        <span className="review-date small text-muted">
-                          Verified Patient
-                        </span>
-                      </div>
                     </div>
+                  ))
+                ) : loadingTestimonials ? (
+                  <div className="col-12 text-center py-5 text-white">
+                    <div className="spinner-border" role="status"></div>
                   </div>
-                ))}
+                ) : (
+                  <div className="col-12 text-center py-5 text-white-50">
+                    <p>No testimonials yet. Be the first to share your story!</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>

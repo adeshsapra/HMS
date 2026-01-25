@@ -1,22 +1,36 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import AOS from 'aos'
 import { useToast } from '../context/ToastContext'
 import PageHero from '../components/PageHero'
+import { departmentAPI, doctorAPI, appointmentAPI } from '../services/api'
 
 const QuickAppointment = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
-    department: '',
+    department_id: '',
+    doctor_id: '',
     date: '',
-    doctor: '',
+    time: '09:00 AM', // Default time
     message: ''
   })
-  const toast = useToast()
+
+  // Time Selection State
+  const [selectedHour, setSelectedHour] = useState('09');
+  const [selectedMinute, setSelectedMinute] = useState('00');
+  const [selectedPeriod, setSelectedPeriod] = useState('AM');
+
+  const [departments, setDepartments] = useState<any[]>([])
+  const [doctors, setDoctors] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [sent, setSent] = useState(false)
+  const [isFetching, setIsFetching] = useState({ depts: false, docs: false })
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const toast = useToast()
+
+  const hoursList = useMemo(() => Array.from({ length: 12 }, (_, i) => (i + 1).toString().padStart(2, '0')), []);
+  const minutesList = ['00', '15', '30', '45'];
+  const periods = ['AM', 'PM'];
 
   useEffect(() => {
     AOS.init({
@@ -25,204 +39,406 @@ const QuickAppointment = () => {
       once: true,
       mirror: false
     })
+    fetchDepartments()
   }, [])
+
+  const fetchDepartments = async () => {
+    try {
+      setIsFetching(prev => ({ ...prev, depts: true }))
+      const response = await departmentAPI.getAll(1, 100)
+      if (response.data?.data) {
+        setDepartments(response.data.data)
+      }
+    } catch (err) {
+      console.error("Failed to fetch departments", err)
+      toast.error("Could not load departments. Please refresh.")
+    } finally {
+      setIsFetching(prev => ({ ...prev, depts: false }))
+    }
+  }
+
+  useEffect(() => {
+    if (formData.department_id) {
+      fetchDoctors(formData.department_id)
+    } else {
+      setDoctors([])
+      setFormData(prev => ({ ...prev, doctor_id: '' }))
+    }
+  }, [formData.department_id])
+
+  const fetchDoctors = async (deptId: string) => {
+    try {
+      setIsFetching(prev => ({ ...prev, docs: true }))
+      const response = await doctorAPI.getByDepartment(deptId)
+      if (response.data) {
+        // Ensure we handle both types of common API responses
+        const docsList = response.data.data || response.data
+        setDoctors(Array.isArray(docsList) ? docsList : [])
+      }
+    } catch (err) {
+      console.error("Failed to fetch doctors", err)
+    } finally {
+      setIsFetching(prev => ({ ...prev, docs: false }))
+    }
+  }
+
+  const validate = () => {
+    const newErrors: Record<string, string> = {}
+    if (!formData.name.trim()) newErrors.name = 'Full name is required'
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required'
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Invalid email address'
+    }
+    if (!formData.phone.trim()) newErrors.phone = 'Phone number is required'
+    if (!formData.department_id) newErrors.department_id = 'Please select a department'
+    if (!formData.doctor_id) newErrors.doctor_id = 'Please select a doctor'
+    if (!formData.date) newErrors.date = 'Date is required'
+
+    const selectedDate = new Date(formData.date)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    if (formData.date && selectedDate < today) {
+      newErrors.date = 'Appointment cannot be in the past'
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  const updateTime = (h: string, m: string, p: string) => {
+    const newTime = `${h}:${m} ${p}`;
+    setFormData(prev => ({ ...prev, time: newTime }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
-    setError('')
-    setSent(false)
+    if (!validate()) {
+      toast.error("Please fill all required fields correctly.")
+      return
+    }
 
-    // Simulate form submission
-    setTimeout(() => {
+    setLoading(true)
+    try {
+      const payload = {
+        patient_name: formData.name,
+        patient_email: formData.email,
+        patient_phone: formData.phone,
+        department_id: formData.department_id,
+        doctor_id: formData.doctor_id,
+        appointment_date: formData.date,
+        appointment_time: formData.time,
+        reason: formData.message || "Quick Appointment Request",
+        status: 'pending'
+      }
+
+      const response = await appointmentAPI.create(payload)
+      if (response.data) {
+        toast.success('Your appointment has been requested successfully!')
+        setFormData({
+          name: '', email: '', phone: '', department_id: '',
+          doctor_id: '', date: '', time: '09:00 AM', message: ''
+        })
+        setSelectedHour('09')
+        setSelectedMinute('00')
+        setSelectedPeriod('AM')
+        setErrors({})
+      }
+    } catch (err: any) {
+      console.error("Booking Error:", err)
+      const msg = err.response?.data?.message || "Failed to book appointment. Please try again."
+      toast.error(msg)
+    } finally {
       setLoading(false)
-      setSent(true)
-      toast.success('Your appointment request has been sent successfully!')
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        department: '',
-        date: '',
-        doctor: '',
-        message: ''
-      })
-    }, 1500)
+    }
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    })
+    const { name, value } = e.target
+    setFormData(prev => ({ ...prev, [name]: value }))
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }))
+    }
   }
 
   return (
     <div className="quickappointment-page">
+      <style>
+        {`
+                .qa-time-picker-wrapper {
+                    background: #fdfdfd;
+                    border: 1px solid #eee;
+                    border-radius: 20px;
+                    padding: 25px;
+                    margin-bottom: 25px;
+                    transition: all 0.3s ease;
+                }
+                .qa-time-picker-wrapper.has-error {
+                    border-color: #dc3545;
+                }
+                .qa-time-display {
+                    text-align: center;
+                    font-size: 1.8rem;
+                    font-weight: 800;
+                    color: #049ebb;
+                    margin-bottom: 20px;
+                    background: #fff;
+                    padding: 10px;
+                    border-radius: 12px;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+                }
+                .qa-time-grid {
+                    display: grid;
+                    grid-template-columns: repeat(4, 1fr);
+                    gap: 8px;
+                }
+                .qa-time-btn {
+                    padding: 8px 0;
+                    border-radius: 8px;
+                    border: 1px solid #f0f0f0;
+                    background: #fff;
+                    font-weight: 600;
+                    font-size: 0.85rem;
+                    transition: all 0.2s;
+                    color: #444;
+                }
+                .qa-time-btn:hover {
+                    border-color: #049ebb;
+                    background: #f0fbfc;
+                }
+                .qa-time-btn.active {
+                    background: #049ebb;
+                    color: #fff;
+                    border-color: #049ebb;
+                }
+                .form-control.is-invalid, .form-select.is-invalid {
+                    border-color: #dc3545 !important;
+                    background-image: none !important;
+                }
+                .invalid-feedback {
+                    font-size: 0.75rem;
+                    font-weight: 600;
+                    margin-top: 4px;
+                }
+                .qa-label {
+                    font-weight: 700;
+                    font-size: 0.8rem;
+                    color: #555;
+                    text-transform: uppercase;
+                    margin-bottom: 8px;
+                    display: block;
+                }
+                `}
+      </style>
       <PageHero
-        title="Appointment"
+        title="Quick Appointment"
         description="Book your medical appointment quickly and receive timely expert care."
         breadcrumbs={[
           { label: 'Home', path: '/' },
-          { label: 'Appointment' }
+          { label: 'Quick Appointment' }
         ]}
       />
 
-
-      <section id="quickappointmnet" className="quickappointmnet section">
-        <div className="container" data-aos="fade-up" data-aos-delay="100">
-          <div className="row gy-4">
-            <div className="col-lg-6">
-              <div className="quickappointment-info">
-                <h3>Quick &amp; Easy Online Booking</h3>
-                <p className="mb-4">Book your appointment in just a few simple steps. Our healthcare professionals are ready to provide you with the best medical care tailored to your needs.</p>
+      <section id="quickappointmnet" className="quickappointmnet section py-5">
+        <div className="container" data-aos="fade-up">
+          <div className="row gy-5">
+            <div className="col-lg-5">
+              <div className="quickappointment-info pe-lg-5">
+                <h3 className="fw-bold mb-4" style={{ color: '#18444c' }}>Seamless Online Booking</h3>
+                <p className="mb-5 text-muted leading-relaxed">Experience hassle-free healthcare scheduling. Fill out the form, select your specialist, and get confirmed instantly.</p>
 
                 <div className="info-items">
-                  <div className="info-item d-flex align-items-center mb-3" data-aos="fade-up" data-aos-delay="200">
-                    <div className="icon-wrapper me-3">
-                      <i className="bi bi-calendar-check"></i>
+                  {[
+                    { icon: 'bi-calendar-check', title: 'Smart Scheduling', desc: 'Real-time availability for all hospital departments.' },
+                    { icon: 'bi-stopwatch', title: 'Fast Track', desc: 'Skip the queue with our prioritized online booking system.' },
+                    { icon: 'bi-shield-check', title: 'Trusted Care', desc: 'Direct connection with board-certified medical experts.' }
+                  ].map((item, idx) => (
+                    <div key={idx} className="info-item d-flex align-items-start mb-4">
+                      <div className="icon-wrapper me-3 bg-light rounded-circle p-3 shadow-sm">
+                        <i className={`bi ${item.icon}`} style={{ color: '#049ebb', fontSize: '1.2rem' }}></i>
+                      </div>
+                      <div>
+                        <h6 className="fw-bold mb-1">{item.title}</h6>
+                        <p className="mb-0 small text-muted">{item.desc}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h5>Flexible Scheduling</h5>
-                      <p className="mb-0">Choose from available time slots that fit your busy schedule</p>
-                    </div>
-                  </div>
-
-                  <div className="info-item d-flex align-items-center mb-3" data-aos="fade-up" data-aos-delay="250">
-                    <div className="icon-wrapper me-3">
-                      <i className="bi bi-stopwatch"></i>
-                    </div>
-                    <div>
-                      <h5>Quick Response</h5>
-                      <p className="mb-0">Get confirmation within 15 minutes of submitting your request</p>
-                    </div>
-                  </div>
-
-                  <div className="info-item d-flex align-items-center mb-3" data-aos="fade-up" data-aos-delay="300">
-                    <div className="icon-wrapper me-3">
-                      <i className="bi bi-shield-check"></i>
-                    </div>
-                    <div>
-                      <h5>Expert Medical Care</h5>
-                      <p className="mb-0">Board-certified doctors and specialists at your service</p>
-                    </div>
-                  </div>
+                  ))}
                 </div>
 
-                <div className="emergency-contact mt-4" data-aos="fade-up" data-aos-delay="350">
-                  <div className="emergency-card p-3">
-                    <h6 className="mb-2"><i className="bi bi-telephone-fill me-2"></i>Emergency Hotline</h6>
-                    <p className="mb-0">Call <strong>+1 (555) 911-4567</strong> for urgent medical assistance</p>
-                  </div>
+                <div className="emergency-contact bg-light p-4 rounded-4 mt-5 border-start border-4 border-info">
+                  <h6 className="mb-2 fw-bold"><i className="bi bi-telephone-fill me-2 text-info"></i>Need Immediate Help?</h6>
+                  <p className="mb-0 small">Our 24/7 Hotline is available at <strong>+1 (555) 911-4567</strong></p>
                 </div>
               </div>
             </div>
 
-            <div className="col-lg-6">
-              <div className="quickappointment-form-wrapper" data-aos="fade-up" data-aos-delay="200">
-                <form onSubmit={handleSubmit} className="quickappointment-form php-email-form">
-                  <div className="row gy-3">
-                    <div className="col-md-6">
+            <div className="col-lg-7">
+              <div className="quickappointment-form-wrapper shadow-lg p-4 p-md-5 rounded-4 bg-white">
+                <form onSubmit={handleSubmit} className="quickappointment-form">
+                  <div className="row gy-4">
+                    <div className="col-md-6 text-start">
                       <input
                         type="text"
                         name="name"
-                        className="form-control"
-                        placeholder="Your Full Name"
-                        required
+                        className={`form-control ${errors.name ? 'is-invalid' : ''}`}
+                        placeholder="Full Name (John Doe)"
                         value={formData.name}
                         onChange={handleChange}
                       />
+                      {errors.name && <div className="invalid-feedback">{errors.name}</div>}
                     </div>
 
-                    <div className="col-md-6">
+                    <div className="col-md-6 text-start">
                       <input
                         type="email"
                         name="email"
-                        className="form-control"
-                        placeholder="Your Email"
-                        required
+                        className={`form-control ${errors.email ? 'is-invalid' : ''}`}
+                        placeholder="Email Address (john@example.com)"
                         value={formData.email}
                         onChange={handleChange}
                       />
+                      {errors.email && <div className="invalid-feedback">{errors.email}</div>}
                     </div>
 
-                    <div className="col-md-6">
+                    <div className="col-md-6 text-start">
                       <input
                         type="tel"
                         name="phone"
-                        className="form-control"
-                        placeholder="Your Phone Number"
-                        required
+                        className={`form-control ${errors.phone ? 'is-invalid' : ''}`}
+                        placeholder="Phone Number (+1 234 567 890)"
                         value={formData.phone}
                         onChange={handleChange}
                       />
+                      {errors.phone && <div className="invalid-feedback">{errors.phone}</div>}
                     </div>
 
-                    <div className="col-md-6">
-                      <select
-                        name="department"
-                        className="form-select"
-                        required
-                        value={formData.department}
-                        onChange={handleChange}
-                      >
-                        <option value="">Select Department</option>
-                        <option value="cardiology">Cardiology</option>
-                        <option value="neurology">Neurology</option>
-                        <option value="orthopedics">Orthopedics</option>
-                        <option value="pediatrics">Pediatrics</option>
-                        <option value="dermatology">Dermatology</option>
-                        <option value="general">General Medicine</option>
-                      </select>
-                    </div>
-
-                    <div className="col-md-6">
+                    <div className="col-md-6 text-start">
                       <input
                         type="date"
                         name="date"
-                        className="form-control"
-                        required
+                        className={`form-control ${errors.date ? 'is-invalid' : ''}`}
                         value={formData.date}
                         onChange={handleChange}
+                        min={new Date().toISOString().split('T')[0]}
                       />
+                      {errors.date && <div className="invalid-feedback">{errors.date}</div>}
                     </div>
 
-                    <div className="col-md-6">
+                    <div className="col-md-6 text-start">
                       <select
-                        name="doctor"
-                        className="form-select"
-                        required
-                        value={formData.doctor}
+                        name="department_id"
+                        className={`form-select ${errors.department_id ? 'is-invalid' : ''}`}
+                        value={formData.department_id}
                         onChange={handleChange}
+                        disabled={isFetching.depts}
                       >
-                        <option value="">Select Doctor</option>
-                        <option value="dr-johnson">Dr. Sarah Johnson</option>
-                        <option value="dr-martinez">Dr. Michael Martinez</option>
-                        <option value="dr-chen">Dr. Lisa Chen</option>
-                        <option value="dr-patel">Dr. Raj Patel</option>
-                        <option value="dr-williams">Dr. Emily Williams</option>
-                        <option value="dr-thompson">Dr. David Thompson</option>
+                        <option value="">{isFetching.depts ? 'Loading Departments...' : 'Select Department'}</option>
+                        {departments.map(dept => (
+                          <option key={dept.id} value={dept.id}>{dept.name}</option>
+                        ))}
                       </select>
+                      {errors.department_id && <div className="invalid-feedback">{errors.department_id}</div>}
                     </div>
 
-                    <div className="col-12">
+                    <div className="col-md-6 text-start">
+                      <select
+                        name="doctor_id"
+                        className={`form-select ${errors.doctor_id ? 'is-invalid' : ''}`}
+                        value={formData.doctor_id}
+                        onChange={handleChange}
+                        disabled={!formData.department_id || isFetching.docs}
+                      >
+                        <option value="">
+                          {!formData.department_id ? 'Select department first' : isFetching.docs ? 'Loading Experts...' : 'Select Doctor'}
+                        </option>
+                        {doctors.map(doc => (
+                          <option key={doc.id} value={doc.id}>
+                            Dr. {doc.first_name} {doc.last_name} ({doc.specialization})
+                          </option>
+                        ))}
+                      </select>
+                      {errors.doctor_id && <div className="invalid-feedback">{errors.doctor_id}</div>}
+                    </div>
+
+                    <div className="col-12 text-start">
+                      <div className="qa-time-picker-wrapper">
+                        <div className="qa-time-display">
+                          {selectedHour}:{selectedMinute} {selectedPeriod}
+                        </div>
+
+                        <div className="row g-4">
+                          <div className="col-md-6">
+                            <span className="small fw-bold text-muted d-block mb-2">Hour</span>
+                            <div className="qa-time-grid">
+                              {hoursList.map(h => (
+                                <button
+                                  key={h}
+                                  type="button"
+                                  className={`qa-time-btn ${selectedHour === h ? 'active' : ''}`}
+                                  onClick={() => { setSelectedHour(h); updateTime(h, selectedMinute, selectedPeriod); }}
+                                >
+                                  {h}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="col-md-4">
+                            <span className="small fw-bold text-muted d-block mb-2">Minute</span>
+                            <div className="qa-time-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
+                              {minutesList.map(m => (
+                                <button
+                                  key={m}
+                                  type="button"
+                                  className={`qa-time-btn ${selectedMinute === m ? 'active' : ''}`}
+                                  onClick={() => { setSelectedMinute(m); updateTime(selectedHour, m, selectedPeriod); }}
+                                >
+                                  {m}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="col-md-2">
+                            <span className="small fw-bold text-muted d-block mb-2">Period</span>
+                            <div className="d-flex flex-column gap-2">
+                              {periods.map(p => (
+                                <button
+                                  key={p}
+                                  type="button"
+                                  className={`qa-time-btn ${selectedPeriod === p ? 'active' : ''} w-100`}
+                                  onClick={() => { setSelectedPeriod(p); updateTime(selectedHour, selectedMinute, p); }}
+                                >
+                                  {p}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="col-12 text-start">
                       <textarea
                         className="form-control"
                         name="message"
-                        rows={5}
-                        placeholder="Please describe your symptoms or reason for visit (optional)"
+                        rows={4}
+                        placeholder="Briefly describe your health concern..."
                         value={formData.message}
                         onChange={handleChange}
                       ></textarea>
                     </div>
 
                     <div className="col-12">
-                      {loading && <div className="loading">Loading</div>}
-                      {error && <div className="error-message">{error}</div>}
-                      {sent && <div className="sent-message">Your appointment request has been sent successfully. We will contact you shortly!</div>}
-
-                      <button type="submit" className="btn btn-quickappointment w-100" disabled={loading}>
-                        <i className="bi bi-calendar-plus me-2"></i>Book Appointment
+                      <button
+                        type="submit"
+                        className="btn btn-quickappointment w-100 py-3 fw-bold shadow-sm"
+                        disabled={loading}
+                        style={{ background: '#049ebb', border: 'none', color: '#fff' }}
+                      >
+                        {loading ? (
+                          <><span className="spinner-border spinner-border-sm me-2"></span>Processing...</>
+                        ) : (
+                          <><i className="bi bi-calendar-check me-2"></i>Finalize Appointment</>
+                        )}
                       </button>
                     </div>
                   </div>
@@ -230,30 +446,32 @@ const QuickAppointment = () => {
               </div>
             </div>
           </div>
-
-          <div className="process-steps mt-5" data-aos="fade-up" data-aos-delay="300">
-            <div className="row text-center gy-4">
-              {[
-                { num: 1, icon: 'bi-person-fill', title: 'Fill Details', desc: 'Provide your personal information and select your preferred department' },
-                { num: 2, icon: 'bi-calendar-event', title: 'Choose Date', desc: 'Select your preferred date and time slot from available options' },
-                { num: 3, icon: 'bi-check-circle', title: 'Confirmation', desc: 'Receive instant confirmation and appointment details via email or SMS' },
-                { num: 4, icon: 'bi-heart-pulse', title: 'Get Treatment', desc: 'Visit our clinic at your scheduled time and receive quality healthcare' }
-              ].map((step) => (
-                <div key={step.num} className="col-lg-3 col-md-6">
-                  <div className="step-item">
-                    <div className="step-number">{step.num}</div>
-                    <div className="step-icon">
-                      <i className={step.icon}></i>
-                    </div>
-                    <h5>{step.title}</h5>
-                    <p>{step.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
       </section>
+
+      <div className="process-steps py-5" style={{ background: '#f8fbfc' }}>
+        <div className="container">
+          <div className="row text-center gy-4">
+            {[
+              { num: 1, icon: 'bi-person-fill', title: 'Provide Details', desc: 'Securely share your contact and medical preferences.' },
+              { num: 2, icon: 'bi-calendar-event', title: 'Schedule Slot', desc: 'Pick a date and convenient time that works for you.' },
+              { num: 3, icon: 'bi-check-circle', title: 'Get Confirmed', desc: 'Receive instant notification from our team.' },
+              { num: 4, icon: 'bi-heart-pulse', title: 'Expert Care', desc: 'Meet your specialist and start your journey to health.' }
+            ].map((step) => (
+              <div key={step.num} className="col-lg-3 col-md-6">
+                <div className="step-item p-4">
+                  <div className="step-number mb-3 mx-auto shadow-sm" style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#049ebb', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>{step.num}</div>
+                  <div className="step-icon mb-3" style={{ fontSize: '2rem', color: '#049ebb' }}>
+                    <i className={step.icon}></i>
+                  </div>
+                  <h6 className="fw-bold">{step.title}</h6>
+                  <p className="small text-muted">{step.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

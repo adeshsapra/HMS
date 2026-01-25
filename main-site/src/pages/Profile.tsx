@@ -6,6 +6,7 @@ import { useToast } from '../context/ToastContext'
 import MyAppointments from '../components/MyAppointments'
 import MyMedicalRecords from '../components/MyMedicalRecords'
 import MyBills from '../components/MyBills'
+import MyTestimonials from '../components/MyTestimonials'
 import MyHomeCareRequests from '../components/MyHomeCareRequests'
 
 const Profile = () => {
@@ -56,6 +57,14 @@ const Profile = () => {
       once: true,
       mirror: false
     })
+
+    // Check for tab in URL
+    const params = new URLSearchParams(window.location.search)
+    const tab = params.get('tab')
+    if (tab && tabs.some(t => t.id === tab)) {
+      setActiveTab(tab)
+    }
+
     fetchProfile()
   }, [])
 
@@ -230,7 +239,8 @@ const Profile = () => {
     { id: 'appointments', label: 'My Appointments', icon: 'bi-calendar-check' },
     { id: 'home-care', label: 'Home Care Requests', icon: 'bi-house-heart' },
     { id: 'medical', label: 'Medical Records', icon: 'bi-file-medical' },
-    { id: 'bills', label: 'Bills & Payments', icon: 'bi-receipt' }
+    { id: 'bills', label: 'Bills & Payments', icon: 'bi-receipt' },
+    { id: 'testimonials', label: 'Reviews & Feedback', icon: 'bi-star' }
   ]
 
   const renderTabContent = () => {
@@ -756,6 +766,7 @@ const Profile = () => {
           </div>
         )
       case 'appointments':
+        return <MyAppointments onNavigateToTestimonials={() => setActiveTab('testimonials')} />
         return <MyAppointments />
       case 'home-care':
         return <MyHomeCareRequests />
@@ -763,6 +774,8 @@ const Profile = () => {
         return <MyMedicalRecords />
       case 'bills':
         return <MyBills />
+      case 'testimonials':
+        return <MyTestimonials />
       default:
         return null
     }
