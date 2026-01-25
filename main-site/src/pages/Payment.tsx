@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ApiService } from '../services/api';
 import { useToast } from '../context/ToastContext';
@@ -25,6 +25,18 @@ const Payment = () => {
     const [processingPayment, setProcessingPayment] = useState(false);
     const [loadingConfig, setLoadingConfig] = useState(false);
     const [paypalClientId, setPaypalClientId] = useState<string | null>(null);
+    const [razorpayKeyId, setRazorpayKeyId] = useState<string | null>(null);
+    const [conversionRate, setConversionRate] = useState<number>(83.0); // Default fallback
+
+    const loadRazorpayScript = useCallback(() => {
+        return new Promise((resolve) => {
+            const script = document.createElement('script');
+            script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+            script.onload = () => resolve(true);
+            script.onerror = () => resolve(false);
+            document.body.appendChild(script);
+        });
+    }, []);
 
     useEffect(() => {
         if (!bill) {
@@ -33,55 +45,41 @@ const Payment = () => {
             return;
         }
 
-        // Fetch PayPal Client ID if PayPal is selected
-        const fetchPaypalConfig = async () => {
-            console.log('🔍 [DEBUG] Starting PayPal config fetch...');
+        const fetchConfigs = async () => {
             setLoadingConfig(true);
             try {
-                console.log('🔍 [DEBUG] Calling ApiService.getPayPalConfig()...');
-                const response = await ApiService.getPayPalConfig();
-
-                console.log('🔍 [DEBUG] Full API Response:', response);
-                console.log('🔍 [DEBUG] Response Data:', response.data);
-                console.log('🔍 [DEBUG] Response Data Success:', response.data?.success);
-                console.log('🔍 [DEBUG] Response Data client_id:', response.data?.client_id);
-
-                if (response.data.success && response.data.client_id) {
-                    console.log('✅ [DEBUG] PayPal client_id found:', response.data.client_id);
-                    setPaypalClientId(response.data.client_id);
-                } else {
-                    console.error('❌ [DEBUG] PayPal client_id missing in response');
-                    console.error('❌ [DEBUG] Response structure:', JSON.stringify(response.data, null, 2));
-                    // Keep paypalClientId as null to show the error UI
+                // Fetch PayPal Config
+                try {
+                    const ppRes = await ApiService.getPayPalConfig();
+                    if (ppRes.data.success && ppRes.data.client_id) {
+                        setPaypalClientId(ppRes.data.client_id);
+                    }
+                } catch (e) {
+                    console.error('PayPal config not found');
                 }
+
+                // Fetch Razorpay Config
+                try {
+                    const rzpRes = await ApiService.getRazorpayConfig();
+                    if (rzpRes.data.success && rzpRes.data.key_id) {
+                        setRazorpayKeyId(rzpRes.data.key_id);
+                    }
+                } catch (e) {
+                    console.error('Razorpay config not found');
+                }
+
+                // Ensure Razorpay script is loaded
+                await loadRazorpayScript();
+
             } catch (error: any) {
-                console.error('❌ [DEBUG] Failed to fetch PayPal config', error);
-                console.error('❌ [DEBUG] Error response:', error.response);
-                console.error('❌ [DEBUG] Error response data:', error.response?.data);
-                console.error('❌ [DEBUG] Error status:', error.response?.status);
-
-                // If it's a 404, we just leave it as null and show the custom error message
-                if (error.response?.status !== 404) {
-                    showToast('Failed to load payment configuration', 'error');
-                }
+                console.error('Failed to fetch payment configurations', error);
             } finally {
                 setLoadingConfig(false);
-                console.log('🔍 [DEBUG] fetchPaypalConfig completed. paypalClientId will be set shortly.');
             }
         };
 
-        fetchPaypalConfig();
-    }, [bill, navigate, showToast]);
-
-    // Add a useEffect to log when paypalClientId changes
-    useEffect(() => {
-        console.log('🔍 [DEBUG] paypalClientId state changed to:', paypalClientId);
-        console.log('🔍 [DEBUG] paypalClientId type:', typeof paypalClientId);
-        if (paypalClientId) {
-            console.log('🔍 [DEBUG] paypalClientId length:', paypalClientId.length);
-            console.log('🔍 [DEBUG] paypalClientId trimmed:', paypalClientId.trim());
-        }
-    }, [paypalClientId]);
+        fetchConfigs();
+    }, [bill, navigate, showToast, loadRazorpayScript]);
 
     if (!bill) {
         return null;
@@ -96,16 +94,83 @@ const Payment = () => {
         });
     };
 
-    const formatCurrency = (amount: number) => {
+    const formatCurrency = (amount: number, currency = 'USD') => {
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
-            currency: 'USD'
+            currency: currency
         }).format(amount);
     };
 
-    // For other gateways (like Razorpay if integrated later)
+    const handleRazorpayPayment = async () => {
+        if (!razorpayKeyId) {
+            showToast('Razorpay is not configured correctly', 'error');
+            return;
+        }
+
+        setProcessingPayment(true);
+        try {
+            const response = await ApiService.initiateOnlinePayment({
+                bill_id: bill.id,
+                amount: bill.due_amount,
+                payment_gateway: 'razorpay'
+            });
+
+            if (response.data && response.data.success) {
+                const { order_id, inr_amount, conversion_rate } = response.data.data;
+                setConversionRate(conversion_rate);
+
+                const options = {
+                    key: razorpayKeyId,
+                    amount: Math.round(inr_amount * 100),
+                    currency: 'INR',
+                    name: 'Hospital Management System',
+                    description: `Payment for Bill #${bill.bill_number}`,
+                    order_id: order_id,
+                    handler: async function (response: any) {
+                        try {
+                            const captureRes = await ApiService.captureRazorpayPayment({
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_signature: response.razorpay_signature
+                            });
+
+                            if (captureRes.data.success) {
+                                showToast('Payment successful!', 'success');
+                                navigate(`/payment/success?gateway=razorpay&payment_id=${response.razorpay_payment_id}`);
+                            }
+                        } catch (error) {
+                            showToast('Failed to verify payment', 'error');
+                        }
+                    },
+                    prefill: {
+                        name: '', // Will be filled from auth user if possible
+                        email: '',
+                        contact: ''
+                    },
+                    theme: {
+                        color: '#049ebb'
+                    }
+                };
+
+                const rzp = new (window as any).Razorpay(options);
+                rzp.on('payment.failed', function (response: any) {
+                    showToast('Payment failed: ' + response.error.description, 'error');
+                });
+                rzp.open();
+            }
+        } catch (error: any) {
+            showToast(error.response?.data?.message || 'Failed to initiate payment', 'error');
+        } finally {
+            setProcessingPayment(false);
+        }
+    };
+
     const handleInitiatePayment = async () => {
-        if (paymentGateway === 'paypal') return; // PayPal is handled by buttons
+        if (paymentGateway === 'paypal') return;
+        if (paymentGateway === 'razorpay') {
+            await handleRazorpayPayment();
+            return;
+        }
 
         const amount = bill.due_amount;
         try {
@@ -203,6 +268,16 @@ const Payment = () => {
                 .total-row { display: flex; justify-content: space-between; align-items: flex-end; }
                 .total-label { font-size: 1rem; color: #1e293b; font-weight: 600; }
                 .total-amount { font-size: 2.5rem; color: #1e293b; font-weight: 800; line-height: 1; }
+                
+                .currency-conversion {
+                    margin-top: 1rem;
+                    padding-top: 1rem;
+                    border-top: 1px dashed #e2e8f0;
+                    display: flex;
+                    justify-content: space-between;
+                    font-size: 0.85rem;
+                    color: #64748b;
+                }
 
                 .back-link {
                     margin-top: 2rem;
@@ -283,6 +358,12 @@ const Payment = () => {
                     justify-content: center;
                     align-items: center;
                     gap: 0.75rem;
+                    transition: opacity 0.2s;
+                }
+                
+                .pay-button:disabled {
+                    opacity: 0.7;
+                    cursor: not-allowed;
                 }
 
                 .secure-badge {
@@ -294,6 +375,19 @@ const Payment = () => {
                     color: #64748b;
                     opacity: 0.6;
                     font-size: 0.85rem;
+                }
+
+                .spinner {
+                    width: 20px;
+                    height: 20px;
+                    border: 2px solid transparent;
+                    border-radius: 50%;
+                    border-top-color: currentColor;
+                    animation: spin 0.8s linear infinite;
+                }
+
+                @keyframes spin {
+                    to { transform: rotate(360deg); }
                 }
 
                 @media (max-width: 900px) {
@@ -317,7 +411,24 @@ const Payment = () => {
                         <div className="detail-row"><span>Subtotal</span><span>{formatCurrency(bill.total_amount)}</span></div>
                         {bill.paid_amount > 0 && <div className="detail-row" style={{ color: '#10b981' }}><span>Paid</span><span>- {formatCurrency(bill.paid_amount)}</span></div>}
                         <div className="divider"></div>
-                        <div className="total-row"><span className="total-label">Total Due</span><span className="total-amount">{formatCurrency(bill.due_amount)}</span></div>
+                        <div className="total-row">
+                            <span className="total-label">Total Due</span>
+                            <div style={{ textAlign: 'right' }}>
+                                <div className="total-amount">{formatCurrency(bill.due_amount)}</div>
+                                {paymentGateway === 'razorpay' && (
+                                    <div style={{ fontSize: '1rem', color: '#10b981', fontWeight: '700', marginTop: '0.25rem' }}>
+                                        ≈ {formatCurrency(bill.due_amount * conversionRate, 'INR')}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {paymentGateway === 'razorpay' && (
+                            <div className="currency-conversion">
+                                <span>Conversion Rate</span>
+                                <span>1 USD = {conversionRate} INR</span>
+                            </div>
+                        )}
                     </div>
 
                     <button onClick={() => navigate('/profile')} className="back-link">
@@ -329,7 +440,7 @@ const Payment = () => {
                 <div className="checkout-action">
                     <div className="action-header">
                         <h2 className="action-title">Select Payment Method</h2>
-                        <p className="action-desc">Securely complete your payment using PayPal or other methods.</p>
+                        <p className="action-desc">Securely complete your payment using PayPal or Razorpay.</p>
                     </div>
 
                     <div className="payment-methods-grid">
@@ -346,47 +457,42 @@ const Payment = () => {
                         <div className="paypal-button-container">
                             {loadingConfig ? (
                                 <div className="loading-paypal" style={{ textAlign: 'center', padding: '2rem' }}>
-                                    <div className="spinner" style={{ margin: '0 auto 1rem', borderColor: '#e2e8f0', borderTopColor: '#049ebb' }}></div>
+                                    <div className="spinner" style={{ margin: '0 auto 1rem' }}></div>
                                     <p style={{ color: '#64748b', fontSize: '0.9rem' }}>Loading secure payment buttons...</p>
                                 </div>
                             ) : (paypalClientId && paypalClientId.trim() !== '') ? (
-                                <>
-                                    {console.log('🔍 [DEBUG] Rendering PayPalScriptProvider with clientId:', paypalClientId)}
-                                    {console.log('🔍 [DEBUG] clientId type:', typeof paypalClientId)}
-                                    {console.log('🔍 [DEBUG] clientId length:', paypalClientId.length)}
-                                    <PayPalScriptProvider options={{ clientId: paypalClientId, currency: "USD", intent: "capture" }}>
-                                        <PayPalButtons
-                                            style={{ layout: "vertical", shape: "rect", label: "pay" }}
-                                            createOrder={async () => {
-                                                try {
-                                                    const response = await ApiService.initiateOnlinePayment({
-                                                        bill_id: bill.id,
-                                                        amount: bill.due_amount,
-                                                        payment_gateway: 'paypal'
-                                                    });
-                                                    return response.data.data.payment.transaction_id;
-                                                } catch (error) {
-                                                    showToast('Failed to create PayPal order', 'error');
-                                                    throw error;
+                                <PayPalScriptProvider options={{ clientId: paypalClientId, currency: "USD", intent: "capture" }}>
+                                    <PayPalButtons
+                                        style={{ layout: "vertical", shape: "rect", label: "pay" }}
+                                        createOrder={async () => {
+                                            try {
+                                                const response = await ApiService.initiateOnlinePayment({
+                                                    bill_id: bill.id,
+                                                    amount: bill.due_amount,
+                                                    payment_gateway: 'paypal'
+                                                });
+                                                return response.data.data.payment.transaction_id;
+                                            } catch (error) {
+                                                showToast('Failed to create PayPal order', 'error');
+                                                throw error;
+                                            }
+                                        }}
+                                        onApprove={async (data) => {
+                                            try {
+                                                const response = await ApiService.capturePayPalPayment(data.orderID);
+                                                if (response.data.success) {
+                                                    navigate(`/payment/success?gateway=paypal&token=${data.orderID}`);
                                                 }
-                                            }}
-                                            onApprove={async (data) => {
-                                                try {
-                                                    const response = await ApiService.capturePayPalPayment(data.orderID);
-                                                    if (response.data.success) {
-                                                        navigate(`/payment/success?token=${data.orderID}`);
-                                                    }
-                                                } catch (error) {
-                                                    showToast('Payment capture failed', 'error');
-                                                }
-                                            }}
-                                            onError={(err) => {
-                                                console.error("PayPal Error:", err);
-                                                showToast('An error occurred with PayPal', 'error');
-                                            }}
-                                        />
-                                    </PayPalScriptProvider>
-                                </>
+                                            } catch (error) {
+                                                showToast('Payment capture failed', 'error');
+                                            }
+                                        }}
+                                        onError={(err) => {
+                                            console.error("PayPal Error:", err);
+                                            showToast('An error occurred with PayPal', 'error');
+                                        }}
+                                    />
+                                </PayPalScriptProvider>
                             ) : (
                                 <div className="error-paypal" style={{ textAlign: 'center', padding: '2rem', background: '#fff1f2', borderRadius: '12px', border: '1px solid #fecaca' }}>
                                     <p style={{ color: '#e11d48', fontSize: '0.95rem', fontWeight: '500', marginBottom: '0.5rem' }}>PayPal is not configured correctly.</p>
@@ -394,9 +500,27 @@ const Payment = () => {
                                 </div>
                             )}
                         </div>
+                    ) : paymentGateway === 'razorpay' ? (
+                        <div className="razorpay-container">
+                            {loadingConfig ? (
+                                <div className="loading-razorpay" style={{ textAlign: 'center', padding: '2rem' }}>
+                                    <div className="spinner" style={{ margin: '0 auto 1rem' }}></div>
+                                    <p style={{ color: '#64748b', fontSize: '0.9rem' }}>Preparing Razorpay...</p>
+                                </div>
+                            ) : razorpayKeyId ? (
+                                <button className="pay-button" onClick={handleRazorpayPayment} disabled={processingPayment}>
+                                    {processingPayment ? <div className="spinner"></div> : `Pay ${formatCurrency(bill.due_amount * conversionRate, 'INR')}`}
+                                </button>
+                            ) : (
+                                <div className="error-razorpay" style={{ textAlign: 'center', padding: '2rem', background: '#fff1f2', borderRadius: '12px', border: '1px solid #fecaca' }}>
+                                    <p style={{ color: '#e11d48', fontSize: '0.95rem', fontWeight: '500', marginBottom: '0.5rem' }}>Razorpay is not configured correctly.</p>
+                                    <p style={{ color: '#64748b', fontSize: '0.85rem' }}>Please contact the hospital administration or set up the Razorpay Key ID in the integrations panel.</p>
+                                </div>
+                            )}
+                        </div>
                     ) : (
                         <button className="pay-button" onClick={handleInitiatePayment} disabled={processingPayment}>
-                            {processingPayment ? 'Processing...' : `Pay ${formatCurrency(bill.due_amount)}`}
+                            {processingPayment ? <div className="spinner"></div> : `Pay ${formatCurrency(bill.due_amount)}`}
                         </button>
                     )}
 
