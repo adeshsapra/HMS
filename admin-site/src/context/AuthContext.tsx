@@ -44,32 +44,28 @@ let isInitialLoadPending = false;
 let initialLoadPromise: Promise<void> | null = null;
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [permissions, setPermissions] = useState<string[]>([]);
+  const [user, setUser] = useState<User | null>(() => {
+    const savedUser = localStorage.getItem('user');
+    try {
+      return savedUser ? JSON.parse(savedUser) : null;
+    } catch (e) {
+      return null;
+    }
+  });
+  const [permissions, setPermissions] = useState<string[]>(() => {
+    const savedPerms = localStorage.getItem('permissions');
+    try {
+      return savedPerms ? JSON.parse(savedPerms) : [];
+    } catch (e) {
+      return [];
+    }
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
 
-    // Use singleton pattern to prevent duplicate loads
-    if (isInitialLoadPending) {
-      // Second mount waits for first mount's promise
-      initialLoadPromise?.then(() => {
-        if (isMounted) {
-          setLoading(false); // Ensure loading is set to false for second mount
-        }
-      }).catch(() => {
-        if (isMounted) {
-          setLoading(false);
-        }
-      });
-      return () => {
-        isMounted = false;
-      };
-    }
-
-    isInitialLoadPending = true;
-    initialLoadPromise = (async () => {
+    const verifySession = async () => {
       try {
         const token = localStorage.getItem('auth_token');
         if (!token) {
@@ -77,67 +73,72 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return;
         }
 
+        // We already initialized user/permissions from localStorage in useState initializers.
+        // Here we just verify the profile to ensure the token is still valid.
         const profileResponse = await apiService.getProfile();
+
         if (profileResponse.status && profileResponse.user && isMounted) {
-          // Strict Security: Patients are NEVER allowed in the admin panel
           const roleName = profileResponse.user.role?.name?.toLowerCase();
           if (roleName === 'patient') {
-            console.error('Access denied: Patients cannot access the admin panel.');
-            localStorage.removeItem('auth_token');
-            localStorage.removeItem('user');
-            setUser(null);
-            setLoading(false);
-            return;
-          }
+            handleCleanLogout();
+          } else {
+            setUser(profileResponse.user);
+            localStorage.setItem('user', JSON.stringify(profileResponse.user));
 
-          setUser(profileResponse.user);
-
-          // Load permissions
-          try {
-            const permResponse = await apiService.getCurrentUserPermissions();
-            if (permResponse.status && permResponse.permissions && isMounted) {
-              setPermissions(permResponse.permissions);
+            try {
+              const permResponse = await apiService.getCurrentUserPermissions();
+              if (permResponse.status && permResponse.permissions && isMounted) {
+                setPermissions(permResponse.permissions);
+                localStorage.setItem('permissions', JSON.stringify(permResponse.permissions));
+              }
+            } catch (error) {
+              console.error('Failed to update permissions from API:', error);
             }
-          } catch (error) {
-            console.error('Failed to load permissions:', error);
           }
+        } else if (isMounted) {
+          handleCleanLogout();
         }
-      } catch (error) {
-        console.error('Failed to load user:', error);
-        if (isMounted) {
-          localStorage.removeItem('auth_token');
-          localStorage.removeItem('user');
-          setUser(null);
+      } catch (error: any) {
+        console.error('Session verification failed:', error);
+        const isAuthError = error.message?.toLowerCase().includes('unauthorized') ||
+          error.message?.toLowerCase().includes('unauthenticated');
+        if (isAuthError && isMounted) {
+          handleCleanLogout();
         }
       } finally {
         if (isMounted) setLoading(false);
-        isInitialLoadPending = false;
-        initialLoadPromise = null;
       }
-    })();
-
-    return () => {
-      isMounted = false;
     };
+
+    const handleCleanLogout = () => {
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('permissions');
+      setUser(null);
+      setPermissions([]);
+    };
+
+    verifySession();
+
+    return () => { isMounted = false; };
   }, []);
 
   const login = async (email: string, password: string) => {
     try {
       const response = await apiService.login(email, password);
       if (response.status && response.user) {
-        // Strict Security: Patients are NEVER allowed in the admin panel
         const roleName = response.user.role?.name?.toLowerCase();
         if (roleName === 'patient') {
-          throw new Error('Access Restricted: Administrative panel access is limited to authorized clinical and operational staff. Please use the Patient Portal for all personal healthcare management.');
+          throw new Error('Access Restricted: Administrative panel access is limited to authorized clinical and operational staff.');
         }
 
         setUser(response.user);
-        // Load permissions after successful login
+        localStorage.setItem('user', JSON.stringify(response.user));
         try {
           const permResponse = await apiService.getCurrentUserPermissions();
           if (permResponse.status && permResponse.permissions) {
             setPermissions(permResponse.permissions);
-            // Return permissions so caller can use them immediately
+            localStorage.setItem('permissions', JSON.stringify(permResponse.permissions));
             return permResponse.permissions;
           }
         } catch (error) {
@@ -146,9 +147,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         throw new Error(response.message || 'Login failed');
       }
-    } catch (error: any) {
-      throw error;
-    }
+    } catch (error: any) { throw error; }
   };
 
   const logout = async () => {
@@ -157,6 +156,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
+      localStorage.removeItem('auth_token');
       setUser(null);
       setPermissions([]);
     }
@@ -164,26 +164,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshUser = async () => {
     try {
-      const token = localStorage.getItem('auth_token');
-      if (!token) return;
-
       const profileResponse = await apiService.getProfile();
       if (profileResponse.status && profileResponse.user) {
         const roleName = profileResponse.user.role?.name?.toLowerCase();
         if (roleName === 'patient') {
-          console.error('Access denied: Patients cannot access the admin panel.');
           localStorage.removeItem('auth_token');
           localStorage.removeItem('user');
+          localStorage.removeItem('permissions');
           setUser(null);
+          setPermissions([]);
           return;
         }
 
         setUser(profileResponse.user);
-
+        localStorage.setItem('user', JSON.stringify(profileResponse.user));
         try {
           const permResponse = await apiService.getCurrentUserPermissions();
           if (permResponse.status && permResponse.permissions) {
             setPermissions(permResponse.permissions);
+            localStorage.setItem('permissions', JSON.stringify(permResponse.permissions));
           }
         } catch (error) {
           console.error('Failed to load permissions:', error);
