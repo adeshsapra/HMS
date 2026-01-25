@@ -1,3 +1,12 @@
+/* Global Theme Variables */
+:root {
+  --accent-color: #0299BE;
+  --bs-primary: #0299BE;
+  --bs-primary-rgb: 2, 153, 190;
+  /* Override Bootstrap Primary */
+  --bs-blue: #0299BE;
+}
+
 /* Base styles - will be overridden by main.css */
 body {
   margin: 0;

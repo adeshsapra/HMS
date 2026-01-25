@@ -6,6 +6,7 @@ import { useToast } from '../context/ToastContext'
 import MyAppointments from '../components/MyAppointments'
 import MyMedicalRecords from '../components/MyMedicalRecords'
 import MyBills from '../components/MyBills'
+import MyHomeCareRequests from '../components/MyHomeCareRequests'
 
 const Profile = () => {
   const { showToast } = useToast()
@@ -227,6 +228,7 @@ const Profile = () => {
     { id: 'security', label: 'Security', icon: 'bi-shield-lock' },
     { id: 'notifications', label: 'Notifications', icon: 'bi-bell' },
     { id: 'appointments', label: 'My Appointments', icon: 'bi-calendar-check' },
+    { id: 'home-care', label: 'Home Care Requests', icon: 'bi-house-heart' },
     { id: 'medical', label: 'Medical Records', icon: 'bi-file-medical' },
     { id: 'bills', label: 'Bills & Payments', icon: 'bi-receipt' }
   ]
@@ -755,6 +757,8 @@ const Profile = () => {
         )
       case 'appointments':
         return <MyAppointments />
+      case 'home-care':
+        return <MyHomeCareRequests />
       case 'medical':
         return <MyMedicalRecords />
       case 'bills':

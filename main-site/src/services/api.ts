@@ -86,6 +86,8 @@ export const homeCareAPI = {
         address?: string;
         preferred_date?: string;
         services_requested?: number[];
+        service_id?: number;
+        user_id?: number | string;
     }) => api.post('/public/home-care/requests', data),
 };
 
@@ -137,6 +139,8 @@ export const patientProfileAPI = {
         const queryString = queryParams.toString();
         return api.get(`/patient-profile/medical-records${queryString ? '?' + queryString : ''}`);
     },
+
+    getMyHomeCareRequests: () => api.get('/patient-profile/home-care-requests'),
 };
 
 export const notificationAPI = {

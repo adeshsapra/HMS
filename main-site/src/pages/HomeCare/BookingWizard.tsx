@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import "./HomeCare.css";
-import { homeCareAPI } from "../../services/api";
+import { homeCareAPI, ApiService } from "../../services/api";
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import PageHero from "../../components/PageHero";
 
 const BookingWizard = () => {
@@ -29,6 +30,8 @@ const BookingWizard = () => {
   const [confirmed, setConfirmed] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("card");
   const [bookingReference, setBookingReference] = useState<string>("");
+  const [createdBill, setCreatedBill] = useState<any>(null);
+  const [paypalClientId, setPaypalClientId] = useState<string | null>(null);
 
   // Data from API
   const [homeCareServices, setHomeCareServices] = useState<any[]>([]);
@@ -161,24 +164,56 @@ const BookingWizard = () => {
     }
   };
 
-  const handleConfirmBooking = () => {
-    setStep(6);
-    window.scrollTo(0, 0);
+  const handleConfirmBooking = async () => {
+    setLoading(true);
+    try {
+      const userStr = localStorage.getItem('user');
+      const user = userStr ? JSON.parse(userStr) : {};
+
+      const payload = {
+        name: bookingData.patientName,
+        phone: bookingData.phone,
+        address: bookingData.address,
+        preferred_date: bookingData.date,
+        user_id: user.id || undefined,
+        service_id: bookingData.serviceId || undefined
+      };
+
+      const response = await homeCareAPI.submitRequest(payload);
+
+      if (response.data.success) {
+        // Set Reference
+        const ref = `HC-${Math.floor(100000 + Math.random() * 900000)}`;
+        setBookingReference(ref);
+
+        if (response.data.bill) {
+          setCreatedBill(response.data.bill);
+          // Fetch PayPal Config
+          try {
+            const ppRes = await ApiService.getPayPalConfig();
+            if (ppRes.data.success && ppRes.data.client_id) {
+              setPaypalClientId(ppRes.data.client_id);
+            }
+          } catch (e) {
+            console.error("PayPal config error", e);
+          }
+        } else {
+          // Confirm immediately if no bill (e.g. price 0)
+          setConfirmed(true);
+        }
+
+        setStep(6);
+        window.scrollTo(0, 0);
+      }
+    } catch (error) {
+      console.error("Booking Error", error);
+      alert("Failed to submit booking request. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handlePaymentSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    // Generate booking reference
-    const ref = `HC-${Math.floor(100000 + Math.random() * 900000)}`;
-    setBookingReference(ref);
-    // Simulate Payment Processing
-    setTimeout(() => {
-      setLoading(false);
-      setConfirmed(true);
-      window.scrollTo(0, 0);
-    }, 2000);
-  };
+
 
   const generateReceiptHTML = () => {
     const bookingRef =
@@ -1566,99 +1601,69 @@ const BookingWizard = () => {
           ) : (
             <div className="booking-body animate-fade-in p-0 border-0 bg-transparent">
               <div className="row g-4 align-items-stretch">
-                {/* Left Side: Summary & Trust */}
                 <div className="col-lg-5">
                   <div className="card border-0 shadow-sm rounded-4 h-100 overflow-hidden bg-white">
-                    <div className="card-header bg-light py-4 border-bottom">
-                      <h5 className="mb-0 fw-bold text-dark d-flex align-items-center">
-                        <i className="bi bi-shield-check me-2 text-primary"></i>{" "}
-                        Bill Details
-                      </h5>
+                    <div className="card-header bg-white py-4 border-bottom-0">
+                      <div className="d-flex align-items-center gap-3">
+                        <div className="bg-primary bg-opacity-10 text-white rounded-circle p-3 d-flex align-items-center justify-content-center" style={{ width: '50px', height: '50px' }}>
+                          <i className="bi bi-file-earmark-medical-fill fs-4"></i>
+                        </div>
+                        <div>
+                          <h5 className="mb-0 fw-bold text-dark">Bill Summary</h5>
+                          <small className="text-muted">Review your service charges</small>
+                        </div>
+                      </div>
                     </div>
-                    <div className="card-body p-4">
-                      <h6 className="fw-bold mb-4 text-secondary d-flex align-items-center text-uppercase small letter-spacing-1">
-                        <i className="bi bi-receipt me-2"></i> Payment Information
-                      </h6>
-                      <div className="payment-receipt-ui mb-4 p-4 rounded-4 bg-light bg-opacity-50 border">
-                        <div className="list-group list-group-flush bg-transparent">
-                          <div className="list-group-item bg-transparent border-0 d-flex justify-content-between p-0 mb-3">
-                            <span className="text-muted fw-bold small text-uppercase">
-                              Care Consultation
-                            </span>
-                            <span className="fw-bold">
-                              {selectedService?.price}
-                            </span>
-                          </div>
-                          <div className="list-group-item bg-transparent border-0 d-flex justify-content-between p-0 mb-3">
-                            <span className="text-muted fw-bold small text-uppercase">
-                              Clinical Prep
-                            </span>
-                            <span className="text-success fw-semibold small">
-                              Included
-                            </span>
-                          </div>
-                          <div className="list-group-item bg-transparent border-0 d-flex justify-content-between p-0 mb-3">
-                            <span className="text-muted fw-bold small text-uppercase">
-                              Travel & PPE
-                            </span>
-                            <span className="text-success fw-semibold small">
-                              Free
-                            </span>
-                          </div>
+                    <div className="card-body p-4 pt-0">
+                      <div className="payment-receipt-ui p-4 rounded-4 bg-light bg-opacity-25 border border-dashed mb-4">
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                          <span className="text-dark fw-semibold small">Service</span>
+                          <span className="text-dark fw-bold text-end" style={{ maxWidth: '60%' }}>{selectedService?.title}</span>
+                        </div>
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                          <span className="text-muted small">Consultation Fee</span>
+                          <span className="text-dark fw-semibold">{selectedService?.price}</span>
+                        </div>
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                          <span className="text-muted small">Clinical Prep</span>
+                          <span className="badge bg-success bg-opacity-10 text-success rounded-pill px-2">Included</span>
+                        </div>
+                        <div className="d-flex justify-content-between align-items-center">
+                          <span className="text-muted small">Travel & PPE</span>
+                          <span className="badge bg-success bg-opacity-10 text-success rounded-pill px-2">Free</span>
                         </div>
 
-                        <div className="pt-4 border-top mt-2">
-                          <div className="d-flex justify-content-between align-items-center">
-                            <div>
-                              <h6 className="mb-0 fw-bold text-dark">
-                                Total Amount
-                              </h6>
-                              <small
-                                className="text-muted"
-                                style={{ fontSize: "0.7rem" }}
-                              >
-                                Inclusive of all duties & taxes
-                              </small>
-                            </div>
-                            <div className="text-end">
-                              <div className="d-flex align-items-baseline gap-1 justify-content-end">
-                                <span className="h1 mb-0 fw-bold text-primary">
-                                  {selectedService?.price.split(" / ")[0]}
-                                </span>
-                                <span className="text-muted h6 mb-0 fw-normal">
-                                  / {selectedService?.price.split(" / ")[1]}
-                                </span>
-                              </div>
-                            </div>
+                        <div className="my-4 border-top border-dashed"></div>
+
+                        <div className="d-flex justify-content-between align-items-end">
+                          <div>
+                            <span className="d-block text-muted small mb-1">Total Payable</span>
+                            <h2 className="mb-0 fw-bold text-primary display-6">{selectedService?.price.split(" / ")[0]}</h2>
                           </div>
+                          <span className="text-muted small mb-2">/ {selectedService?.price.split(" / ")[1]}</span>
                         </div>
                       </div>
 
-                      <div className="trust-signals mt-5 pt-3 border-top">
-                        <div className="d-flex align-items-center gap-3 mb-3 p-3 rounded-4 bg-light bg-opacity-50">
-                          <div className="bg-white rounded-circle p-2 shadow-sm text-success">
-                            <i className="bi bi-shield-fill-check fs-5"></i>
+                      <div className="trust-signals">
+                        <h6 className="text-uppercase text-muted small fw-bold mb-3 letter-spacing-1">Why Trust Us?</h6>
+                        <div className="row g-3">
+                          <div className="col-12">
+                            <div className="d-flex gap-3 align-items-start">
+                              <i className="bi bi-shield-check text-success fs-5 mt-1"></i>
+                              <div>
+                                <p className="mb-0 fw-bold small text-dark">Bank-Grade Security</p>
+                                <small className="text-muted lh-1">256-bit SSL encryption for all transactions.</small>
+                              </div>
+                            </div>
                           </div>
-                          <div className="lh-sm">
-                            <p className="mb-0 fw-bold small">
-                              Secure Encryption
-                            </p>
-                            <small className="text-muted opacity-75">
-                              All data is 256-bit AES encrypted
-                            </small>
-                          </div>
-                        </div>
-                        <div className="d-flex align-items-center gap-3 p-3 rounded-4 bg-light bg-opacity-50">
-                          <div className="bg-white rounded-circle p-2 shadow-sm text-primary">
-                            <i className="bi bi-patch-check-fill fs-5"></i>
-                          </div>
-                          <div className="lh-sm">
-                            <p className="mb-0 fw-bold small">
-                              Verified Provider
-                            </p>
-                            <small className="text-muted opacity-75">
-                              MediTrust Certified Health Partner
-                            </small>
+                          <div className="col-12">
+                            <div className="d-flex gap-3 align-items-start">
+                              <i className="bi bi-patch-check-fill text-primary fs-5 mt-1"></i>
+                              <div>
+                                <p className="mb-0 fw-bold small text-dark">Verified Professionals</p>
+                                <small className="text-muted lh-1">All experts are background checked & certified.</small>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -1671,189 +1676,216 @@ const BookingWizard = () => {
                   <div className="card border-0 shadow-sm rounded-4 h-100 bg-white p-3 p-md-4">
                     <div className="d-flex justify-content-between align-items-center mb-3 mb-md-4 pb-2 flex-wrap gap-2">
                       <h5 className="fw-bold mb-0 fs-6 fs-md-5">
-                        Select Payment Method
+                        Complete Your Payment
                       </h5>
-                      <div className="px-2 px-md-3 py-1 bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 rounded-pill small fw-bold">
-                        <i className="bi bi-hourglass-split me-1"></i> 09:59
+                      <div className="px-2 px-md-3 py-1 bg-primary bg-opacity-10 text-white border border-primary border-opacity-25 rounded-pill small fw-bold">
+                        <i className="bi bi-shield-lock-fill me-1"></i> Secure Check-out
                       </div>
                     </div>
 
                     <div className="row g-2 g-md-3 mb-3 mb-md-4">
-                      <div className="col-sm-6">
+                      {/* Card Option */}
+                      <div className="col-6 col-md-3">
                         <div
-                          className={`payment-method-chip p-3 rounded-4 border text-center cursor-pointer transition-all ${paymentMethod === "card"
-                            ? "active shadow-lg"
+                          className={`payment-method-chip p-2 p-md-3 rounded-4 border text-center cursor-pointer transition-all h-100 d-flex flex-column justify-content-center align-items-center ${paymentMethod === "card"
+                            ? "active shadow bg-primary border-primary text-white"
                             : "bg-white hover:bg-light"
                             }`}
                           onClick={() => setPaymentMethod("card")}
-                          style={{
-                            background:
-                              paymentMethod === "card"
-                                ? "var(--accent-color)"
-                                : "white",
-                            borderColor:
-                              paymentMethod === "card"
-                                ? "var(--accent-color)"
-                                : "#eee",
-                            color: paymentMethod === "card" ? "white" : "inherit",
-                          }}
                         >
-                          <i
-                            className={`bi bi-credit-card-2-back fs-2 mb-2 d-block ${paymentMethod === "card"
-                              ? "text-white"
-                              : "text-primary"
-                              }`}
-                          ></i>
-                          <span
-                            className={`fw-bold small d-block ${paymentMethod === "card"
-                              ? "text-white"
-                              : "text-dark"
-                              }`}
-                          >
-                            Debit/Credit Card
-                          </span>
+                          <i className="bi bi-credit-card-2-back fs-4 mb-2"></i>
+                          <span className="fw-bold small lh-1">Cards</span>
                         </div>
                       </div>
-                      <div className="col-sm-6">
+
+                      {/* UPI Option */}
+                      <div className="col-6 col-md-3">
                         <div
-                          className={`payment-method-chip p-3 rounded-4 border text-center cursor-pointer transition-all ${paymentMethod === "upi"
-                            ? "active shadow-lg"
+                          className={`payment-method-chip p-2 p-md-3 rounded-4 border text-center cursor-pointer transition-all h-100 d-flex flex-column justify-content-center align-items-center ${paymentMethod === "upi"
+                            ? "active shadow bg-primary border-primary text-white"
                             : "bg-white hover:bg-light"
                             }`}
                           onClick={() => setPaymentMethod("upi")}
-                          style={{
-                            background:
-                              paymentMethod === "upi"
-                                ? "var(--accent-color)"
-                                : "white",
-                            borderColor:
-                              paymentMethod === "upi"
-                                ? "var(--accent-color)"
-                                : "#eee",
-                            color: paymentMethod === "upi" ? "white" : "inherit",
-                          }}
                         >
-                          <i
-                            className={`bi bi-qr-code fs-2 mb-2 d-block ${paymentMethod === "upi"
-                              ? "text-white"
-                              : "text-primary"
-                              }`}
-                          ></i>
-                          <span
-                            className={`fw-bold small d-block ${paymentMethod === "upi" ? "text-white" : "text-dark"
-                              }`}
-                          >
-                            Instant UPI QR
-                          </span>
+                          <i className="bi bi-qr-code fs-4 mb-2"></i>
+                          <span className="fw-bold small lh-1">UPI QR</span>
+                        </div>
+                      </div>
+
+                      {/* PayPal Option */}
+                      <div className="col-6 col-md-3">
+                        <div
+                          className={`payment-method-chip p-2 p-md-3 rounded-4 border text-center cursor-pointer transition-all h-100 d-flex flex-column justify-content-center align-items-center ${paymentMethod === "paypal"
+                            ? "active shadow bg-primary border-primary text-white"
+                            : "bg-white hover:bg-light"
+                            }`}
+                          onClick={() => setPaymentMethod("paypal")}
+                        >
+                          <i className="bi bi-paypal fs-4 mb-2"></i>
+                          <span className="fw-bold small lh-1">PayPal</span>
+                        </div>
+                      </div>
+
+                      {/* Razorpay Option */}
+                      <div className="col-6 col-md-3">
+                        <div
+                          className={`payment-method-chip p-2 p-md-3 rounded-4 border text-center cursor-pointer transition-all h-100 d-flex flex-column justify-content-center align-items-center ${paymentMethod === "razorpay"
+                            ? "active shadow bg-primary border-primary text-white"
+                            : "bg-white hover:bg-light"
+                            }`}
+                          onClick={() => setPaymentMethod("razorpay")}
+                        >
+                          <i className="bi bi-lightning-charge-fill fs-4 mb-2"></i>
+                          <span className="fw-bold small lh-1">Razorpay</span>
                         </div>
                       </div>
                     </div>
 
-                    <form
-                      onSubmit={handlePaymentSubmit}
-                      className="payment-interaction-area p-4 rounded-4 bg-light bg-opacity-25 border border-dashed flex-grow-1 d-flex flex-column justify-content-center"
-                      style={{ minHeight: "320px" }}
-                    >
-                      {paymentMethod === "card" ? (
+                    <div className="payment-interaction-area p-4 rounded-4 bg-light bg-opacity-25 border border-dashed flex-grow-1 d-flex flex-column justify-content-center" style={{ minHeight: "320px" }}>
+                      {/* PayPal Logic */}
+                      {paymentMethod === 'paypal' && (
+                        createdBill ? (
+                          <>
+                            {paypalClientId ? (
+                              <div className="paypal-container w-100" style={{ maxWidth: '400px', margin: '0 auto' }}>
+                                <PayPalScriptProvider options={{ clientId: paypalClientId, currency: "USD", intent: "capture" }}>
+                                  <PayPalButtons
+                                    style={{ layout: "vertical", shape: "rect", label: "pay" }}
+                                    createOrder={async () => {
+                                      try {
+                                        const res = await ApiService.initiateOnlinePayment({
+                                          bill_id: createdBill.id,
+                                          amount: parseFloat(createdBill.due_amount || createdBill.total_amount),
+                                          payment_gateway: 'paypal'
+                                        });
+                                        if (res.data.success && res.data.data.payment) {
+                                          return res.data.data.payment.transaction_id;
+                                        }
+                                        throw new Error("Failed to init payment");
+                                      } catch (e) {
+                                        console.error("Payment Init Error", e);
+                                        throw e;
+                                      }
+                                    }}
+                                    onApprove={async (data) => {
+                                      setLoading(true);
+                                      try {
+                                        await ApiService.capturePayPalPayment(data.orderID);
+                                        setConfirmed(true);
+                                      } catch (e) {
+                                        console.error("Capture Failed", e);
+                                        alert("Payment capture failed. Please contact support.");
+                                      } finally {
+                                        setLoading(false);
+                                      }
+                                    }}
+                                    onError={(err) => {
+                                      console.error("PayPal Error:", err);
+                                      alert("An error occurred with PayPal.");
+                                    }}
+                                  />
+                                </PayPalScriptProvider>
+                                <div className="text-center mt-3">
+                                  <small className="text-muted"><i className="bi bi-lock-fill"></i> Payments are processed securely by PayPal</small>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="text-center">
+                                <div className="spinner-border text-primary mb-3"></div>
+                                <p>Loading secure payment gateway...</p>
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <div className="text-center">
+                            {loading ? (
+                              <>
+                                <div className="spinner-border text-primary mb-3"></div>
+                                <p>Processing booking request...</p>
+                              </>
+                            ) : (
+                              <p className="text-muted">Initializing PayPal secure connection...</p>
+                            )}
+                          </div>
+                        )
+                      )}
+
+                      {/* Razorpay Logic (Coming Soon) */}
+                      {paymentMethod === 'razorpay' && (
+                        <div className="text-center animate-fade-in py-5">
+                          <div className="mb-4">
+                            <div className="d-inline-flex align-items-center justify-content-center bg-light text-primary rounded-circle p-4 mb-3" style={{ width: '80px', height: '80px' }}>
+                              <i className="bi bi-lightning-charge-fill fs-1"></i>
+                            </div>
+                            <h4 className="fw-bold text-dark">Coming Soon</h4>
+                            <p className="text-muted mx-auto" style={{ maxWidth: '300px' }}>
+                              We are integrating Razorpay to bring you seamless UPI and Net Banking payments.
+                            </p>
+                          </div>
+                          <div className="alert alert-info d-inline-block border-0 bg-primary bg-opacity-10 text-white">
+                            <i className="bi bi-info-circle-fill me-2"></i>
+                            Please select another payment method for now.
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Card Logic (Original UI) */}
+                      {paymentMethod === 'card' && (
                         <div className="row g-3 animate-fade-in p-2">
                           <div className="col-12">
-                            <label className="booking-label small fw-bold text-muted mb-2">
-                              Cardholder Name
-                            </label>
-                            <input
-                              type="text"
-                              className="booking-input"
-                              placeholder="Name as on card"
-                              required
-                            />
+                            <label className="booking-label small fw-bold text-muted mb-2">Cardholder Name</label>
+                            <input type="text" className="booking-input" placeholder="Name as on card" required />
                           </div>
                           <div className="col-12">
-                            <label className="booking-label small fw-bold text-muted mb-2">
-                              Card Number
-                            </label>
+                            <label className="booking-label small fw-bold text-muted mb-2">Card Number</label>
                             <div className="position-relative">
-                              <input
-                                type="text"
-                                className="booking-input pe-5"
-                                placeholder="0000 0000 0000 0000"
-                                required
-                              />
+                              <input type="text" className="booking-input pe-5" placeholder="0000 0000 0000 0000" required />
                               <i className="bi bi-credit-card position-absolute top-50 end-0 translate-middle-y me-3 text-muted"></i>
                             </div>
                           </div>
                           <div className="col-6">
-                            <label className="booking-label small fw-bold text-muted mb-2">
-                              Expiry Date
-                            </label>
-                            <input
-                              type="text"
-                              className="booking-input"
-                              placeholder="MM/YY"
-                              required
-                            />
+                            <label className="booking-label small fw-bold text-muted mb-2">Expiry Date</label>
+                            <input type="text" className="booking-input" placeholder="MM/YY" required />
                           </div>
                           <div className="col-6">
-                            <label className="booking-label small fw-bold text-muted mb-2">
-                              CVV
-                            </label>
-                            <input
-                              type="password"
-                              className="booking-input"
-                              placeholder="***"
-                              required
-                            />
+                            <label className="booking-label small fw-bold text-muted mb-2">CVV</label>
+                            <input type="password" className="booking-input" placeholder="***" required />
+                          </div>
+                          <div className="col-12 mt-4">
+                            <button className="btn btn-primary w-100 py-3 rounded-pill fw-bold shadow" onClick={() => {
+                              setLoading(true);
+                              setTimeout(() => { setLoading(false); setConfirmed(true); }, 1500);
+                            }}>
+                              Pay {selectedService?.price} Securely
+                            </button>
                           </div>
                         </div>
-                      ) : (
+                      )}
+
+                      {/* UPI Logic (Original UI) */}
+                      {paymentMethod === 'upi' && (
                         <div className="text-center animate-fade-in py-3">
                           <div className="qr-luminous-container p-3 bg-white d-inline-block rounded-4 shadow-lg border border-primary border-opacity-10 mb-4 scale-up">
                             <img
-                              src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=adeshsapra@okicici&pn=HMS%20Medical%20Services&cu=INR&am=${selectedService?.price.replace(
-                                /[^0-9.]/g,
-                                ""
-                              )}`}
+                              src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=adeshsapra@okicici&pn=HMS%20Medical%20Services&cu=INR&am=${selectedService?.price ? parseFloat(selectedService.price.replace(/[^0-9.]/g, "")) : 0}`}
                               alt="Official UPI QR"
                               style={{ width: 160 }}
                               className="img-fluid"
                             />
                           </div>
                           <h6 className="fw-bold mb-2">Scan to Pay via UPI</h6>
-                          <p
-                            className="small text-muted mb-0 mx-auto"
-                            style={{ maxWidth: "280px" }}
-                          >
-                            Use GPay, PhonePe, or PayTM. Verification is instant &
-                            encrypted.
+                          <p className="small text-muted mb-3 mx-auto" style={{ maxWidth: "280px" }}>
+                            Use GPay, PhonePe, or PayTM. Verification is instant & encrypted.
                           </p>
+                          <button className="btn btn-outline-primary px-4 rounded-pill fw-bold" onClick={() => {
+                            setLoading(true);
+                            setTimeout(() => { setLoading(false); setConfirmed(true); }, 1500);
+                          }}>
+                            <i className="bi bi-check-circle me-2"></i> I have paid
+                          </button>
                         </div>
                       )}
-
-                      <div className="mt-auto pt-4 d-flex gap-3 align-items-center">
-                        <button
-                          type="button"
-                          className="btn btn-link text-decoration-none text-muted fw-bold px-0 me-auto"
-                          onClick={handleBack}
-                          disabled={loading}
-                        >
-                          <i className="bi bi-arrow-left me-1"></i> Back
-                        </button>
-                        <button
-                          type="submit"
-                          className="btn btn-primary rounded-pill px-5 py-3 fw-bold shadow-lg d-flex align-items-center gap-2"
-                          disabled={loading}
-                          style={{ minWidth: "240px" }}
-                        >
-                          {loading ? (
-                            <span className="spinner-border spinner-border-sm"></span>
-                          ) : (
-                            <>
-                              <i className="bi bi-shield-lock-fill"></i> Complete
-                              Payment
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    </form>
+                    </div>
                   </div>
                 </div>
               </div>
