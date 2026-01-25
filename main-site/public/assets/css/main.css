@@ -6813,7 +6813,8 @@ section,
 }
 
 .trust-summary-card::after {
-  content: '\F519'; /* Bootstrap icon quote code */
+  content: '\F519';
+  /* Bootstrap icon quote code */
   font-family: 'bootstrap-icons';
   position: absolute;
   bottom: -20px;
@@ -6833,7 +6834,8 @@ section,
 }
 
 .star-row i {
-  color: #ffc107; /* Gold for stars */
+  color: #ffc107;
+  /* Gold for stars */
   font-size: 1.2rem;
   margin-right: 2px;
 }
@@ -6844,8 +6846,8 @@ section,
   border-radius: 15px;
   padding: 25px;
   margin-bottom: 25px;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.03);
-  border: 1px solid rgba(0,0,0,0.05);
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.05);
   transition: all 0.3s ease;
   position: relative;
 }

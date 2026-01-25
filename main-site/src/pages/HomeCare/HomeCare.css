@@ -3,6 +3,11 @@
   font-family: var(--default-font);
   color: var(--default-color);
   background-color: var(--background-color);
+
+  /* Brand Theme Override */
+  --accent-color: #0299BE;
+  --bs-primary: #0299BE;
+  --bs-primary-rgb: 2, 153, 190;
 }
 
 /* Hero Section */
