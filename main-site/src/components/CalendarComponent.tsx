@@ -30,17 +30,41 @@ const CalendarComponent = ({ doctor, onDateSelect }: CalendarComponentProps) => 
     reason: '',
     notes: ''
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const toast = useToast();
 
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    if (!form.patient_name.trim()) newErrors.patient_name = 'Patient name is required';
+    if (!form.patient_phone.trim()) newErrors.patient_phone = 'Phone number is required';
+    if (!form.patient_email.trim()) {
+      newErrors.patient_email = 'Email address is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.patient_email)) {
+      newErrors.patient_email = 'Invalid email address';
+    }
+    if (!form.reason.trim()) newErrors.reason = 'Reason for visit is required';
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: value });
+    if (errors[name]) {
+      setErrors({ ...errors, [name]: '' });
+    }
   };
 
 
 
   const handleBookAppointment = async () => {
     if (!selectedDate) return;
+    if (!validateForm()) {
+      toast.error('Please fix the errors in the form.');
+      return;
+    }
     setLoading(true);
 
     try {
@@ -78,6 +102,7 @@ const CalendarComponent = ({ doctor, onDateSelect }: CalendarComponentProps) => 
           reason: '',
           notes: ''
         });
+        setErrors({});
       }
     } catch (error: any) {
       console.error('Booking failed', error);
@@ -107,6 +132,7 @@ const CalendarComponent = ({ doctor, onDateSelect }: CalendarComponentProps) => 
     if (clickedDate >= today) {
       setSelectedDate(clickedDate);
       setShowModal(true);
+      setErrors({}); // Clear previous errors
       if (onDateSelect) {
         onDateSelect(clickedDate);
       }
@@ -315,7 +341,6 @@ const CalendarComponent = ({ doctor, onDateSelect }: CalendarComponentProps) => 
           border-radius: 10px;
           padding: 12px 15px;
           border: 1px solid #e0e0e0;
-          margin-bottom: 20px;
           width: 100%;
         }
 
@@ -422,6 +447,38 @@ const CalendarComponent = ({ doctor, onDateSelect }: CalendarComponentProps) => 
           background: #037f96;
         }
 
+        .appointment-input-wrapper {
+          position: relative;
+          margin-bottom: 20px;
+        }
+
+        .appointment-form-control.error {
+          border-color: #dc3545 !important;
+          padding-right: 40px;
+        }
+
+        .appointment-form-control.error:focus {
+          box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.2);
+        }
+
+        .appointment-error-icon {
+          position: absolute;
+          right: 15px;
+          top: 50%;
+          transform: translateY(-50%);
+          color: #dc3545;
+          font-size: 1.1rem;
+        }
+
+        .appointment-error-message {
+          color: #dc3545;
+          font-size: 0.75rem;
+          font-weight: 600;
+          margin-top: -15px;
+          margin-bottom: 15px;
+          padding-left: 5px;
+        }
+
         .appointment-btn-close-custom {
             background: none;
             border: none;
@@ -506,37 +563,49 @@ const CalendarComponent = ({ doctor, onDateSelect }: CalendarComponentProps) => 
               <div className="row">
                 <div className="col-md-6">
                   <label className="form-label text-muted small fw-bold">Patient Name</label>
-                  <input
-                    type="text"
-                    name="patient_name"
-                    value={form.patient_name}
-                    onChange={handleInputChange}
-                    className="appointment-form-control"
-                    placeholder="John Doe"
-                  />
+                  <div className="appointment-input-wrapper">
+                    <input
+                      type="text"
+                      name="patient_name"
+                      value={form.patient_name}
+                      onChange={handleInputChange}
+                      className={`appointment-form-control ${errors.patient_name ? 'error' : ''}`}
+                      placeholder="John Doe"
+                    />
+                    {errors.patient_name && <i className="bi bi-exclamation-circle-fill appointment-error-icon"></i>}
+                  </div>
+                  {errors.patient_name && <div className="appointment-error-message">{errors.patient_name}</div>}
                 </div>
                 <div className="col-md-6">
                   <label className="form-label text-muted small fw-bold">Phone Number</label>
-                  <input
-                    type="tel"
-                    name="patient_phone"
-                    value={form.patient_phone}
-                    onChange={handleInputChange}
-                    className="appointment-form-control"
-                    placeholder="+1 234 567 890"
-                  />
+                  <div className="appointment-input-wrapper">
+                    <input
+                      type="tel"
+                      name="patient_phone"
+                      value={form.patient_phone}
+                      onChange={handleInputChange}
+                      className={`appointment-form-control ${errors.patient_phone ? 'error' : ''}`}
+                      placeholder="+1 234 567 890"
+                    />
+                    {errors.patient_phone && <i className="bi bi-exclamation-circle-fill appointment-error-icon"></i>}
+                  </div>
+                  {errors.patient_phone && <div className="appointment-error-message">{errors.patient_phone}</div>}
                 </div>
               </div>
 
               <label className="form-label text-muted small fw-bold">Email Address</label>
-              <input
-                type="email"
-                name="patient_email"
-                value={form.patient_email}
-                onChange={handleInputChange}
-                className="appointment-form-control"
-                placeholder="john@example.com"
-              />
+              <div className="appointment-input-wrapper">
+                <input
+                  type="email"
+                  name="patient_email"
+                  value={form.patient_email}
+                  onChange={handleInputChange}
+                  className={`appointment-form-control ${errors.patient_email ? 'error' : ''}`}
+                  placeholder="john@example.com"
+                />
+                {errors.patient_email && <i className="bi bi-exclamation-circle-fill appointment-error-icon"></i>}
+              </div>
+              {errors.patient_email && <div className="appointment-error-message">{errors.patient_email}</div>}
 
               {/* NEW PROFESSIONAL TIME SELECTOR */}
               <label className="form-label text-muted small fw-bold">Select Appointment Time</label>
@@ -597,24 +666,30 @@ const CalendarComponent = ({ doctor, onDateSelect }: CalendarComponentProps) => 
               </div>
 
               <label className="form-label text-muted small fw-bold">Reason for Visit</label>
-              <input
-                type="text"
-                name="reason"
-                value={form.reason}
-                onChange={handleInputChange}
-                className="appointment-form-control"
-                placeholder="Checkup, Consultation..."
-              />
+              <div className="appointment-input-wrapper">
+                <input
+                  type="text"
+                  name="reason"
+                  value={form.reason}
+                  onChange={handleInputChange}
+                  className={`appointment-form-control ${errors.reason ? 'error' : ''}`}
+                  placeholder="Checkup, Consultation..."
+                />
+                {errors.reason && <i className="bi bi-exclamation-circle-fill appointment-error-icon"></i>}
+              </div>
+              {errors.reason && <div className="appointment-error-message">{errors.reason}</div>}
 
               <label className="form-label text-muted small fw-bold">Additional Notes</label>
-              <textarea
-                name="notes"
-                value={form.notes}
-                onChange={handleInputChange}
-                className="appointment-form-control"
-                rows={2}
-                placeholder="Any specific symptoms..."
-              ></textarea>
+              <div className="appointment-input-wrapper">
+                <textarea
+                  name="notes"
+                  value={form.notes}
+                  onChange={handleInputChange}
+                  className="appointment-form-control"
+                  rows={2}
+                  placeholder="Any specific symptoms..."
+                ></textarea>
+              </div>
 
               <button
                 type="button"

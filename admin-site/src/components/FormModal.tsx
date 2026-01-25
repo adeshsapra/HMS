@@ -97,7 +97,10 @@ const IconPicker = ({ value, onChange, label, error }: any) => {
           )}
           <span className="text-blue-gray-700 font-medium">{value || 'No icon selected'}</span>
         </div>
-        <ChevronDownIcon className={`h-4 w-4 text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <div className="flex items-center gap-2">
+          {error && <ExclamationCircleIcon className="h-5 w-5 text-red-500" />}
+          <ChevronDownIcon className={`h-4 w-4 text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        </div>
       </div>
 
       {isOpen && (
@@ -171,9 +174,12 @@ const CustomSelect = ({
         <span className={selectedOption ? "text-blue-gray-700" : "text-blue-gray-400"}>
           {selectedOption ? selectedOption.label : placeholder}
         </span>
-        <ChevronDownIcon
-          className={`h-4 w-4 text-blue-gray-500 transition-transform ${isOpen ? "rotate-180" : ""}`}
-        />
+        <div className="flex items-center gap-2">
+          {error && <ExclamationCircleIcon className="h-5 w-5 text-red-500" />}
+          <ChevronDownIcon
+            className={`h-4 w-4 text-blue-gray-500 transition-transform ${isOpen ? "rotate-180" : ""}`}
+          />
+        </div>
       </div>
       {isOpen && (
         <div className="absolute z-50 w-full mt-1 bg-white border border-blue-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
@@ -194,6 +200,108 @@ const CustomSelect = ({
           ))}
         </div>
       )}
+    </div>
+  );
+};
+
+const TimePicker = ({ value, onChange, label, required, error }: any) => {
+  const [hour, setHour] = useState('09');
+  const [minute, setMinute] = useState('00');
+  const [period, setPeriod] = useState('AM');
+
+  useEffect(() => {
+    if (value && value.includes(':')) {
+      const [h, rest] = value.split(':');
+      const [m, p] = rest.split(' ');
+      setHour(h);
+      setMinute(m);
+      setPeriod(p || 'AM');
+    } else if (!value) {
+      onChange('09:00 AM');
+    }
+  }, [value, onChange]);
+
+  const updateTime = (h: string, m: string, p: string) => {
+    onChange(`${h}:${m} ${p}`);
+  };
+
+  const hoursList = Array.from({ length: 12 }, (_, i) => (i + 1).toString().padStart(2, '0'));
+  const minutesList = ['00', '15', '30', '45'];
+  const periods = ['AM', 'PM'];
+
+  return (
+    <div className="space-y-2">
+      <label className="block text-sm font-medium text-blue-gray-700">
+        {label}
+        {required && <span className="text-red-500 ml-1">*</span>}
+      </label>
+      <div className={`bg-[#f8fafc] p-7 rounded-[2rem] border-2 transition-all duration-300 ${error ? 'border-red-100 shadow-[0_0_20px_rgba(239,68,68,0.05)]' : 'border-blue-gray-50 shadow-sm'}`}>
+        <div className="flex items-center justify-end mb-8">
+          <div className="bg-white px-5 py-2.5 rounded-2xl shadow-sm border border-blue-50/50 flex items-center gap-3">
+            <span className="text-2xl font-black text-blue-700 tracking-tight">{hour}</span>
+            <span className="text-blue-gray-300 font-black animate-pulse">:</span>
+            <span className="text-2xl font-black text-blue-700 tracking-tight">{minute}</span>
+            <div className="w-px h-6 bg-blue-gray-100 mx-1" />
+            <span className="text-sm font-black text-blue-400 uppercase">{period}</span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+          <div>
+            <span className="block text-[10px] font-black text-blue-gray-300 uppercase tracking-widest mb-4 text-center lg:text-left">Choose Hour</span>
+            <div className="grid grid-cols-4 gap-2">
+              {hoursList.map(h => (
+                <button
+                  key={h}
+                  type="button"
+                  onClick={() => { setHour(h); updateTime(h, minute, period); }}
+                  className={`h-11 rounded-xl text-sm font-bold transition-all duration-200 flex items-center justify-center ${hour === h
+                    ? 'bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/20 scale-[1.05]'
+                    : 'bg-white text-blue-gray-600 hover:bg-white hover:text-blue-500 hover:shadow-md border border-blue-gray-50/50'}`}
+                >
+                  {h}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <span className="block text-[10px] font-black text-blue-gray-300 uppercase tracking-widest mb-4 text-center lg:text-left">Choose Minute</span>
+            <div className="grid grid-cols-2 gap-3 h-full pb-10 lg:pb-0">
+              {minutesList.map(m => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => { setMinute(m); updateTime(hour, m, period); }}
+                  className={`h-11 rounded-xl text-sm font-bold transition-all duration-200 flex items-center justify-center ${minute === m
+                    ? 'bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/20 scale-[1.05]'
+                    : 'bg-white text-blue-gray-600 hover:bg-white hover:text-blue-500 hover:shadow-md border border-blue-gray-50/50'}`}
+                >
+                  {m}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <span className="block text-[10px] font-black text-blue-gray-300 uppercase tracking-widest mb-4 text-center lg:text-left">Select Period</span>
+            <div className="flex flex-col gap-3">
+              {periods.map(p => (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => { setPeriod(p); updateTime(hour, minute, p); }}
+                  className={`h-11 w-full rounded-xl text-sm font-black transition-all duration-200 flex items-center justify-center tracking-widest ${period === p
+                    ? 'bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/20 scale-[1.05]'
+                    : 'bg-white text-blue-gray-600 hover:bg-white hover:text-blue-500 hover:shadow-md border border-blue-gray-50/50'}`}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
@@ -219,8 +327,7 @@ export function FormModal({
       setErrors({});
       setGeneralError("");
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  }, [open, initialData]);
 
   const handleChange = (name: string, value: any): void => {
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -257,7 +364,6 @@ export function FormModal({
           }
         }
       }
-      // Password validation
       if (field.type === "password" && field.required && formData[field.name]) {
         if (formData[field.name].length < 8) {
           newErrors[field.name] = "Password must be at least 8 characters";
@@ -278,7 +384,6 @@ export function FormModal({
     try {
       await onSubmit(formData);
     } catch (error: any) {
-      // Handle validation errors from server
       if (error.validationErrors) {
         const serverErrors: Record<string, string> = {};
         Object.keys(error.validationErrors).forEach((key) => {
@@ -309,13 +414,20 @@ export function FormModal({
               {field.label}
               {field.required && <span className="text-red-500 ml-1">*</span>}
             </label>
-            <textarea
-              value={fieldValue}
-              onChange={(e) => handleChange(field.name, e.target.value)}
-              placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
-              rows={field.rows || 4}
-              className={`${inputClass} resize-none`}
-            />
+            <div className="relative">
+              <textarea
+                value={fieldValue}
+                onChange={(e) => handleChange(field.name, e.target.value)}
+                placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
+                rows={field.rows || 4}
+                className={`${inputClass} resize-none ${hasError ? "pr-10" : ""}`}
+              />
+              {hasError && (
+                <div className="absolute right-3 top-3 text-red-500">
+                  <ExclamationCircleIcon className="h-5 w-5" />
+                </div>
+              )}
+            </div>
           </div>
         );
       case "select":
@@ -389,15 +501,22 @@ export function FormModal({
               {field.label}
               {field.required && <span className="text-red-500 ml-1">*</span>}
             </label>
-            <input
-              type={field.type || "text"}
-              value={fieldValue}
-              onChange={(e) => handleChange(field.name, e.target.value)}
-              placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
-              min={field.min}
-              max={field.max}
-              className={inputClass}
-            />
+            <div className="relative">
+              <input
+                type={field.type || "text"}
+                value={fieldValue}
+                onChange={(e) => handleChange(field.name, e.target.value)}
+                placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
+                min={field.min}
+                max={field.max}
+                className={`${inputClass} ${hasError ? "pr-10" : ""}`}
+              />
+              {hasError && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500">
+                  <ExclamationCircleIcon className="h-5 w-5" />
+                </div>
+              )}
+            </div>
           </div>
         );
     }
@@ -429,7 +548,6 @@ export function FormModal({
       </DialogHeader>
       <form onSubmit={handleSubmit}>
         <DialogBody className="overflow-y-auto max-h-[65vh] pt-8 px-8 bg-gradient-to-br from-blue-gray-50/50 to-white">
-          {/* General Error Alert */}
           {generalError && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
               <ExclamationCircleIcon className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
@@ -443,24 +561,35 @@ export function FormModal({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {formFields.map((field) => {
-              // Skip fields that are explicitly set to invisible
-              if (field.visible === false) {
-                return null;
-              }
+              if (field.visible === false) return null;
 
               const errorMessage = errors[field.name] || field.error;
+
+              if (field.type === "time") {
+                return (
+                  <div key={field.name} className="md:col-span-2">
+                    <TimePicker
+                      value={formData[field.name]}
+                      onChange={(val: string) => handleChange(field.name, val)}
+                      label={field.label}
+                      required={field.required}
+                      error={errorMessage}
+                    />
+                    {errorMessage && (
+                      <Typography variant="small" color="red" className="mt-1 text-xs flex items-center gap-1">
+                        <ExclamationCircleIcon className="h-3.5 w-3.5" />
+                        {errorMessage}
+                      </Typography>
+                    )}
+                  </div>
+                );
+              }
+
               return (
-                <div
-                  key={field.name}
-                  className={field.fullWidth ? "md:col-span-2" : ""}
-                >
+                <div key={field.name} className={field.fullWidth || field.type === "textarea" ? "md:col-span-2" : ""}>
                   {renderField(field)}
                   {errorMessage && (
-                    <Typography
-                      variant="small"
-                      color="red"
-                      className="mt-1 text-xs flex items-center gap-1"
-                    >
+                    <Typography variant="small" color="red" className="mt-1 text-xs flex items-center gap-1">
                       <ExclamationCircleIcon className="h-3.5 w-3.5" />
                       {errorMessage}
                     </Typography>
@@ -489,25 +618,9 @@ export function FormModal({
           >
             {isLoading ? (
               <>
-                <svg
-                  className="animate-spin h-5 w-5 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
+                <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
                 Saving...
               </>
