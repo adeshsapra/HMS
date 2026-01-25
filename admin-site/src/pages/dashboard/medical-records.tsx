@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { DataTable, FormModal, ViewModal, DeleteConfirmModal, Column, FormField, ViewField } from "@/components";
 import { apiService } from "@/services/api";
-import { toast } from "react-toastify";
+import { useToast } from "@/context/ToastContext";
 import { patientsData, doctorsData } from "@/data/hms-data"; // Fallback/Reference
 import { Button } from "@material-tailwind/react";
 import { PlusIcon } from "@heroicons/react/24/outline";
@@ -17,6 +17,7 @@ interface MedicalReport {
 }
 
 export default function MedicalRecords(): JSX.Element {
+    const { showToast } = useToast();
     const [records, setRecords] = useState<MedicalReport[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [pagination, setPagination] = useState({
@@ -56,7 +57,7 @@ export default function MedicalRecords(): JSX.Element {
             }
         } catch (error) {
             console.error(error);
-            toast.error("Failed to load medical reports");
+            showToast("Failed to load medical reports", "error");
         } finally {
             setLoading(false);
         }
@@ -192,12 +193,12 @@ export default function MedicalRecords(): JSX.Element {
             formData.append("report_file", data.report_file);
 
             await apiService.createMedicalReport(formData);
-            toast.success("Report uploaded successfully");
+            showToast("Report uploaded successfully", "success");
             fetchReports(pagination.currentPage);
             setOpenModal(false);
         } catch (error) {
             console.error(error);
-            toast.error("Failed to upload report");
+            showToast("Failed to upload report", "error");
         }
     };
 

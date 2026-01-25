@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { DataTable, FormModal, ViewModal, DeleteConfirmModal, Column, FormField, ViewField } from "@/components";
 import { apiService } from "@/services/api";
-import { toast } from "react-toastify";
+import { useToast } from "@/context/ToastContext";
 import { useAuth } from "@/context/AuthContext";
 
 interface Prescription {
@@ -15,6 +15,7 @@ interface Prescription {
 }
 
 export default function Prescriptions(): JSX.Element {
+    const { showToast } = useToast();
     const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [pagination, setPagination] = useState({
@@ -55,7 +56,7 @@ export default function Prescriptions(): JSX.Element {
             }
         } catch (error) {
             console.error("Error fetching prescriptions:", error);
-            toast.error("Failed to load prescriptions");
+            showToast("Failed to load prescriptions", "error");
         } finally {
             setLoading(false);
         }
