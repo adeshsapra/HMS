@@ -1,17 +1,20 @@
 import { useEffect, useState } from 'react'
 import AOS from 'aos'
 import PageHero from '../components/PageHero'
+import { contactAPI } from '../services/api'
+import { useToast } from '../context/ToastContext'
 
 const Contact = () => {
+  const { success: toastSuccess, error: toastError } = useToast()
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     subject: '',
-    message: ''
+    message: '',
+    phone: ''
   })
+  const [errors, setErrors] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [sent, setSent] = useState(false)
 
   useEffect(() => {
     AOS.init({
@@ -22,28 +25,139 @@ const Contact = () => {
     })
   }, [])
 
+  const validate = () => {
+    const newErrors: Record<string, string> = {}
+    if (!formData.name.trim()) newErrors.name = 'Name is required'
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required'
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Email is invalid'
+    }
+    if (!formData.subject.trim()) newErrors.subject = 'Subject is required'
+    if (!formData.message.trim()) newErrors.message = 'Message is required'
+    if (formData.phone && !/^\+?[\d\s-]{10,}$/.test(formData.phone)) {
+      newErrors.phone = 'Phone number is invalid'
+    }
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
-    setError('')
-    setSent(false)
+    if (!validate()) {
+      toastError('Please fix the errors in the form.')
+      return
+    }
 
-    setTimeout(() => {
+    setLoading(true)
+    try {
+      await contactAPI.submitEnquiry(formData)
+      toastSuccess('Your message has been sent. Thank you!')
+      setFormData({ name: '', email: '', subject: '', message: '', phone: '' })
+      setErrors({})
+    } catch (err: any) {
+      if (err.response?.status === 422 && err.response?.data?.errors) {
+        const serverErrors = err.response.data.errors
+        const mappedErrors: Record<string, string> = {}
+        Object.keys(serverErrors).forEach(key => {
+          mappedErrors[key] = Array.isArray(serverErrors[key]) ? serverErrors[key][0] : serverErrors[key]
+        })
+        setErrors(mappedErrors)
+        toastError('Please check the highlighted fields.')
+      } else {
+        const msg = err.response?.data?.message || 'Something went wrong. Please try again later.'
+        toastError(msg)
+      }
+    } finally {
       setLoading(false)
-      setSent(true)
-      setFormData({ name: '', email: '', subject: '', message: '' })
-    }, 1500)
+    }
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    })
+    const { name, value } = e.target
+    setFormData(prev => ({ ...prev, [name]: value }))
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => {
+        const newErrors = { ...prev }
+        delete newErrors[name]
+        return newErrors
+      })
+    }
   }
 
   return (
     <div className="contact-page">
+      <style>{`
+        .contact-page .form-control {
+          border-radius: 12px;
+          border: 1px solid color-mix(in srgb, var(--accent-color), transparent 85%);
+          padding: 1.2rem 1rem;
+          height: auto;
+          transition: all 0.3s ease;
+          background: #fff;
+        }
+
+        .contact-page .form-control:focus {
+          border-color: var(--accent-color);
+          box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent-color), transparent 90%);
+        }
+
+        .contact-page .form-control.is-invalid {
+          border-color: #ef4444 !important;
+          background-image: none; /* Hide default bootstrap icon */
+        }
+
+        .contact-page .form-control.is-invalid:focus {
+          box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1) !important;
+        }
+
+        .contact-page .invalid-feedback {
+          color: #ef4444;
+          font-size: 0.85rem;
+          margin-top: 0.5rem;
+          font-weight: 500;
+          display: block; /* Ensure it shows up */
+        }
+
+        .contact-page .btn-submit {
+          background: var(--accent-color);
+          color: white;
+          border: none;
+          padding: 1rem 2rem;
+          border-radius: 12px;
+          font-weight: 600;
+          font-size: 1.1rem;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 0 4px 15px color-mix(in srgb, var(--accent-color), transparent 70%);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+        }
+
+        .contact-page .btn-submit:hover:not(:disabled) {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 25px color-mix(in srgb, var(--accent-color), transparent 60%);
+          filter: brightness(1.05);
+        }
+
+        .contact-page .btn-submit:active:not(:disabled) {
+          transform: translateY(0);
+        }
+
+        .contact-page .btn-submit:disabled {
+          opacity: 0.7;
+          cursor: not-allowed;
+        }
+
+        /* Floating label support with custom fields */
+        .contact-page .form-floating > .form-control:focus ~ label,
+        .contact-page .form-floating > .form-control:not(:placeholder-shown) ~ label {
+          color: var(--accent-color);
+          opacity: 0.8;
+        }
+      `}</style>
       <PageHero
         title="Contact"
         description="Reach out to our support team for assistance, inquiries, or appointment guidance."
@@ -112,72 +226,95 @@ const Contact = () => {
                 <p>Lorem ipsum dolor sit amet consectetur adipiscing elit mauris hendrerit faucibus imperdiet nec eget felis.</p>
 
                 <form onSubmit={handleSubmit} className="php-email-form">
-                  <div className="form-floating mb-3">
-                    <input
-                      type="text"
-                      className="form-control"
-                      id="nameInput"
-                      name="name"
-                      placeholder="Full Name"
-                      required
-                      value={formData.name}
-                      onChange={handleChange}
-                    />
-                    <label htmlFor="nameInput">Full Name</label>
+                  <div className="row g-3">
+                    <div className="col-md-6">
+                      <div className="form-floating mb-3">
+                        <input
+                          type="text"
+                          className={`form-control ${errors.name ? 'is-invalid' : ''}`}
+                          id="nameInput"
+                          name="name"
+                          placeholder="Full Name"
+                          value={formData.name}
+                          onChange={handleChange}
+                        />
+                        <label htmlFor="nameInput">Full Name</label>
+                        {errors.name && <div className="invalid-feedback">{errors.name}</div>}
+                      </div>
+                    </div>
+
+                    <div className="col-md-6">
+                      <div className="form-floating mb-3">
+                        <input
+                          type="email"
+                          className={`form-control ${errors.email ? 'is-invalid' : ''}`}
+                          id="emailInput"
+                          name="email"
+                          placeholder="Email Address"
+                          value={formData.email}
+                          onChange={handleChange}
+                        />
+                        <label htmlFor="emailInput">Email Address</label>
+                        {errors.email && <div className="invalid-feedback">{errors.email}</div>}
+                      </div>
+                    </div>
                   </div>
 
                   <div className="form-floating mb-3">
                     <input
-                      type="email"
-                      className="form-control"
-                      id="emailInput"
-                      name="email"
-                      placeholder="Email Address"
-                      required
-                      value={formData.email}
+                      type="tel"
+                      className={`form-control ${errors.phone ? 'is-invalid' : ''}`}
+                      id="phoneInput"
+                      name="phone"
+                      placeholder="Phone Number"
+                      value={formData.phone}
                       onChange={handleChange}
                     />
-                    <label htmlFor="emailInput">Email Address</label>
+                    <label htmlFor="phoneInput">Phone Number (Optional)</label>
+                    {errors.phone && <div className="invalid-feedback">{errors.phone}</div>}
                   </div>
 
                   <div className="form-floating mb-3">
                     <input
                       type="text"
-                      className="form-control"
+                      className={`form-control ${errors.subject ? 'is-invalid' : ''}`}
                       id="subjectInput"
                       name="subject"
                       placeholder="Subject"
-                      required
                       value={formData.subject}
                       onChange={handleChange}
                     />
                     <label htmlFor="subjectInput">Subject</label>
+                    {errors.subject && <div className="invalid-feedback">{errors.subject}</div>}
                   </div>
 
                   <div className="form-floating mb-3">
                     <textarea
-                      className="form-control"
+                      className={`form-control ${errors.message ? 'is-invalid' : ''}`}
                       id="messageInput"
                       name="message"
                       rows={5}
                       placeholder="Your Message"
                       style={{ height: '150px' }}
-                      required
                       value={formData.message}
                       onChange={handleChange}
                     ></textarea>
                     <label htmlFor="messageInput">Your Message</label>
+                    {errors.message && <div className="invalid-feedback">{errors.message}</div>}
                   </div>
 
-                  <div className="my-3">
-                    {loading && <div className="loading">Loading</div>}
-                    {error && <div className="error-message">{error}</div>}
-                    {sent && <div className="sent-message">Your message has been sent. Thank you!</div>}
-                  </div>
-
-                  <div className="d-grid">
+                  <div className="d-grid mt-4">
                     <button type="submit" className="btn-submit" disabled={loading}>
-                      Send Message <i className="bi bi-send-fill ms-2"></i>
+                      {loading ? (
+                        <>
+                          <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                          Sending...
+                        </>
+                      ) : (
+                        <>
+                          Send Message <i className="bi bi-send-fill ms-2"></i>
+                        </>
+                      )}
                     </button>
                   </div>
                 </form>

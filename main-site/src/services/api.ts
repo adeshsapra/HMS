@@ -139,6 +139,28 @@ export const patientProfileAPI = {
     },
 };
 
+export const contactAPI = {
+    submitEnquiry: (data: {
+        name: string;
+        email: string;
+        subject: string;
+        message: string;
+        phone?: string;
+    }) => api.post('/public/contact-enquiries', data),
+};
+
+export const testimonialAPI = {
+    getAll: (params?: { page?: number; per_page?: number }) => {
+        const queryParams = new URLSearchParams();
+        if (params?.page) queryParams.append('page', params.page.toString());
+        if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
+        const queryString = queryParams.toString();
+        return api.get(`/public/testimonials${queryString ? '?' + queryString : ''}`);
+    },
+    submit: (data: { message: string; rating: number; role?: string }) =>
+        api.post('/patient-profile/testimonials', data),
+};
+
 export const notificationAPI = {
     getAll: (page: number = 1, perPage: number = 20, filters?: { category?: string; type?: string; unread?: boolean }) => {
         let endpoint = `/notifications?page=${page}&per_page=${perPage}`;

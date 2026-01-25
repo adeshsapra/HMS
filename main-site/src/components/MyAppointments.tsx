@@ -31,7 +31,11 @@ interface AppointmentPagination {
     per_page: number
 }
 
-const MyAppointments = () => {
+interface MyAppointmentsProps {
+    onNavigateToTestimonials?: () => void
+}
+
+const MyAppointments = ({ onNavigateToTestimonials }: MyAppointmentsProps) => {
     const { showToast } = useToast()
 
     // State management
@@ -877,6 +881,17 @@ const MyAppointments = () => {
                                                     >
                                                         <i className="bi bi-x-circle me-2"></i>
                                                         Cancel
+                                                    </button>
+                                                </li>
+                                            )}
+                                            {appointment.status.toLowerCase() === 'completed' && onNavigateToTestimonials && (
+                                                <li>
+                                                    <button
+                                                        className="dropdown-item py-2 rounded text-success"
+                                                        onClick={onNavigateToTestimonials}
+                                                    >
+                                                        <i className="bi bi-star me-2"></i>
+                                                        Rate Experience
                                                     </button>
                                                 </li>
                                             )}
