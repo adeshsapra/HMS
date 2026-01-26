@@ -1124,6 +1124,48 @@ class ApiService {
     async deleteTestimonial(id: number) {
         return this.delete<any>(`/admin/testimonials/${id}`);
     }
+
+    // FAQ methods
+    async getFaqs(params?: { page?: number; per_page?: number; search?: string }) {
+        let endpoint = '/admin/faqs?';
+        const queryParams = new URLSearchParams();
+
+        if (params?.page) queryParams.append('page', params.page.toString());
+        if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
+        if (params?.search) queryParams.append('search', params.search || '');
+
+        endpoint += queryParams.toString();
+        return this.get<any>(endpoint);
+    }
+
+    async createFaq(data: { question: string; answer: string; category: string; status: string }) {
+        return this.post<any>('/admin/faqs', data);
+    }
+
+    async updateFaq(id: number, data: { question: string; answer: string; category: string; status: string }) {
+        return this.put<any>(`/admin/faqs/${id}`, data);
+    }
+
+    async deleteFaq(id: number) {
+        return this.delete<any>(`/admin/faqs/${id}`);
+    }
+
+    // FAQ Category methods
+    async getFaqCategories() {
+        return this.get<any[]>('/admin/faq-categories');
+    }
+
+    async createFaqCategory(data: { name: string }) {
+        return this.post<any>('/admin/faq-categories', data);
+    }
+
+    async updateFaqCategory(id: number, data: { name: string }) {
+        return this.put<any>(`/admin/faq-categories/${id}`, data);
+    }
+
+    async deleteFaqCategory(id: number) {
+        return this.delete<any>(`/admin/faq-categories/${id}`);
+    }
 }
 
 export const apiService = new ApiService();

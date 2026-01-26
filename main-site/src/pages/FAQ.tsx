@@ -1,11 +1,50 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import AOS from 'aos'
 import PageHero from '../components/PageHero'
+import { faqAPI } from '../services/api'
+
+interface FaqItem {
+  id: number;
+  question: string;
+  answer: string;
+  category_id: number;
+  category: {
+    id: number;
+    name: string;
+  };
+  icon?: string;
+}
 
 const FAQ = () => {
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [activeCategory, setActiveCategory] = useState('all')
+  const [faqs, setFaqs] = useState<FaqItem[]>([])
+  const [loading, setLoading] = useState(true)
+
+  const categoryIcons: any = {
+    general: 'bi-info-circle',
+    appointments: 'bi-calendar-check',
+    services: 'bi-gear',
+    insurance: 'bi-shield-check',
+    billing: 'bi-cash',
+    medical: 'bi-heart-pulse',
+    facility: 'bi-hospital'
+  }
+
+  const faqCategories = useMemo(() => {
+    const uniqueCategoryNames = Array.from(new Set(faqs.map(faq => faq.category?.name)))
+      .filter(name => name); // Filter out empty/null categories
+
+    return [
+      { id: 'all', label: 'All Questions', icon: 'bi-grid' },
+      ...uniqueCategoryNames.map(name => ({
+        id: name.toLowerCase(),
+        label: name,
+        icon: categoryIcons[name.toLowerCase()] || 'bi-question-circle'
+      }))
+    ];
+  }, [faqs])
 
   useEffect(() => {
     AOS.init({
@@ -14,92 +53,39 @@ const FAQ = () => {
       once: true,
       mirror: false
     })
+    fetchFaqs()
   }, [])
 
-  const faqCategories = [
-    { id: 'all', label: 'All Questions', icon: 'bi-grid' },
-    { id: 'general', label: 'General', icon: 'bi-info-circle' },
-    { id: 'appointments', label: 'Appointments', icon: 'bi-calendar-check' },
-    { id: 'services', label: 'Services', icon: 'bi-gear' },
-    { id: 'insurance', label: 'Insurance', icon: 'bi-shield-check' }
-  ]
-
-  const faqs = [
-    {
-      id: 1,
-      category: 'general',
-      icon: 'bi-clock',
-      q: 'What are your operating hours?',
-      a: 'We are open Monday through Saturday from 9AM to 7PM. Emergency services are available 24/7. Our dedicated emergency team ensures round-the-clock care for critical situations.'
-    },
-    {
-      id: 2,
-      category: 'insurance',
-      icon: 'bi-shield-check',
-      q: 'Do you accept insurance?',
-      a: 'Yes, we accept most major insurance plans including Blue Cross, Aetna, Cigna, and UnitedHealthcare. Please contact our billing department to verify your specific insurance coverage and any associated costs.'
-    },
-    {
-      id: 3,
-      category: 'appointments',
-      icon: 'bi-calendar-event',
-      q: 'How do I book an appointment?',
-      a: 'You can book an appointment through multiple convenient channels: online via our patient portal, by calling our appointment line at (555) 123-4567, or by visiting us in person. Same-day appointments are available for urgent care needs.'
-    },
-    {
-      id: 4,
-      category: 'appointments',
-      icon: 'bi-clipboard-check',
-      q: 'What should I bring to my appointment?',
-      a: 'Please bring a valid photo ID, your insurance card, a complete list of current medications with dosages, any relevant medical records, and previous test results. Arrive 15 minutes early to complete necessary paperwork.'
-    },
-    {
-      id: 5,
-      category: 'services',
-      icon: 'bi-camera-video',
-      q: 'Do you offer telemedicine consultations?',
-      a: 'Yes, we offer comprehensive telemedicine consultations for follow-up visits, prescription renewals, and certain types of consultations. Our secure video platform ensures HIPAA-compliant virtual care from the comfort of your home.'
-    },
-    {
-      id: 6,
-      category: 'general',
-      icon: 'bi-geo-alt',
-      q: 'Where are you located?',
-      a: 'Our main facility is located at 123 Medical Center Drive, Healthcare City, HC 12345. We also have satellite clinics in downtown and suburban locations for your convenience.'
-    },
-    {
-      id: 7,
-      category: 'services',
-      icon: 'bi-heart-pulse',
-      q: 'What specialties do you offer?',
-      a: 'We offer comprehensive healthcare services including cardiology, oncology, neurology, orthopedics, pediatrics, emergency medicine, and primary care. Our multidisciplinary team provides integrated care for all your health needs.'
-    },
-    {
-      id: 8,
-      category: 'insurance',
-      icon: 'bi-cash',
-      q: 'What are your payment options?',
-      a: 'We accept all major credit cards, debit cards, and HSA/FSA cards. For uninsured patients, we offer flexible payment plans and financial assistance programs. Contact our billing office for detailed information about costs and payment arrangements.'
+  const fetchFaqs = async () => {
+    try {
+      const response = await faqAPI.getAll()
+      if (response.data.status) {
+        setFaqs(response.data.data)
+      }
+    } catch (error) {
+      console.error('Error fetching FAQs:', error)
+    } finally {
+      setLoading(false)
     }
-  ]
+  }
 
   const filteredFaqs = faqs.filter(faq => {
-    const matchesSearch = faq.q.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         faq.a.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCategory = activeCategory === 'all' || faq.category === activeCategory
+    const matchesSearch = faq.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      faq.answer.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesCategory = activeCategory === 'all' || faq.category?.name?.toLowerCase() === activeCategory.toLowerCase()
     return matchesSearch && matchesCategory
   })
 
   return (
     <div className="faq-page">
       <PageHero
-  title="Frequently Asked Questions"
-  description="Quick answers to common queries about our hospital and services."
-  breadcrumbs={[
-    { label: 'Home', path: '/' },
-    { label: 'FAQ' }
-  ]}
-/>
+        title="Frequently Asked Questions"
+        description="Quick answers to common queries about our hospital and services."
+        breadcrumbs={[
+          { label: 'Home', path: '/' },
+          { label: 'FAQ' }
+        ]}
+      />
 
 
       {/* Search and Filter Section */}
@@ -155,7 +141,14 @@ const FAQ = () => {
           <div className="row justify-content-center">
             <div className="col-lg-8">
               <div className="faq-results" data-aos="fade-up">
-                {filteredFaqs.length === 0 ? (
+                {loading ? (
+                  <div className="text-center py-5">
+                    <div className="spinner-border text-primary" role="status">
+                      <span className="visually-hidden">Loading...</span>
+                    </div>
+                    <p className="mt-3">Loading questions...</p>
+                  </div>
+                ) : filteredFaqs.length === 0 ? (
                   <div className="no-results">
                     <i className="bi bi-search"></i>
                     <h3>No questions found</h3>
@@ -175,7 +168,7 @@ const FAQ = () => {
                     <div className="results-header">
                       <h3>
                         {activeCategory === 'all' ? 'All Questions' :
-                         faqCategories.find(cat => cat.id === activeCategory)?.label}
+                          faqCategories.find(cat => cat.id === activeCategory)?.label}
                         {searchTerm && ` - "${searchTerm}"`}
                       </h3>
                       <span className="results-count">
@@ -194,15 +187,15 @@ const FAQ = () => {
                           data-aos-delay={idx * 50}
                         >
                           <div className="faq-icon">
-                            <i className={`bi ${faq.icon}`}></i>
+                            <i className={`bi ${categoryIcons[faq.category?.name?.toLowerCase()] || 'bi-question-circle'}`}></i>
                           </div>
-                          <h3>{faq.q}</h3>
+                          <h3>{faq.question}</h3>
                           <div className="faq-toggle">
                             <i className="bi bi-chevron-down"></i>
                           </div>
                         </div>
                         <div className="faq-content">
-                          <p>{faq.a}</p>
+                          <p>{faq.answer}</p>
                         </div>
                       </div>
                     ))}

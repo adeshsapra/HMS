@@ -244,6 +244,10 @@ export const paymentAPI = {
     getStatistics: () => api.get('/payments/statistics/summary'),
 };
 
+export const faqAPI = {
+    getAll: () => api.get('/public/faqs'),
+};
+
 // Unified ApiService export for backward compatibility
 export const ApiService = {
     // Billing methods

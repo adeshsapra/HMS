@@ -133,7 +133,7 @@ const CustomSelect = ({
   required,
   error,
 }: {
-  value: string;
+  value: string | number | undefined;
   onChange: (value: string) => void;
   options: { value: string; label: string }[];
   placeholder: string;
@@ -144,7 +144,7 @@ const CustomSelect = ({
   const [isOpen, setIsOpen] = useState(false);
   const selectRef = useRef<HTMLDivElement>(null);
 
-  const selectedOption = options.find((opt) => opt.value === value);
+  const selectedOption = options.find((opt) => String(opt.value) === String(value));
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -190,7 +190,7 @@ const CustomSelect = ({
                 onChange(option.value);
                 setIsOpen(false);
               }}
-              className={`px-3 py-2.5 text-sm cursor-pointer transition-colors ${value === option.value
+              className={`px-3 py-2.5 text-sm cursor-pointer transition-colors ${String(value) === String(option.value)
                 ? "bg-blue-50 text-blue-700 font-medium"
                 : "text-blue-gray-700 hover:bg-blue-gray-50"
                 }`}
