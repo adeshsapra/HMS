@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
     Card,
-    CardHeader,
     CardBody,
     Typography,
     Button,
@@ -14,12 +13,22 @@ import {
     Tabs,
     TabsHeader,
     Tab,
+    IconButton,
+    Tooltip,
 } from "@material-tailwind/react";
 import {
     MagnifyingGlassIcon,
     DocumentTextIcon,
     CurrencyDollarIcon,
     PrinterIcon,
+    UserCircleIcon,
+    CalendarDaysIcon,
+    CreditCardIcon,
+    BanknotesIcon,
+    XMarkIcon,
+    ClipboardDocumentIcon,
+    CheckCircleIcon,
+    ClockIcon
 } from "@heroicons/react/24/outline";
 import { apiService } from '@/services/api';
 import DataTable from '@/components/DataTable';
@@ -172,7 +181,6 @@ const Billing = () => {
         try {
             const url = await apiService.downloadInvoice(billId);
             if (url) {
-                // Open PDF in new window for viewing/printing
                 window.open(url, '_blank');
             }
         } catch (error: any) {
@@ -180,6 +188,14 @@ const Billing = () => {
         }
     };
 
+    const handleCopyId = async (id: string) => {
+        try {
+            await navigator.clipboard.writeText(id);
+            showToast('ID copied to clipboard', 'success');
+        } catch (error: any) {
+            showToast('Failed to copy ID', 'error');
+        }
+    };
 
     const getStatusColor = (status: string) => {
         const colors: Record<string, string> = {
@@ -324,60 +340,74 @@ const Billing = () => {
     };
 
     return (
-        <div className="mt-12 mb-8 flex flex-col gap-12">
-            <Card>
-                <CardHeader variant="gradient" color="blue" className="mb-8 p-6">
-                    <Typography variant="h6" color="white">
-                        Billing Management
-                    </Typography>
-                </CardHeader>
-                <CardBody className="px-0 pt-0 pb-2">
-                    {/* Filters */}
-                    <div className="mb-4 px-6">
-                        <Tabs value={statusFilter}>
-                            <TabsHeader>
-                                {tabs.map(({ label, value }) => (
-                                    <Tab
-                                        key={value}
-                                        value={value}
-                                        onClick={() => {
-                                            setStatusFilter(value);
-                                            setCurrentPage(1);
-                                        }}
-                                    >
-                                        {label}
-                                    </Tab>
-                                ))}
-                            </TabsHeader>
-                        </Tabs>
-                    </div>
+        <div className="mt-12 mb-8">
+            <div className="mb-4">
+                <Typography variant="h2" color="blue-gray" className="mb-2">
+                    Billing Management
+                </Typography>
+                <Typography variant="small" color="blue-gray">
+                    Manage patient invoices, track payments, and finalize bills
+                </Typography>
+            </div>
 
-                    {/* Search */}
-                    <div className="mb-4 px-6">
-                        <div className="w-full md:w-96">
-                            <Input
-                                label="Search bills or patients..."
-                                icon={<MagnifyingGlassIcon className="h-5 w-5" />}
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                crossOrigin={undefined}
-                            />
+            <Card className="border border-blue-gray-100 shadow-sm overflow-hidden">
+                <CardBody className="p-0">
+                    <Tabs value={statusFilter}>
+                        <TabsHeader
+                            className="bg-transparent border-b border-blue-gray-50 px-6 rounded-none"
+                            indicatorProps={{
+                                className: "bg-blue-500/10 shadow-none border-b-2 border-blue-500 rounded-none !z-0",
+                            }}
+                        >
+                            {tabs.map(({ label, value }) => (
+                                <Tab
+                                    key={value}
+                                    value={value}
+                                    onClick={() => {
+                                        setStatusFilter(value);
+                                        setCurrentPage(1);
+                                    }}
+                                    className={`py-4 font-semibold text-sm transition-colors duration-300 ${statusFilter === value ? "text-blue-500" : "text-blue-gray-500 hover:text-blue-700"
+                                        }`}
+                                >
+                                    {label}
+                                </Tab>
+                            ))}
+                        </TabsHeader>
+                    </Tabs>
+
+                    <div className="p-6">
+                        <div className="mb-6 flex items-center justify-between">
+                            <div className="w-full md:w-96">
+                                <Input
+                                    label="Search bills or patients..."
+                                    icon={<MagnifyingGlassIcon className="h-5 w-5" />}
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    crossOrigin={undefined}
+                                />
+                            </div>
                         </div>
-                    </div>
 
-                    {/* Table */}
-                    <DataTable
-                        title="Billing List"
-                        columns={columns}
-                        data={filteredBills}
-                        customActions={customActions}
-                        searchable={false}
-                        pagination={{
-                            currentPage: currentPage,
-                            totalPages: totalPages,
-                            onPageChange: setCurrentPage,
-                        }}
-                    />
+                        {loading ? (
+                            <div className="flex items-center justify-center py-12">
+                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                            </div>
+                        ) : (
+                            <DataTable
+                                title="Billing List"
+                                columns={columns}
+                                data={filteredBills}
+                                customActions={customActions}
+                                searchable={false}
+                                pagination={{
+                                    currentPage: currentPage,
+                                    totalPages: totalPages,
+                                    onPageChange: setCurrentPage,
+                                }}
+                            />
+                        )}
+                    </div>
                 </CardBody>
             </Card>
 
@@ -385,117 +415,217 @@ const Billing = () => {
             <Dialog
                 open={showDetailsModal}
                 handler={() => setShowDetailsModal(false)}
-                size="lg"
+                size="xl" // Increased size for split view
+                className="overflow-hidden bg-gray-50"
             >
-                <DialogHeader>Bill Details - {selectedBill?.bill_number}</DialogHeader>
-                <DialogBody divider className="max-h-[70vh] overflow-y-auto">
-                    {selectedBill ? (
-                        <div className="space-y-4">
-                            {/* Patient Info */}
-                            <div>
-                                <Typography variant="h6" className="mb-2">
-                                    Patient Information
-                                </Typography>
-                                <div className="bg-gray-50 p-4 rounded">
-                                    <p>
-                                        <strong>Name:</strong> {selectedBill.patient.first_name}{' '}
-                                        {selectedBill.patient.last_name}
-                                    </p>
-                                    <p>
-                                        <strong>Phone:</strong> {selectedBill.patient.phone}
-                                    </p>
+                {selectedBill && (
+                    <>
+                        {/* 1. Modal Header: Clean, Status-focused */}
+                        <div className="flex items-center justify-between px-6 py-4 bg-white border-b border-gray-200">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-blue-50 rounded-lg">
+                                    <DocumentTextIcon className="h-6 w-6 text-blue-600" />
                                 </div>
-                            </div>
-
-                            {/* Bill Summary */}
-                            <div>
-                                <Typography variant="h6" className="mb-2">
-                                    Bill Summary
-                                </Typography>
-                                <div className="bg-gray-50 p-4 rounded space-y-2">
-                                    <div className="flex justify-between">
-                                        <span>Total Amount:</span>
-                                        <span className="font-semibold">
-                                            {formatCurrency(selectedBill.total_amount)}
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between text-green-600">
-                                        <span>Paid Amount:</span>
-                                        <span className="font-semibold">
-                                            {formatCurrency(selectedBill.paid_amount)}
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between text-red-600">
-                                        <span>Due Amount:</span>
-                                        <span className="font-semibold">
-                                            {formatCurrency(selectedBill.due_amount)}
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between pt-2 border-t">
-                                        <span>Status:</span>
-                                        <Chip
-                                            size="sm"
-                                            value={selectedBill.status.replace('_', ' ')}
-                                            color={getStatusColor(selectedBill.status) as any}
-                                            className="capitalize"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Payment History */}
-                            {selectedBill.payments && selectedBill.payments.length > 0 && (
                                 <div>
-                                    <Typography variant="h6" className="mb-2">
-                                        Payment History
-                                    </Typography>
-                                    <div className="space-y-2">
-                                        {selectedBill.payments.map((payment) => (
-                                            <div
-                                                key={payment.id}
-                                                className="bg-gray-50 p-3 rounded flex justify-between items-center"
+                                    <div className="flex items-center gap-2">
+                                        <Typography variant="h5" color="blue-gray" className="tracking-tight">
+                                            {selectedBill.bill_number}
+                                        </Typography>
+                                        <Tooltip content="Copy ID">
+                                            <IconButton
+                                                variant="text"
+                                                size="sm"
+                                                className="h-6 w-6 rounded-full hover:bg-gray-100"
+                                                onClick={() => handleCopyId(selectedBill.bill_number)}
                                             >
-                                                <div>
-                                                    <p className="font-medium">{payment.payment_number}</p>
-                                                    <p className="text-sm text-gray-600">
-                                                        {formatDate(payment.payment_date)} •{' '}
-                                                        {payment.payment_mode}
-                                                        {payment.collector && ` • By ${payment.collector.name}`}
-                                                    </p>
-                                                </div>
-                                                <div className="text-right">
-                                                    <p className="font-semibold">
-                                                        {formatCurrency(payment.amount)}
-                                                    </p>
-                                                    <Chip
-                                                        size="sm"
-                                                        value={payment.payment_status}
-                                                        color={
-                                                            payment.payment_status === 'completed'
-                                                                ? 'green'
-                                                                : 'amber'
-                                                        }
-                                                    />
-                                                </div>
-                                            </div>
-                                        ))}
+                                                <ClipboardDocumentIcon className="h-4 w-4 text-gray-500" />
+                                            </IconButton>
+                                        </Tooltip>
+                                    </div>
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <ClockIcon className="h-3.5 w-3.5 text-gray-400" />
+                                        <Typography variant="small" className="text-gray-500 font-normal">
+                                            Created {formatDate(selectedBill.created_at)}
+                                        </Typography>
                                     </div>
                                 </div>
-                            )}
+                            </div>
+
+                            <div className="flex items-center gap-4">
+                                <div className={`px-4 py-1.5 rounded-full border ${selectedBill.status === 'paid' ? 'bg-green-50 border-green-100 text-green-700' :
+                                    selectedBill.status === 'partially_paid' ? 'bg-amber-50 border-amber-100 text-amber-700' :
+                                        'bg-gray-50 border-gray-200 text-gray-700'
+                                    }`}>
+                                    <span className="text-xs font-bold uppercase tracking-wider">
+                                        {selectedBill.status.replace('_', ' ')}
+                                    </span>
+                                </div>
+                                <IconButton variant="text" color="gray" onClick={() => setShowDetailsModal(false)}>
+                                    <XMarkIcon className="h-6 w-6" />
+                                </IconButton>
+                            </div>
                         </div>
-                    ) : (
-                        <div className="text-center p-4">Loading details...</div>
-                    )}
-                </DialogBody>
-                <DialogFooter>
-                    <Button
-                        variant="text"
-                        color="gray"
-                        onClick={() => setShowDetailsModal(false)}
-                    >
-                        Close
-                    </Button>
-                </DialogFooter>
+
+                        {/* 2. Modal Body: Split View (Content | Sidebar) */}
+                        <DialogBody className="p-0 overflow-y-auto max-h-[75vh]">
+                            <div className="flex flex-col lg:flex-row min-h-[500px]">
+
+                                {/* LEFT COLUMN: History & Data (65% width) */}
+                                <div className="flex-1 p-6 lg:p-8">
+
+                                    {/* Timeline / Meta Stats */}
+                                    <div className="grid grid-cols-2 gap-4 mb-8">
+                                        <div className="p-4 rounded-xl border border-gray-200 bg-white">
+                                            <Typography variant="small" className="text-gray-500 mb-1">Generated By</Typography>
+                                            <Typography variant="h6" color="blue-gray" className="font-medium">System Admin</Typography>
+                                            <Typography variant="small" className="text-gray-400 text-xs mt-1">Reception Desk</Typography>
+                                        </div>
+                                        <div className="p-4 rounded-xl border border-gray-200 bg-white">
+                                            <Typography variant="small" className="text-gray-500 mb-1">Finalized Date</Typography>
+                                            <Typography variant="h6" color="blue-gray" className="font-medium">
+                                                {selectedBill.finalized_at ? formatDate(selectedBill.finalized_at) : 'Pending'}
+                                            </Typography>
+                                            <Typography variant="small" className="text-gray-400 text-xs mt-1">
+                                                {selectedBill.finalized_at ? 'Ready for accounting' : 'Draft mode'}
+                                            </Typography>
+                                        </div>
+                                    </div>
+
+                                    {/* Payment History Section */}
+                                    <div className="mb-4 flex items-center justify-between">
+                                        <Typography variant="h6" color="blue-gray">Transaction History</Typography>
+                                    </div>
+
+                                    <div className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
+                                        {selectedBill.payments.length > 0 ? (
+                                            <table className="w-full text-left">
+                                                <thead className="bg-gray-50 border-b border-gray-100">
+                                                    <tr>
+                                                        <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Reference</th>
+                                                        <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
+                                                        <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Method</th>
+                                                        <th className="p-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-gray-50">
+                                                    {selectedBill.payments.map((pay) => (
+                                                        <tr key={pay.id} className="hover:bg-gray-50/50 transition-colors">
+                                                            <td className="p-4">
+                                                                <div className="font-medium text-gray-900 text-sm">{pay.payment_number}</div>
+                                                                <div className="text-xs text-gray-500">Col: {pay.collector?.name}</div>
+                                                            </td>
+                                                            <td className="p-4 text-sm text-gray-600">{formatDate(pay.payment_date)}</td>
+                                                            <td className="p-4">
+                                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 capitalize">
+                                                                    {pay.payment_mode}
+                                                                </span>
+                                                            </td>
+                                                            <td className="p-4 text-right font-medium text-green-600">
+                                                                + {formatCurrency(pay.amount)}
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        ) : (
+                                            <div className="p-8 text-center flex flex-col items-center justify-center text-gray-500">
+                                                <BanknotesIcon className="h-10 w-10 text-gray-300 mb-2" />
+                                                <p>No payments recorded for this invoice yet.</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* RIGHT SIDEBAR: Summary & Patient (35% width) */}
+                                <div className="w-full lg:w-96 bg-white border-t lg:border-t-0 lg:border-l border-gray-200 p-6 lg:p-8 flex flex-col h-auto">
+
+                                    {/* Patient Profile Widget */}
+                                    <div className="flex items-start gap-4 mb-8">
+                                        <div className="h-12 w-12 rounded-full bg-blue-600 text-white flex items-center justify-center text-lg font-bold shadow-lg shadow-blue-500/30">
+                                            {selectedBill.patient.first_name.charAt(0)}
+                                        </div>
+                                        <div>
+                                            <Typography variant="h6" color="blue-gray">
+                                                {selectedBill.patient.first_name} {selectedBill.patient.last_name}
+                                            </Typography>
+                                            <Typography variant="small" className="text-gray-500 font-normal">
+                                                ID: P-{selectedBill.patient.id}
+                                            </Typography>
+                                            <Typography variant="small" className="text-blue-600 mt-1 font-medium cursor-pointer hover:underline">
+                                                {selectedBill.patient.phone}
+                                            </Typography>
+                                        </div>
+                                    </div>
+
+                                    <hr className="border-dashed border-gray-200 mb-8" />
+
+                                    {/* Financial Summary Widget */}
+                                    <div className="space-y-4 mb-auto">
+                                        <Typography variant="small" className="font-bold text-gray-900 uppercase tracking-wider mb-4">
+                                            Payment Summary
+                                        </Typography>
+
+                                        <div className="flex justify-between items-center text-sm">
+                                            <span className="text-gray-600">Total Invoiced</span>
+                                            <span className="font-semibold text-gray-900">{formatCurrency(selectedBill.total_amount)}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center text-sm">
+                                            <span className="text-gray-600">Total Paid</span>
+                                            <span className="font-medium text-green-600">
+                                                ({formatCurrency(selectedBill.paid_amount)})
+                                            </span>
+                                        </div>
+
+                                        <div className="my-4 border-t border-gray-100"></div>
+
+                                        <div className={`p-4 rounded-xl flex items-center justify-between ${selectedBill.due_amount > 0 ? 'bg-red-50' : 'bg-green-50'
+                                            }`}>
+                                            <span className={`text-sm font-medium ${selectedBill.due_amount > 0 ? 'text-red-700' : 'text-green-700'
+                                                }`}>
+                                                Balance Due
+                                            </span>
+                                            <span className={`text-xl font-bold ${selectedBill.due_amount > 0 ? 'text-red-700' : 'text-green-700'
+                                                }`}>
+                                                {formatCurrency(selectedBill.due_amount)}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Action Buttons in Sidebar */}
+                                    <div className="mt-8 space-y-3">
+                                        {(selectedBill.status === 'finalized' || selectedBill.status === 'partially_paid') && selectedBill.due_amount > 0 && (
+                                            <Button
+                                                size="lg"
+                                                color="green"
+                                                fullWidth
+                                                className="flex items-center justify-center gap-2 shadow-green-500/20"
+                                                onClick={() => {
+                                                    setShowDetailsModal(false);
+                                                    handleCollectCash(selectedBill);
+                                                }}
+                                            >
+                                                <CreditCardIcon className="h-5 w-5" />
+                                                Collect Payment
+                                            </Button>
+                                        )}
+
+                                        <Button
+                                            size="lg"
+                                            variant="outlined"
+                                            color="blue-gray"
+                                            fullWidth
+                                            className="flex items-center justify-center gap-2 border-gray-300 text-gray-700 hover:bg-gray-50"
+                                            onClick={() => handlePrintInvoice(selectedBill.id)}
+                                        >
+                                            <PrinterIcon className="h-5 w-5" />
+                                            Print Invoice
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+                        </DialogBody>
+                    </>
+                )}
             </Dialog>
 
             {/* Payment Collection Modal */}
