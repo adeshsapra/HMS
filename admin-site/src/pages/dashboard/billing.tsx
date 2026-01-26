@@ -389,7 +389,7 @@ const Billing = () => {
             >
                 <DialogHeader>Bill Details - {selectedBill?.bill_number}</DialogHeader>
                 <DialogBody divider className="max-h-[70vh] overflow-y-auto">
-                    {selectedBill && (
+                    {selectedBill ? (
                         <div className="space-y-4">
                             {/* Patient Info */}
                             <div>
@@ -483,6 +483,8 @@ const Billing = () => {
                                 </div>
                             )}
                         </div>
+                    ) : (
+                        <div className="text-center p-4">Loading details...</div>
                     )}
                 </DialogBody>
                 <DialogFooter>

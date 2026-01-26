@@ -452,6 +452,21 @@ export default function HomeCare() {
             )
         },
         {
+            key: "bill_id", label: "Payment", render: (val: any, row: any) => (
+                row.bill ? (
+                    <span
+                        className={`px-2 py-1 rounded text-xs font-bold uppercase ${row.bill.status === 'paid' ? 'bg-green-100 text-green-800' :
+                                row.bill.status === 'partially_paid' ? 'bg-yellow-100 text-yellow-800' :
+                                    row.bill.status === 'finalized' ? 'bg-red-100 text-red-800' :
+                                        'bg-gray-100 text-gray-800'
+                            }`}
+                    >
+                        {row.bill.status === 'finalized' ? 'UNPAID' : row.bill.status.replace('_', ' ')}
+                    </span>
+                ) : <span className="text-gray-400 text-xs italic">No Bill</span>
+            )
+        },
+        {
             key: "actions", label: "Actions", render: (_: any, row: any) => (
                 <IconButton variant="text" color="blue-gray" onClick={() => handleViewRequest(row)}>
                     <EyeIcon className="h-5 w-5" />
@@ -465,18 +480,213 @@ export default function HomeCare() {
         if (!serviceIds) return [];
         let parsedIds: any[] = [];
         try {
-            parsedIds = typeof serviceIds === 'string' ? JSON.parse(serviceIds) : serviceIds;
-            if (!Array.isArray(parsedIds)) parsedIds = [parsedIds]; // Handle single ID case if any
+            // First, try to handle if it is already an array of strings (names) from backend
+            if (Array.isArray(serviceIds)) {
+                // Check if the array contains numbers (IDs) or strings (Names)
+                const isAllNumbers = serviceIds.every(id => !isNaN(parseFloat(id as any)) && isFinite(id as any));
+                if (!isAllNumbers) return serviceIds; // It's already names
+                parsedIds = serviceIds;
+            } else if (typeof serviceIds === 'string') {
+                // If it looks like a JSON array of strings/numbers
+                if (serviceIds.startsWith('[') && serviceIds.endsWith(']')) {
+                    const parsed = JSON.parse(serviceIds);
+                    // Check logic again
+                    const isAllNumbers = parsed.every((id: any) => !isNaN(parseFloat(id)) && isFinite(id));
+                    if (!isAllNumbers) return parsed; // Already names
+                    parsedIds = parsed;
+                } else {
+                    // Maybe it is a single ID as a string or a single Name as a string
+                    if (!isNaN(parseFloat(serviceIds)) && isFinite(Number(serviceIds))) {
+                        parsedIds = [serviceIds];
+                    } else {
+                        return [serviceIds]; // It is a name
+                    }
+                }
+            } else if (typeof serviceIds === 'number') {
+                parsedIds = [serviceIds];
+            } else {
+                // Unknown format
+                return [];
+            }
         } catch (e) {
             console.error("Error parsing service IDs", e);
             return [];
         }
 
-        // Ensure parsedIds accounts for strings vs numbers if necessary
+        // Now map the IDs to names using the 'services' state
         return parsedIds.map((id: any) => {
             const service = services.find(s => s.id == id);
             return service ? service.title : `Service ID: ${id}`;
         });
+    };
+
+    const RequestDetailsModal = ({ open, handleOpen, request }: any) => {
+        if (!request) return null;
+
+        return (
+            <Dialog open={open} handler={handleOpen} size="lg" className="p-0 overflow-hidden">
+                <DialogHeader className="bg-gray-50 border-b border-gray-100 p-4 flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                        <Typography variant="h5" color="blue-gray">
+                            Request Details
+                        </Typography>
+                        <Chip
+                            value={request.status}
+                            color={request.status === 'completed' ? 'green' : request.status === 'pending' ? 'orange' : 'blue'}
+                            className="rounded-full uppercase"
+                            size="sm"
+                        />
+                    </div>
+                    <IconButton variant="text" color="gray" onClick={handleOpen}>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-5 w-5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </IconButton>
+                </DialogHeader>
+                <DialogBody className="p-0 overflow-y-auto max-h-[70vh]">
+                    <div className="flex flex-col md:flex-row h-full">
+                        {/* Sidebar / Core Info */}
+                        <div className="md:w-1/3 bg-gray-50 p-6 border-r border-gray-100 space-y-6">
+                            <div>
+                                <Typography variant="small" className="font-bold text-gray-500 uppercase mb-1">Patient Info</Typography>
+                                <Typography variant="h6" color="blue-gray" className="mb-1">{request.name}</Typography>
+                                <div className="flex items-center gap-2 text-sm text-gray-600 mb-1">
+                                    <i className="fas fa-phone w-4"></i> {request.phone}
+                                </div>
+                                {request.email && (
+                                    <div className="flex items-center gap-2 text-sm text-gray-600 mb-1">
+                                        <i className="fas fa-envelope w-4"></i> {request.email}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div>
+                                <Typography variant="small" className="font-bold text-gray-500 uppercase mb-1">Schedule</Typography>
+                                <div className="p-3 bg-white rounded-lg border border-gray-200">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <i className="far fa-calendar text-blue-500"></i>
+                                        <span className="font-semibold text-gray-800">
+                                            {request.preferred_date ? new Date(request.preferred_date).toLocaleDateString() : 'N/A'}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <i className="far fa-clock text-blue-500"></i>
+                                        <span className="text-gray-600">
+                                            {request.preferred_date ? new Date(request.preferred_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Anytime'}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <Typography variant="small" className="font-bold text-gray-500 uppercase mb-1">Location</Typography>
+                                <Typography className="text-sm text-gray-700 bg-white p-3 rounded-lg border border-gray-200">
+                                    <i className="fas fa-map-marker-alt text-red-400 mr-2"></i>
+                                    {request.address || 'No address provided'}
+                                </Typography>
+                            </div>
+                        </div>
+
+                        {/* Main Content */}
+                        <div className="md:w-2/3 p-6 space-y-6">
+                            {/* Services Section */}
+                            <div>
+                                <Typography variant="h6" color="blue-gray" className="mb-3 border-b pb-2">Requested Services</Typography>
+                                <div className="grid gap-3">
+                                    {getRequestedServiceNames(request.services_requested).length > 0 ? (
+                                        getRequestedServiceNames(request.services_requested).map((serviceName: string, idx: number) => (
+                                            <div key={idx} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-100">
+                                                <span className="font-semibold text-blue-900">{serviceName}</span>
+                                                <span className="text-xs bg-white px-2 py-1 rounded text-blue-700 border border-blue-100 font-bold">SERVICE</span>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="text-center p-4 bg-gray-50 rounded-lg border border-dashed text-gray-500">
+                                            No specific services listed
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Billing & Finance Section */}
+                            <div>
+                                <div className="flex items-center justify-between mb-3 border-b pb-2">
+                                    <Typography variant="h6" color="blue-gray">Financial Overview</Typography>
+                                    {request.bill && (
+                                        <span className="text-xs text-gray-500 font-mono">Bill #{request.bill.bill_number}</span>
+                                    )}
+                                </div>
+
+                                {request.bill ? (
+                                    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+                                        <div className="p-4 grid grid-cols-2 gap-4 bg-gray-50 border-b border-gray-100">
+                                            <div>
+                                                <span className="text-xs text-gray-500 uppercase font-bold">Total Amount</span>
+                                                <div className="text-xl font-bold text-blue-gray-900">${parseFloat(request.bill.total_amount).toFixed(2)}</div>
+                                            </div>
+                                            <div className="text-right">
+                                                <span className="text-xs text-gray-500 uppercase font-bold">Bill Status</span>
+                                                <div>
+                                                    <Chip
+                                                        value={request.bill.status}
+                                                        color={request.bill.status === 'paid' ? 'green' : 'gray'}
+                                                        size="sm"
+                                                        className="inline-block"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="p-4 space-y-3">
+                                            <div className="flex justify-between text-sm">
+                                                <span className="text-gray-600">Subtotal:</span>
+                                                <span className="font-semibold">${parseFloat(request.bill.sub_total).toFixed(2)}</span>
+                                            </div>
+                                            <div className="flex justify-between text-sm">
+                                                <span className="text-gray-600">Tax:</span>
+                                                <span className="font-semibold">${parseFloat(request.bill.tax_amount || 0).toFixed(2)}</span>
+                                            </div>
+                                            <div className="border-t border-dashed my-2"></div>
+                                            <div className="flex justify-between text-base font-bold text-blue-gray-900">
+                                                <span>Total Due:</span>
+                                                <span>${parseFloat(request.bill.due_amount).toFixed(2)}</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Payments List if available */}
+                                        {request.bill.payments && request.bill.payments.length > 0 && (
+                                            <div className="border-t border-gray-200 p-4 bg-gray-50">
+                                                <Typography variant="small" className="font-bold text-gray-700 mb-2">Transaction History</Typography>
+                                                <div className="space-y-2">
+                                                    {request.bill.payments.map((payment: any, idx: number) => (
+                                                        <div key={idx} className="flex justify-between items-center text-sm p-2 bg-white rounded border border-gray-200 shadow-sm">
+                                                            <div className="flex flex-col">
+                                                                <span className="font-semibold text-gray-800">{payment.payment_mode ? payment.payment_mode.toUpperCase() : 'N/A'}</span>
+                                                                <span className="text-xs text-gray-500">{new Date(payment.created_at).toLocaleDateString()}</span>
+                                                            </div>
+                                                            <div className="text-right">
+                                                                <div className="font-bold text-green-600">+${parseFloat(payment.amount).toFixed(2)}</div>
+                                                                <span className="text-[10px] text-gray-400 capitalize">{payment.payment_status}</span>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="p-6 bg-orange-50 rounded-xl border border-orange-100 text-center">
+                                        <i className="fas fa-file-invoice-dollar text-orange-300 text-3xl mb-2"></i>
+                                        <Typography color="orange" className="font-semibold">No Bill Generated</Typography>
+                                        <p className="text-sm text-orange-600 mt-1">This request does not have an associated bill yet.</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </DialogBody>
+            </Dialog>
+        );
     };
 
     // Settings Handler
@@ -883,106 +1093,11 @@ export default function HomeCare() {
                 </CardBody>
             </Card>
 
-            {/* View Request Modal */}
-            <Dialog open={viewRequestModalOpen} handler={() => setViewRequestModalOpen(false)} size="md">
-                <DialogHeader className="flex flex-col items-start gap-1 pb-4 border-b border-blue-gray-50">
-                    <Typography variant="h5" color="blue-gray">
-                        Request Details
-                    </Typography>
-                    <Typography variant="small" className="font-normal text-gray-600">
-                        View patient request information and required services.
-                    </Typography>
-                </DialogHeader>
-                <DialogBody className="p-6 overflow-y-auto max-h-[70vh]">
-                    {selectedRequest ? (
-                        <div className="flex flex-col gap-6">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <Typography variant="small" color="blue-gray" className="font-semibold mb-1">
-                                        Patient Name
-                                    </Typography>
-                                    <Typography variant="paragraph" className="text-gray-700">
-                                        {selectedRequest.name}
-                                    </Typography>
-                                </div>
-                                <div>
-                                    <Typography variant="small" color="blue-gray" className="font-semibold mb-1">
-                                        Phone Number
-                                    </Typography>
-                                    <Typography variant="paragraph" className="text-gray-700">
-                                        {selectedRequest.phone}
-                                    </Typography>
-                                </div>
-                                <div>
-                                    <Typography variant="small" color="blue-gray" className="font-semibold mb-1">
-                                        Email
-                                    </Typography>
-                                    <Typography variant="paragraph" className="text-gray-700">
-                                        {selectedRequest.email || "N/A"}
-                                    </Typography>
-                                </div>
-                                <div>
-                                    <Typography variant="small" color="blue-gray" className="font-semibold mb-1">
-                                        Preferred Date
-                                    </Typography>
-                                    <Typography variant="paragraph" className="text-gray-700">
-                                        {selectedRequest.preferred_date ? new Date(selectedRequest.preferred_date).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Not specified'}
-                                    </Typography>
-                                </div>
-                            </div>
-
-                            <div>
-                                <Typography variant="small" color="blue-gray" className="font-semibold mb-1">
-                                    Address
-                                </Typography>
-                                <Typography variant="paragraph" className="text-gray-700 bg-gray-50 p-3 rounded-lg border border-gray-100">
-                                    {selectedRequest.address || 'Not provided'}
-                                </Typography>
-                            </div>
-
-                            <div>
-                                <Typography variant="small" color="blue-gray" className="font-semibold mb-2">
-                                    Requested Services
-                                </Typography>
-                                <div className="flex flex-wrap gap-2">
-                                    {getRequestedServiceNames(selectedRequest.services_requested).map((serviceName, index) => (
-                                        <Chip key={index} value={serviceName} className="rounded-full bg-blue-50 text-blue-900 normal-case font-medium border border-blue-100" />
-                                    ))}
-                                    {getRequestedServiceNames(selectedRequest.services_requested).length === 0 && (
-                                        <Typography variant="small" className="text-gray-500 italic">No specific services selected.</Typography>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div>
-                                <Typography variant="small" color="blue-gray" className="font-semibold mb-1">
-                                    Current Status
-                                </Typography>
-                                <Chip
-                                    value={selectedRequest.status}
-                                    className={`w-max rounded-full ${selectedRequest.status === 'pending' ? 'bg-orange-50 text-orange-900 border border-orange-100' :
-                                        selectedRequest.status === 'confirmed' ? 'bg-blue-50 text-blue-900 border border-blue-100' :
-                                            selectedRequest.status === 'completed' ? 'bg-green-50 text-green-900 border border-green-100' :
-                                                'bg-red-50 text-red-900 border border-red-100'
-                                        }`}
-                                />
-                            </div>
-
-                        </div>
-                    ) : (
-                        <div className="text-center py-8">
-                            <Typography variant="paragraph" className="text-gray-500">
-                                No request selected
-                            </Typography>
-                        </div>
-                    )}
-                </DialogBody>
-                <DialogFooter className="pt-4 border-t border-blue-gray-50">
-                    <Button variant="text" color="red" onClick={() => setViewRequestModalOpen(false)} className="mr-1">
-                        Close
-                    </Button>
-                </DialogFooter>
-            </Dialog>
+            <RequestDetailsModal
+                open={viewRequestModalOpen}
+                handleOpen={() => setViewRequestModalOpen(!viewRequestModalOpen)}
+                request={selectedRequest}
+            />
 
             <FormModal
                 open={serviceModalOpen}
