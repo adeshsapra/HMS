@@ -69,20 +69,66 @@ const MyHomeCareRequests = () => {
         return <span className={`badge ${statuses[status] || 'bg-secondary'} rounded-pill`}>{status.toUpperCase()}</span>;
     };
 
-    const formatDate = (date: string) => {
-        return new Date(date).toLocaleString('en-US', {
-            weekday: 'short',
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
+    const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
+        const [remaining, setRemaining] = useState<{ days: number; hours: number; minutes: number; seconds: number } | null>(null);
+
+        useEffect(() => {
+            const calculateTimeLeft = () => {
+                const target = new Date(targetDate).getTime();
+                const now = new Date().getTime();
+                const difference = target - now;
+
+                if (difference > 0) {
+                    return {
+                        days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+                        hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+                        minutes: Math.floor((difference / 1000 / 60) % 60),
+                        seconds: Math.floor((difference / 1000) % 60),
+                    };
+                }
+                return null;
+            };
+
+            setRemaining(calculateTimeLeft());
+            const timer = setInterval(() => {
+                setRemaining(calculateTimeLeft());
+            }, 1000);
+
+            return () => clearInterval(timer);
+        }, [targetDate]);
+
+        if (!remaining) return null;
+
+        return (
+            <div className="d-flex align-items-center gap-3 bg-white p-2 pe-4 rounded-pill shadow-sm border border-light" style={{ backdropFilter: 'blur(10px)' }}>
+                <div className="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style={{ width: '40px', height: '40px' }}>
+                    <i className="bi bi-stopwatch-fill text-primary" style={{ fontSize: '1.2rem' }}></i>
+                </div>
+                <div className="d-flex flex-column me-2">
+                    <span className="text-uppercase text-muted fw-bold" style={{ fontSize: '0.65rem', letterSpacing: '1px' }}>Starting In</span>
+                </div>
+                <div className="d-flex align-items-center gap-3">
+                    {[
+                        { val: remaining.days, label: 'd' },
+                        { val: remaining.hours, label: 'h' },
+                        { val: remaining.minutes, label: 'm' },
+                        { val: remaining.seconds, label: 's' }
+                    ].map((t, i) => (
+                        <div key={i} className="d-flex align-items-baseline gap-1">
+                            <span className="fw-bold text-dark" style={{ fontSize: '1.2rem', fontFamily: 'monospace' }}>
+                                {String(t.val).padStart(2, '0')}
+                            </span>
+                            <span className="text-muted small fw-medium text-uppercase">{t.label}</span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
     };
 
     if (loading) {
         return (
-            <div className="text-center py-5">
+            <div className="d-flex justify-content-center align-items-center min-vh-50 py-5">
                 <div className="spinner-border text-primary" role="status">
                     <span className="visually-hidden">Loading...</span>
                 </div>
@@ -91,91 +137,153 @@ const MyHomeCareRequests = () => {
     }
 
     return (
-        <div className="my-appointments-section" style={{ '--bs-primary': '#0299BE', '--bs-primary-rgb': '2, 153, 190' } as React.CSSProperties}>
-            <div className="section-header mb-4">
-                <h3>My Home Care Requests</h3>
-                <p>Track the status of your home care visits and payments.</p>
+        <div className="my-appointments-section container-fluid py-4" style={{ '--bs-primary': '#0299BE', '--bs-primary-rgb': '2, 153, 190' } as React.CSSProperties}>
+            <div className="d-flex align-items-end justify-content-between mb-5">
+                <div>
+                    <h2 className="fw-bold text-dark mb-2 d-flex align-items-center gap-2">
+                        <i className="bi bi-house-heart text-primary"></i>
+                        My Home Care
+                    </h2>
+                    <p className="text-muted mb-0 fs-5 fw-light">Manage your health visits and payments effortlessly.</p>
+                </div>
+                <button className="btn btn-outline-primary rounded-pill px-4 d-none d-md-block" onClick={() => window.location.reload()}>
+                    <i className="bi bi-arrow-clockwise me-2"></i>Refresh
+                </button>
             </div>
 
             {requests.length === 0 ? (
-                <div className="text-center py-5 bg-light rounded-3">
-                    <i className="bi bi-calendar-x text-muted" style={{ fontSize: '3rem' }}></i>
-                    <h5 className="mt-3">No Home Care Requests Found</h5>
-                    <p className="text-muted">You haven't booked any home care services yet.</p>
-                    <a href="/home-care" className="btn btn-primary mt-2">Book a Home Visit</a>
+                <div className="text-center py-5 bg-white rounded-5 shadow-lg position-relative overflow-hidden">
+                    <div className="position-absolute top-0 start-0 w-100 h-100 bg-primary opacity-0" style={{ pointerEvents: 'none', background: 'radial-gradient(circle at 50% 50%, rgba(2, 153, 190, 0.05) 0%, transparent 70%)' }}></div>
+                    <div className="mb-4">
+                        <div className="d-inline-flex bg-primary bg-opacity-10 p-4 rounded-circle mb-3 animate-bounce">
+                            <i className="bi bi-clipboard-plus text-primary display-4"></i>
+                        </div>
+                    </div>
+                    <h4 className="fw-bold text-dark">No Requests Found</h4>
+                    <p className="text-muted mb-4 col-md-6 mx-auto">You don't have any active home care requests. Schedule a visit to get quality care at your doorstep.</p>
+                    <a href="/home-care" className="btn btn-primary btn-lg rounded-pill px-5 shadow-sm hover-scale transition-all">
+                        Book Now
+                    </a>
                 </div>
             ) : (
                 <div className="row g-4">
                     {requests.map((request) => (
                         <div key={request.id} className="col-12">
-                            <div className="card border-0 shadow-sm rounded-4 overflow-hidden h-100">
-                                <div className="card-header bg-white border-bottom-0 py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
-                                    <h6 className="mb-0 fw-bold d-flex align-items-center gap-2">
-                                        <i className="bi bi-house-heart-fill text-primary fs-5"></i>
-                                        Home Visit Request
-                                    </h6>
-                                    {getStatusBadge(request.status)}
-                                </div>
-                                <div className="card-body bg-light bg-opacity-10">
-                                    <div className="row g-4">
-                                        <div className="col-md-4">
-                                            <small className="text-uppercase text-muted fw-bold" style={{ fontSize: '0.75rem' }}>Patient Details</small>
-                                            <div className="mt-2">
-                                                <p className="mb-1 fw-bold text-dark">{request.name}</p>
-                                                <p className="mb-1 text-muted small"><i className="bi bi-phone me-1"></i> {request.phone}</p>
-                                                <p className="mb-0 text-muted small"><i className="bi bi-geo-alt me-1"></i> {request.address || 'Address not provided'}</p>
-                                            </div>
-                                        </div>
-                                        <div className="col-md-4">
-                                            <small className="text-uppercase text-muted fw-bold" style={{ fontSize: '0.75rem' }}>Service Information</small>
-                                            <div className="mt-2">
-                                                <div className="mb-2">
-                                                    {getServiceNames(request.services_requested).map((svc: string, i: number) => (
-                                                        <span key={i} className="badge bg-white text-primary border me-1 mb-1">{svc}</span>
-                                                    ))}
+                            <div className="card border-0 shadow-lg rounded-4 overflow-hidden bg-white group-hover-parent transition-all" style={{ transform: 'translateZ(0)' }}>
+                                <div className="card-body p-0">
+                                    <div className="d-md-flex">
+                                        {/* Status Sidebar - Always use theme color */}
+                                        <div className="p-1 d-none d-md-block bg-primary" style={{ width: '6px' }}></div>
+
+                                        <div className="flex-grow-1 p-4">
+                                            {/* Header Row */}
+                                            <div className="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+                                                <div>
+                                                    <div className="d-flex align-items-center gap-2 mb-2">
+                                                        {getStatusBadge(request.status)}
+                                                        <span className="text-muted small fw-medium">#{request.id}</span>
+                                                    </div>
+                                                    <h3 className="fw-bold text-dark mb-1">
+                                                        {getServiceNames(request.services_requested)[0]}
+                                                    </h3>
+                                                    {getServiceNames(request.services_requested).length > 1 && (
+                                                        <span className="text-muted small">
+                                                            + {getServiceNames(request.services_requested).slice(1).join(', ')}
+                                                        </span>
+                                                    )}
                                                 </div>
-                                                <p className="mb-0 text-dark small">
-                                                    <i className="bi bi-clock me-1 text-primary"></i>
-                                                    <strong>Scheduled for:</strong><br />
-                                                    {request.preferred_date ? formatDate(request.preferred_date) : 'Date Pending'}
-                                                </p>
+
+                                                {/* Countdown Timer at Top */}
+                                                <div className="text-end">
+                                                    {request.preferred_date && (request.status === 'pending' || request.status === 'confirmed') ? (
+                                                        <CountdownTimer targetDate={request.preferred_date} />
+                                                    ) : (
+                                                        <div className="text-muted">
+                                                            <small className="fst-italic d-block mb-1" style={{ fontSize: '0.75rem' }}>
+                                                                Requested on
+                                                            </small>
+                                                            <div className="fw-bold">{new Date(request.created_at).toLocaleDateString()}</div>
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div className="col-md-4">
-                                            <small className="text-uppercase text-muted fw-bold" style={{ fontSize: '0.75rem' }}>Payment Status</small>
-                                            <div className="mt-2">
-                                                {request.bill ? (
-                                                    <div className="p-3 bg-white rounded-3 border">
-                                                        <div className="d-flex justify-content-between align-items-center mb-2">
-                                                            <span className="small text-muted">Total Amount</span>
-                                                            <span className="fw-bold text-dark">${parseFloat(request.bill.total_amount.toString()).toFixed(2)}</span>
+
+                                            {/* Content Divider */}
+                                            <hr className="border-secondary opacity-10 my-4" />
+
+                                            {/* Bottom Details Row */}
+                                            <div className="row g-0">
+                                                {/* Left Section: Patient + Schedule + Address */}
+                                                <div className="col-md-7 pe-md-4">
+                                                    <div className="d-flex align-items-start gap-4 mb-3">
+                                                        {/* Patient Info */}
+                                                        <div className="d-flex align-items-center gap-3">
+                                                            <div className="flex-shrink-0 bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold fs-5" style={{ width: '48px', height: '48px' }}>
+                                                                {request.name.charAt(0).toUpperCase()}
+                                                            </div>
+                                                            <div>
+                                                                <small className="text-uppercase text-muted fw-bold d-block mb-1" style={{ fontSize: '0.65rem', letterSpacing: '0.5px' }}>Patient</small>
+                                                                <h6 className="fw-bold text-dark mb-1">{request.name}</h6>
+                                                                <small className="text-muted d-flex align-items-center gap-1">
+                                                                    <i className="bi bi-telephone" style={{ fontSize: '0.75rem' }}></i>
+                                                                    {request.phone}
+                                                                </small>
+                                                            </div>
                                                         </div>
-                                                        <div className="d-flex justify-content-between align-items-center">
-                                                            <span className="small text-muted">Status</span>
-                                                            <span className={`badge ${request.bill.status === 'paid' ? 'bg-success' :
-                                                                request.bill.status === 'partially_paid' ? 'bg-warning' : 'bg-danger'
-                                                                } bg-opacity-10 text-${request.bill.status === 'paid' ? 'success' :
-                                                                    request.bill.status === 'partially_paid' ? 'warning' : 'danger'
-                                                                } border border-${request.bill.status === 'paid' ? 'success' :
-                                                                    request.bill.status === 'partially_paid' ? 'warning' : 'danger'
-                                                                }`}>
-                                                                {request.bill.status === 'finalized' ? 'UNPAID' : request.bill.status.toUpperCase().replace('_', ' ')}
-                                                            </span>
+
+                                                        {/* Vertical Divider */}
+                                                        <div className="vr d-none d-lg-block" style={{ opacity: 0.2 }}></div>
+
+                                                        {/* Scheduled Info */}
+                                                        <div className="d-flex align-items-center gap-3">
+                                                            <div className="flex-shrink-0 p-2 bg-primary bg-opacity-10 rounded-3 text-primary">
+                                                                <i className="bi bi-calendar-event fs-5"></i>
+                                                            </div>
+                                                            <div>
+                                                                <small className="text-uppercase text-muted fw-bold d-block mb-1" style={{ fontSize: '0.65rem', letterSpacing: '0.5px' }}>Scheduled</small>
+                                                                <div className="fw-bold text-dark mb-1">
+                                                                    {request.preferred_date ? new Date(request.preferred_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'Pending'}
+                                                                </div>
+                                                                <small className="text-muted">
+                                                                    {request.preferred_date ? new Date(request.preferred_date).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) : '--:--'}
+                                                                </small>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                ) : (
-                                                    <div className="p-3 bg-light rounded-3 border border-dashed text-center">
-                                                        <small className="text-muted">No bill generated yet.</small>
-                                                    </div>
-                                                )}
+
+                                                    {/* Address Row */}
+                                                    {request.address && (
+                                                        <div className="ps-1">
+                                                            <div className="d-flex align-items-start gap-2 p-2 bg-light bg-opacity-50 rounded-3">
+                                                                <i className="bi bi-geo-alt-fill text-primary mt-1" style={{ fontSize: '0.9rem' }}></i>
+                                                                <small className="text-muted flex-grow-1 lh-sm">{request.address}</small>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* Right Section: Billing & Cost */}
+                                                <div className="col-md-5 d-flex align-items-center justify-content-md-end mt-3 mt-md-0">
+                                                    {request.bill ? (
+                                                        <div className="bg-light rounded-4 px-4 py-3 border border-light shadow-sm">
+                                                            <div className="small text-muted fw-bold text-uppercase mb-2 text-center" style={{ fontSize: '0.65rem', letterSpacing: '0.5px' }}>Total Amount</div>
+                                                            <div className="text-center">
+                                                                <div className="h3 fw-bolder text-dark mb-2">${parseFloat(request.bill.total_amount.toString()).toFixed(2)}</div>
+                                                                <div className={`badge px-3 py-2 ${request.bill.status === 'paid' ? 'bg-primary' : 'bg-danger'} bg-opacity-10 border ${request.bill.status === 'paid' ? 'border-primary text-primary' : 'border-danger text-danger'}`}>
+                                                                    {request.bill.status === 'finalized' ? 'Unpaid' : request.bill.status.replace('_', ' ').toUpperCase()}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="d-flex flex-column align-items-center justify-content-center text-muted opacity-50 p-3">
+                                                            <i className="bi bi-receipt fs-3 mb-2"></i>
+                                                            <small className="fw-bold text-uppercase" style={{ fontSize: '0.65rem', letterSpacing: '0.5px' }}>No Bill</small>
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div className="card-footer bg-white py-3 border-top-0 d-flex justify-content-end">
-                                    <small className="text-muted me-auto align-self-center">
-                                        Requested on {new Date(request.created_at).toLocaleDateString()}
-                                    </small>
                                 </div>
                             </div>
                         </div>

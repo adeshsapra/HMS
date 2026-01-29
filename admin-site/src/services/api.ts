@@ -234,8 +234,18 @@ class ApiService {
     }
 
     // Doctor methods
-    async getDoctors(page: number = 1, perPage: number = 10) {
-        return this.get<any>(`/doctors?page=${page}&per_page=${perPage}`);
+    async getDoctors(page: number = 1, perPage: number = 10, filters?: Record<string, any>) {
+        if (!filters) {
+            return this.get<any>(`/doctors?page=${page}&per_page=${perPage}`);
+        }
+
+        let endpoint = `/doctors?page=${page}&per_page=${perPage}`;
+        Object.keys(filters).forEach(key => {
+            if (filters[key] !== null && filters[key] !== undefined && filters[key] !== '') {
+                endpoint += `&${key}=${encodeURIComponent(filters[key])}`;
+            }
+        });
+        return this.get<any>(endpoint);
     }
 
     async getDoctor(id: number) {
@@ -296,8 +306,18 @@ class ApiService {
     }
 
     // Staff methods
-    async getStaff(page: number = 1, perPage: number = 10) {
-        return this.get<any>(`/staff?page=${page}&per_page=${perPage}`);
+    async getStaff(page: number = 1, perPage: number = 10, filters?: Record<string, any>) {
+        let endpoint = `/staff?page=${page}&per_page=${perPage}`;
+
+        if (filters) {
+            Object.keys(filters).forEach(key => {
+                if (filters[key] !== null && filters[key] !== undefined && filters[key] !== '') {
+                    endpoint += `&${key}=${encodeURIComponent(filters[key])}`;
+                }
+            });
+        }
+
+        return this.get<any>(endpoint);
     }
 
     async getStaffMember(id: number) {
@@ -356,8 +376,18 @@ class ApiService {
     }
 
     // Department methods
-    async getDepartments(page: number = 1, perPage: number = 10) {
-        return this.get<any>(`/departments?page=${page}&per_page=${perPage}`);
+    async getDepartments(page: number = 1, perPage: number = 10, filters?: Record<string, any>) {
+        let endpoint = `/departments?page=${page}&per_page=${perPage}`;
+
+        if (filters) {
+            Object.keys(filters).forEach(key => {
+                if (filters[key] !== null && filters[key] !== undefined && filters[key] !== '') {
+                    endpoint += `&${key}=${encodeURIComponent(filters[key])}`;
+                }
+            });
+        }
+
+        return this.get<any>(endpoint);
     }
 
     async getDepartment(id: number) {
@@ -422,8 +452,18 @@ class ApiService {
     }
 
     // Service methods
-    async getServices(page: number = 1, perPage: number = 10) {
-        return this.get<any>(`/services?page=${page}&per_page=${perPage}`);
+    async getServices(page: number = 1, perPage: number = 10, filters?: Record<string, any>) {
+        let endpoint = `/services?page=${page}&per_page=${perPage}`;
+
+        if (filters) {
+            Object.keys(filters).forEach(key => {
+                if (filters[key] !== null && filters[key] !== undefined && filters[key] !== '') {
+                    endpoint += `&${key}=${encodeURIComponent(filters[key])}`;
+                }
+            });
+        }
+
+        return this.get<any>(endpoint);
     }
 
     async getService(id: number) {
@@ -443,8 +483,19 @@ class ApiService {
     }
 
     // Appointment methods
-    async getAppointments(page: number = 1) {
-        return this.get<any>(`/appointments?page=${page}`);
+    async getAppointments(page: number = 1, filters?: Record<string, any>) {
+        let endpoint = `/appointments?page=${page}`;
+
+        // Append filter parameters if provided
+        if (filters) {
+            Object.keys(filters).forEach(key => {
+                if (filters[key] !== null && filters[key] !== undefined && filters[key] !== '') {
+                    endpoint += `&${key}=${encodeURIComponent(filters[key])}`;
+                }
+            });
+        }
+
+        return this.get<any>(endpoint);
     }
 
     async getAppointmentsByDateRange(startDate?: string, endDate?: string) {
@@ -471,9 +522,19 @@ class ApiService {
     }
 
     // Patient methods
-    async getPatients(page: number = 1, perPage: number = 10, search?: string): Promise<ApiResponse<any>> {
+    async getPatients(page: number = 1, perPage: number = 10, search?: string, filters?: Record<string, any>): Promise<ApiResponse<any>> {
         let endpoint = `/patients?page=${page}&per_page=${perPage}`;
-        if (search) endpoint += `&search=${search}`;
+        if (search) endpoint += `&keyword=${encodeURIComponent(search)}`;
+
+        if (filters) {
+            Object.keys(filters).forEach(key => {
+                // Skip if value is empty or if it's the search keyword (which we already handled)
+                if (filters[key] !== null && filters[key] !== undefined && filters[key] !== '' && key !== 'keyword') {
+                    endpoint += `&${key}=${encodeURIComponent(filters[key])}`;
+                }
+            });
+        }
+
         return this.get<any>(endpoint);
     }
 
@@ -597,8 +658,16 @@ class ApiService {
     }
 
     // Prescription methods
-    async getPrescriptions(page: number = 1, perPage: number = 10) {
-        return this.get<any>(`/prescriptions?page=${page}&per_page=${perPage}`);
+    async getPrescriptions(page: number = 1, perPage: number = 10, filters?: Record<string, any>) {
+        let endpoint = `/prescriptions?page=${page}&per_page=${perPage}`;
+        if (filters) {
+            Object.keys(filters).forEach(key => {
+                if (filters[key] !== null && filters[key] !== undefined && filters[key] !== '') {
+                    endpoint += `&${key}=${encodeURIComponent(filters[key])}`;
+                }
+            });
+        }
+        return this.get<any>(endpoint);
     }
 
     async createPrescription(data: any) {

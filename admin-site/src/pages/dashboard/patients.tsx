@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { DataTable, FormModal, ViewModal, DeleteConfirmModal, Column, FormField, ViewField } from "@/components";
+import { DataTable, FormModal, ViewModal, DeleteConfirmModal, Column, FormField, ViewField, AdvancedFilter, FilterConfig } from "@/components";
 import { Pagination } from "@/components/Pagination";
 import { Avatar, Typography, Button } from "@material-tailwind/react";
 import { UserPlusIcon } from "@heroicons/react/24/outline";
@@ -50,14 +50,22 @@ export default function Patients(): JSX.Element {
     from: 0,
     to: 0
   });
-  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
   const { showToast } = useToast();
 
   // Fetch patients from API
-  const fetchPatients = async (page: number = 1, search?: string) => {
+  const fetchPatients = async (page: number = 1, currentFilters = activeFilters) => {
     try {
       setLoading(true);
-      const response = await apiService.getPatients(page, 10, search);
+
+      const params: any = { page };
+      if (currentFilters.keyword) params.keyword = currentFilters.keyword;
+      if (currentFilters.gender) params.gender = currentFilters.gender;
+      if (currentFilters.blood_group) params.blood_group = currentFilters.blood_group;
+      if (currentFilters.date_range_start) params.date_range_start = currentFilters.date_range_start;
+      if (currentFilters.date_range_end) params.date_range_end = currentFilters.date_range_end;
+
+      const response = await apiService.getPatients(page, 10, params.keyword, params);
 
       if (response.success) {
         setPatients(response.data);
@@ -76,15 +84,8 @@ export default function Patients(): JSX.Element {
   };
 
   useEffect(() => {
-    fetchPatients(currentPage, searchQuery);
+    fetchPatients(currentPage, activeFilters);
   }, [currentPage]);
-
-  // Handle search
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-    setCurrentPage(1);
-    fetchPatients(1, query);
-  };
 
   // Handle page change
   const handlePageChange = (page: number) => {
@@ -282,7 +283,7 @@ export default function Patients(): JSX.Element {
 
         if (response.success) {
           showToast(response.message || 'Patient deleted successfully', 'success');
-          fetchPatients(currentPage, searchQuery);
+          fetchPatients(currentPage, activeFilters);
           setOpenDeleteModal(false);
           setSelectedPatient(null);
         } else {
@@ -324,7 +325,7 @@ export default function Patients(): JSX.Element {
           (selectedPatient ? 'Patient updated successfully' : 'Patient registered successfully'),
           'success'
         );
-        fetchPatients(currentPage, searchQuery);
+        fetchPatients(currentPage, activeFilters);
         setOpenModal(false);
         setSelectedPatient(null);
       } else {
@@ -354,6 +355,76 @@ export default function Patients(): JSX.Element {
         </Button>
       </div>
 
+      <AdvancedFilter
+        config={{
+          fields: [
+            {
+              name: 'keyword',
+              label: 'Search Everywhere',
+              type: 'text',
+              placeholder: 'Search by ID, name, phone, email...'
+            },
+            {
+              name: 'gender',
+              label: 'Gender',
+              type: 'select',
+              options: [
+                { label: 'All', value: '' },
+                { label: 'Male', value: 'Male' },
+                { label: 'Female', value: 'Female' },
+                { label: 'Other', value: 'Other' }
+              ]
+            },
+            {
+              name: 'blood_group',
+              label: 'Blood Group',
+              type: 'select',
+              options: [
+                { label: 'All', value: '' },
+                { label: 'A+', value: 'A+' },
+                { label: 'A-', value: 'A-' },
+                { label: 'B+', value: 'B+' },
+                { label: 'B-', value: 'B-' },
+                { label: 'O+', value: 'O+' },
+                { label: 'O-', value: 'O-' },
+                { label: 'AB+', value: 'AB+' },
+                { label: 'AB-', value: 'AB-' }
+              ]
+            },
+            {
+              name: 'age',
+              label: 'Age',
+              type: 'number'
+            },
+            {
+              name: 'city',
+              label: 'City',
+              type: 'text'
+            },
+            {
+              name: 'state',
+              label: 'State',
+              type: 'text'
+            },
+            {
+              name: 'date_range',
+              label: 'Registration Date Range',
+              type: 'daterange'
+            }
+          ],
+          onApplyFilters: (filters) => {
+            const newFilters = { ...activeFilters, ...filters };
+            setActiveFilters(newFilters);
+            fetchPatients(1, newFilters);
+          },
+          onResetFilters: () => {
+            setActiveFilters({});
+            fetchPatients(1, {});
+          },
+          initialValues: activeFilters
+        }}
+      />
+
       <DataTable
         title="Patient Management"
         data={patients}
@@ -362,8 +433,8 @@ export default function Patients(): JSX.Element {
         onEdit={handleEdit}
         onDelete={handleDelete}
         onView={handleView}
-        searchable={true}
-        filterable={true}
+        searchable={false}
+        filterable={false}
         exportable={true}
         addButtonLabel="Register Patient"
         searchPlaceholder="Search patients..."

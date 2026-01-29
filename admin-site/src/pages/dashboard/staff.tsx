@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { DataTable, ViewModal, DeleteConfirmModal, Column, ViewField, FormModal, FormField } from "@/components";
+import { DataTable, ViewModal, DeleteConfirmModal, Column, ViewField, FormModal, FormField, AdvancedFilter, FilterConfig } from "@/components";
 import { Avatar, Typography, Button } from "@material-tailwind/react";
 import { UserPlusIcon } from "@heroicons/react/24/outline";
 import apiService from "@/services/api";
@@ -79,17 +79,18 @@ export default function Staff(): JSX.Element {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalRecords, setTotalRecords] = useState(0);
+  const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
   const perPage = 10;
 
   useEffect(() => {
-    loadStaff();
+    loadStaff(currentPage, activeFilters);
     loadDepartments();
   }, [currentPage]);
 
-  const loadStaff = async () => {
+  const loadStaff = async (page: number = currentPage, filters: Record<string, any> = activeFilters) => {
     try {
       setLoading(true);
-      const response = await apiService.getStaff(currentPage, perPage);
+      const response = await apiService.getStaff(page, perPage, filters);
       if (response.success && response.data) {
         setStaff(response.data);
         setTotalPages(response.last_page || 1);
@@ -563,33 +564,117 @@ export default function Staff(): JSX.Element {
         </Button>
       </div>
 
-      {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-        </div>
-      ) : (
-        <DataTable
-          title="Staff Management"
-          data={staff}
-          columns={columns}
-          onAdd={handleAdd}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onView={handleView}
-          searchable={true}
-          filterable={true}
-          exportable={true}
-          addButtonLabel="Add Staff"
-          searchPlaceholder="Search staff..."
-          pagination={{
-            currentPage: currentPage,
-            totalPages: totalPages,
-            totalItems: totalRecords,
-            perPage: perPage,
-            onPageChange: handlePageChange
-          }}
-        />
-      )}
+      <AdvancedFilter
+        config={{
+          fields: [
+            {
+              name: 'keyword',
+              label: 'Search Everywhere',
+              type: 'text',
+              placeholder: 'Search by ID, name, designation, email...'
+            },
+            {
+              name: 'department_id',
+              label: 'Department',
+              type: 'select',
+              options: [
+                { label: 'All Departments', value: '' },
+                ...departments.map(d => ({ label: d.name, value: d.id.toString() }))
+              ]
+            },
+            {
+              name: 'staff_type',
+              label: 'Staff Type',
+              type: 'select',
+              options: [
+                { label: 'All Types', value: '' },
+                { value: "administrative", label: "Administrative" },
+                { value: "medical", label: "Medical" },
+                { value: "nursing", label: "Nursing" },
+                { value: "technical", label: "Technical" },
+                { value: "paramedical", label: "Paramedical" },
+                { value: "support", label: "Support" },
+                { value: "pharmacy", label: "Pharmacy" },
+                { value: "management", label: "Management" }
+              ]
+            },
+            {
+              name: 'employment_status',
+              label: 'Status',
+              type: 'select',
+              options: [
+                { label: 'All Statuses', value: '' },
+                { value: "active", label: "Active" },
+                { value: "inactive", label: "Inactive" },
+                { value: "on_leave", label: "On Leave" },
+                { value: "terminated", label: "Terminated" }
+              ]
+            },
+            {
+              name: 'gender',
+              label: 'Gender',
+              type: 'select',
+              options: [
+                { label: 'All Genders', value: '' },
+                { value: "male", label: "Male" },
+                { value: "female", label: "Female" },
+                { value: "other", label: "Other" }
+              ]
+            },
+            {
+              name: 'joining_date_start',
+              label: 'Joined From',
+              type: 'date'
+            },
+            {
+              name: 'joining_date_end',
+              label: 'Joined To',
+              type: 'date'
+            }
+          ],
+          onApplyFilters: (filters) => {
+            setActiveFilters(filters);
+            setCurrentPage(1);
+            loadStaff(1, filters);
+          },
+          onResetFilters: () => {
+            setActiveFilters({});
+            setCurrentPage(1);
+            loadStaff(1, {});
+          },
+          initialValues: activeFilters
+        }}
+      />
+
+      {
+        loading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+          </div>
+        ) : (
+          <DataTable
+            title="Staff Management"
+            data={staff}
+            columns={columns}
+            onAdd={handleAdd}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onView={handleView}
+            searchable={false}
+            filterable={false}
+            exportable={true}
+            addButtonLabel="Add Staff"
+            searchPlaceholder="Search staff..."
+            pagination={{
+              currentPage: currentPage,
+              totalPages: totalPages,
+              totalItems: totalRecords,
+              perPage: perPage,
+              onPageChange: handlePageChange
+            }}
+          />
+        )
+      }
 
       <FormModal
         open={openModal}
@@ -628,6 +713,6 @@ export default function Staff(): JSX.Element {
         message="Are you sure you want to delete this staff member?"
         itemName={selectedStaff ? `${selectedStaff.first_name} ${selectedStaff.last_name}` : ""}
       />
-    </div>
+    </div >
   );
 }
