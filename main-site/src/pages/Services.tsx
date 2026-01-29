@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import AOS from 'aos'
 import PageHero from '../components/PageHero'
 import Pagination from '../components/Pagination'
+import ContentLoader from '../components/ContentLoader'
 import { serviceAPI } from '../services/api'
 
 interface Service {
@@ -415,10 +416,7 @@ const Services = () => {
               </div>
 
               {loading ? (
-                <div className="loading-spinner">
-                  <div className="spinner"></div>
-                  <p className="text-muted">Loading services...</p>
-                </div>
+                <ContentLoader message="Synchronizing Medical Services..." height="400px" />
               ) : filteredServices.length > 0 ? (
                 <>
                   <div className="row gy-4">

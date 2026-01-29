@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { patientProfileAPI } from '../services/api'
 import { useToast } from '../context/ToastContext'
+import DoctorReviewModal from './DoctorReviewModal'
 
 interface Appointment {
     id: number
+    doctor_id: number
     doctor_name: string
     doctor_specialization: string
     department_name: string
@@ -24,12 +26,6 @@ interface AppointmentFilters {
     end_date: string
 }
 
-interface AppointmentPagination {
-    current_page: number
-    last_page: number
-    total: number
-    per_page: number
-}
 
 interface MyAppointmentsProps {
     onNavigateToTestimonials?: () => void
@@ -41,12 +37,6 @@ const MyAppointments = ({ onNavigateToTestimonials }: MyAppointmentsProps) => {
     // State management
     const [appointments, setAppointments] = useState<Appointment[]>([])
     const [appointmentsLoading, setAppointmentsLoading] = useState(false)
-    const [appointmentsPagination, setAppointmentsPagination] = useState<AppointmentPagination>({
-        current_page: 1,
-        last_page: 1,
-        total: 0,
-        per_page: 10
-    })
     const [appointmentFilters, setAppointmentFilters] = useState<AppointmentFilters>({
         status: '',
         start_date: '',
@@ -57,6 +47,7 @@ const MyAppointments = ({ onNavigateToTestimonials }: MyAppointmentsProps) => {
     const [viewModalOpen, setViewModalOpen] = useState(false)
     const [rescheduleModalOpen, setRescheduleModalOpen] = useState(false)
     const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+    const [reviewModalOpen, setReviewModalOpen] = useState(false)
     const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
 
     // Time Selection State for Reschedule
@@ -94,12 +85,6 @@ const MyAppointments = ({ onNavigateToTestimonials }: MyAppointmentsProps) => {
             if (response.data.status) {
                 const paginator = response.data.data
                 setAppointments(paginator.data)
-                setAppointmentsPagination({
-                    current_page: paginator.current_page,
-                    last_page: paginator.last_page,
-                    total: paginator.total,
-                    per_page: paginator.per_page
-                })
             }
         } catch (error) {
             console.error('Error fetching appointments:', error)
@@ -191,6 +176,11 @@ const MyAppointments = ({ onNavigateToTestimonials }: MyAppointmentsProps) => {
     const handleDeleteModalOpen = (appointment: Appointment) => {
         setSelectedAppointment(appointment)
         setDeleteModalOpen(true)
+    }
+
+    const handleOpenReviewModal = (appointment: Appointment) => {
+        setSelectedAppointment(appointment)
+        setReviewModalOpen(true)
     }
 
     const handleCancelAppointment = async (appointmentId: number) => {
@@ -884,14 +874,25 @@ const MyAppointments = ({ onNavigateToTestimonials }: MyAppointmentsProps) => {
                                                     </button>
                                                 </li>
                                             )}
-                                            {appointment.status.toLowerCase() === 'completed' && onNavigateToTestimonials && (
+                                            {appointment.status.toLowerCase() === 'completed' && (
                                                 <li>
                                                     <button
                                                         className="dropdown-item py-2 rounded text-success"
-                                                        onClick={onNavigateToTestimonials}
+                                                        onClick={() => handleOpenReviewModal(appointment)}
                                                     >
                                                         <i className="bi bi-star me-2"></i>
-                                                        Rate Experience
+                                                        Rate Doctor
+                                                    </button>
+                                                </li>
+                                            )}
+                                            {appointment.status.toLowerCase() === 'completed' && onNavigateToTestimonials && (
+                                                <li>
+                                                    <button
+                                                        className="dropdown-item py-2 rounded text-info"
+                                                        onClick={onNavigateToTestimonials}
+                                                    >
+                                                        <i className="bi bi-chat-dots me-2"></i>
+                                                        Rate Site Experience
                                                     </button>
                                                 </li>
                                             )}
@@ -1159,6 +1160,19 @@ const MyAppointments = ({ onNavigateToTestimonials }: MyAppointmentsProps) => {
                         </div>
                     </div>
                 </div>
+            )}
+            {/* Review Modal */}
+            {reviewModalOpen && selectedAppointment && (
+                <DoctorReviewModal
+                    isOpen={reviewModalOpen}
+                    onClose={() => setReviewModalOpen(false)}
+                    appointment={{
+                        id: selectedAppointment.id,
+                        doctor_id: selectedAppointment.doctor_id,
+                        doctor_name: selectedAppointment.doctor_name
+                    }}
+                    onSuccess={() => fetchAppointments()}
+                />
             )}
         </div>
     )

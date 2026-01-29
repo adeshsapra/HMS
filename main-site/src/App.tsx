@@ -19,6 +19,7 @@ import ServiceDetails from './pages/ServiceDetails'
 import QuickAppointment from './pages/QuickAppointment'
 import Appointment from './pages/Appointment'
 import DoctorDetails from './pages/DoctorDetails'
+import DoctorProfile from './pages/DoctorProfile'
 import Contact from './pages/Contact'
 import Testimonials from './pages/Testimonials'
 import FAQ from './pages/FAQ'
@@ -95,6 +96,7 @@ function App() {
               <Route path="/quickappointment" element={<QuickAppointment />} />
               <Route path="/appointment" element={<Appointment />} />
               <Route path="/doctors/:id" element={<DoctorDetails />} />
+              <Route path="/doctor-profile/:id" element={<DoctorProfile />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/testimonials" element={<Testimonials />} />
               <Route path="/faq" element={<FAQ />} />
@@ -106,25 +108,25 @@ function App() {
               <Route path="/notifications" element={<Notifications />} />
               <Route path="/notifications/:id" element={<NotificationDetails />} />
               <Route path="/profile" element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            } />
-            <Route path="/payment" element={
-              <ProtectedRoute>
-                <Payment />
-              </ProtectedRoute>
-            } />
-            <Route path="/payment/success" element={
-              <ProtectedRoute>
-                <SuccessPayment />
-              </ProtectedRoute>
-            } />
-            <Route path="/payment/cancel" element={
-              <ProtectedRoute>
-                <CancelPayment />
-              </ProtectedRoute>
-            } />
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              } />
+              <Route path="/payment" element={
+                <ProtectedRoute>
+                  <Payment />
+                </ProtectedRoute>
+              } />
+              <Route path="/payment/success" element={
+                <ProtectedRoute>
+                  <SuccessPayment />
+                </ProtectedRoute>
+              } />
+              <Route path="/payment/cancel" element={
+                <ProtectedRoute>
+                  <CancelPayment />
+                </ProtectedRoute>
+              } />
 
               {/* Home Care Routes */}
               <Route path="/home-care" element={<HomeCareLanding />} />

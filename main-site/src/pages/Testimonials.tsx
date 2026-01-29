@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import AOS from 'aos'
 import PageHero from '../components/PageHero'
+import ContentLoader from '../components/ContentLoader'
 import { testimonialAPI } from '../services/api'
 
 interface Testimonial {
@@ -89,16 +90,7 @@ const Testimonials = () => {
 
       <section id="testimonials" className="testimonials section">
         {loading ? (
-          <div className="container">
-            <div className="row justify-content-center">
-              <div className="col-12 text-center">
-                <div className="spinner-border text-primary" role="status">
-                  <span className="visually-hidden">Loading testimonials...</span>
-                </div>
-                <p className="mt-3">Loading patient testimonials...</p>
-              </div>
-            </div>
-          </div>
+          <ContentLoader message="Echoing Patient Experiences..." height="400px" />
         ) : testimonials.length === 0 ? (
           <div className="container" data-aos="fade-up">
             <div className="section-title text-center">

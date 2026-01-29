@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import AOS from 'aos'
 import PageHero from '../components/PageHero'
+import ContentLoader from '../components/ContentLoader'
 import { faqAPI } from '../services/api'
 
 interface FaqItem {
@@ -142,12 +143,7 @@ const FAQ = () => {
             <div className="col-lg-8">
               <div className="faq-results" data-aos="fade-up">
                 {loading ? (
-                  <div className="text-center py-5">
-                    <div className="spinner-border text-primary" role="status">
-                      <span className="visually-hidden">Loading...</span>
-                    </div>
-                    <p className="mt-3">Loading questions...</p>
-                  </div>
+                  <ContentLoader message="Preparing knowledge base..." height="300px" />
                 ) : filteredFaqs.length === 0 ? (
                   <div className="no-results">
                     <i className="bi bi-search"></i>

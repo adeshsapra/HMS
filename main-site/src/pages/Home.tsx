@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { Link } from "react-router-dom";
 import AOS from "aos";
 import axios from "axios";
@@ -9,6 +9,7 @@ import {
   homeCareAPI,
   testimonialAPI,
 } from "../services/api";
+import ContentLoader from "../components/ContentLoader";
 import "../billing-toggle.css";
 
 interface HealthPackage {
@@ -34,6 +35,17 @@ const Home = () => {
   const [testimonials, setTestimonials] = useState<any[]>([]);
   const [loadingTestimonials, setLoadingTestimonials] = useState(true);
 
+  // Doctors State
+  const [doctors, setDoctors] = useState<any[]>([]);
+  const [filteredDoctors, setFilteredDoctors] = useState<any[]>([]);
+  const [loadingDoctors, setLoadingDoctors] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedSpecialty, setSelectedSpecialty] = useState("");
+
+  // Departments State
+  const [departments, setDepartments] = useState<any[]>([]);
+  const [loadingDepartments, setLoadingDepartments] = useState(true);
+
   useEffect(() => {
     AOS.init({
       duration: 600,
@@ -44,7 +56,37 @@ const Home = () => {
     fetchPackages();
     fetchHomeCareData();
     fetchTestimonials();
+    fetchDoctorsAndDepartments(); // Combined fetch for better performance
   }, []);
+
+  // Memoize filtered doctors to avoid recalculation on every render
+  const filteredDoctorsList = useMemo(() => {
+    let filtered = doctors;
+
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (doc) =>
+          doc.first_name?.toLowerCase().includes(query) ||
+          doc.last_name?.toLowerCase().includes(query) ||
+          doc.specialization?.toLowerCase().includes(query)
+      );
+    }
+
+    if (selectedSpecialty) {
+      const specialty = selectedSpecialty.toLowerCase();
+      filtered = filtered.filter((doc) =>
+        doc.specialization?.toLowerCase().includes(specialty)
+      );
+    }
+
+    return filtered.slice(0, 6);
+  }, [searchQuery, selectedSpecialty, doctors]);
+
+  // Update filteredDoctors when memoized list changes
+  useEffect(() => {
+    setFilteredDoctors(filteredDoctorsList);
+  }, [filteredDoctorsList]);
 
   const fetchHomeCareData = async () => {
     try {
@@ -88,12 +130,54 @@ const Home = () => {
     }
   };
 
-  const getFullImageUrl = (path: string | null) => {
+  const fetchDoctorsAndDepartments = async () => {
+    try {
+      setLoadingDoctors(true);
+      setLoadingDepartments(true);
+
+      // Fetch both in parallel for better performance
+      const [doctorsResponse, departmentsResponse] = await Promise.all([
+        doctorAPI.getAll(1, 10), // Limit to 10 doctors for homepage
+        departmentAPI.getAll(1, 6), // Limit to 6 departments for homepage
+      ]);
+
+      // Process doctors
+      if (doctorsResponse.data.success) {
+        const doctorsData = doctorsResponse.data.data.data || doctorsResponse.data.data;
+        setDoctors(doctorsData);
+        setFilteredDoctors(doctorsData.slice(0, 6));
+      }
+
+      // Process departments
+      if (departmentsResponse.data.success) {
+        const deptData = departmentsResponse.data.data.data || departmentsResponse.data.data;
+        setDepartments(deptData.slice(0, 6));
+      }
+    } catch (error) {
+      console.error("Error fetching doctors and departments:", error);
+    } finally {
+      setLoadingDoctors(false);
+      setLoadingDepartments(false);
+    }
+  };
+
+  const handleSearch = useCallback((e: React.FormEvent) => {
+    e.preventDefault();
+  }, []);
+
+  const getFullImageUrl = useCallback((path: string | null) => {
     if (!path) return "/assets/img/person/person-m-12.webp";
     if (path.startsWith("http")) return path;
     const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace("/api", "") || "http://localhost:8000";
     return `${baseUrl}/storage/${path}`;
-  };
+  }, []);
+
+  const getDepartmentImageUrl = useCallback((imageName: string | null) => {
+    if (!imageName) return "/assets/img/health/cardiology-3.webp";
+    if (imageName.startsWith("http")) return imageName;
+    const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace("/api", "") || "http://localhost:8000";
+    return `${baseUrl}/storage/departments/${imageName}`;
+  }, []);
 
   return (
     <div className="index-page">
@@ -367,7 +451,7 @@ const Home = () => {
               <div className="search-container">
                 <form
                   className="search-form"
-                  onSubmit={(e) => e.preventDefault()}
+                  onSubmit={handleSearch}
                 >
                   <div className="row g-3">
                     <div className="col-md-4">
@@ -376,6 +460,8 @@ const Home = () => {
                         className="form-control"
                         name="doctor_name"
                         placeholder="Doctor name or keyword"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
                       />
                     </div>
                     <div className="col-md-4">
@@ -383,6 +469,8 @@ const Home = () => {
                         className="form-select"
                         name="specialty"
                         id="specialty-select"
+                        value={selectedSpecialty}
+                        onChange={(e) => setSelectedSpecialty(e.target.value)}
                       >
                         <option value="">Select Specialty</option>
                         <option value="cardiology">Cardiology</option>
@@ -407,113 +495,60 @@ const Home = () => {
           </div>
 
           <div className="row" data-aos="fade-up" data-aos-delay="400">
-            {[
-              {
-                img: "staff-3.webp",
-                name: "Dr. Sarah Mitchell",
-                specialty: "Cardiology",
-                exp: "15+ years experience",
-                rating: 4.9,
-                stars: 5,
-                badge: "Available",
-                badgeClass: "online",
-              },
-              {
-                img: "staff-7.webp",
-                name: "Dr. Michael Rodriguez",
-                specialty: "Neurology",
-                exp: "12+ years experience",
-                rating: 4.7,
-                stars: 4.5,
-                badge: "In Surgery",
-                badgeClass: "busy",
-              },
-              {
-                img: "staff-1.webp",
-                name: "Dr. Emily Chen",
-                specialty: "Pediatrics",
-                exp: "8+ years experience",
-                rating: 5.0,
-                stars: 5,
-                badge: "Available",
-                badgeClass: "online",
-              },
-              {
-                img: "staff-9.webp",
-                name: "Dr. James Thompson",
-                specialty: "Orthopedics",
-                exp: "20+ years experience",
-                rating: 4.8,
-                stars: 4.5,
-                badge: "Next: Tomorrow 9AM",
-                badgeClass: "offline",
-              },
-              {
-                img: "staff-5.webp",
-                name: "Dr. Lisa Anderson",
-                specialty: "Dermatology",
-                exp: "10+ years experience",
-                rating: 4.6,
-                stars: 4,
-                badge: "Available",
-                badgeClass: "online",
-              },
-              {
-                img: "staff-12.webp",
-                name: "Dr. Robert Kim",
-                specialty: "Oncology",
-                exp: "18+ years experience",
-                rating: 4.9,
-                stars: 5,
-                badge: "Available",
-                badgeClass: "online",
-              },
-            ].map((doctor, idx) => (
-              <div key={idx} className="col-lg-4 col-md-6 mb-4">
-                <div className="doctor-card">
-                  <div className="doctor-image">
-                    <img
-                      src={`/ assets / img / health / ${doctor.img} `}
-                      alt={doctor.name}
-                      className="img-fluid"
-                    />
-                    <div className={`availability - badge ${doctor.badgeClass} `}>
-                      {doctor.badge}
+            {loadingDoctors ? (
+              <div className="col-12">
+                <ContentLoader message="Synchronizing Medical Specialists..." height="300px" />
+              </div>
+            ) : filteredDoctors.length > 0 ? (
+              filteredDoctors.map((doctor, idx) => (
+                <div key={doctor.id || idx} className="col-lg-4 col-md-6 mb-4">
+                  <div className="doctor-card">
+                    <div className="doctor-image">
+                      <img
+                        src={getFullImageUrl(doctor.profile_picture)}
+                        alt={`${doctor.first_name} ${doctor.last_name}`}
+                        className="img-fluid"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = '/assets/img/health/staff-3.webp';
+                        }}
+                      />
+                      <div className={`availability-badge ${doctor.is_available ? 'online' : 'offline'}`}>
+                        {doctor.is_available ? 'Available' : 'Unavailable'}
+                      </div>
                     </div>
-                  </div>
-                  <div className="doctor-info">
-                    <h5>{doctor.name}</h5>
-                    <p className="specialty">{doctor.specialty}</p>
-                    <p className="experience">{doctor.exp}</p>
-                    <div className="rating">
-                      {[...Array(5)].map((_, i) => (
-                        <i
-                          key={i}
-                          className={`bi bi - star${i < Math.floor(doctor.stars)
-                            ? "-fill"
-                            : i < doctor.stars
-                              ? "-half"
-                              : ""
-                            } `}
-                        ></i>
-                      ))}
-                      <span className="rating-text">({doctor.rating})</span>
-                    </div>
-                    <div className="appointment-actions">
-                      <a href="#" className="btn btn-outline-primary btn-sm">
-                        View Profile
-                      </a>
-                      <Link
-                        to="/quickappointment"
-                        className="btn btn-primary btn-sm"
-                      >
-                        Book Appointment
-                      </Link>
+                    <div className="doctor-info">
+                      <h5>{doctor.first_name} {doctor.last_name}</h5>
+                      <p className="specialty">{doctor.specialization}</p>
+                      <p className="experience">{doctor.experience_years}+ years experience</p>
+                      <div className="rating">
+                        {[...Array(5)].map((_, i) => (
+                          <i
+                            key={i}
+                            className={`bi bi-star${i < 4 ? "-fill" : ""}`}
+                          ></i>
+                        ))}
+                        <span className="rating-text">(4.8)</span>
+                      </div>
+                      <div className="appointment-actions">
+                        <Link to={`/doctor-profile/${doctor.id}`} className="btn btn-outline-primary btn-sm">
+                          View Profile
+                        </Link>
+                        <Link
+                          to={`/doctors/${doctor.id}`}
+                          className="btn btn-primary btn-sm"
+                        >
+                          Book Appointment
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 </div>
+              ))
+            ) : (
+              <div className="col-12 text-center py-5">
+                <p className="text-muted">No doctors found matching your search criteria.</p>
               </div>
-            ))}
+            )}
           </div>
         </div>
       </section>
@@ -633,72 +668,48 @@ const Home = () => {
 
         <div className="container" data-aos="fade-up" data-aos-delay="100">
           <div className="row gy-4">
-            {[
-              {
-                img: "cardiology-3.webp",
-                icon: "fa-heartbeat",
-                title: "Cardiology",
-                desc: "Comprehensive cardiovascular care with advanced diagnostic techniques and treatment options for heart conditions, ensuring optimal cardiac health for all patients.",
-              },
-              {
-                img: "neurology-2.webp",
-                icon: "fa-brain",
-                title: "Neurology",
-                desc: "Expert neurological care specializing in brain and nervous system disorders, providing cutting-edge treatments and compassionate support for neurological conditions.",
-              },
-              {
-                img: "orthopedics-4.webp",
-                icon: "fa-bone",
-                title: "Orthopedics",
-                desc: "Advanced musculoskeletal care focusing on bones, joints, and muscles with innovative surgical and non-surgical treatment approaches for mobility restoration.",
-              },
-              {
-                img: "pediatrics-3.webp",
-                icon: "fa-baby",
-                title: "Pediatrics",
-                desc: "Specialized healthcare for children from infancy through adolescence, offering comprehensive medical care in a child-friendly environment with experienced pediatric specialists.",
-              },
-              {
-                img: "oncology-4.webp",
-                icon: "fa-shield-alt",
-                title: "Oncology",
-                desc: "Comprehensive cancer care with multidisciplinary approach, offering advanced treatment options, clinical trials, and compassionate support throughout the cancer journey.",
-              },
-              {
-                img: "emergency-2.webp",
-                icon: "fa-ambulance",
-                title: "Emergency Care",
-                desc: "Round-the-clock emergency medical services with rapid response capabilities, state-of-the-art equipment, and experienced emergency physicians for critical care.",
-              },
-            ].map((dept, idx) => (
-              <div
-                key={idx}
-                className="col-lg-4 col-md-6"
-                data-aos="fade-up"
-                data-aos-delay={100 + idx * 100}
-              >
-                <div className="department-card">
-                  <div className="department-image">
-                    <img
-                      src={`/ assets / img / health / ${dept.img} `}
-                      alt={`${dept.title} Department`}
-                      className="img-fluid"
-                    />
-                  </div>
-                  <div className="department-content">
-                    <div className="department-icon">
-                      <i className={`fas ${dept.icon} `}></i>
+            {loadingDepartments ? (
+              <div className="col-12">
+                <ContentLoader message="Mapping Specialized Departments..." height="300px" />
+              </div>
+            ) : departments.length > 0 ? (
+              departments.map((dept, idx) => (
+                <div
+                  key={dept.id || idx}
+                  className="col-lg-4 col-md-6"
+                  data-aos="fade-up"
+                  data-aos-delay={100 + idx * 100}
+                >
+                  <div className="department-card">
+                    <div className="department-image">
+                      <img
+                        src={getDepartmentImageUrl(dept.image)}
+                        alt={`${dept.name} Department`}
+                        className="img-fluid"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = '/assets/img/health/cardiology-3.webp';
+                        }}
+                      />
                     </div>
-                    <h3>{dept.title}</h3>
-                    <p>{dept.desc}</p>
-                    <Link to="/department-details" className="btn-learn-more">
-                      <span>Learn More</span>
-                      <i className="fas fa-arrow-right"></i>
-                    </Link>
+                    <div className="department-content">
+                      <div className="department-icon">
+                        <i className={`fas fa-${dept.icon?.replace('bi-', '') || 'heartbeat'}`}></i>
+                      </div>
+                      <h3>{dept.name}</h3>
+                      <p>{dept.description}</p>
+                      <Link to="/department-details" className="btn-learn-more">
+                        <span>Learn More</span>
+                        <i className="fas fa-arrow-right"></i>
+                      </Link>
+                    </div>
                   </div>
                 </div>
+              ))
+            ) : (
+              <div className="col-12 text-center py-5">
+                <p className="text-muted">No departments available at the moment.</p>
               </div>
-            ))}
+            )}
           </div>
         </div>
       </section>
@@ -923,8 +934,8 @@ const Home = () => {
                 ].map((contact, idx) => (
                   <div key={idx} className="col-md-6 mb-4">
                     <div
-                      className={`contact - card ${contact.urgent ? "urgent" : ""
-                        } `}
+                      className={`contact-card ${contact.urgent ? "urgent" : ""
+                        }`}
                     >
                       <div className="card-icon">
                         <i className={contact.icon}></i>
@@ -948,7 +959,7 @@ const Home = () => {
                       </div>
                       <div className="card-action">
                         <a
-                          href={`tel:${contact.phone.replace(/\D/g, "")} `}
+                          href={`tel:${contact.phone.replace(/\D/g, "")}`}
                           className="btn btn-contact"
                         >
                           Call Now
@@ -1069,8 +1080,7 @@ const Home = () => {
                             </span>
                           )}
                           <i
-                            className={`bi ${service.icon || "bi-activity"
-                              } fs - 3 mb - 2 d - block`}
+                            className={`bi ${service.icon || "bi-activity"} fs-3 mb-2 d-block`}
                           ></i>
                           <h4>{service.title}</h4>
                           <p className="m-0 small text-muted">
@@ -1132,23 +1142,20 @@ const Home = () => {
           <div className="d-flex justify-content-center mt-4">
             <div className="billing-toggle-wrapper">
               <div
-                className={`billing - option ${billingCycle === "monthly" ? "active" : ""
-                  } `}
+                className={`billing-option ${billingCycle === "monthly" ? "active" : ""}`}
                 onClick={() => setBillingCycle("monthly")}
               >
                 Monthly
               </div>
               <div
-                className={`billing - option ${billingCycle === "yearly" ? "active" : ""
-                  } `}
+                className={`billing-option ${billingCycle === "yearly" ? "active" : ""}`}
                 onClick={() => setBillingCycle("yearly")}
               >
                 Yearly
                 {/* <span className="discount-badge">Save 20%</span> */}
               </div>
               <div
-                className={`slider - bg ${billingCycle === "yearly" ? "slide-right" : ""
-                  } `}
+                className={`slider-bg ${billingCycle === "yearly" ? "slide-right" : ""}`}
               ></div>
             </div>
           </div>
@@ -1164,7 +1171,7 @@ const Home = () => {
                 data-aos-delay={100 * (idx + 1)}
               >
                 <div
-                  className={`package - card ${pkg.featured ? "featured" : ""} `}
+                  className={`package-card ${pkg.featured ? "featured" : ""}`}
                 >
                   {pkg.featured && (
                     <div className="popular-badge">Best Value</div>
@@ -1199,8 +1206,7 @@ const Home = () => {
 
                   <Link
                     to="/book-package"
-                    className={`btn - package ${pkg.featured ? "filled" : "outline"
-                      } `}
+                    className={`btn-package ${pkg.featured ? "filled" : "outline"}`}
                   >
                     {billingCycle === "monthly"
                       ? "Book Monthly Plan"
@@ -1387,8 +1393,8 @@ const Home = () => {
                     </div>
                   ))
                 ) : loadingTestimonials ? (
-                  <div className="col-12 text-center py-5 text-white">
-                    <div className="spinner-border" role="status"></div>
+                  <div className="col-12 py-5">
+                    <ContentLoader message="Echoing Patient Stories..." height="300px" />
                   </div>
                 ) : (
                   <div className="col-12 text-center py-5 text-white-50">

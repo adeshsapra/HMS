@@ -68,7 +68,19 @@ export const doctorAPI = {
         return api.get(`/public/doctors${params.toString() ? '?' + params.toString() : ''}`);
     },
     getById: (id: number | string) => api.get(`/public/doctors/${id}`),
+    getProfile: (id: number | string) => api.get(`/public/doctors/${id}/profile`),
     getByDepartment: (departmentId: number | string) => api.get(`/public/doctors/department/${departmentId}`),
+};
+
+export const doctorReviewAPI = {
+    getDoctorReviews: (doctorId: number | string) => api.get(`/public/doctors/${doctorId}/reviews`),
+    submitReview: (data: {
+        doctor_id: number | string;
+        rating: number;
+        review?: string;
+        title?: string;
+        appointment_id?: number | string;
+    }) => api.post('/patient-profile/doctor-reviews', data),
 };
 
 export const appointmentAPI = {

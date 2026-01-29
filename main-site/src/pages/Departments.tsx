@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import AOS from 'aos'
 import PageHero from '../components/PageHero'
 import Pagination from '../components/Pagination'
+import ContentLoader from '../components/ContentLoader'
 import { departmentAPI } from '../services/api'
 
 interface Department {
@@ -457,10 +458,7 @@ const Departments = () => {
               </div>
 
               {loading ? (
-                <div className="loading-spinner">
-                  <div className="spinner"></div>
-                  <p className="text-muted">Loading departments...</p>
-                </div>
+                <ContentLoader message="Synchronizing Departments..." height="400px" />
               ) : filteredDepartments.length > 0 ? (
                 <>
                   <div className="row gy-4">
