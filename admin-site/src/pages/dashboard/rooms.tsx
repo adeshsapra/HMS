@@ -10,7 +10,7 @@ import {
   CardBody,
   Typography,
 } from "@material-tailwind/react";
-import { DataTable, FormModal, DeleteConfirmModal, Column, FormField } from "@/components";
+import { DataTable, FormModal, DeleteConfirmModal, Column, FormField, AdvancedFilter } from "@/components";
 import { ActionItem } from "@/components/DataTable";
 import ViewDetailsModal from "./ViewDetailsModal";
 import ProcessAdmissionModal from "./ProcessAdmissionModal";
@@ -106,15 +106,24 @@ export default function Rooms(): JSX.Element {
   const [viewItem, setViewItem] = useState<any>(null);
   const [viewType, setViewType] = useState<"room" | "roomType" | "bed" | "admission">("roomType");
 
+  // Filter States
+  const [roomFilters, setRoomFilters] = useState<Record<string, any>>({});
+  const [bedFilters, setBedFilters] = useState<Record<string, any>>({});
+  const [admissionFilters, setAdmissionFilters] = useState<Record<string, any>>({});
+
   // Fetch Data
-  const fetchData = async () => {
+  const fetchData = async (
+    currentRoomFilters = roomFilters,
+    currentBedFilters = bedFilters,
+    currentAdmissionFilters = admissionFilters
+  ) => {
     setLoading(true);
     try {
       const [roomsRes, roomTypesRes, bedsRes, admissionsRes] = await Promise.all([
-        apiService.getRooms(),
+        apiService.getRooms(currentRoomFilters),
         apiService.getRoomTypes(),
-        apiService.getBeds(),
-        apiService.getAdmissions() // Get all admissions
+        apiService.getBeds(currentBedFilters),
+        apiService.getAdmissions(currentAdmissionFilters)
       ]);
 
       const roomsData = Array.isArray(roomsRes) ? roomsRes : (roomsRes.data || []);
@@ -127,7 +136,10 @@ export default function Rooms(): JSX.Element {
       setBeds(bedsData as Bed[]);
       setAdmissions(admissionsData as Admission[]);
 
-      // Calculate Stats
+      // Calculate Stats (Optionally use filtered or unfiltered. Usually summary stats are unfiltered. 
+      // But for active admissions/available beds, the dashboard might benefit from filtered view? 
+      // Let's keep summary stats consistent with the whole system.)
+
       const totalRooms = roomsData.length;
       const totalBeds = bedsData.length;
       const activeAdmissions = admissionsData.filter((a: any) => a.status === 'admitted').length;
@@ -149,7 +161,7 @@ export default function Rooms(): JSX.Element {
   };
 
   useEffect(() => {
-    fetchData();
+    fetchData(roomFilters, bedFilters, admissionFilters);
   }, [activeTab]);
 
   // --- Columns Configuration ---
@@ -451,9 +463,50 @@ export default function Rooms(): JSX.Element {
                     onEdit={handleEdit}
                     onDelete={handleDelete}
                     onView={handleView}
-                    searchable={true}
-                    filterable={false}
+                    searchable={false}
                     addButtonLabel="Add Room"
+                    advancedFilter={
+                      <AdvancedFilter
+                        config={{
+                          fields: [
+                            {
+                              name: 'keyword',
+                              label: 'Search Rooms',
+                              type: 'text',
+                              placeholder: 'Search by room number...'
+                            },
+                            {
+                              name: 'room_type_id',
+                              label: 'Room Type',
+                              type: 'select',
+                              options: [
+                                { label: 'All Types', value: '' },
+                                ...roomTypes.map(rt => ({ label: rt.name, value: rt.id }))
+                              ]
+                            },
+                            {
+                              name: 'status',
+                              label: 'Status',
+                              type: 'select',
+                              options: [
+                                { label: 'All Statuses', value: 'all' },
+                                { label: 'Active', value: 'active' },
+                                { label: 'Inactive', value: 'inactive' }
+                              ]
+                            }
+                          ],
+                          onApplyFilters: (f) => {
+                            setRoomFilters(f);
+                            fetchData(f, bedFilters, admissionFilters);
+                          },
+                          onResetFilters: () => {
+                            setRoomFilters({});
+                            fetchData({}, bedFilters, admissionFilters);
+                          },
+                          initialValues: roomFilters
+                        }}
+                      />
+                    }
                   />
                 </TabPanel>
                 <TabPanel value="beds">
@@ -465,8 +518,51 @@ export default function Rooms(): JSX.Element {
                     onEdit={handleEdit}
                     onDelete={handleDelete}
                     onView={handleView}
-                    searchable={true}
+                    searchable={false}
                     addButtonLabel="Add Bed"
+                    advancedFilter={
+                      <AdvancedFilter
+                        config={{
+                          fields: [
+                            {
+                              name: 'keyword',
+                              label: 'Search Beds',
+                              type: 'text',
+                              placeholder: 'Search by bed or room...'
+                            },
+                            {
+                              name: 'room_type_id',
+                              label: 'Room Type',
+                              type: 'select',
+                              options: [
+                                { label: 'All Types', value: '' },
+                                ...roomTypes.map(rt => ({ label: rt.name, value: rt.id }))
+                              ]
+                            },
+                            {
+                              name: 'status',
+                              label: 'Status',
+                              type: 'select',
+                              options: [
+                                { label: 'All Statuses', value: 'all' },
+                                { label: 'Available', value: 'available' },
+                                { label: 'Occupied', value: 'occupied' },
+                                { label: 'Maintenance', value: 'maintenance' }
+                              ]
+                            }
+                          ],
+                          onApplyFilters: (f) => {
+                            setBedFilters(f);
+                            fetchData(roomFilters, f, admissionFilters);
+                          },
+                          onResetFilters: () => {
+                            setBedFilters({});
+                            fetchData(roomFilters, {}, admissionFilters);
+                          },
+                          initialValues: bedFilters
+                        }}
+                      />
+                    }
                   />
                 </TabPanel>
                 <TabPanel value="admissions">
@@ -478,7 +574,46 @@ export default function Rooms(): JSX.Element {
                     onDelete={handleDelete}
                     onView={handleView}
                     customActions={getAdmissionActions} // Add custom actions logic
-                    searchable={true}
+                    searchable={false}
+                    advancedFilter={
+                      <AdvancedFilter
+                        config={{
+                          fields: [
+                            {
+                              name: 'keyword',
+                              label: 'Search Patients',
+                              type: 'text',
+                              placeholder: 'Search by name or phone...'
+                            },
+                            {
+                              name: 'status',
+                              label: 'Status',
+                              type: 'select',
+                              options: [
+                                { label: 'All Statuses', value: 'all' },
+                                { label: 'Pending', value: 'pending' },
+                                { label: 'Admitted', value: 'admitted' },
+                                { label: 'Discharged', value: 'discharged' }
+                              ]
+                            },
+                            {
+                              name: 'date_range',
+                              label: 'Admit Date',
+                              type: 'daterange'
+                            }
+                          ],
+                          onApplyFilters: (f) => {
+                            setAdmissionFilters(f);
+                            fetchData(roomFilters, bedFilters, f);
+                          },
+                          onResetFilters: () => {
+                            setAdmissionFilters({});
+                            fetchData(roomFilters, bedFilters, {});
+                          },
+                          initialValues: admissionFilters
+                        }}
+                      />
+                    }
                   />
                 </TabPanel>
               </>

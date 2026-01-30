@@ -33,7 +33,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { apiService } from "@/services/api";
 import { useToast } from "@/context/ToastContext";
-import { Pagination } from "@/components/Pagination";
+import { DataTable, AdvancedFilter, Column } from "@/components";
 
 // Types
 interface LabTest {
@@ -120,16 +120,22 @@ export default function Laboratory(): JSX.Element {
     status: "active",
   });
 
+  // Filter State
+  const [filters, setFilters] = useState<Record<string, any>>({});
+
   useEffect(() => {
     const userStr = localStorage.getItem('user');
     if (userStr) {
       setCurrentUser(JSON.parse(userStr));
     }
+  }, []);
+
+  useEffect(() => {
     setCurrentPage(1); // Reset to page 1 when tab changes
-    fetchData(1);
+    fetchData(1, filters);
   }, [activeTab]);
 
-  const fetchData = async (page: number = 1) => {
+  const fetchData = async (page: number = currentPage, currentFilters = filters) => {
     setLoading(true);
     try {
       // Fetch Stats
@@ -137,12 +143,18 @@ export default function Laboratory(): JSX.Element {
       setStats(statsRes as any);
 
       // Fetch Tests based on tab
-      let statusFilter = "";
+      let statusFilter = currentFilters.status || "";
       if (activeTab === "pending_sample") statusFilter = "ordered";
       else if (activeTab === "sample_collected") statusFilter = "sample_collected";
       else if (activeTab === "completed") statusFilter = "completed";
 
-      const testsRes = await apiService.getLabTests(page, statusFilter);
+      const testsRes = await apiService.getLabTests({
+        page,
+        status: statusFilter !== "all" ? statusFilter : undefined,
+        keyword: currentFilters.keyword,
+        date_range_start: currentFilters.date_range_start,
+        date_range_end: currentFilters.date_range_end
+      });
       setTests(testsRes.data?.data || testsRes.data || []);
       setTotalPages(testsRes.data?.last_page || testsRes.data?.total_pages || 1);
     } catch (error) {
@@ -220,9 +232,76 @@ export default function Laboratory(): JSX.Element {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    fetchData(page);
+    fetchData(page, filters);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  const columns: Column[] = [
+    {
+      key: "test_name",
+      label: "Test Name",
+      render: (val, row) => (
+        <div className="flex flex-col gap-1">
+          <Typography variant="small" color="blue-gray" className="font-bold">
+            {val}
+          </Typography>
+          <Chip
+            size="sm"
+            variant="ghost"
+            value={row.priority}
+            color={row.priority === 'urgent' ? 'red' : 'blue'}
+            className="w-max rounded-full capitalize text-[10px] px-2 py-0"
+          />
+        </div>
+      )
+    },
+    {
+      key: "patient",
+      label: "Patient",
+      render: (val, row) => (
+        <Typography variant="small" color="blue-gray" className="font-normal">
+          {row.prescription?.patient
+            ? (row.prescription.patient.first_name
+              ? `${row.prescription.patient.first_name} ${row.prescription.patient.last_name || ''}`
+              : (row.prescription.patient as any).name)
+            : 'Unknown'}
+        </Typography>
+      )
+    },
+    {
+      key: "doctor",
+      label: "Doctor (Order)",
+      render: (val, row) => (
+        <Typography variant="small" color="blue-gray" className="font-normal">
+          {row.prescription?.doctor
+            ? (row.prescription.doctor.first_name
+              ? `${row.prescription.doctor.first_name} ${row.prescription.doctor.last_name}`
+              : row.prescription.doctor.user?.name)
+            : 'No Doctor'}
+        </Typography>
+      )
+    },
+    {
+      key: "status",
+      label: "Status",
+      render: (val, row) => (
+        <div className="flex flex-col gap-1">
+          <Chip
+            size="sm"
+            variant="ghost"
+            value={row.status.replace('_', ' ')}
+            color={getStatusColor(row.status) as any}
+            className="rounded-full capitalize w-max"
+          />
+          {row.report && row.report.verified_by && (
+            <div className="flex items-center gap-1 text-green-600 text-[10px] font-bold">
+              <CheckBadgeIcon className="h-3 w-3" /> Verified
+            </div>
+          )}
+        </div>
+      )
+    }
+  ];
 
   // Lab Test Functionality
   const fetchCatalogTests = async () => {
@@ -368,168 +447,97 @@ export default function Laboratory(): JSX.Element {
             </TabsHeader>
           </Tabs>
 
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-max table-auto text-left">
-              <thead>
-                <tr>
-                  <th className="border-b border-blue-gray-50 bg-blue-gray-50/50 p-4 w-[280px]">
-                    <Typography variant="small" color="blue-gray" className="font-bold opacity-70">
-                      Test Name
-                    </Typography>
-                  </th>
-                  <th className="border-b border-blue-gray-50 bg-blue-gray-50/50 p-4 w-[200px]">
-                    <Typography variant="small" color="blue-gray" className="font-bold opacity-70">
-                      Patient
-                    </Typography>
-                  </th>
-                  <th className="border-b border-blue-gray-50 bg-blue-gray-50/50 p-4 w-[180px]">
-                    <Typography variant="small" color="blue-gray" className="font-bold opacity-70">
-                      Doctor (Order)
-                    </Typography>
-                  </th>
-                  <th className="border-b border-blue-gray-50 bg-blue-gray-50/50 p-4 w-[140px]">
-                    <Typography variant="small" color="blue-gray" className="font-bold opacity-70">
-                      Status
-                    </Typography>
-                  </th>
-                  <th className="border-b border-blue-gray-50 bg-blue-gray-50/50 p-4 w-[180px]">
-                    <Typography variant="small" color="blue-gray" className="font-bold opacity-70">
-                      Action
-                    </Typography>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr>
-                    <td colSpan={5} className="p-8 text-center text-blue-gray-500">
-                      <div className="flex justify-center items-center">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-                      </div>
-                    </td>
-                  </tr>
-                ) : !tests || tests.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="p-8 text-center text-gray-500">
-                      <div className="flex flex-col items-center">
-                        <BeakerIcon className="h-12 w-12 text-gray-300 mb-2" />
-                        No tests found.
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                  tests.map((test) => (
-                    <tr key={test.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="p-4 border-b border-blue-gray-50">
-                        <div className="flex flex-col gap-1">
-                          <Typography variant="small" color="blue-gray" className="font-bold">
-                            {test.test_name}
-                          </Typography>
-                          <Chip
-                            size="sm"
-                            variant="ghost"
-                            value={test.priority}
-                            color={test.priority === 'urgent' ? 'red' : 'blue'}
-                            className="w-max rounded-full capitalize text-[10px] px-2 py-0"
-                          />
-                        </div>
-                      </td>
-                      <td className="p-4 border-b border-blue-gray-50">
-                        <div className="flex flex-col">
-                          <Typography variant="small" color="blue-gray" className="font-normal">
-                            {/* Handle both User and Patient models */}
-                            {test.prescription?.patient
-                              ? (test.prescription.patient.first_name
-                                ? `${test.prescription.patient.first_name} ${test.prescription.patient.last_name || ''}`
-                                : (test.prescription.patient as any).name)
-                              : 'Unknown'}
-                          </Typography>
-                        </div>
-                      </td>
-                      <td className="p-4 border-b border-blue-gray-50">
-                        <Typography variant="small" color="blue-gray" className="font-normal">
-                          {/* Handle Doctor name via User or Name fields */}
-                          {test.prescription?.doctor
-                            ? (test.prescription.doctor.first_name
-                              ? `${test.prescription.doctor.first_name} ${test.prescription.doctor.last_name}`
-                              : test.prescription.doctor.user?.name)
-                            : 'No Doctor'}
-                        </Typography>
-                      </td>
-                      <td className="p-4 border-b border-blue-gray-50">
-                        <div className="flex flex-col gap-1">
-                          <Chip
-                            size="sm"
-                            variant="ghost"
-                            value={test.status.replace('_', ' ')}
-                            color={getStatusColor(test.status) as any}
-                            className="rounded-full capitalize w-max"
-                          />
-                          {test.report && test.report.verified_by && (
-                            <div className="flex items-center gap-1 text-green-600 text-[10px] font-bold">
-                              <CheckBadgeIcon className="h-3 w-3" /> Verified
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                      <td className="p-4 border-b border-blue-gray-50">
-                        <div className="flex flex-wrap gap-2">
-                          {test.status === 'ordered' && !isDoctor && (
-                            <Button
-                              size="sm"
-                              variant="outlined"
-                              className="flex items-center gap-1 normal-case py-1 px-3 min-w-[100px]"
-                              onClick={() => {
-                                setSelectedTest(test);
-                                setCollectModalOpen(true);
-                                setSampleData({ ...sampleData, sample_type: 'Blood' });
-                              }}
-                            >
-                              <BeakerIcon className="h-3 w-3" /> Collect
-                            </Button>
-                          )}
-                          {test.status === 'sample_collected' && !isDoctor && (
-                            <Button
-                              size="sm"
-                              variant="filled"
-                              className="flex items-center gap-1 normal-case py-1 px-3 bg-blue-500 min-w-[100px]"
-                              onClick={() => {
-                                setSelectedTest(test);
-                                setUploadModalOpen(true);
-                                setReportData({ report_title: test.test_name + " Report", result_summary: "", file: null });
-                              }}
-                            >
-                              <DocumentArrowUpIcon className="h-3 w-3" /> Upload
-                            </Button>
-                          )}
-                          {test.status === 'completed' && test.report && (
-                            <Button
-                              size="sm"
-                              variant="text"
-                              className="flex items-center gap-1 normal-case py-1 px-3 text-blue-600 min-w-[100px]"
-                              onClick={() => {
-                                setSelectedTest(test);
-                                setViewModalOpen(true);
-                              }}
-                            >
-                              <EyeIcon className="h-3 w-3" /> View Report
-                            </Button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination */}
-          <div className="flex justify-end py-4 mx-5">
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={handlePageChange}
+          <div className="p-4">
+            <DataTable
+              title="Lab Tests"
+              data={tests}
+              columns={columns}
+              pagination={{
+                currentPage: currentPage,
+                totalPages: totalPages,
+                onPageChange: handlePageChange
+              }}
+              searchable={false}
+              advancedFilter={
+                <AdvancedFilter
+                  config={{
+                    fields: [
+                      {
+                        name: 'keyword',
+                        label: 'Search Tests',
+                        type: 'text',
+                        placeholder: 'Search by test, patient, or ID...'
+                      },
+                      {
+                        name: 'status',
+                        label: 'Status',
+                        type: 'select',
+                        options: [
+                          { label: 'All Statuses', value: 'all' },
+                          { label: 'Ordered', value: 'ordered' },
+                          { label: 'Sample Collected', value: 'sample_collected' },
+                          { label: 'Completed', value: 'completed' }
+                        ]
+                      },
+                      {
+                        name: 'date_range',
+                        label: 'Date Range',
+                        type: 'daterange'
+                      }
+                    ],
+                    onApplyFilters: (newFilters) => {
+                      setFilters(newFilters);
+                      setCurrentPage(1);
+                      fetchData(1, newFilters);
+                    },
+                    onResetFilters: () => {
+                      setFilters({});
+                      setCurrentPage(1);
+                      fetchData(1, {});
+                    },
+                    initialValues: filters
+                  }}
+                />
+              }
+              customActions={(row: any) => {
+                const actions = [];
+                const labTest = row as LabTest;
+                if (labTest.status === 'ordered' && !isDoctor) {
+                  actions.push({
+                    label: "Collect",
+                    icon: <BeakerIcon className="h-4 w-4" />,
+                    onClick: () => {
+                      setSelectedTest(labTest);
+                      setCollectModalOpen(true);
+                      setSampleData({ ...sampleData, sample_type: 'Blood' });
+                    }
+                  });
+                }
+                if (labTest.status === 'sample_collected' && !isDoctor) {
+                  actions.push({
+                    label: "Upload",
+                    icon: <DocumentArrowUpIcon className="h-4 w-4" />,
+                    color: "blue" as const,
+                    onClick: () => {
+                      setSelectedTest(labTest);
+                      setUploadModalOpen(true);
+                      setReportData({ report_title: labTest.test_name + " Report", result_summary: "", file: null });
+                    }
+                  });
+                }
+                if (labTest.status === 'completed' && labTest.report) {
+                  actions.push({
+                    label: "View Report",
+                    icon: <EyeIcon className="h-4 w-4" />,
+                    color: "blue" as const,
+                    onClick: () => {
+                      setSelectedTest(labTest);
+                      setViewModalOpen(true);
+                    }
+                  });
+                }
+                return actions;
+              }}
             />
           </div>
         </CardBody>

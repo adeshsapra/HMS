@@ -22,8 +22,9 @@ import {
     PrinterIcon,
 } from "@heroicons/react/24/outline";
 import { apiService } from '@/services/api';
-import DataTable from '@/components/DataTable';
+import DataTable, { Column } from '@/components/DataTable';
 import { useToast } from '@/context/ToastContext';
+import { AdvancedFilter } from '@/components/AdvancedFilter';
 
 interface Bill {
     id: number;
@@ -59,16 +60,15 @@ const Billing = () => {
     const { showToast } = useToast();
     const [bills, setBills] = useState<Bill[]>([]);
     const [loading, setLoading] = useState(true);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [statusFilter, setStatusFilter] = useState('all');
+    const [processingPayment, setProcessingPayment] = useState(false);
     const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
     const [showDetailsModal, setShowDetailsModal] = useState(false);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [paymentAmount, setPaymentAmount] = useState('');
     const [paymentNotes, setPaymentNotes] = useState('');
-    const [processingPayment, setProcessingPayment] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+    const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
 
     const tabs = [
         { label: "All Bills", value: "all" },
@@ -79,20 +79,17 @@ const Billing = () => {
     ];
 
     useEffect(() => {
-        fetchBills();
-    }, [currentPage, statusFilter]);
+        fetchBills(currentPage, activeFilters);
+    }, [currentPage]);
 
-    const fetchBills = async () => {
+    const fetchBills = async (page = 1, currentFilters = activeFilters) => {
         try {
             setLoading(true);
             const params: any = {
-                page: currentPage,
+                page,
                 per_page: 10,
+                ...currentFilters
             };
-
-            if (statusFilter !== 'all') {
-                params.status = statusFilter;
-            }
 
             const response = await apiService.getBills(params);
             if (response.success) {
@@ -208,16 +205,8 @@ const Billing = () => {
         });
     };
 
-    const filteredBills = bills.filter((bill) => {
-        const matchesSearch =
-            bill.bill_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            `${bill.patient.first_name} ${bill.patient.last_name}`
-                .toLowerCase()
-                .includes(searchTerm.toLowerCase());
-        return matchesSearch;
-    });
 
-    const columns: any[] = [
+    const columns: Column[] = [
         {
             label: 'Bill Number',
             key: 'bill_number',
@@ -332,46 +321,56 @@ const Billing = () => {
                     </Typography>
                 </CardHeader>
                 <CardBody className="px-0 pt-0 pb-2">
-                    {/* Filters */}
-                    <div className="mb-4 px-6">
-                        <Tabs value={statusFilter}>
-                            <TabsHeader>
-                                {tabs.map(({ label, value }) => (
-                                    <Tab
-                                        key={value}
-                                        value={value}
-                                        onClick={() => {
-                                            setStatusFilter(value);
-                                            setCurrentPage(1);
-                                        }}
-                                    >
-                                        {label}
-                                    </Tab>
-                                ))}
-                            </TabsHeader>
-                        </Tabs>
-                    </div>
-
-                    {/* Search */}
-                    <div className="mb-4 px-6">
-                        <div className="w-full md:w-96">
-                            <Input
-                                label="Search bills or patients..."
-                                icon={<MagnifyingGlassIcon className="h-5 w-5" />}
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                crossOrigin={undefined}
-                            />
-                        </div>
+                    <div className="px-6 mb-4">
+                        <AdvancedFilter
+                            config={{
+                                fields: [
+                                    {
+                                        name: 'keyword',
+                                        label: 'Search Bills',
+                                        type: 'text',
+                                        placeholder: 'Search by bill #, patient name, phone...'
+                                    },
+                                    {
+                                        name: 'status',
+                                        label: 'Status',
+                                        type: 'select',
+                                        options: [
+                                            { label: 'All Statuses', value: '' },
+                                            { label: 'Draft', value: 'draft' },
+                                            { label: 'Finalized', value: 'finalized' },
+                                            { label: 'Partially Paid', value: 'partially_paid' },
+                                            { label: 'Paid', value: 'paid' },
+                                            { label: 'Cancelled', value: 'cancelled' }
+                                        ]
+                                    },
+                                    {
+                                        name: 'date_range',
+                                        label: 'Bill Date',
+                                        type: 'daterange'
+                                    }
+                                ],
+                                onApplyFilters: (filters) => {
+                                    setActiveFilters(filters);
+                                    fetchBills(1, filters);
+                                },
+                                onResetFilters: () => {
+                                    setActiveFilters({});
+                                    fetchBills(1, {});
+                                },
+                                initialValues: activeFilters
+                            }}
+                        />
                     </div>
 
                     {/* Table */}
                     <DataTable
                         title="Billing List"
                         columns={columns}
-                        data={filteredBills}
+                        data={bills}
                         customActions={customActions}
                         searchable={false}
+                        filterable={false}
                         pagination={{
                             currentPage: currentPage,
                             totalPages: totalPages,

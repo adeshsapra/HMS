@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { DataTable, FormModal, DeleteConfirmModal, Column, FormField } from "@/components";
+import { DataTable, FormModal, DeleteConfirmModal, Column, FormField, AdvancedFilter } from "@/components";
 import { Button, Typography, Chip } from "@material-tailwind/react";
 import { UserPlusIcon, ShieldCheckIcon } from "@heroicons/react/24/outline";
 import apiService from "@/services/api";
@@ -18,26 +18,39 @@ export default function Roles(): JSX.Element {
   const { hasPermission } = useAuth();
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [filters, setFilters] = useState<Record<string, any>>({});
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [openDeleteModal, setOpenDeleteModal] = useState<boolean>(false);
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
 
   useEffect(() => {
-    loadRoles();
+    loadRoles(1, filters);
   }, []);
 
-  const loadRoles = async () => {
+  const loadRoles = async (page: number = currentPage, currentFilters = filters) => {
     try {
       setLoading(true);
-      const response = await apiService.getRoles();
+      const response = await apiService.getRoles({
+        page,
+        keyword: currentFilters.keyword
+      });
       if (response.status && response.roles) {
         setRoles(response.roles);
+        setTotalPages(response.last_page || 1);
+        setCurrentPage(response.current_page || 1);
       }
     } catch (error) {
       console.error("Failed to load roles:", error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    loadRoles(page, filters);
   };
 
   const columns: Column[] = [
@@ -113,7 +126,7 @@ export default function Roles(): JSX.Element {
       try {
         const response = await apiService.deleteRole(selectedRole.id);
         if (response.status) {
-          await loadRoles();
+          await loadRoles(currentPage, filters);
           setOpenDeleteModal(false);
           setSelectedRole(null);
         }
@@ -136,7 +149,7 @@ export default function Roles(): JSX.Element {
           description: data.description,
         });
       }
-      await loadRoles();
+      await loadRoles(currentPage, filters);
       setOpenModal(false);
       setSelectedRole(null);
     } catch (error) {
@@ -181,11 +194,39 @@ export default function Roles(): JSX.Element {
         onAdd={hasPermission("create-roles") ? handleAdd : undefined}
         onEdit={hasPermission("edit-roles") ? handleEdit : undefined}
         onDelete={hasPermission("delete-roles") ? handleDelete : undefined}
-        searchable={true}
-        filterable={true}
+        searchable={false}
         exportable={true}
         addButtonLabel="Add Role"
-        searchPlaceholder="Search roles..."
+        pagination={{
+          currentPage: currentPage,
+          totalPages: totalPages,
+          onPageChange: handlePageChange
+        }}
+        advancedFilter={
+          <AdvancedFilter
+            config={{
+              fields: [
+                {
+                  name: 'keyword',
+                  label: 'Search Roles',
+                  type: 'text',
+                  placeholder: 'Search name or description...'
+                }
+              ],
+              onApplyFilters: (f) => {
+                setFilters(f);
+                setCurrentPage(1);
+                loadRoles(1, f);
+              },
+              onResetFilters: () => {
+                setFilters({});
+                setCurrentPage(1);
+                loadRoles(1, {});
+              },
+              initialValues: filters
+            }}
+          />
+        }
       />
 
       <FormModal
