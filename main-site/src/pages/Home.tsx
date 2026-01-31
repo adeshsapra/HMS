@@ -1205,7 +1205,7 @@ const Home = () => {
                   </ul>
 
                   <Link
-                    to="/book-package"
+                    to={`/health-plans/${pkg.id}?type=${billingCycle}`}
                     className={`btn-package ${pkg.featured ? "filled" : "outline"}`}
                   >
                     {billingCycle === "monthly"

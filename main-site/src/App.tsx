@@ -41,6 +41,8 @@ import HomeCareLanding from './pages/HomeCare/HomeCareLanding'
 import BookingWizard from './pages/HomeCare/BookingWizard'
 
 
+import PlanDetails from './pages/PlanDetails'
+
 function App() {
   const location = useLocation()
   const isAuthPage = location.pathname === '/sign-in' || location.pathname === '/sign-up'
@@ -131,6 +133,13 @@ function App() {
               {/* Home Care Routes */}
               <Route path="/home-care" element={<HomeCareLanding />} />
               <Route path="/home-care/booking" element={<BookingWizard />} />
+
+              {/* Health Plan Subscription */}
+              <Route path="/health-plans/:id" element={
+                <ProtectedRoute>
+                  <PlanDetails />
+                </ProtectedRoute>
+              } />
 
               <Route path="*" element={<NotFound />} />
             </Routes>

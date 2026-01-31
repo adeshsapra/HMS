@@ -38,6 +38,7 @@ interface HealthPackage {
     features_monthly: string[];
     features_yearly: string[];
     featured: boolean;
+    metadata?: Record<string, any>;
 }
 
 const HealthPackages = () => {
@@ -52,6 +53,7 @@ const HealthPackages = () => {
         features_monthly: [],
         features_yearly: [],
         featured: false,
+        metadata: {}
     });
     const [featureInputMonthly, setFeatureInputMonthly] = useState('');
     const [featureInputYearly, setFeatureInputYearly] = useState('');
@@ -84,6 +86,13 @@ const HealthPackages = () => {
     const handleOpen = (pkg?: HealthPackage) => {
         if (pkg) {
             setCurrentPackage(pkg);
+            // Convert Object to List for UI
+            if (pkg.metadata) {
+                const list = Object.entries(pkg.metadata).map(([k, v]) => ({ key: k, value: v as any }));
+                setMetadataList(list);
+            } else {
+                setMetadataList([]);
+            }
         } else {
             setCurrentPackage({
                 title: '',
@@ -93,7 +102,9 @@ const HealthPackages = () => {
                 features_monthly: [],
                 features_yearly: [],
                 featured: false,
+                metadata: {} // Empty object
             });
+            setMetadataList([]);
         }
         setOpen(true);
     };
@@ -102,6 +113,9 @@ const HealthPackages = () => {
         setOpen(false);
         setFeatureInputMonthly('');
         setFeatureInputYearly('');
+        setMetaKey('');
+        setMetaValue('');
+        setMetadataList([]);
     };
 
     const handleSave = async () => {
@@ -110,11 +124,19 @@ const HealthPackages = () => {
                 headers: { Authorization: `Bearer ${token}` },
             };
 
+            // Convert List back to Object
+            const metadataObject = metadataList.reduce((acc, curr) => {
+                acc[curr.key] = curr.value;
+                return acc;
+            }, {} as any);
+
+            const payload = { ...currentPackage, metadata: metadataObject };
+
             if (currentPackage.id) {
-                await axios.put(`${API_URL}/health-packages/${currentPackage.id}`, currentPackage, config);
+                await axios.put(`${API_URL}/health-packages/${currentPackage.id}`, payload, config);
                 showToast('Package updated successfully', 'success');
             } else {
-                await axios.post(`${API_URL}/health-packages`, currentPackage, config);
+                await axios.post(`${API_URL}/health-packages`, payload, config);
                 showToast('Package created successfully', 'success');
             }
             fetchPackages();
@@ -177,6 +199,31 @@ const HealthPackages = () => {
         const newFeatures = [...(currentPackage.features_yearly || [])];
         newFeatures.splice(index, 1);
         setCurrentPackage({ ...currentPackage, features_yearly: newFeatures });
+    };
+
+    // --- Metadata Handlers ---
+    const [metadataList, setMetadataList] = useState<{ key: string; value: string | number | boolean }[]>([]);
+    const [metaKey, setMetaKey] = useState('');
+    const [metaValue, setMetaValue] = useState('');
+
+    const handleAddMetadata = () => {
+        if (metaKey && metaValue) {
+            // Auto-convert numbers and booleans
+            let val: string | number | boolean = metaValue;
+            if (!isNaN(Number(val))) val = Number(val);
+            if (val === 'true') val = true;
+            if (val === 'false') val = false;
+
+            setMetadataList([...metadataList, { key: metaKey, value: val }]);
+            setMetaKey('');
+            setMetaValue('');
+        }
+    };
+
+    const handleRemoveMetadata = (index: number) => {
+        const newList = [...metadataList];
+        newList.splice(index, 1);
+        setMetadataList(newList);
     };
 
     return (
@@ -382,6 +429,94 @@ const HealthPackages = () => {
                                             </ListItem>
                                         ))}
                                     </List>
+                                </div>
+                                {/* Metadata Configuration (Dynamic) */}
+                                <div className="col-span-1 md:col-span-2 mt-4 p-4 border border-blue-gray-100 rounded-lg">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <Typography variant="h6" color="blue-gray">
+                                            Package Metadata (Dynamic)
+                                        </Typography>
+                                    </div>
+
+                                    {/* Add New Metadata Pair */}
+                                    <div className="grid grid-cols-12 gap-2 mb-4 items-end">
+                                        <div className="col-span-5">
+                                            <Input
+                                                label="Key (e.g., consultation_discount)"
+                                                value={metaKey}
+                                                onChange={(e) => setMetaKey(e.target.value)}
+                                                crossOrigin={undefined}
+                                            />
+                                        </div>
+                                        <div className="col-span-5">
+                                            <Input
+                                                label="Value (e.g., 10 or true)"
+                                                value={metaValue}
+                                                onChange={(e) => setMetaValue(e.target.value)}
+                                                crossOrigin={undefined}
+                                            />
+                                        </div>
+                                        <div className="col-span-2">
+                                            <Button
+                                                size="sm"
+                                                className="w-full flex justify-center items-center"
+                                                onClick={handleAddMetadata}
+                                                disabled={!metaKey || !metaValue}
+                                            >
+                                                <PlusIcon className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    </div>
+
+                                    {/* Metadata List */}
+                                    <div className="bg-gray-50 rounded-lg p-3 min-h-[100px]">
+                                        {metadataList.length === 0 ? (
+                                            <p className="text-sm text-gray-500 text-center py-4">No metadata configured</p>
+                                        ) : (
+                                            <div className="flex flex-col gap-2">
+                                                {metadataList.map((item, idx) => (
+                                                    <div key={idx} className="flex justify-between items-center bg-white p-2 border border-gray-200 rounded shadow-sm">
+                                                        <div className="flex gap-2">
+                                                            <span className="font-semibold text-xs text-blue-800 bg-blue-50 px-2 py-1 rounded">
+                                                                {item.key}
+                                                            </span>
+                                                            <span className="text-sm text-gray-700 font-mono">
+                                                                {item.value.toString()}
+                                                            </span>
+                                                        </div>
+                                                        <IconButton
+                                                            variant="text"
+                                                            color="red"
+                                                            size="sm"
+                                                            onClick={() => handleRemoveMetadata(idx)}
+                                                        >
+                                                            <TrashIcon className="h-4 w-4" />
+                                                        </IconButton>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Usage Note */}
+                                    <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded text-xs text-blue-gray-700">
+                                        <div className="font-semibold mb-1">How it works:</div>
+                                        <p className="mb-2">
+                                            Metadata stores dynamic features as JSON in the database. These keys are used by the system to apply logic automatically.
+                                        </p>
+                                        <div className="font-semibold mb-1">Examples:</div>
+                                        <ul className="list-disc pl-4 space-y-1">
+                                            <li>
+                                                <span className="font-mono bg-white px-1 rounded text-blue-900">consultation_discount</span> : <span className="font-mono bg-white px-1 rounded text-green-700">100</span> (100% off)
+                                            </li>
+                                            <li>
+                                                <span className="font-mono bg-white px-1 rounded text-blue-900">priority_support</span> : <span className="font-mono bg-white px-1 rounded text-green-700">true</span> (Enable feature)
+                                            </li>
+                                            <li>
+                                                <span className="font-mono bg-white px-1 rounded text-blue-900">covered_members</span> : <span className="font-mono bg-white px-1 rounded text-green-700">4</span> (Limit setup)
+                                            </li>
+                                        </ul>
+                                    </div>
                                 </div>
                             </div>
                         </DialogBody>

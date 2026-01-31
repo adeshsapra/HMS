@@ -264,6 +264,16 @@ export const faqAPI = {
     getAll: () => api.get('/public/faqs'),
 };
 
+export const subscriptionAPI = {
+    subscribe: (data: { package_id: number; type: 'monthly' | 'yearly'; payment_details: any }) =>
+        api.post('/subscriptions/subscribe', data),
+    getCurrentSubscription: () => api.get('/subscriptions/current'),
+    getSubscriptionHistory: () => api.get('/subscriptions/history'),
+    // Also exposing public package fetching here if needed, or keeping in default api call
+    getPackages: () => api.get('/public/health-packages'),
+    getPackageById: (id: number) => api.get(`/public/health-packages/${id}`),
+};
+
 // Unified ApiService export for backward compatibility
 export const ApiService = {
     // Billing methods
