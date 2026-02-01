@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { DataTable, Column, FormModal, FormField } from "@/components";
+import { DataTable, Column, FormModal, FormField, AdvancedFilter } from "@/components";
 import {
   Card,
   CardBody,
@@ -43,9 +43,12 @@ export default function UserRoles(): JSX.Element {
   const [saving, setSaving] = useState(false);
   const [openCreateModal, setOpenCreateModal] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [filters, setFilters] = useState<Record<string, any>>({});
 
   useEffect(() => {
-    loadData();
+    loadData(1, filters);
   }, []);
 
   useEffect(() => {
@@ -54,26 +57,38 @@ export default function UserRoles(): JSX.Element {
     }
   }, [selectedUser]);
 
-  const loadData = async () => {
+  const loadData = async (page: number = currentPage, currentFilters = filters) => {
     try {
       setLoading(true);
       const [usersResponse, rolesResponse] = await Promise.all([
-        apiService.getUserRoles(),
-        apiService.getRoles(),
+        apiService.getUserRoles({
+          page,
+          keyword: currentFilters.keyword,
+          role_id: currentFilters.role_id
+        }),
+        apiService.getRoles({ per_page: 100 }), // Get all roles for select dropdown
       ]);
 
       if (usersResponse.status && usersResponse.users) {
         setUsers(usersResponse.users);
+        setTotalPages(usersResponse.last_page || 1);
+        setCurrentPage(usersResponse.current_page || 1);
       }
 
-      if (rolesResponse.status && rolesResponse.roles) {
-        setRoles(rolesResponse.roles);
+      const rolesData = rolesResponse.roles || rolesResponse;
+      if (rolesData) {
+        setRoles(Array.isArray(rolesData) ? rolesData : (rolesData.data || []));
       }
     } catch (error) {
       console.error("Failed to load data:", error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    loadData(page, filters);
   };
 
   const handleAssignRole = async () => {
@@ -86,7 +101,7 @@ export default function UserRoles(): JSX.Element {
         parseInt(selectedRoleId)
       );
       if (response.status) {
-        await loadData();
+        await loadData(currentPage, filters);
         setSelectedUser(null);
         setSelectedRoleId("");
         alert("Role assigned successfully!");
@@ -110,7 +125,7 @@ export default function UserRoles(): JSX.Element {
         role_id: parseInt(data.role_id),
       });
       if (response.status) {
-        await loadData();
+        await loadData(currentPage, filters);
         setOpenCreateModal(false);
         alert("User created successfully!");
       }
@@ -251,9 +266,46 @@ export default function UserRoles(): JSX.Element {
               title="Users"
               data={users}
               columns={columns}
-              searchable={true}
-              filterable={true}
-              searchPlaceholder="Search users..."
+              searchable={false}
+              pagination={{
+                currentPage: currentPage,
+                totalPages: totalPages,
+                onPageChange: handlePageChange
+              }}
+              advancedFilter={
+                <AdvancedFilter
+                  config={{
+                    fields: [
+                      {
+                        name: 'keyword',
+                        label: 'Search Users',
+                        type: 'text',
+                        placeholder: 'Search name, email, phone...'
+                      },
+                      {
+                        name: 'role_id',
+                        label: 'Role',
+                        type: 'select',
+                        options: [
+                          { label: 'All Roles', value: 'all' },
+                          ...roles.map(r => ({ label: r.name, value: r.id }))
+                        ]
+                      }
+                    ],
+                    onApplyFilters: (f) => {
+                      setFilters(f);
+                      setCurrentPage(1);
+                      loadData(1, f);
+                    },
+                    onResetFilters: () => {
+                      setFilters({});
+                      setCurrentPage(1);
+                      loadData(1, {});
+                    },
+                    initialValues: filters
+                  }}
+                />
+              }
             />
           </div>
 

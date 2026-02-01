@@ -33,7 +33,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { apiService } from "@/services/api";
 import { useToast } from "@/context/ToastContext";
-import { DataTable, Column, ViewModal, ViewField } from "@/components";
+import { DataTable, Column, ViewModal, ViewField, AdvancedFilter } from "@/components";
 
 // Get default page size from settings or use 10 as default
 const DEFAULT_PAGE_SIZE = parseInt(localStorage.getItem('settings_page_size') || '10', 10);
@@ -99,19 +99,24 @@ export default function Pharmacy(): JSX.Element {
   const [historyPage, setHistoryPage] = useState(1);
   const [historyTotalPages, setHistoryTotalPages] = useState(1);
 
+  // Filter states
+  const [prescriptionFilters, setPrescriptionFilters] = useState<Record<string, any>>({});
+  const [medicineFilters, setMedicineFilters] = useState<Record<string, any>>({});
+  const [historyFilters, setHistoryFilters] = useState<Record<string, any>>({});
+
   useEffect(() => {
     loadStats();
   }, [activeTab]);
 
   useEffect(() => {
     if (activeTab === "pending") {
-      loadPrescriptions();
+      loadPrescriptions(prescriptionPage, prescriptionFilters);
     }
   }, [activeTab, prescriptionPage]);
 
   useEffect(() => {
     if (activeTab === "inventory") {
-      loadMedicines();
+      loadMedicines(medicinePage, medicineFilters);
     }
   }, [activeTab, medicinePage]);
 
@@ -123,7 +128,7 @@ export default function Pharmacy(): JSX.Element {
 
   useEffect(() => {
     if (activeTab === "history") {
-      loadDispensingHistory();
+      loadDispensingHistory(historyPage, historyFilters);
     }
   }, [activeTab, historyPage]);
 
@@ -149,12 +154,12 @@ export default function Pharmacy(): JSX.Element {
     }
   };
 
-  const loadPrescriptions = async () => {
+  const loadPrescriptions = async (page = 1, currentFilters = prescriptionFilters) => {
     try {
       setLoading(true);
       const response = await apiService.getPharmacyPrescriptions({
-        status: "pending_dispense",
-        page: prescriptionPage,
+        ...currentFilters,
+        page,
         per_page: DEFAULT_PAGE_SIZE,
       });
       setPrescriptions(response.data?.data || []);
@@ -166,11 +171,12 @@ export default function Pharmacy(): JSX.Element {
     }
   };
 
-  const loadMedicines = async () => {
+  const loadMedicines = async (page = 1, currentFilters = medicineFilters) => {
     try {
       setLoading(true);
       const response = await apiService.getMedicines({
-        page: medicinePage,
+        ...currentFilters,
+        page,
         per_page: DEFAULT_PAGE_SIZE,
       });
       setMedicines(response.data?.data || []);
@@ -194,11 +200,12 @@ export default function Pharmacy(): JSX.Element {
     }
   };
 
-  const loadDispensingHistory = async () => {
+  const loadDispensingHistory = async (page = 1, currentFilters = historyFilters) => {
     try {
       setLoading(true);
       const response = await apiService.getDispensingHistory({
-        page: historyPage,
+        ...currentFilters,
+        page,
         per_page: DEFAULT_PAGE_SIZE,
       });
       setDispensingHistory(response.data?.data || []);
@@ -806,7 +813,46 @@ export default function Pharmacy(): JSX.Element {
                     title="Pending Prescriptions"
                     data={prescriptions}
                     columns={prescriptionColumns}
-                    searchable={true}
+                    advancedFilter={
+                      <AdvancedFilter
+                        config={{
+                          fields: [
+                            {
+                              name: 'keyword',
+                              label: 'Search Prescriptions',
+                              type: 'text',
+                              placeholder: 'Search by ID, patient name...'
+                            },
+                            {
+                              name: 'status',
+                              label: 'Status',
+                              type: 'select',
+                              options: [
+                                { label: 'All', value: 'all' },
+                                { label: 'Pending Dispense', value: 'pending_dispense' },
+                                { label: 'Partially Dispensed', value: 'partially_dispensed' },
+                                { label: 'Dispensed', value: 'dispensed' }
+                              ]
+                            },
+                            {
+                              name: 'date_range',
+                              label: 'Date Range',
+                              type: 'daterange'
+                            }
+                          ],
+                          onApplyFilters: (filters) => {
+                            setPrescriptionFilters(filters);
+                            loadPrescriptions(1, filters);
+                          },
+                          onResetFilters: () => {
+                            setPrescriptionFilters({});
+                            loadPrescriptions(1, {});
+                          },
+                          initialValues: prescriptionFilters
+                        }}
+                      />
+                    }
+                    searchable={false}
                     pagination={{
                       currentPage: prescriptionPage,
                       totalPages: prescriptionTotalPages,
@@ -852,7 +898,54 @@ export default function Pharmacy(): JSX.Element {
                       title="Medicine Inventory"
                       data={medicines}
                       columns={medicineColumns}
-                      searchable={true}
+                      advancedFilter={
+                        <AdvancedFilter
+                          config={{
+                            fields: [
+                              {
+                                name: 'search',
+                                label: 'Search Medicines',
+                                type: 'text',
+                                placeholder: 'Search by name, generic name...'
+                              },
+                              {
+                                name: 'category',
+                                label: 'Category',
+                                type: 'select',
+                                options: [
+                                  { label: 'All Categories', value: '' },
+                                  { label: 'Tablet', value: 'tablet' },
+                                  { label: 'Capsule', value: 'capsule' },
+                                  { label: 'Syrup', value: 'syrup' },
+                                  { label: 'Injection', value: 'injection' },
+                                  { label: 'Other', value: 'other' }
+                                ]
+                              },
+                              {
+                                name: 'status',
+                                label: 'Status',
+                                type: 'select',
+                                options: [
+                                  { label: 'All Statuses', value: '' },
+                                  { label: 'Active', value: 'active' },
+                                  { label: 'Inactive', value: 'inactive' },
+                                  { label: 'Discontinued', value: 'discontinued' }
+                                ]
+                              }
+                            ],
+                            onApplyFilters: (filters) => {
+                              setMedicineFilters(filters);
+                              loadMedicines(1, filters);
+                            },
+                            onResetFilters: () => {
+                              setMedicineFilters({});
+                              loadMedicines(1, {});
+                            },
+                            initialValues: medicineFilters
+                          }}
+                        />
+                      }
+                      searchable={false}
                       pagination={{
                         currentPage: medicinePage,
                         totalPages: medicineTotalPages,
@@ -922,7 +1015,35 @@ export default function Pharmacy(): JSX.Element {
                         render: (value: any) => value?.name || "N/A",
                       },
                     ]}
-                    searchable={true}
+                    advancedFilter={
+                      <AdvancedFilter
+                        config={{
+                          fields: [
+                            {
+                              name: 'keyword',
+                              label: 'Search History',
+                              type: 'text',
+                              placeholder: 'Search by ID, patient, medicine...'
+                            },
+                            {
+                              name: 'date_range',
+                              label: 'Date Range',
+                              type: 'daterange'
+                            }
+                          ],
+                          onApplyFilters: (filters) => {
+                            setHistoryFilters(filters);
+                            loadDispensingHistory(1, filters);
+                          },
+                          onResetFilters: () => {
+                            setHistoryFilters({});
+                            loadDispensingHistory(1, {});
+                          },
+                          initialValues: historyFilters
+                        }}
+                      />
+                    }
+                    searchable={false}
                     pagination={{
                       currentPage: historyPage,
                       totalPages: historyTotalPages,

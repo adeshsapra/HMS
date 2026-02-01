@@ -8,7 +8,9 @@ export * from "./ProtectedRoute";
 export * from "./PermissionWrapper";
 export * from "./Pagination";
 export * from "./PrescriptionModal";
+export * from "./AdvancedFilter";
 
 export type { Column, DataTableProps } from "./DataTable";
 export type { FormField, FormModalProps } from "./FormModal";
 export type { ViewField, ViewModalProps } from "./ViewModal";
+export type { FilterField, FilterConfig } from "./AdvancedFilter";

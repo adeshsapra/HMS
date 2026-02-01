@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
-import { DataTable, FormModal, DeleteConfirmModal, Column, FormField } from "@/components";
+import React, { useState, useEffect } from "react";
+import { DataTable, FormModal, DeleteConfirmModal, Column, FormField, AdvancedFilter } from "@/components";
 import { Button, Typography, Chip } from "@material-tailwind/react";
 import { KeyIcon, PlusIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
 import apiService from "@/services/api";
@@ -14,104 +14,44 @@ interface Permission {
   description?: string;
 }
 
-// Custom Select Component for filter
-const FilterSelect = ({
-  value,
-  onChange,
-  options,
-  label,
-}: {
-  value: string;
-  onChange: (value: string) => void;
-  options: { value: string; label: string }[];
-  label: string;
-}) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const selectRef = useRef<HTMLDivElement>(null);
-
-  const selectedOption = options.find((opt) => opt.value === value);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (selectRef.current && !selectRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  return (
-    <div className="relative w-64" ref={selectRef}>
-      <label className="block text-xs font-medium text-blue-gray-600 mb-1">
-        {label}
-      </label>
-      <div
-        onClick={() => setIsOpen(!isOpen)}
-        className={`w-full px-3 py-2.5 text-sm bg-white border rounded-lg cursor-pointer flex items-center justify-between transition-all ${isOpen
-          ? "border-purple-500 ring-1 ring-purple-500"
-          : "border-blue-gray-200 hover:border-blue-gray-400"
-          }`}
-      >
-        <span className="text-blue-gray-700">
-          {selectedOption ? selectedOption.label : "Select..."}
-        </span>
-        <ChevronDownIcon
-          className={`h-4 w-4 text-blue-gray-500 transition-transform ${isOpen ? "rotate-180" : ""}`}
-        />
-      </div>
-      {isOpen && (
-        <div className="absolute z-50 w-full mt-1 bg-white border border-blue-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-          {options.map((option) => (
-            <div
-              key={option.value}
-              onClick={() => {
-                onChange(option.value);
-                setIsOpen(false);
-              }}
-              className={`px-3 py-2.5 text-sm cursor-pointer transition-colors ${value === option.value
-                ? "bg-purple-50 text-purple-700 font-medium"
-                : "text-blue-gray-700 hover:bg-blue-gray-50"
-                }`}
-            >
-              {option.label}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
 
 export default function Permissions(): JSX.Element {
   const { hasPermission } = useAuth();
   const [permissions, setPermissions] = useState<Permission[]>([]);
-  const [filteredPermissions, setFilteredPermissions] = useState<Permission[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [filters, setFilters] = useState<Record<string, any>>({});
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [openDeleteModal, setOpenDeleteModal] = useState<boolean>(false);
   const [selectedPermission, setSelectedPermission] = useState<Permission | null>(null);
-  const [selectedModule, setSelectedModule] = useState<string>("all");
   const [modules, setModules] = useState<string[]>([]);
 
   useEffect(() => {
-    loadPermissions();
+    loadPermissions(1, filters);
   }, []);
 
-  useEffect(() => {
-    filterPermissions();
-  }, [selectedModule, permissions]);
-
-  const loadPermissions = async () => {
+  const loadPermissions = async (page: number = currentPage, currentFilters = filters) => {
     try {
       setLoading(true);
-      const response = await apiService.getPermissions();
+      const response = await apiService.getPermissions({
+        page,
+        module: currentFilters.module,
+        keyword: currentFilters.keyword
+      });
       if (response.status && response.permissions) {
         setPermissions(response.permissions);
-        const uniqueModules = Array.from(
-          new Set(response.permissions.map((p: Permission) => p.module).filter(Boolean))
-        ) as string[];
-        setModules(uniqueModules.sort());
+        setTotalPages(response.last_page || 1);
+        setCurrentPage(response.current_page || 1);
+
+        // Also fetch modules if not already fetched (for filter dropdown)
+        if (modules.length === 0) {
+          const allRes = await apiService.getPermissions({ per_page: 500 });
+          const uniqueModules = Array.from(
+            new Set(allRes.permissions.map((p: Permission) => p.module).filter(Boolean))
+          ) as string[];
+          setModules(uniqueModules.sort());
+        }
       }
     } catch (error) {
       console.error("Failed to load permissions:", error);
@@ -120,15 +60,11 @@ export default function Permissions(): JSX.Element {
     }
   };
 
-  const filterPermissions = () => {
-    if (selectedModule === "all") {
-      setFilteredPermissions(permissions);
-    } else {
-      setFilteredPermissions(
-        permissions.filter((p) => p.module === selectedModule)
-      );
-    }
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    loadPermissions(page, filters);
   };
+
 
   const columns: Column[] = [
     {
@@ -219,7 +155,7 @@ export default function Permissions(): JSX.Element {
       try {
         const response = await apiService.deletePermission(selectedPermission.id);
         if (response.status) {
-          await loadPermissions();
+          await loadPermissions(currentPage, filters);
           setOpenDeleteModal(false);
           setSelectedPermission(null);
         }
@@ -244,7 +180,7 @@ export default function Permissions(): JSX.Element {
           description: data.description,
         });
       }
-      await loadPermissions();
+      await loadPermissions(currentPage, filters);
       setOpenModal(false);
       setSelectedPermission(null);
     } catch (error) {
@@ -252,11 +188,6 @@ export default function Permissions(): JSX.Element {
     }
   };
 
-  // Build filter options
-  const filterOptions = [
-    { value: "all", label: "All Modules" },
-    ...modules.map((m) => ({ value: m, label: m })),
-  ];
 
   if (loading) {
     return (
@@ -276,12 +207,6 @@ export default function Permissions(): JSX.Element {
           </p>
         </div>
         <div className="flex items-center gap-4">
-          <FilterSelect
-            label="Filter by Module"
-            value={selectedModule}
-            onChange={(val) => setSelectedModule(val)}
-            options={filterOptions}
-          />
           <PermissionWrapper permission="create-permissions">
             <Button
               variant="gradient"
@@ -298,16 +223,53 @@ export default function Permissions(): JSX.Element {
 
       <DataTable
         title="Permission Management"
-        data={filteredPermissions}
+        data={permissions}
         columns={columns}
         onAdd={hasPermission("create-permissions") ? handleAdd : undefined}
         onEdit={hasPermission("edit-permissions") ? handleEdit : undefined}
         onDelete={hasPermission("delete-permissions") ? handleDelete : undefined}
-        searchable={true}
-        filterable={true}
+        searchable={false}
         exportable={true}
         addButtonLabel="Add Permission"
-        searchPlaceholder="Search permissions..."
+        pagination={{
+          currentPage: currentPage,
+          totalPages: totalPages,
+          onPageChange: handlePageChange
+        }}
+        advancedFilter={
+          <AdvancedFilter
+            config={{
+              fields: [
+                {
+                  name: 'keyword',
+                  label: 'Search Permissions',
+                  type: 'text',
+                  placeholder: 'Search name, slug, or module...'
+                },
+                {
+                  name: 'module',
+                  label: 'Module',
+                  type: 'select',
+                  options: [
+                    { label: 'All Modules', value: 'all' },
+                    ...modules.map(m => ({ label: m, value: m }))
+                  ]
+                }
+              ],
+              onApplyFilters: (f) => {
+                setFilters(f);
+                setCurrentPage(1);
+                loadPermissions(1, f);
+              },
+              onResetFilters: () => {
+                setFilters({});
+                setCurrentPage(1);
+                loadPermissions(1, {});
+              },
+              initialValues: filters
+            }}
+          />
+        }
       />
 
       <FormModal

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { DataTable, ViewModal, DeleteConfirmModal, Column, ViewField, FormModal, FormField } from "@/components";
+import { DataTable, ViewModal, DeleteConfirmModal, Column, ViewField, FormModal, FormField, AdvancedFilter, FilterConfig } from "@/components";
 import { Avatar, Typography, Button } from "@material-tailwind/react";
 import { UserPlusIcon } from "@heroicons/react/24/outline";
 import apiService from "@/services/api";
@@ -70,17 +70,18 @@ export default function Doctors(): JSX.Element {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalRecords, setTotalRecords] = useState(0);
+  const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
   const perPage = 10;
 
   useEffect(() => {
-    loadDoctors();
+    loadDoctors(currentPage, activeFilters);
     loadDepartments();
   }, [currentPage]);
 
-  const loadDoctors = async () => {
+  const loadDoctors = async (page: number = currentPage, filters: Record<string, any> = activeFilters) => {
     try {
       setLoading(true);
-      const response = await apiService.getDoctors(currentPage, perPage);
+      const response = await apiService.getDoctors(page, perPage, filters);
       if (response.success && response.data) {
         setDoctors(response.data);
         setTotalPages(response.last_page || 1);
@@ -612,6 +613,79 @@ export default function Doctors(): JSX.Element {
         </Button>
       </div>
 
+      <AdvancedFilter
+        config={{
+          fields: [
+            {
+              name: 'keyword',
+              label: 'Search Everywhere',
+              type: 'text',
+              placeholder: 'Search by ID, name, specialization, email...'
+            },
+            {
+              name: 'department_id',
+              label: 'Department',
+              type: 'select',
+              options: [
+                { label: 'All Departments', value: '' },
+                ...departments.map(d => ({ label: d.name, value: d.id.toString() }))
+              ]
+            },
+            {
+              name: 'specialization',
+              label: 'Specialization',
+              type: 'text',
+              placeholder: 'e.g. Cardiology'
+            },
+            {
+              name: 'employment_type',
+              label: 'Emp. Type',
+              type: 'select',
+              options: [
+                { label: 'All Types', value: '' },
+                { value: "full_time", label: "Full Time" },
+                { value: "part_time", label: "Part Time" },
+                { value: "contract", label: "Contract" },
+                { value: "visiting", label: "Visiting" }
+              ]
+            },
+            {
+              name: 'status',
+              label: 'Status',
+              type: 'select',
+              options: [
+                { label: 'All Statuses', value: '' },
+                { value: "active", label: "Active" },
+                { value: "inactive", label: "Inactive" },
+                { value: "on_leave", label: "On Leave" }
+              ]
+            },
+            {
+              name: 'gender',
+              label: 'Gender',
+              type: 'select',
+              options: [
+                { label: 'All Genders', value: '' },
+                { value: "male", label: "Male" },
+                { value: "female", label: "Female" },
+                { value: "other", label: "Other" }
+              ]
+            }
+          ],
+          onApplyFilters: (filters) => {
+            setActiveFilters(filters);
+            setCurrentPage(1);
+            loadDoctors(1, filters);
+          },
+          onResetFilters: () => {
+            setActiveFilters({});
+            setCurrentPage(1);
+            loadDoctors(1, {});
+          },
+          initialValues: activeFilters
+        }}
+      />
+
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
@@ -625,8 +699,8 @@ export default function Doctors(): JSX.Element {
           onEdit={handleEdit}
           onDelete={handleDelete}
           onView={handleView}
-          searchable={true}
-          filterable={true}
+          searchable={false}
+          filterable={false}
           exportable={true}
           addButtonLabel="Add Doctor"
           searchPlaceholder="Search doctors..."
