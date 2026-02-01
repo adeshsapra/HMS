@@ -20,6 +20,7 @@
     "axios": "^1.13.2",
     "bootstrap": "^5.3.8",
     "bootstrap-icons": "^1.13.1",
+    "framer-motion": "^12.29.2",
     "glightbox": "^3.3.1",
     "laravel-echo": "^2.3.0",
     "moment": "^2.30.1",

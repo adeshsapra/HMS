@@ -6,7 +6,6 @@ import NotificationBell from "./NotificationBell";
 const Header = () => {
   const [isMobileNavActive, setIsMobileNavActive] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuth();
@@ -42,14 +41,12 @@ const Header = () => {
       document.body.classList.add("mobile-nav-active");
     } else {
       document.body.classList.remove("mobile-nav-active");
-      setActiveDropdown(null); // Close all dropdowns when closing menu
     }
   };
 
   const closeMobileNav = () => {
     setIsMobileNavActive(false);
     document.body.classList.remove("mobile-nav-active");
-    setActiveDropdown(null); // Close all dropdowns
   };
 
   // Close mobile nav when clicking outside and manage body scroll
@@ -68,7 +65,6 @@ const Header = () => {
       ) {
         setIsMobileNavActive(false);
         document.body.classList.remove("mobile-nav-active");
-        setActiveDropdown(null);
       }
     };
 
@@ -86,11 +82,6 @@ const Header = () => {
     };
   }, [isMobileNavActive]);
 
-  const toggleDropdown = (e: React.MouseEvent, dropdownName: string) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setActiveDropdown(activeDropdown === dropdownName ? null : dropdownName);
-  };
 
   const isActive = (path: string) => {
     return location.pathname === path ? "active" : "";

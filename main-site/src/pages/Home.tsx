@@ -10,6 +10,7 @@ import {
   testimonialAPI,
 } from "../services/api";
 import ContentLoader from "../components/ContentLoader";
+import DepartmentSection from "../components/Home/Departments/DepartmentSection";
 import "../billing-toggle.css";
 
 interface HealthPackage {
@@ -172,29 +173,23 @@ const Home = () => {
     return `${baseUrl}/storage/${path}`;
   }, []);
 
-  const getDepartmentImageUrl = useCallback((imageName: string | null) => {
-    if (!imageName) return "/assets/img/health/cardiology-3.webp";
-    if (imageName.startsWith("http")) return imageName;
-    const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace("/api", "") || "http://localhost:8000";
-    return `${baseUrl}/storage/departments/${imageName}`;
-  }, []);
-
   return (
     <div className="index-page">
       <style
         dangerouslySetInnerHTML={{
           __html: `
   /* --- Global Button Theme Overrides --- */
-  transition: all 0.2s;
-}
-        .btn-submit-custom: hover, .btn-submit-custom: active, .btn-submit-custom:focus {
-  background-color: #049EBB!important;
-  transform: translateY(-1px);
-  box-shadow: 0 10px 15px - 3px rgba(4, 158, 187, 0.3);
-}
+  .btn-submit-custom {
+    transition: all 0.2s;
+  }
+  .btn-submit-custom:hover, .btn-submit-custom:active, .btn-submit-custom:focus {
+    background-color: #049EBB!important;
+    transform: translateY(-1px);
+    box-shadow: 0 10px 15px -3px rgba(4, 158, 187, 0.3);
+  }
 
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes slideUp { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
 `,
         }}
       />
@@ -653,66 +648,10 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Featured Departments Section */}
-      <section
-        id="featured-departments"
-        className="featured-departments section"
-      >
-        <div className="container section-title" data-aos="fade-up">
-          <h2>Featured Departments</h2>
-          <p>
-            Necessitatibus eius consequatur ex aliquid fuga eum quidem sint
-            consectetur velit
-          </p>
-        </div>
-
-        <div className="container" data-aos="fade-up" data-aos-delay="100">
-          <div className="row gy-4">
-            {loadingDepartments ? (
-              <div className="col-12">
-                <ContentLoader message="Mapping Specialized Departments..." height="300px" />
-              </div>
-            ) : departments.length > 0 ? (
-              departments.map((dept, idx) => (
-                <div
-                  key={dept.id || idx}
-                  className="col-lg-4 col-md-6"
-                  data-aos="fade-up"
-                  data-aos-delay={100 + idx * 100}
-                >
-                  <div className="department-card">
-                    <div className="department-image">
-                      <img
-                        src={getDepartmentImageUrl(dept.image)}
-                        alt={`${dept.name} Department`}
-                        className="img-fluid"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = '/assets/img/health/cardiology-3.webp';
-                        }}
-                      />
-                    </div>
-                    <div className="department-content">
-                      <div className="department-icon">
-                        <i className={`fas fa-${dept.icon?.replace('bi-', '') || 'heartbeat'}`}></i>
-                      </div>
-                      <h3>{dept.name}</h3>
-                      <p>{dept.description}</p>
-                      <Link to="/department-details" className="btn-learn-more">
-                        <span>Learn More</span>
-                        <i className="fas fa-arrow-right"></i>
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="col-12 text-center py-5">
-                <p className="text-muted">No departments available at the moment.</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
+      <DepartmentSection
+        departments={departments}
+        loadingDepartments={loadingDepartments}
+      />
 
       {/* Home About Section */}
       <section id="home-about" className="home-about section">
