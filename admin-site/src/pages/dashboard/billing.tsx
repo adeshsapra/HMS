@@ -79,6 +79,7 @@ const Billing = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
+    const [statusFilter, setStatusFilter] = useState('all');
 
     const tabs = [
         { label: "All Bills", value: "all" },
@@ -90,7 +91,7 @@ const Billing = () => {
 
     useEffect(() => {
         fetchBills(currentPage, activeFilters);
-    }, [currentPage]);
+    }, [currentPage, statusFilter]);
 
     const fetchBills = async (page = 1, currentFilters = activeFilters) => {
         try {
@@ -100,6 +101,11 @@ const Billing = () => {
                 per_page: 10,
                 ...currentFilters
             };
+
+            // Add status filter from tabs (if not 'all')
+            if (statusFilter !== 'all') {
+                params.status = statusFilter;
+            }
 
             const response = await apiService.getBills(params);
             if (response.success) {
@@ -331,14 +337,51 @@ const Billing = () => {
 
     return (
         <div className="mt-12 mb-8 flex flex-col gap-12">
-            <Card>
-                <CardHeader variant="gradient" color="blue" className="mb-8 p-6">
-                    <Typography variant="h6" color="white">
-                        Billing Management
-                    </Typography>
+            <Card className="border border-blue-gray-100 shadow-sm overflow-hidden">
+                <CardHeader variant="gradient" color="blue" className="mb-0 p-6">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <Typography variant="h6" color="white">
+                                Billing Management
+                            </Typography>
+                            <Typography variant="small" color="white" className="opacity-80 mt-1">
+                                Manage patient invoices, track payments, and finalize bills
+                            </Typography>
+                        </div>
+                    </div>
                 </CardHeader>
+
+                {/* Status Tabs */}
+                <div className="border-b border-blue-gray-50">
+                    <Tabs value={statusFilter}>
+                        <TabsHeader
+                            className="bg-transparent px-6 rounded-none"
+                            indicatorProps={{
+                                className: "bg-blue-500/10 shadow-none border-b-2 border-blue-500 rounded-none",
+                            }}
+                        >
+                            {tabs.map(({ label, value }) => (
+                                <Tab
+                                    key={value}
+                                    value={value}
+                                    onClick={() => {
+                                        setStatusFilter(value);
+                                        setCurrentPage(1);
+                                    }}
+                                    className={`py-4 font-semibold text-sm transition-colors duration-300 ${statusFilter === value
+                                            ? "text-blue-500"
+                                            : "text-blue-gray-500 hover:text-blue-700"
+                                        }`}
+                                >
+                                    {label}
+                                </Tab>
+                            ))}
+                        </TabsHeader>
+                    </Tabs>
+                </div>
+
                 <CardBody className="px-0 pt-0 pb-2">
-                    <div className="px-6 mb-4">
+                    <div className="px-6 py-4">
                         <AdvancedFilter
                             config={{
                                 fields: [
@@ -347,19 +390,6 @@ const Billing = () => {
                                         label: 'Search Bills',
                                         type: 'text',
                                         placeholder: 'Search by bill #, patient name, phone...'
-                                    },
-                                    {
-                                        name: 'status',
-                                        label: 'Status',
-                                        type: 'select',
-                                        options: [
-                                            { label: 'All Statuses', value: '' },
-                                            { label: 'Draft', value: 'draft' },
-                                            { label: 'Finalized', value: 'finalized' },
-                                            { label: 'Partially Paid', value: 'partially_paid' },
-                                            { label: 'Paid', value: 'paid' },
-                                            { label: 'Cancelled', value: 'cancelled' }
-                                        ]
                                     },
                                     {
                                         name: 'date_range',
