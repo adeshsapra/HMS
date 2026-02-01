@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { DataTable, FormModal, ViewModal, DeleteConfirmModal, Column, FormField, ViewField, Pagination } from "@/components";
+import { DataTable, FormModal, ViewModal, DeleteConfirmModal, Column, FormField, ViewField, Pagination, AdvancedFilter, FilterConfig } from "@/components";
 import { Button } from "@material-tailwind/react";
 import { BriefcaseIcon } from "@heroicons/react/24/outline";
 import { apiService } from "@/services/api";
@@ -43,15 +43,17 @@ export default function Services(): JSX.Element {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+  const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
 
   useEffect(() => {
-    fetchServices();
+    fetchServices(currentPage, activeFilters);
+    fetchDepartments();
   }, [currentPage, pageSize]);
 
-  const fetchServices = async () => {
+  const fetchServices = async (page: number = currentPage, filters: Record<string, any> = activeFilters) => {
     try {
       setLoading(true);
-      const response = await apiService.getServices(currentPage, pageSize);
+      const response = await apiService.getServices(page, pageSize, filters);
       if (response.success && response.data) {
         setServices(response.data || []);
         setTotalPages(response.meta?.last_page || 1);
@@ -314,6 +316,74 @@ export default function Services(): JSX.Element {
         </Button>
       </div>
 
+      <AdvancedFilter
+        config={{
+          fields: [
+            {
+              name: 'keyword',
+              label: 'Search Everywhere',
+              type: 'text',
+              placeholder: 'Search by name, description, category...'
+            },
+            {
+              name: 'department_id',
+              label: 'Department',
+              type: 'select',
+              options: [
+                { label: 'All Departments', value: '' },
+                ...departments.map(d => ({ label: d.name, value: d.id.toString() }))
+              ]
+            },
+            {
+              name: 'category',
+              label: 'Category',
+              type: 'select',
+              options: [
+                { label: 'All Categories', value: '' },
+                { value: "Consultation", label: "Consultation" },
+                { value: "Diagnostic", label: "Diagnostic" },
+                { value: "Surgery", label: "Surgery" },
+                { value: "Treatment", label: "Treatment" },
+                { value: "Emergency", label: "Emergency" },
+                { value: "Preventive", label: "Preventive" },
+                { value: "Checkup", label: "Checkup" }
+              ]
+            },
+            {
+              name: 'is_active',
+              label: 'Status',
+              type: 'select',
+              options: [
+                { label: 'All Statuses', value: '' },
+                { label: 'Active', value: '1' },
+                { label: 'Inactive', value: '0' }
+              ]
+            },
+            {
+              name: 'price_min',
+              label: 'Min Price ($)',
+              type: 'number'
+            },
+            {
+              name: 'price_max',
+              label: 'Max Price ($)',
+              type: 'number'
+            }
+          ],
+          onApplyFilters: (filters) => {
+            setActiveFilters(filters);
+            setCurrentPage(1);
+            fetchServices(1, filters);
+          },
+          onResetFilters: () => {
+            setActiveFilters({});
+            setCurrentPage(1);
+            fetchServices(1, {});
+          },
+          initialValues: activeFilters
+        }}
+      />
+
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
@@ -327,8 +397,8 @@ export default function Services(): JSX.Element {
           onEdit={handleEdit}
           onDelete={handleDelete}
           onView={handleView}
-          searchable={true}
-          filterable={true}
+          searchable={false}
+          filterable={false}
           exportable={true}
           addButtonLabel="Add Service"
           searchPlaceholder="Search services..."

@@ -21,7 +21,7 @@ import {
 } from "@material-tailwind/react";
 import { EyeIcon, PlusIcon } from "@heroicons/react/24/solid";
 import { apiService } from "@/services/api";
-import { DataTable, FormModal, DeleteConfirmModal } from "@/components";
+import { DataTable, FormModal, DeleteConfirmModal, AdvancedFilter } from "@/components";
 import { useToast } from "@/context/ToastContext";
 
 export default function HomeCare() {
@@ -46,6 +46,7 @@ export default function HomeCare() {
     const [requests, setRequests] = useState<any[]>([]);
     const [viewRequestModalOpen, setViewRequestModalOpen] = useState(false);
     const [selectedRequest, setSelectedRequest] = useState<any>(null);
+    const [requestFilters, setRequestFilters] = useState<Record<string, any>>({});
 
     // Settings State
     const [settings, setSettings] = useState<any>({
@@ -90,9 +91,9 @@ export default function HomeCare() {
         }
     };
 
-    const loadRequests = async () => {
+    const loadRequests = async (filters = requestFilters) => {
         try {
-            const response = await apiService.getHomeCareRequests();
+            const response = await apiService.getHomeCareRequests(filters);
             if (response.success && response.data) {
                 setRequests(response.data);
             }
@@ -456,9 +457,9 @@ export default function HomeCare() {
                 row.bill ? (
                     <span
                         className={`px-2 py-1 rounded text-xs font-bold uppercase ${row.bill.status === 'paid' ? 'bg-green-100 text-green-800' :
-                                row.bill.status === 'partially_paid' ? 'bg-yellow-100 text-yellow-800' :
-                                    row.bill.status === 'finalized' ? 'bg-red-100 text-red-800' :
-                                        'bg-gray-100 text-gray-800'
+                            row.bill.status === 'partially_paid' ? 'bg-yellow-100 text-yellow-800' :
+                                row.bill.status === 'finalized' ? 'bg-red-100 text-red-800' :
+                                    'bg-gray-100 text-gray-800'
                             }`}
                     >
                         {row.bill.status === 'finalized' ? 'UNPAID' : row.bill.status.replace('_', ' ')}
@@ -816,7 +817,47 @@ export default function HomeCare() {
                                     title="Active Patient Requests"
                                     data={requests}
                                     columns={requestColumns}
-                                    searchable
+                                    advancedFilter={
+                                        <AdvancedFilter
+                                            config={{
+                                                fields: [
+                                                    {
+                                                        name: 'keyword',
+                                                        label: 'Search Requests',
+                                                        type: 'text',
+                                                        placeholder: 'Search by patient, phone, address...'
+                                                    },
+                                                    {
+                                                        name: 'status',
+                                                        label: 'Status',
+                                                        type: 'select',
+                                                        options: [
+                                                            { label: 'All Statuses', value: 'all' },
+                                                            { label: 'Pending', value: 'pending' },
+                                                            { label: 'Confirmed', value: 'confirmed' },
+                                                            { label: 'Completed', value: 'completed' },
+                                                            { label: 'Cancelled', value: 'cancelled' }
+                                                        ]
+                                                    },
+                                                    {
+                                                        name: 'date_range',
+                                                        label: 'Visit Date Range',
+                                                        type: 'daterange'
+                                                    }
+                                                ],
+                                                onApplyFilters: (filters) => {
+                                                    setRequestFilters(filters);
+                                                    loadRequests(filters);
+                                                },
+                                                onResetFilters: () => {
+                                                    setRequestFilters({});
+                                                    loadRequests({});
+                                                },
+                                                initialValues: requestFilters
+                                            }}
+                                        />
+                                    }
+                                    searchable={false}
                                 />
                             </TabPanel>
                             <TabPanel value="settings" className="p-6">

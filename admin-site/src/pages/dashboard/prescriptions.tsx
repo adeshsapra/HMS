@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { DataTable, FormModal, ViewModal, DeleteConfirmModal, Column, FormField, ViewField } from "@/components";
+import { DataTable, FormModal, ViewModal, DeleteConfirmModal, Column, FormField, ViewField, AdvancedFilter, FilterConfig } from "@/components";
 import { apiService } from "@/services/api";
 import { useToast } from "@/context/ToastContext";
 import { useAuth } from "@/context/AuthContext";
@@ -24,14 +24,17 @@ export default function Prescriptions(): JSX.Element {
         totalItems: 0,
         perPage: 10
     });
+    const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
+    const [doctors, setDoctors] = useState<any[]>([]);
+    const [departments, setDepartments] = useState<any[]>([]);
 
     const [openViewModal, setOpenViewModal] = useState<boolean>(false);
     const [selectedPrescription, setSelectedPrescription] = useState<Prescription | null>(null);
 
-    const fetchPrescriptions = async (page = 1) => {
+    const fetchPrescriptions = async (page = pagination.currentPage, filters = activeFilters) => {
         try {
             setLoading(true);
-            const response = await apiService.getPrescriptions(page);
+            const response = await apiService.getPrescriptions(page, pagination.perPage, filters);
 
             if (response && response.data) {
                 const paginator = response.data;
@@ -64,7 +67,27 @@ export default function Prescriptions(): JSX.Element {
 
     useEffect(() => {
         fetchPrescriptions();
+        loadDoctors();
+        loadDepartments();
     }, []);
+
+    const loadDoctors = async () => {
+        try {
+            const response = await apiService.getDoctors(1, 100);
+            if (response.success) setDoctors(response.data);
+        } catch (error) {
+            console.error("Failed to load doctors", error);
+        }
+    };
+
+    const loadDepartments = async () => {
+        try {
+            const response = await apiService.getDepartments();
+            if (response.success) setDepartments(response.data);
+        } catch (error) {
+            console.error("Failed to load departments", error);
+        }
+    };
 
     const handlePageChange = (page: number) => {
         fetchPrescriptions(page);
@@ -196,7 +219,6 @@ export default function Prescriptions(): JSX.Element {
     const handleView = (prescription: Prescription): void => {
         setSelectedPrescription(prescription);
         setOpenViewModal(true);
-        // Ideally fetch full details here if needed to show medicines list
     };
 
     return (
@@ -208,12 +230,57 @@ export default function Prescriptions(): JSX.Element {
                 </div>
             </div>
 
+            <AdvancedFilter
+                config={{
+                    fields: [
+                        {
+                            name: 'keyword',
+                            label: 'Search Everywhere',
+                            type: 'text',
+                            placeholder: 'Search by patient, doctor, diagnosis...'
+                        },
+                        {
+                            name: 'doctor_id',
+                            label: 'Doctor',
+                            type: 'select',
+                            options: [
+                                { label: 'All Doctors', value: '' },
+                                ...doctors.map(d => ({ label: `Dr. ${d.first_name} ${d.last_name}`, value: d.id }))
+                            ]
+                        },
+                        {
+                            name: 'department_id',
+                            label: 'Department',
+                            type: 'select',
+                            options: [
+                                { label: 'All Departments', value: '' },
+                                ...departments.map(d => ({ label: d.name, value: d.id }))
+                            ]
+                        },
+                        {
+                            name: 'date_range',
+                            label: 'Date Range',
+                            type: 'daterange'
+                        }
+                    ],
+                    onApplyFilters: (filters) => {
+                        setActiveFilters(filters);
+                        fetchPrescriptions(1, filters);
+                    },
+                    onResetFilters: () => {
+                        setActiveFilters({});
+                        fetchPrescriptions(1, {});
+                    },
+                    initialValues: activeFilters
+                }}
+            />
+
             <DataTable
                 title="Prescriptions List"
                 data={prescriptions}
                 columns={columns}
                 onView={handleView}
-                searchable={false} // Would need backend search
+                searchable={false}
                 filterable={false}
                 exportable={true}
                 pagination={{

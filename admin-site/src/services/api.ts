@@ -166,8 +166,16 @@ class ApiService {
     }
 
     // Role methods
-    async getRoles() {
-        return this.get<any[]>('/roles');
+    async getRoles(params?: { page?: number; per_page?: number; keyword?: string }) {
+        let endpoint = '/roles?';
+        const queryParams = new URLSearchParams();
+
+        if (params?.page) queryParams.append('page', params.page.toString());
+        if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
+        if (params?.keyword) queryParams.append('keyword', params.keyword);
+
+        endpoint += queryParams.toString();
+        return this.get<any>(endpoint);
     }
 
     async getRole(id: number) {
@@ -191,9 +199,17 @@ class ApiService {
     }
 
     // Permission methods
-    async getPermissions(module?: string) {
-        const endpoint = module ? `/permissions?module=${module}` : '/permissions';
-        return this.get<any[]>(endpoint);
+    async getPermissions(params?: { page?: number; per_page?: number; module?: string; keyword?: string }) {
+        let endpoint = '/permissions?';
+        const queryParams = new URLSearchParams();
+
+        if (params?.page) queryParams.append('page', params.page.toString());
+        if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
+        if (params?.module) queryParams.append('module', params.module);
+        if (params?.keyword) queryParams.append('keyword', params.keyword);
+
+        endpoint += queryParams.toString();
+        return this.get<any>(endpoint);
     }
 
     async getPermission(id: number) {
@@ -213,8 +229,17 @@ class ApiService {
     }
 
     // User-Role methods
-    async getUserRoles() {
-        return this.get<any[]>('/user-roles');
+    async getUserRoles(params?: { page?: number; per_page?: number; keyword?: string; role_id?: number }) {
+        let endpoint = '/user-roles?';
+        const queryParams = new URLSearchParams();
+
+        if (params?.page) queryParams.append('page', params.page.toString());
+        if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
+        if (params?.keyword) queryParams.append('keyword', params.keyword);
+        if (params?.role_id) queryParams.append('role_id', params.role_id.toString());
+
+        endpoint += queryParams.toString();
+        return this.get<any>(endpoint);
     }
 
     async createUser(data: { name: string; email: string; phone?: string; password: string; role_id: number }) {
@@ -234,8 +259,18 @@ class ApiService {
     }
 
     // Doctor methods
-    async getDoctors(page: number = 1, perPage: number = 10) {
-        return this.get<any>(`/doctors?page=${page}&per_page=${perPage}`);
+    async getDoctors(page: number = 1, perPage: number = 10, filters?: Record<string, any>) {
+        if (!filters) {
+            return this.get<any>(`/doctors?page=${page}&per_page=${perPage}`);
+        }
+
+        let endpoint = `/doctors?page=${page}&per_page=${perPage}`;
+        Object.keys(filters).forEach(key => {
+            if (filters[key] !== null && filters[key] !== undefined && filters[key] !== '') {
+                endpoint += `&${key}=${encodeURIComponent(filters[key])}`;
+            }
+        });
+        return this.get<any>(endpoint);
     }
 
     async getDoctor(id: number) {
@@ -296,8 +331,18 @@ class ApiService {
     }
 
     // Staff methods
-    async getStaff(page: number = 1, perPage: number = 10) {
-        return this.get<any>(`/staff?page=${page}&per_page=${perPage}`);
+    async getStaff(page: number = 1, perPage: number = 10, filters?: Record<string, any>) {
+        let endpoint = `/staff?page=${page}&per_page=${perPage}`;
+
+        if (filters) {
+            Object.keys(filters).forEach(key => {
+                if (filters[key] !== null && filters[key] !== undefined && filters[key] !== '') {
+                    endpoint += `&${key}=${encodeURIComponent(filters[key])}`;
+                }
+            });
+        }
+
+        return this.get<any>(endpoint);
     }
 
     async getStaffMember(id: number) {
@@ -356,8 +401,18 @@ class ApiService {
     }
 
     // Department methods
-    async getDepartments(page: number = 1, perPage: number = 10) {
-        return this.get<any>(`/departments?page=${page}&per_page=${perPage}`);
+    async getDepartments(page: number = 1, perPage: number = 10, filters?: Record<string, any>) {
+        let endpoint = `/departments?page=${page}&per_page=${perPage}`;
+
+        if (filters) {
+            Object.keys(filters).forEach(key => {
+                if (filters[key] !== null && filters[key] !== undefined && filters[key] !== '') {
+                    endpoint += `&${key}=${encodeURIComponent(filters[key])}`;
+                }
+            });
+        }
+
+        return this.get<any>(endpoint);
     }
 
     async getDepartment(id: number) {
@@ -422,8 +477,18 @@ class ApiService {
     }
 
     // Service methods
-    async getServices(page: number = 1, perPage: number = 10) {
-        return this.get<any>(`/services?page=${page}&per_page=${perPage}`);
+    async getServices(page: number = 1, perPage: number = 10, filters?: Record<string, any>) {
+        let endpoint = `/services?page=${page}&per_page=${perPage}`;
+
+        if (filters) {
+            Object.keys(filters).forEach(key => {
+                if (filters[key] !== null && filters[key] !== undefined && filters[key] !== '') {
+                    endpoint += `&${key}=${encodeURIComponent(filters[key])}`;
+                }
+            });
+        }
+
+        return this.get<any>(endpoint);
     }
 
     async getService(id: number) {
@@ -443,8 +508,19 @@ class ApiService {
     }
 
     // Appointment methods
-    async getAppointments(page: number = 1) {
-        return this.get<any>(`/appointments?page=${page}`);
+    async getAppointments(page: number = 1, filters?: Record<string, any>) {
+        let endpoint = `/appointments?page=${page}`;
+
+        // Append filter parameters if provided
+        if (filters) {
+            Object.keys(filters).forEach(key => {
+                if (filters[key] !== null && filters[key] !== undefined && filters[key] !== '') {
+                    endpoint += `&${key}=${encodeURIComponent(filters[key])}`;
+                }
+            });
+        }
+
+        return this.get<any>(endpoint);
     }
 
     async getAppointmentsByDateRange(startDate?: string, endDate?: string) {
@@ -471,9 +547,19 @@ class ApiService {
     }
 
     // Patient methods
-    async getPatients(page: number = 1, perPage: number = 10, search?: string): Promise<ApiResponse<any>> {
+    async getPatients(page: number = 1, perPage: number = 10, search?: string, filters?: Record<string, any>): Promise<ApiResponse<any>> {
         let endpoint = `/patients?page=${page}&per_page=${perPage}`;
-        if (search) endpoint += `&search=${search}`;
+        if (search) endpoint += `&keyword=${encodeURIComponent(search)}`;
+
+        if (filters) {
+            Object.keys(filters).forEach(key => {
+                // Skip if value is empty or if it's the search keyword (which we already handled)
+                if (filters[key] !== null && filters[key] !== undefined && filters[key] !== '' && key !== 'keyword') {
+                    endpoint += `&${key}=${encodeURIComponent(filters[key])}`;
+                }
+            });
+        }
+
         return this.get<any>(endpoint);
     }
 
@@ -555,8 +641,17 @@ class ApiService {
         return this.delete<any>(`/admin/home-care/services/${id}`);
     }
 
-    async getHomeCareRequests() {
-        return this.get<any[]>('/admin/home-care/requests');
+    async getHomeCareRequests(params?: { status?: string, keyword?: string, date_range_start?: string, date_range_end?: string }) {
+        let endpoint = '/admin/home-care/requests?';
+        if (params) {
+            const queryParams = new URLSearchParams();
+            if (params.status) queryParams.append('status', params.status);
+            if (params.keyword) queryParams.append('keyword', params.keyword);
+            if (params.date_range_start) queryParams.append('date_range_start', params.date_range_start);
+            if (params.date_range_end) queryParams.append('date_range_end', params.date_range_end);
+            endpoint += queryParams.toString();
+        }
+        return this.get<any>(endpoint);
     }
 
     async updateHomeCareRequestStatus(id: number, status: string) {
@@ -597,8 +692,16 @@ class ApiService {
     }
 
     // Prescription methods
-    async getPrescriptions(page: number = 1, perPage: number = 10) {
-        return this.get<any>(`/prescriptions?page=${page}&per_page=${perPage}`);
+    async getPrescriptions(page: number = 1, perPage: number = 10, filters?: Record<string, any>) {
+        let endpoint = `/prescriptions?page=${page}&per_page=${perPage}`;
+        if (filters) {
+            Object.keys(filters).forEach(key => {
+                if (filters[key] !== null && filters[key] !== undefined && filters[key] !== '') {
+                    endpoint += `&${key}=${encodeURIComponent(filters[key])}`;
+                }
+            });
+        }
+        return this.get<any>(endpoint);
     }
 
     async createPrescription(data: any) {
@@ -649,11 +752,19 @@ class ApiService {
     }
 
     // Laboratory methods
-    async getLabTests(page: number = 1, status?: string, search?: string) {
-        let url = `/lab?page=${page}`;
-        if (status) url += `&status=${status}`;
-        if (search) url += `&search=${search}`;
-        return this.get<any>(url);
+    async getLabTests(params?: { page?: number; per_page?: number; status?: string; keyword?: string; date_range_start?: string; date_range_end?: string }) {
+        let endpoint = '/lab?';
+        const queryParams = new URLSearchParams();
+
+        if (params?.page) queryParams.append('page', params.page.toString());
+        if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
+        if (params?.status) queryParams.append('status', params.status);
+        if (params?.keyword) queryParams.append('keyword', params.keyword);
+        if (params?.date_range_start) queryParams.append('date_range_start', params.date_range_start);
+        if (params?.date_range_end) queryParams.append('date_range_end', params.date_range_end);
+
+        endpoint += queryParams.toString();
+        return this.get<any>(endpoint);
     }
 
     async getLabStats() {
@@ -711,20 +822,22 @@ class ApiService {
     async getPharmacyPrescriptions(params?: {
         status?: string;
         patient_id?: number;
-        date_from?: string;
-        date_to?: string;
         page?: number;
         per_page?: number;
+        keyword?: string;
+        date_range_start?: string;
+        date_range_end?: string;
     }) {
         let endpoint = '/pharmacy/prescriptions?';
         const queryParams = new URLSearchParams();
 
         if (params?.status) queryParams.append('status', params.status);
         if (params?.patient_id) queryParams.append('patient_id', params.patient_id.toString());
-        if (params?.date_from) queryParams.append('date_from', params.date_from);
-        if (params?.date_to) queryParams.append('date_to', params.date_to);
         if (params?.page) queryParams.append('page', params.page.toString());
         if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
+        if (params?.keyword) queryParams.append('keyword', params.keyword);
+        if (params?.date_range_start) queryParams.append('date_range_start', params.date_range_start);
+        if (params?.date_range_end) queryParams.append('date_range_end', params.date_range_end);
 
         endpoint += queryParams.toString();
         return this.get<any>(endpoint);
@@ -751,6 +864,8 @@ class ApiService {
         status?: string;
         page?: number;
         per_page?: number;
+        date_range_start?: string;
+        date_range_end?: string;
     }) {
         let endpoint = '/pharmacy/medicines?';
         const queryParams = new URLSearchParams();
@@ -759,6 +874,8 @@ class ApiService {
         if (params?.category) queryParams.append('category', params.category);
         if (params?.low_stock_only) queryParams.append('low_stock_only', 'true');
         if (params?.status) queryParams.append('status', params.status);
+        if (params?.date_range_start) queryParams.append('date_range_start', params.date_range_start);
+        if (params?.date_range_end) queryParams.append('date_range_end', params.date_range_end);
         if (params?.page) queryParams.append('page', params.page.toString());
         if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
 
@@ -847,11 +964,11 @@ class ApiService {
         prescription_id?: number;
         patient_id?: number;
         medicine_id?: number;
-        date_from?: string;
-        date_to?: string;
-        dispensed_by?: number;
         page?: number;
         per_page?: number;
+        keyword?: string;
+        date_range_start?: string;
+        date_range_end?: string;
     }) {
         let endpoint = '/pharmacy/dispensing-history?';
         const queryParams = new URLSearchParams();
@@ -859,11 +976,11 @@ class ApiService {
         if (params?.prescription_id) queryParams.append('prescription_id', params.prescription_id.toString());
         if (params?.patient_id) queryParams.append('patient_id', params.patient_id.toString());
         if (params?.medicine_id) queryParams.append('medicine_id', params.medicine_id.toString());
-        if (params?.date_from) queryParams.append('date_from', params.date_from);
-        if (params?.date_to) queryParams.append('date_to', params.date_to);
-        if (params?.dispensed_by) queryParams.append('dispensed_by', params.dispensed_by.toString());
         if (params?.page) queryParams.append('page', params.page.toString());
         if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
+        if (params?.keyword) queryParams.append('keyword', params.keyword);
+        if (params?.date_range_start) queryParams.append('date_range_start', params.date_range_start);
+        if (params?.date_range_end) queryParams.append('date_range_end', params.date_range_end);
 
         endpoint += queryParams.toString();
         return this.get<any>(endpoint);
@@ -923,8 +1040,16 @@ class ApiService {
         return this.delete<any>(`/room-types/${id}`);
     }
 
-    async getRooms(params?: { type_id?: number; status?: string }) {
-        return this.get<any[]>('/rooms');
+    async getRooms(params?: { room_type_id?: number; status?: string; keyword?: string }) {
+        let endpoint = '/rooms?';
+        const queryParams = new URLSearchParams();
+
+        if (params?.room_type_id) queryParams.append('room_type_id', params.room_type_id.toString());
+        if (params?.status) queryParams.append('status', params.status);
+        if (params?.keyword) queryParams.append('keyword', params.keyword);
+
+        endpoint += queryParams.toString();
+        return this.get<any[]>(endpoint);
     }
 
     async getRoom(id: number) {
@@ -943,11 +1068,17 @@ class ApiService {
         return this.delete<any>(`/rooms/${id}`);
     }
 
-    async getBeds(params?: { room_id?: number; status?: string }) {
-        let url = '/beds?';
-        if (params?.room_id) url += `room_id=${params.room_id}&`;
-        if (params?.status) url += `status=${params.status}&`;
-        return this.get<any[]>(url);
+    async getBeds(params?: { room_id?: number; room_type_id?: number; status?: string; keyword?: string }) {
+        let endpoint = '/beds?';
+        const queryParams = new URLSearchParams();
+
+        if (params?.room_id) queryParams.append('room_id', params.room_id.toString());
+        if (params?.room_type_id) queryParams.append('room_type_id', params.room_type_id.toString());
+        if (params?.status) queryParams.append('status', params.status);
+        if (params?.keyword) queryParams.append('keyword', params.keyword);
+
+        endpoint += queryParams.toString();
+        return this.get<any[]>(endpoint);
     }
 
     async getBed(id: number) {
@@ -966,11 +1097,18 @@ class ApiService {
         return this.delete<any>(`/beds/${id}`);
     }
 
-    async getAdmissions(params?: { status?: string; patient_id?: number }) {
-        let url = '/admissions?';
-        if (params?.status) url += `status=${params.status}&`;
-        if (params?.patient_id) url += `patient_id=${params.patient_id}&`;
-        return this.get<any[]>(url);
+    async getAdmissions(params?: { status?: string; patient_id?: number; keyword?: string; date_range_start?: string; date_range_end?: string }) {
+        let endpoint = '/admissions?';
+        const queryParams = new URLSearchParams();
+
+        if (params?.status) queryParams.append('status', params.status);
+        if (params?.patient_id) queryParams.append('patient_id', params.patient_id.toString());
+        if (params?.keyword) queryParams.append('keyword', params.keyword);
+        if (params?.date_range_start) queryParams.append('date_range_start', params.date_range_start);
+        if (params?.date_range_end) queryParams.append('date_range_end', params.date_range_end);
+
+        endpoint += queryParams.toString();
+        return this.get<any[]>(endpoint);
     }
 
     async getAdmission(id: number) {
@@ -994,7 +1132,7 @@ class ApiService {
     }
 
     // Billing methods
-    async getBills(params?: { patient_id?: number; status?: string; per_page?: number; page?: number }) {
+    async getBills(params?: { patient_id?: number; status?: string; per_page?: number; page?: number; keyword?: string; date_range_start?: string; date_range_end?: string }) {
         let endpoint = '/billing/bills?';
         const queryParams = new URLSearchParams();
 
@@ -1002,6 +1140,9 @@ class ApiService {
         if (params?.status) queryParams.append('status', params.status);
         if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
         if (params?.page) queryParams.append('page', params.page.toString());
+        if (params?.keyword) queryParams.append('keyword', params.keyword);
+        if (params?.date_range_start) queryParams.append('date_range_start', params.date_range_start);
+        if (params?.date_range_end) queryParams.append('date_range_end', params.date_range_end);
 
         endpoint += queryParams.toString();
         return this.get<any>(endpoint);

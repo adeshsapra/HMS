@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { DataTable, FormModal, ViewModal, DeleteConfirmModal, Column, FormField, ViewField, AppointmentCalendar, PrescriptionModal } from "@/components";
+import { DataTable, FormModal, ViewModal, DeleteConfirmModal, Column, FormField, ViewField, AppointmentCalendar, PrescriptionModal, AdvancedFilter, FilterConfig } from "@/components";
 import { ActionItem } from "@/components/DataTable";
 import { Button } from "@material-tailwind/react";
 import { CalendarDaysIcon, CheckIcon, XMarkIcon, CheckCircleIcon, DocumentPlusIcon, HomeModernIcon } from "@heroicons/react/24/outline";
@@ -48,10 +48,13 @@ export default function Appointments(): JSX.Element {
     const [doctors, setDoctors] = useState<any[]>([]);
     const [departments, setDepartments] = useState<any[]>([]);
 
+    // Filter State
+    const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
+
     // Check if current user is a doctor
     const isDoctor = user?.role?.name === 'doctor';
 
-    const fetchAppointments = async (page = 1) => {
+    const fetchAppointments = async (page = 1, currentFilters = activeFilters) => {
         try {
             setLoading(true);
             let response;
@@ -60,7 +63,23 @@ export default function Appointments(): JSX.Element {
             if (viewMode === "calendar") {
                 response = await apiService.getAppointmentsByDateRange();
             } else {
-                response = await apiService.getAppointments(page);
+                // Apply filters to the request
+                const params: any = { page };
+
+                // Add filters to params
+                if (currentFilters.status) params.status = currentFilters.status;
+                if (currentFilters.consultation_status) params.consultation_status = currentFilters.consultation_status;
+                if (currentFilters.doctor_id) params.doctor_id = currentFilters.doctor_id;
+                if (currentFilters.department_id) params.department_id = currentFilters.department_id;
+                if (currentFilters.date_range_start) params.date_range_start = currentFilters.date_range_start;
+                if (currentFilters.date_range_end) params.date_range_end = currentFilters.date_range_end;
+                if (currentFilters.appointment_id) params.appointment_id = currentFilters.appointment_id;
+                if (currentFilters.patient_name) params.patient_name = currentFilters.patient_name;
+                if (currentFilters.patient_email) params.patient_email = currentFilters.patient_email;
+                if (currentFilters.patient_phone) params.patient_phone = currentFilters.patient_phone;
+                if (currentFilters.keyword) params.keyword = currentFilters.keyword;
+
+                response = await apiService.getAppointments(page, params);
             }
 
             if (response && response.data) {
@@ -142,11 +161,15 @@ export default function Appointments(): JSX.Element {
 
     useEffect(() => {
         // Refetch appointments when view mode changes
-        fetchAppointments(viewMode === "list" ? pagination.currentPage : 1);
+        if (viewMode === "list") {
+            fetchAppointments(pagination.currentPage, activeFilters);
+        } else {
+            fetchAppointments(1);
+        }
     }, [viewMode]);
 
     const handlePageChange = (page: number) => {
-        fetchAppointments(page);
+        fetchAppointments(page, activeFilters);
     };
 
     const columns: Column[] = [
@@ -673,28 +696,94 @@ export default function Appointments(): JSX.Element {
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
                 </div>
             ) : viewMode === "list" ? (
-                <DataTable
-                    title={isDoctor ? "My Confirmed & Completed Appointments" : "Appointments Management"}
-                    data={appointments}
-                    columns={columns}
-                    onAdd={!isDoctor ? handleAdd : undefined}
-                    onEdit={!isDoctor ? handleEdit : undefined}
-                    onDelete={!isDoctor ? handleDelete : undefined}
-                    onView={handleView}
-                    customActions={getCustomActions}
-                    searchable={true}
-                    filterable={true}
-                    exportable={true}
-                    addButtonLabel={!isDoctor ? "New Appointment" : undefined}
-                    searchPlaceholder="Search appointments..."
-                    pagination={{ // Pass pagination props
-                        currentPage: pagination.currentPage,
-                        totalPages: pagination.totalPages,
-                        totalItems: pagination.totalItems,
-                        perPage: pagination.perPage,
-                        onPageChange: handlePageChange
-                    }}
-                />
+                <>
+                    {/* Advanced Filter Component - Simplified & Smart */}
+                    <AdvancedFilter
+                        config={{
+                            fields: [
+                                {
+                                    name: 'keyword',
+                                    label: 'Search Everywhere',
+                                    type: 'text',
+                                    placeholder: 'Search by ID, patient name, phone, email, doctor, department...'
+                                },
+                                {
+                                    name: 'consultation_status',
+                                    label: 'Consultation Status',
+                                    type: 'select',
+                                    options: [
+                                        { label: 'All', value: '' },
+                                        { label: 'Pending', value: 'pending' },
+                                        { label: 'Completed', value: 'completed' }
+                                    ]
+                                },
+                                {
+                                    name: 'doctor_id',
+                                    label: 'Filter by Doctor',
+                                    type: 'select',
+                                    options: [
+                                        { label: 'All Doctors', value: '' },
+                                        ...doctors.map(d => ({
+                                            label: `${d.first_name || ''} ${d.last_name || ''}`.trim() || d.name || 'Unknown',
+                                            value: d.id
+                                        }))
+                                    ]
+                                },
+                                {
+                                    name: 'department_id',
+                                    label: 'Filter by Department',
+                                    type: 'select',
+                                    options: [
+                                        { label: 'All Departments', value: '' },
+                                        ...departments.map(dept => ({
+                                            label: dept.name,
+                                            value: dept.id
+                                        }))
+                                    ]
+                                },
+                                {
+                                    name: 'date_range',
+                                    label: 'Date Range',
+                                    type: 'daterange'
+                                }
+                            ],
+                            onApplyFilters: (filters) => {
+                                // Merge with existing status filter if needed, but quick filters are removed
+                                const newFilters = { ...activeFilters, ...filters };
+                                setActiveFilters(newFilters);
+                                fetchAppointments(1, newFilters);
+                            },
+                            onResetFilters: () => {
+                                setActiveFilters({});
+                                fetchAppointments(1, {});
+                            },
+                            initialValues: activeFilters
+                        }}
+                    />
+
+                    <DataTable
+                        title={isDoctor ? "My Confirmed & Completed Appointments" : "Appointments Management"}
+                        data={appointments}
+                        columns={columns}
+                        onAdd={!isDoctor ? handleAdd : undefined}
+                        onEdit={!isDoctor ? handleEdit : undefined}
+                        onDelete={!isDoctor ? handleDelete : undefined}
+                        onView={handleView}
+                        customActions={getCustomActions}
+                        searchable={false}
+                        filterable={false}
+                        exportable={true}
+                        addButtonLabel={!isDoctor ? "New Appointment" : undefined}
+                        searchPlaceholder="Search appointments..."
+                        pagination={{ // Pass pagination props
+                            currentPage: pagination.currentPage,
+                            totalPages: pagination.totalPages,
+                            totalItems: pagination.totalItems,
+                            perPage: pagination.perPage,
+                            onPageChange: handlePageChange
+                        }}
+                    />
+                </>
             ) : (
                 <AppointmentCalendar
                     appointments={appointments}

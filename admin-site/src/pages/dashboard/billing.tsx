@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
     Card,
     CardBody,
+    CardHeader,
     Typography,
     Button,
     Chip,
@@ -31,8 +32,9 @@ import {
     ClockIcon
 } from "@heroicons/react/24/outline";
 import { apiService } from '@/services/api';
-import DataTable from '@/components/DataTable';
+import DataTable, { Column } from '@/components/DataTable';
 import { useToast } from '@/context/ToastContext';
+import { AdvancedFilter } from '@/components/AdvancedFilter';
 
 interface Bill {
     id: number;
@@ -68,16 +70,15 @@ const Billing = () => {
     const { showToast } = useToast();
     const [bills, setBills] = useState<Bill[]>([]);
     const [loading, setLoading] = useState(true);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [statusFilter, setStatusFilter] = useState('all');
+    const [processingPayment, setProcessingPayment] = useState(false);
     const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
     const [showDetailsModal, setShowDetailsModal] = useState(false);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [paymentAmount, setPaymentAmount] = useState('');
     const [paymentNotes, setPaymentNotes] = useState('');
-    const [processingPayment, setProcessingPayment] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+    const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
 
     const tabs = [
         { label: "All Bills", value: "all" },
@@ -88,20 +89,17 @@ const Billing = () => {
     ];
 
     useEffect(() => {
-        fetchBills();
-    }, [currentPage, statusFilter]);
+        fetchBills(currentPage, activeFilters);
+    }, [currentPage]);
 
-    const fetchBills = async () => {
+    const fetchBills = async (page = 1, currentFilters = activeFilters) => {
         try {
             setLoading(true);
             const params: any = {
-                page: currentPage,
+                page,
                 per_page: 10,
+                ...currentFilters
             };
-
-            if (statusFilter !== 'all') {
-                params.status = statusFilter;
-            }
 
             const response = await apiService.getBills(params);
             if (response.success) {
@@ -224,16 +222,8 @@ const Billing = () => {
         });
     };
 
-    const filteredBills = bills.filter((bill) => {
-        const matchesSearch =
-            bill.bill_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            `${bill.patient.first_name} ${bill.patient.last_name}`
-                .toLowerCase()
-                .includes(searchTerm.toLowerCase());
-        return matchesSearch;
-    });
 
-    const columns: any[] = [
+    const columns: Column[] = [
         {
             label: 'Bill Number',
             key: 'bill_number',
@@ -340,74 +330,70 @@ const Billing = () => {
     };
 
     return (
-        <div className="mt-12 mb-8">
-            <div className="mb-4">
-                <Typography variant="h2" color="blue-gray" className="mb-2">
-                    Billing Management
-                </Typography>
-                <Typography variant="small" color="blue-gray">
-                    Manage patient invoices, track payments, and finalize bills
-                </Typography>
-            </div>
-
-            <Card className="border border-blue-gray-100 shadow-sm overflow-hidden">
-                <CardBody className="p-0">
-                    <Tabs value={statusFilter}>
-                        <TabsHeader
-                            className="bg-transparent border-b border-blue-gray-50 px-6 rounded-none"
-                            indicatorProps={{
-                                className: "bg-blue-500/10 shadow-none border-b-2 border-blue-500 rounded-none !z-0",
+        <div className="mt-12 mb-8 flex flex-col gap-12">
+            <Card>
+                <CardHeader variant="gradient" color="blue" className="mb-8 p-6">
+                    <Typography variant="h6" color="white">
+                        Billing Management
+                    </Typography>
+                </CardHeader>
+                <CardBody className="px-0 pt-0 pb-2">
+                    <div className="px-6 mb-4">
+                        <AdvancedFilter
+                            config={{
+                                fields: [
+                                    {
+                                        name: 'keyword',
+                                        label: 'Search Bills',
+                                        type: 'text',
+                                        placeholder: 'Search by bill #, patient name, phone...'
+                                    },
+                                    {
+                                        name: 'status',
+                                        label: 'Status',
+                                        type: 'select',
+                                        options: [
+                                            { label: 'All Statuses', value: '' },
+                                            { label: 'Draft', value: 'draft' },
+                                            { label: 'Finalized', value: 'finalized' },
+                                            { label: 'Partially Paid', value: 'partially_paid' },
+                                            { label: 'Paid', value: 'paid' },
+                                            { label: 'Cancelled', value: 'cancelled' }
+                                        ]
+                                    },
+                                    {
+                                        name: 'date_range',
+                                        label: 'Bill Date',
+                                        type: 'daterange'
+                                    }
+                                ],
+                                onApplyFilters: (filters) => {
+                                    setActiveFilters(filters);
+                                    fetchBills(1, filters);
+                                },
+                                onResetFilters: () => {
+                                    setActiveFilters({});
+                                    fetchBills(1, {});
+                                },
+                                initialValues: activeFilters
                             }}
-                        >
-                            {tabs.map(({ label, value }) => (
-                                <Tab
-                                    key={value}
-                                    value={value}
-                                    onClick={() => {
-                                        setStatusFilter(value);
-                                        setCurrentPage(1);
-                                    }}
-                                    className={`py-4 font-semibold text-sm transition-colors duration-300 ${statusFilter === value ? "text-blue-500" : "text-blue-gray-500 hover:text-blue-700"
-                                        }`}
-                                >
-                                    {label}
-                                </Tab>
-                            ))}
-                        </TabsHeader>
-                    </Tabs>
-
-                    <div className="p-6">
-                        <div className="mb-6 flex items-center justify-between">
-                            <div className="w-full md:w-96">
-                                <Input
-                                    label="Search bills or patients..."
-                                    icon={<MagnifyingGlassIcon className="h-5 w-5" />}
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    crossOrigin={undefined}
-                                />
-                            </div>
-                        </div>
-
-                        {loading ? (
-                            <div className="flex items-center justify-center py-12">
-                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-                            </div>
-                        ) : (
-                            <DataTable
-                                title="Billing List"
-                                columns={columns}
-                                data={filteredBills}
-                                customActions={customActions}
-                                searchable={false}
-                                pagination={{
-                                    currentPage: currentPage,
-                                    totalPages: totalPages,
-                                    onPageChange: setCurrentPage,
-                                }}
-                            />
-                        )}
+                        />
                     </div>
+
+                    {/* Table */}
+                    <DataTable
+                        title="Billing List"
+                        columns={columns}
+                        data={bills}
+                        customActions={customActions}
+                        searchable={false}
+                        filterable={false}
+                        pagination={{
+                            currentPage: currentPage,
+                            totalPages: totalPages,
+                            onPageChange: setCurrentPage,
+                        }}
+                    />
                 </CardBody>
             </Card>
 

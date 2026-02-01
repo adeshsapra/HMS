@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { DataTable, FormModal, ViewModal, DeleteConfirmModal, Column, FormField, ViewField, Pagination } from "@/components";
+import { DataTable, FormModal, ViewModal, DeleteConfirmModal, Column, FormField, ViewField, Pagination, AdvancedFilter, FilterConfig } from "@/components";
 import { Button } from "@material-tailwind/react";
 import { BuildingOfficeIcon } from "@heroicons/react/24/outline";
 import { apiService } from "@/services/api";
@@ -35,15 +35,16 @@ export default function Departments(): JSX.Element {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+  const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
 
   useEffect(() => {
-    fetchDepartments();
+    fetchDepartments(currentPage, activeFilters);
   }, [currentPage, pageSize]);
 
-  const fetchDepartments = async () => {
+  const fetchDepartments = async (page: number = currentPage, filters: Record<string, any> = activeFilters) => {
     try {
       setLoading(true);
-      const response = await apiService.getDepartments(currentPage, pageSize);
+      const response = await apiService.getDepartments(page, pageSize, filters);
       if (response.success && response.data) {
         setDepartments(response.data || []);
         setTotalPages(response.meta?.last_page || 1);
@@ -314,6 +315,53 @@ export default function Departments(): JSX.Element {
         </Button>
       </div>
 
+      <AdvancedFilter
+        config={{
+          fields: [
+            {
+              name: 'keyword',
+              label: 'Search Everywhere',
+              type: 'text',
+              placeholder: 'Search by name, description, head...'
+            },
+            {
+              name: 'is_active',
+              label: 'Status',
+              type: 'select',
+              options: [
+                { label: 'All Statuses', value: '' },
+                { label: 'Active', value: '1' },
+                { label: 'Inactive', value: '0' }
+              ]
+            },
+            {
+              name: 'category',
+              label: 'Category',
+              type: 'select',
+              options: [
+                { label: 'All Categories', value: '' },
+                { value: "Surgical", label: "Surgical" },
+                { value: "Specialized", label: "Specialized" },
+                { value: "Pediatric", label: "Pediatric" },
+                { value: "Cosmetic", label: "Cosmetic" },
+                { value: "Emergency", label: "Emergency" },
+              ]
+            }
+          ],
+          onApplyFilters: (filters) => {
+            setActiveFilters(filters);
+            setCurrentPage(1);
+            fetchDepartments(1, filters);
+          },
+          onResetFilters: () => {
+            setActiveFilters({});
+            setCurrentPage(1);
+            fetchDepartments(1, {});
+          },
+          initialValues: activeFilters
+        }}
+      />
+
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
@@ -327,8 +375,8 @@ export default function Departments(): JSX.Element {
           onEdit={handleEdit}
           onDelete={handleDelete}
           onView={handleView}
-          searchable={true}
-          filterable={true}
+          searchable={false}
+          filterable={false}
           exportable={true}
           addButtonLabel="Add Department"
           searchPlaceholder="Search departments..."

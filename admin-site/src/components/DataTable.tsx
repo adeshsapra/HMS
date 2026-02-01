@@ -62,6 +62,7 @@ export interface DataTableProps {
     totalItems?: number;
     perPage?: number;
   };
+  advancedFilter?: React.ReactNode;
 }
 
 export function DataTable({
@@ -79,6 +80,7 @@ export function DataTable({
   addButtonLabel = "Add New",
   searchPlaceholder = "Search...",
   pagination,
+  advancedFilter,
 }: DataTableProps): JSX.Element {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [filteredData, setFilteredData] = useState<Record<string, any>[]>(data);
@@ -211,6 +213,11 @@ export function DataTable({
                 Filters
               </Button>
             )}
+          </div>
+        )}
+        {advancedFilter && (
+          <div className="px-6 py-4 bg-white border-b border-blue-gray-100">
+            {advancedFilter}
           </div>
         )}
         <div className="overflow-x-auto">
