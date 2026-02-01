@@ -286,7 +286,7 @@ const Header = () => {
                 Doctors
               </Link>
             </li>
-            <li
+            {/* <li
               className={`dropdown ${activeDropdown === "more" ? "active dropdown-active" : ""
                 }`}
             >
@@ -310,6 +310,11 @@ const Header = () => {
                 <li>
                   <Link to="/quickappointment" onClick={closeMobileNav}>
                     Quick Appointment
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/plan-details" onClick={closeMobileNav}>
+                    Health Plans
                   </Link>
                 </li>
                 <li>
@@ -363,7 +368,7 @@ const Header = () => {
                   </Link>
                 </li>
               </ul>
-            </li>
+            </li> */}
             <li>
               <Link
                 to="/contact"

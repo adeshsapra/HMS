@@ -70,9 +70,9 @@ const Footer = () => {
 
       <footer className="footer-section">
         <div className="container">
-          <div className="row g-5">
-            {/* Brand Information */}
-            <div className="col-lg-4 col-md-12">
+          <div className="row g-4 justify-content-between">
+            {/* Brand column */}
+            <div className="col-lg-3 col-md-6">
               <div className="footer-brand">
                 <Link to="/" className="brand-link">
                   <div className="brand-logo-box">
@@ -81,54 +81,97 @@ const Footer = () => {
                   <span className="brand-name">MediTrust</span>
                 </Link>
                 <p className="brand-text">
-                  Delivering compassionate, world-class healthcare services with cutting-edge technology.
+                  Delivering compassionate, world-class healthcare services. Our medical experts utilize cutting-edge technology to ensure the best patient outcomes.
                 </p>
-
-                <div className="social-links">
-                  {['facebook', 'twitter-x', 'linkedin', 'instagram'].map((icon) => (
-                    <a href="#" key={icon} className="social-btn">
-                      <i className={`bi bi-${icon}`}></i>
+                <div className="social-links mt-4">
+                  {[
+                    { icon: 'facebook', path: '#' },
+                    { icon: 'twitter-x', path: '#' },
+                    { icon: 'linkedin', path: '#' },
+                    { icon: 'instagram', path: '#' },
+                    { icon: 'youtube', path: '#' }
+                  ].map((social) => (
+                    <a href={social.path} key={social.icon} className="social-btn">
+                      <i className={`bi bi-${social.icon}`}></i>
                     </a>
                   ))}
                 </div>
               </div>
             </div>
 
-            {/* Quick Links Column 1 */}
-            <div className="col-lg-2 col-md-6 col-6">
-              <h5 className="footer-header">Departments</h5>
+            {/* Services column */}
+            <div className="col-lg-2 col-md-6">
+              <h5 className="footer-header">Medical Services</h5>
               <ul className="footer-list">
-                {['Cardiology', 'Neurology', 'Orthopedics', 'Pediatrics', 'Surgery'].map(item => (
-                  <li key={item}><Link to="/services">{item}</Link></li>
+                {[
+                  { name: 'Cardiology', path: '/services' },
+                  { name: 'Neurology', path: '/services' },
+                  { name: 'Orthopedics', path: '/services' },
+                  { name: 'Pediatrics', path: '/services' },
+                  { name: 'Surgery Dept', path: '/services' },
+                  { name: 'Home Care', path: '/home-care' }
+                ].map(item => (
+                  <li key={item.name}><Link to={item.path}>{item.name}</Link></li>
                 ))}
               </ul>
             </div>
 
-            {/* Quick Links Column 2 */}
-            <div className="col-lg-2 col-md-6 col-6">
-              <h5 className="footer-header">Quick Links</h5>
+            {/* Useful Links column */}
+            <div className="col-lg-2 col-md-6">
+              <h5 className="footer-header">Company Info</h5>
               <ul className="footer-list">
-                {['About Us', 'Our Doctors', 'Services', 'Contact', 'FAQ'].map(item => (
-                  <li key={item}><Link to="/">{item}</Link></li>
+                {[
+                  { name: 'About MediTrust', path: '/about' },
+                  { name: 'Medical Experts', path: '/doctors' },
+                  { name: 'Departments', path: '/departments' },
+                  { name: 'Patient Reviews', path: '/testimonials' },
+                  { name: 'Image Gallery', path: '/gallery' },
+                  { name: 'Contact Us', path: '/contact' }
+                ].map(item => (
+                  <li key={item.name}><Link to={item.path}>{item.name}</Link></li>
                 ))}
               </ul>
             </div>
 
-            {/* Newsletter */}
-            <div className="col-lg-4 col-md-12">
-              <h5 className="footer-header">Stay Updated</h5>
-              <div className="newsletter-container">
-                <p className="newsletter-text">Subscribe to our newsletter for health tips.</p>
-                <div className="subscribe-form">
-                  <input type="email" placeholder="Email address" />
-                  <button type="button"><i className="bi bi-send-fill"></i></button>
+            {/* Important Links column */}
+            <div className="col-lg-2 col-md-6">
+              <h5 className="footer-header">Resources</h5>
+              <ul className="footer-list">
+                {[
+                  { name: 'Quick Appointment', path: '/quickappointment' },
+                  { name: 'Home Care Wizard', path: '/home-care' },
+                  { name: 'Help & FAQ', path: '/faq' },
+                  { name: 'Privacy Policy', path: '/privacy' },
+                  { name: 'Terms of Service', path: '/terms' },
+                ].map(item => (
+                  <li key={item.name}><Link to={item.path}>{item.name}</Link></li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Newsletter & Contact column */}
+            <div className="col-lg-3 col-md-12">
+              <h5 className="footer-header">Get In Touch</h5>
+              <div className="contact-details mb-4">
+                <div className="icon-info-item">
+                  <i className="bi bi-geo-alt-fill"></i>
+                  <span>123 Medical Plaza, New York, NY 10001</span>
+                </div>
+                <div className="icon-info-item">
+                  <i className="bi bi-envelope-fill"></i>
+                  <a href="mailto:support@meditrust.com">support@meditrust.com</a>
+                </div>
+                <div className="icon-info-item">
+                  <i className="bi bi-headset"></i>
+                  <span>Emergency: +1 (555) 911-4567</span>
                 </div>
               </div>
 
-              <div className="contact-info mt-4">
-                <div className="contact-item">
-                  <i className="bi bi-envelope-fill text-accent"></i>
-                  <a href="mailto:info@meditrust.com">info@meditrust.com</a>
+              <div className="newsletter-box mt-4">
+                <h6 className="newsletter-title">Subscribe to Health Tips</h6>
+                <div className="subscribe-form">
+                  <input type="email" placeholder="Your email..." />
+                  <button type="button"><i className="bi bi-send-fill"></i></button>
                 </div>
               </div>
             </div>
@@ -136,13 +179,15 @@ const Footer = () => {
 
           <div className="footer-bottom-bar">
             <div className="row align-items-center">
-              <div className="col-md-6 text-center text-md-start">
-                &copy; {new Date().getFullYear()} <strong>MediTrust</strong>. All Rights Reserved.
+              <div className="col-md-6 text-center text-md-start mb-3 mb-md-0">
+                &copy; {new Date().getFullYear()} <span className="fw-bold">MediTrust</span> Healthcare Group. All Rights Reserved.
               </div>
               <div className="col-md-6 text-center text-md-end footer-legal">
-                <a href="#">Privacy</a>
+                <Link to="/privacy">Privacy Policy</Link>
                 <span className="sep">•</span>
-                <a href="#">Terms</a>
+                <Link to="/terms">Terms of Use</Link>
+                <span className="sep">•</span>
+                <Link to="/faq">Cookie Policy</Link>
               </div>
             </div>
           </div>
@@ -484,6 +529,45 @@ const Footer = () => {
         .contact-item a:hover { color: rgba(255,255,255,0.8); }
         .text-accent { color: var(--white); opacity: 0.8; }
 
+        /* Icon Info Items */
+        .contact-details {
+          display: flex;
+          flex-direction: column;
+          gap: 15px;
+        }
+        .icon-info-item {
+          display: flex;
+          align-items: flex-start;
+          gap: 15px;
+          color: rgba(255,255,255,0.85);
+          font-size: 0.95rem;
+        }
+        .icon-info-item i {
+          color: var(--white);
+          font-size: 1.1rem;
+          margin-top: 2px;
+          opacity: 0.9;
+        }
+        .icon-info-item a {
+          color: rgba(255,255,255,0.85);
+          text-decoration: none;
+          transition: 0.3s;
+        }
+        .icon-info-item a:hover {
+          color: var(--white);
+        }
+
+        .newsletter-box {
+          border-top: 1px solid rgba(255,255,255,0.1);
+          padding-top: 20px;
+        }
+        .newsletter-title {
+          color: var(--white);
+          font-size: 1rem;
+          font-weight: 700;
+          margin-bottom: 15px;
+        }
+
         /* Bottom Bar */
         .footer-bottom-bar {
           border-top: 1px solid rgba(255,255,255,0.15);
@@ -496,6 +580,7 @@ const Footer = () => {
           color: rgba(255,255,255,0.6);
           text-decoration: none;
           transition: color 0.2s;
+          font-weight: 500;
         }
         .footer-legal a:hover { color: var(--white); }
         .sep { margin: 0 10px; color: rgba(255,255,255,0.3); }
@@ -516,6 +601,7 @@ const Footer = () => {
           }
           .btn-shine { width: 100%; justify-content: center; }
           .footer-brand { margin-bottom: 20px; }
+          .footer-header { margin-top: 20px; }
         }
       `}</style>
     </div>

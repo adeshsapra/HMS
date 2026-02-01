@@ -430,11 +430,11 @@ const HealthPackages = () => {
                                         ))}
                                     </List>
                                 </div>
-                                {/* Metadata Configuration (Dynamic) */}
+                                {/* Metadata Configuration */}
                                 <div className="col-span-1 md:col-span-2 mt-4 p-4 border border-blue-gray-100 rounded-lg">
                                     <div className="flex justify-between items-center mb-4">
                                         <Typography variant="h6" color="blue-gray">
-                                            Package Metadata (Dynamic)
+                                            Package Metadata
                                         </Typography>
                                     </div>
 

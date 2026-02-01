@@ -854,11 +854,7 @@ const BookingWizard = () => {
                   }`}
               >
                 <div className="step-indicator">
-                  {step > s.id ? (
-                    <i className="bi bi-check-lg"></i>
-                  ) : (
-                    <i className={`bi ${s.icon}`}></i>
-                  )}
+                  <i className={`bi ${s.icon}`}></i>
                 </div>
                 <div className="step-label">{s.label}</div>
               </div>

@@ -228,6 +228,74 @@ const QuickAppointment = () => {
                     margin-bottom: 8px;
                     display: block;
                 }
+
+                /* Process Steps Styling */
+                .process-steps {
+                    background: #fdfdfd;
+                }
+                .process-indicator {
+                    position: relative;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                }
+                .process-icon {
+                    width: 70px;
+                    height: 70px;
+                    background: #fff;
+                    border: 2px solid #eef2f3;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 1.8rem;
+                    color: #049ebb;
+                    z-index: 2;
+                    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+                    transition: all 0.3s ease;
+                }
+                .process-item:hover .process-icon {
+                    background: #049ebb;
+                    color: #fff;
+                    border-color: #049ebb;
+                    transform: translateY(-5px);
+                    box-shadow: 0 15px 30px rgba(4, 158, 187, 0.2);
+                }
+                .process-number {
+                    position: absolute;
+                    top: -10px;
+                    right: calc(50% - 40px);
+                    width: 28px;
+                    height: 28px;
+                    background: #049ebb;
+                    color: #fff;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-weight: 800;
+                    font-size: 0.85rem;
+                    z-index: 3;
+                    border: 3px solid #fff;
+                }
+                .process-line {
+                    position: absolute;
+                    top: 50%;
+                    left: calc(50% + 35px);
+                    width: calc(100% - 70px);
+                    height: 2px;
+                    background: #eef2f3;
+                    z-index: 1;
+                }
+                .process-item h5 {
+                    color: #18444c;
+                    font-size: 1.1rem;
+                }
+                @media (max-width: 991px) {
+                    .process-line {
+                        display: none;
+                    }
+                }
                 `}
       </style>
       <PageHero
@@ -449,26 +517,35 @@ const QuickAppointment = () => {
         </div>
       </section>
 
-      <div className="process-steps py-5" style={{ background: '#f8fbfc' }}>
-        <div className="container">
-          <div className="row text-center gy-4">
-            {[
-              { num: 1, icon: 'bi-person-fill', title: 'Provide Details', desc: 'Securely share your contact and medical preferences.' },
-              { num: 2, icon: 'bi-calendar-event', title: 'Schedule Slot', desc: 'Pick a date and convenient time that works for you.' },
-              { num: 3, icon: 'bi-check-circle', title: 'Get Confirmed', desc: 'Receive instant notification from our team.' },
-              { num: 4, icon: 'bi-heart-pulse', title: 'Expert Care', desc: 'Meet your specialist and start your journey to health.' }
-            ].map((step) => (
-              <div key={step.num} className="col-lg-3 col-md-6">
-                <div className="step-item p-4">
-                  <div className="step-number mb-3 mx-auto shadow-sm" style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#049ebb', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>{step.num}</div>
-                  <div className="step-icon mb-3" style={{ fontSize: '2rem', color: '#049ebb' }}>
-                    <i className={step.icon}></i>
+      <div className="process-steps py-5">
+        <div className="container" data-aos="fade-up">
+          <div className="section-header text-center mb-5">
+            <h2 className="fw-bold" style={{ color: '#18444c' }}>How It Works</h2>
+            <p className="text-muted">Simple steps to get your health back on track</p>
+          </div>
+          <div className="process-wrapper">
+            <div className="row gy-4">
+              {[
+                { num: 1, icon: 'bi-person-fill', title: 'Provide Details', desc: 'Securely share your contact and medical preferences.' },
+                { num: 2, icon: 'bi-calendar-event', title: 'Schedule Slot', desc: 'Pick a date and convenient time that works for you.' },
+                { num: 3, icon: 'bi-check-circle', title: 'Get Confirmed', desc: 'Receive instant notification from our team.' },
+                { num: 4, icon: 'bi-heart-pulse', title: 'Expert Care', desc: 'Meet your specialist and start your journey to health.' }
+              ].map((item, idx) => (
+                <div key={item.num} className="col-lg-3 col-md-6">
+                  <div className="process-item text-center">
+                    <div className="process-indicator mb-4">
+                      <div className="process-number">{item.num}</div>
+                      <div className="process-icon">
+                        <i className={`bi ${item.icon}`}></i>
+                      </div>
+                      {idx < 3 && <div className="process-line d-none d-lg-block"></div>}
+                    </div>
+                    <h5 className="fw-bold mb-3">{item.title}</h5>
+                    <p className="text-muted px-3" style={{ fontSize: '0.9rem' }}>{item.desc}</p>
                   </div>
-                  <h6 className="fw-bold">{step.title}</h6>
-                  <p className="small text-muted">{step.desc}</p>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </div>
