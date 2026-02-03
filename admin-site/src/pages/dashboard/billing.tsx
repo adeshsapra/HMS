@@ -337,8 +337,8 @@ const Billing = () => {
 
     return (
         <div className="mt-12 mb-8 flex flex-col gap-12">
-            <Card className="border border-blue-gray-100 shadow-sm overflow-hidden">
-                <CardHeader variant="gradient" color="blue" className="mb-0 p-6">
+            <Card className="border border-blue-gray-100 shadow-sm">
+                <CardHeader variant="gradient" color="blue" className="mb-0 p-6 rounded-t-xl">
                     <div className="flex items-center justify-between">
                         <div>
                             <Typography variant="h6" color="white">
@@ -369,8 +369,8 @@ const Billing = () => {
                                         setCurrentPage(1);
                                     }}
                                     className={`py-4 font-semibold text-sm transition-colors duration-300 ${statusFilter === value
-                                            ? "text-blue-500"
-                                            : "text-blue-gray-500 hover:text-blue-700"
+                                        ? "text-blue-500"
+                                        : "text-blue-gray-500 hover:text-blue-700"
                                         }`}
                                 >
                                     {label}
