@@ -11,6 +11,7 @@ import {
 } from "../services/api";
 import ContentLoader from "../components/ContentLoader";
 import DepartmentSection from "../components/Home/Departments/DepartmentSection";
+import HealthPackageSection from "../components/Home/HealthPackages/HealthPackageSection";
 import "../billing-toggle.css";
 
 interface HealthPackage {
@@ -26,9 +27,6 @@ interface HealthPackage {
 
 const Home = () => {
   const [healthPackages, setHealthPackages] = useState<HealthPackage[]>([]);
-  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">(
-    "monthly"
-  );
 
   // Home Care State
   const [homeCareServices, setHomeCareServices] = useState<any[]>([]);
@@ -1072,91 +1070,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* --- REDESIGNED: Health Packages Section --- */}
-      <section id="packages" className="packages section">
-        <div className="container section-title text-center" data-aos="fade-up">
-          <h2>Exclusive Health Packages</h2>
-          <p>Preventive care tailored for every stage of life.</p>
-
-          <div className="d-flex justify-content-center mt-4">
-            <div className="billing-toggle-wrapper">
-              <div
-                className={`billing-option ${billingCycle === "monthly" ? "active" : ""}`}
-                onClick={() => setBillingCycle("monthly")}
-              >
-                Monthly
-              </div>
-              <div
-                className={`billing-option ${billingCycle === "yearly" ? "active" : ""}`}
-                onClick={() => setBillingCycle("yearly")}
-              >
-                Yearly
-                {/* <span className="discount-badge">Save 20%</span> */}
-              </div>
-              <div
-                className={`slider-bg ${billingCycle === "yearly" ? "slide-right" : ""}`}
-              ></div>
-            </div>
-          </div>
-        </div>
-
-        <div className="container">
-          <div className="row gy-4 align-items-center justify-content-center">
-            {healthPackages.map((pkg, idx) => (
-              <div
-                className="col-lg-4 col-md-6"
-                key={pkg.id}
-                data-aos="fade-up"
-                data-aos-delay={100 * (idx + 1)}
-              >
-                <div
-                  className={`package-card ${pkg.featured ? "featured" : ""}`}
-                >
-                  {pkg.featured && (
-                    <div className="popular-badge">Best Value</div>
-                  )}
-
-                  <h3 className="package-title">{pkg.title}</h3>
-                  <p className="package-subtitle">{pkg.subtitle}</p>
-
-                  <div className="package-price">
-                    <sup>$</sup>
-                    {billingCycle === "monthly"
-                      ? pkg.price_monthly
-                      : pkg.price_yearly || pkg.price_monthly * 10}
-                    <span>
-                      /{billingCycle === "monthly" ? "month" : "year"}
-                    </span>
-                  </div>
-
-                  <hr />
-
-                  <ul className="package-features">
-                    {(billingCycle === "monthly"
-                      ? pkg.features_monthly
-                      : pkg.features_yearly
-                    )?.map((f, i) => (
-                      <li key={i}>
-                        <i className="bi bi-check-circle-fill me-2"></i>
-                        <span>{f}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  <Link
-                    to={`/health-plans/${pkg.id}?type=${billingCycle}`}
-                    className={`btn-package ${pkg.featured ? "filled" : "outline"}`}
-                  >
-                    {billingCycle === "monthly"
-                      ? "Book Monthly Plan"
-                      : "Book Yearly Plan"}
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <HealthPackageSection healthPackages={healthPackages} />
 
       {/* --- REDESIGNED: Workflow / Process Section --- */}
       <section id="workflow" className="workflow section">
