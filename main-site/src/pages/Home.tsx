@@ -12,6 +12,7 @@ import {
 import ContentLoader from "../components/ContentLoader";
 import DepartmentSection from "../components/Home/Departments/DepartmentSection";
 import HealthPackageSection from "../components/Home/HealthPackages/HealthPackageSection";
+import WorkflowSection from "../components/Home/Workflow/WorkflowSection";
 import "../billing-toggle.css";
 
 interface HealthPackage {
@@ -1072,60 +1073,7 @@ const Home = () => {
 
       <HealthPackageSection healthPackages={healthPackages} />
 
-      {/* --- REDESIGNED: Workflow / Process Section --- */}
-      <section id="workflow" className="workflow section">
-        <div className="container section-title text-center" data-aos="fade-up">
-          <h2>Simple Steps to Better Health</h2>
-          <p>We have streamlined the process to save your time.</p>
-        </div>
-
-        <div className="container">
-          <div className="row gy-4">
-            {[
-              {
-                step: "1",
-                title: "Find Doctor",
-                desc: "Search by name, specialty, or condition.",
-                icon: "bi-search-heart",
-              },
-              {
-                step: "2",
-                title: "Book Slot",
-                desc: "Choose a time that fits your schedule.",
-                icon: "bi-calendar-date",
-              },
-              {
-                step: "3",
-                title: "Instant Confirm",
-                desc: "Receive booking details via SMS/Email.",
-                icon: "bi-patch-check",
-              },
-              {
-                step: "4",
-                title: "Visit Hospital",
-                desc: "Skip the queue and get treated.",
-                icon: "bi-hospital",
-              },
-            ].map((item, idx) => (
-              <div
-                className="col-lg-3 col-md-6"
-                key={idx}
-                data-aos="fade-up"
-                data-aos-delay={100 * idx}
-              >
-                <div className="workflow-step">
-                  <div className="step-icon">
-                    <i className={`bi ${item.icon} `}></i>
-                    <div className="step-count">{item.step}</div>
-                  </div>
-                  <h4>{item.title}</h4>
-                  <p>{item.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <WorkflowSection />
 
       {/* Unique Testimonials Section */}
       <section
