@@ -1,5 +1,6 @@
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
+import { motion, useScroll, useTransform } from "framer-motion";
 import AOS from "aos";
 import axios from "axios";
 import {
@@ -25,6 +26,34 @@ interface HealthPackage {
   features_yearly: string[];
   featured: boolean;
 }
+
+const SectionHeading = ({ children, desc, align = "center" }: { children: React.ReactNode; desc?: string; align?: "left" | "center" }) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start end", "end start"],
+  });
+
+  const scale = useTransform(scrollYProgress, [0, 0.5], [0.8, 1]);
+  const opacity = useTransform(scrollYProgress, [0, 0.3], [0, 1]);
+
+  const isLeft = align === "left";
+
+  return (
+    <div ref={ref} className={`mb-5 ${isLeft ? "" : "container"}`}>
+      <motion.div style={{ scale, opacity }} className={isLeft ? "text-start" : "text-center"}>
+        <h2 className="display-6 fw-bold" style={{ color: "var(--heading-color)" }}>
+          {children}
+        </h2>
+        {desc && (
+          <p className={`text-muted mt-3 ${isLeft ? "" : "mx-auto"}`} style={{ maxWidth: "600px" }}>
+            {desc}
+          </p>
+        )}
+      </motion.div>
+    </div>
+  );
+};
 
 const Home = () => {
   const [healthPackages, setHealthPackages] = useState<HealthPackage[]>([]);
@@ -189,6 +218,12 @@ const Home = () => {
 
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   @keyframes slideUp { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+  .text-gradient {
+    background: linear-gradient(135deg, var(--heading-color), var(--accent-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
 `,
         }}
       />
@@ -340,13 +375,9 @@ const Home = () => {
         id="featured-services"
         className="featured-services section light-background"
       >
-        <div className="container section-title" data-aos="fade-up">
-          <h2>Featured Services</h2>
-          <p>
-            Necessitatibus eius consequatur ex aliquid fuga eum quidem sint
-            consectetur velit
-          </p>
-        </div>
+        <SectionHeading desc="Necessitatibus eius consequatur ex aliquid fuga eum quidem sint consectetur velit">
+          Featured <span className="text-gradient">Services</span>
+        </SectionHeading>
 
         <div className="container" data-aos="fade-up" data-aos-delay="100">
           <div className="row gy-4">
@@ -427,13 +458,9 @@ const Home = () => {
 
       {/* Find A Doctor Section */}
       <section id="find-a-doctor" className="find-a-doctor section">
-        <div className="container section-title" data-aos="fade-up">
-          <h2>Find A Doctor</h2>
-          <p>
-            Necessitatibus eius consequatur ex aliquid fuga eum quidem sint
-            consectetur velit
-          </p>
-        </div>
+        <SectionHeading desc="Necessitatibus eius consequatur ex aliquid fuga eum quidem sint consectetur velit">
+          Find A <span className="text-gradient">Doctor</span>
+        </SectionHeading>
 
         <div className="container" data-aos="fade-up" data-aos-delay="100">
           <div
@@ -552,14 +579,9 @@ const Home = () => {
         <div className="container" data-aos="fade-up" data-aos-delay="100">
           <div className="row justify-content-center">
             <div className="col-lg-8 text-center">
-              <h2 data-aos="fade-up" data-aos-delay="200">
-                Your Health is Our Priority
-              </h2>
-              <p data-aos="fade-up" data-aos-delay="250">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
-                eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
-                enim ad minim veniam, quis nostrud exercitation ullamco laboris.
-              </p>
+              <SectionHeading desc="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.">
+                Your Health is <span className="text-gradient">Our Priority</span>
+              </SectionHeading>
 
               <div
                 className="cta-buttons"
@@ -654,13 +676,9 @@ const Home = () => {
 
       {/* Home About Section */}
       <section id="home-about" className="home-about section">
-        <div className="container section-title" data-aos="fade-up">
-          <h2>About Us</h2>
-          <p>
-            Necessitatibus eius consequatur ex aliquid fuga eum quidem sint
-            consectetur velit
-          </p>
-        </div>
+        <SectionHeading desc="Necessitatibus eius consequatur ex aliquid fuga eum quidem sint consectetur velit">
+          About <span className="text-gradient">Us</span>
+        </SectionHeading>
 
         <div className="container" data-aos="fade-up" data-aos-delay="100">
           <div className="row gy-5 align-items-center">
@@ -800,13 +818,9 @@ const Home = () => {
       </section>
       {/* Emergency Info Section */}
       <section id="emergency-info" className="emergency-info section">
-        <div className="container section-title" data-aos="fade-up">
-          <h2>Emergency Info</h2>
-          <p>
-            Necessitatibus eius consequatur ex aliquid fuga eum quidem sint
-            consectetur velit
-          </p>
-        </div>
+        <SectionHeading desc="Necessitatibus eius consequatur ex aliquid fuga eum quidem sint consectetur velit">
+          Emergency <span className="text-gradient">Info</span>
+        </SectionHeading>
 
         <div className="container" data-aos="fade-up" data-aos-delay="100">
           <div className="row">
@@ -995,13 +1009,9 @@ const Home = () => {
               data-aos-delay="100"
             >
               <div className="home-care-content">
-                <span className="home-care-badge">
-                  {homeCareSettings.home_care_subtitle || "Hospital at Home"}
-                </span>
-                <h2 className="home-care-title">
-                  {homeCareSettings.home_care_title ||
-                    "Professional Home Care Services"}
-                </h2>
+                <SectionHeading align="left">
+                  Hospital <span className="text-gradient">at Home</span>
+                </SectionHeading>
                 <p className="home-care-description">
                   {homeCareSettings.home_care_desc ||
                     "We bring world-class medical assistance to your doorstep. Perfect for post-surgery recovery, elderly care, or chronic disease management."}
@@ -1081,6 +1091,9 @@ const Home = () => {
         className="testimonials-section section"
         style={{ padding: "80px 0" }}
       >
+        <SectionHeading desc="Real experiences from real people who have trusted our medical excellence.">
+          Patient <span className="text-gradient">Stories</span>
+        </SectionHeading>
         <div className="container" data-aos="fade-up">
           <div className="row g-5">
             {/* LEFT COLUMN: The "Trust Anchor" (Summary) */}
@@ -1127,22 +1140,6 @@ const Home = () => {
 
             {/* RIGHT COLUMN: The Reviews Grid */}
             <div className="col-lg-8">
-              <div className="row">
-                <div className="col-12 mb-4">
-                  <h2
-                    style={{
-                      color: "var(--heading-color)",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    Patient Stories
-                  </h2>
-                  <p style={{ color: "var(--default-color)" }}>
-                    Real experiences from real people.
-                  </p>
-                </div>
-              </div>
-
               <div className="row g-4">
                 {testimonials.length > 0 ? (
                   testimonials.map((review, idx) => (

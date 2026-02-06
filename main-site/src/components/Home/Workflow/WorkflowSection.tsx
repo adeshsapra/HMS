@@ -1,35 +1,61 @@
 import React, { useRef } from 'react';
 import { motion, useScroll, useTransform, type Variants } from 'framer-motion';
 
-// --- Data ---
 const workflowSteps = [
     {
         id: 1,
         step: "01",
         title: "Find Doctor",
         desc: "Search by name, specialty, or condition.",
-        icon: "bi-search-heart",
+        icon: (
+            <svg className="workflow-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                <line x1="11" y1="8" x2="11" y2="14" />
+                <line x1="8" y1="11" x2="14" y2="11" />
+            </svg>
+        ),
     },
     {
         id: 2,
         step: "02",
         title: "Book Slot",
         desc: "Choose a time that fits your schedule.",
-        icon: "bi-calendar-date",
+        icon: (
+            <svg className="workflow-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+                <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01" />
+            </svg>
+        ),
     },
     {
         id: 3,
         step: "03",
         title: "Instant Confirm",
         desc: "Receive booking details via SMS/Email.",
-        icon: "bi-patch-check",
+        icon: (
+            <svg className="workflow-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                <path d="M9 12l2 2 4-4" />
+            </svg>
+        ),
     },
     {
         id: 4,
         step: "04",
         title: "Visit Hospital",
         desc: "Skip the queue and get treated.",
-        icon: "bi-hospital",
+        icon: (
+            <svg className="workflow-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z" />
+                <path d="M9 22V12h6v10" />
+                <path d="M12 2v5" />
+                <path d="M15 4.5L12 7 9 4.5" />
+            </svg>
+        ),
     }
 ];
 
@@ -66,30 +92,23 @@ const WorkflowSection: React.FC = () => {
             className="workflow-section relative py-24 overflow-hidden"
             style={{ backgroundColor: 'var(--background-color)' }}
         >
-            {/* --- Background Ambient Glows --- */}
             <div className="absolute inset-0 w-full h-full pointer-events-none">
                 <div className="absolute top-0 left-1/4 w-96 h-96 bg-[var(--accent-color)] opacity-10 rounded-full blur-[120px]" />
                 <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[var(--heading-color)] opacity-10 rounded-full blur-[120px]" />
             </div>
 
             <div className="container relative z-10">
-                {/* --- Header --- */}
                 <motion.div
                     style={{ scale, opacity }}
                     className="text-center mb-24"
                 >
-                    <span className="d-inline-block py-1 px-3 rounded-pill mb-3 text-sm font-bold tracking-wider uppercase bg-[rgba(4,158,187,0.1)] text-[var(--accent-color)]">
-                        Simple Process
-                    </span>
-                    <h2 className="display-4 fw-bold" style={{ color: 'var(--heading-color)' }}>
+                    <h2 className="display-6 fw-bold" style={{ color: 'var(--heading-color)' }}>
                         Your Journey to <span className="text-gradient">Better Health</span>
                     </h2>
                 </motion.div>
 
-                {/* --- The Zig-Zag Flow --- */}
-                <div className="relative">
 
-                    {/* Desktop Connector Snake Line (SVG) */}
+                <div className="relative">
                     <div className="absolute top-[50%] left-0 w-full -translate-y-1/2 d-none d-lg-block z-0">
                         <svg className="w-full h-[200px]" viewBox="0 0 1200 200" fill="none" preserveAspectRatio="none">
                             <motion.path
@@ -147,7 +166,9 @@ const WorkflowSection: React.FC = () => {
                                             {/* Floating Icon */}
                                             <div className="icon-float-wrapper mb-4 mx-auto">
                                                 <div className="icon-bg" />
-                                                <i className={`bi ${item.icon} text-3xl relative z-10 text-white`}></i>
+                                                <div className="relative z-10 text-white d-flex align-items-center justify-content-center h-100">
+                                                    {item.icon}
+                                                </div>
                                             </div>
 
                                             <h4 className="fw-bold mb-2 text-xl" style={{ color: 'var(--heading-color)' }}>
@@ -239,13 +260,14 @@ const WorkflowSection: React.FC = () => {
                     display: flex;
                     align-items: center;
                     justify-content: center;
+                    z-index: 10;
                 }
 
                 .icon-bg {
                     position: absolute;
                     inset: 0;
                     background: var(--accent-color);
-                    border-radius: 24px;
+                    border-radius: 20px;
                     transform: rotate(45deg);
                     transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
                     box-shadow: 0 10px 20px rgba(4, 158, 187, 0.3);
@@ -254,7 +276,22 @@ const WorkflowSection: React.FC = () => {
                 .glass-card:hover .icon-bg {
                     transform: rotate(90deg) scale(1.1);
                     border-radius: 50%;
+                    background: var(--heading-color);
                 }
+
+                .workflow-svg {
+                    width: 32px;
+                    height: 32px;
+                    color: white;
+                    position: relative;
+                    z-index: 12;
+                }
+
+                /* Utility fallbacks */
+                .text-sm { font-size: 0.875rem; }
+                .text-xl { font-size: 1.25rem; }
+                .text-3xl { font-size: 1.875rem; }
+
 
                 /* Shine Effect */
                 .shine-effect {
