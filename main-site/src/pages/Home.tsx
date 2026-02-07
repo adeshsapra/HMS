@@ -14,6 +14,7 @@ import ContentLoader from "../components/ContentLoader";
 import DepartmentSection from "../components/Home/Departments/DepartmentSection";
 import HealthPackageSection from "../components/Home/HealthPackages/HealthPackageSection";
 import WorkflowSection from "../components/Home/Workflow/WorkflowSection";
+import HospitalAtHomeSection from "../components/Home/HospitalAtHome/HospitalAtHomeSection";
 import "../billing-toggle.css";
 
 interface HealthPackage {
@@ -999,87 +1000,11 @@ const Home = () => {
         </div>
       </section>
 
-      {/* --- NEW SECTION: Home Care Services --- */}
-      <section id="home-care" className="home-care section">
-        <div className="container" data-aos="fade-up">
-          <div className="row align-items-center gy-5">
-            <div
-              className="col-lg-6"
-              data-aos="fade-right"
-              data-aos-delay="100"
-            >
-              <div className="home-care-content">
-                <SectionHeading align="left">
-                  Hospital <span className="text-gradient">at Home</span>
-                </SectionHeading>
-                <p className="home-care-description">
-                  {homeCareSettings.home_care_desc ||
-                    "We bring world-class medical assistance to your doorstep. Perfect for post-surgery recovery, elderly care, or chronic disease management."}
-                </p>
-
-                <div className="row g-4 mb-4">
-                  {homeCareServices.length > 0 ? (
-                    homeCareServices.map((service, idx) => (
-                      <div className="col-md-6" key={idx}>
-                        <div className="home-care-card rounded-3 h-100 position-relative">
-                          {service.is_24_7 && (
-                            <span className="badge-24-7 px-2 py-1 rounded-pill fw-bold d-flex align-items-center">
-                              <i className="bi bi-clock-history me-1"></i>24/7
-                            </span>
-                          )}
-                          <i
-                            className={`bi ${service.icon || "bi-activity"} fs-3 mb-2 d-block`}
-                          ></i>
-                          <h4>{service.title}</h4>
-                          <p className="m-0 small text-muted">
-                            {service.description}
-                          </p>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="col-12">
-                      <p>Loading services...</p>
-                    </div>
-                  )}
-                </div>
-
-                <Link
-                  to="/home-care"
-                  className="btn btn-primary btn-lg rounded-pill home-care-btn px-5 py-3 fw-bold"
-                >
-                  {homeCareSettings.home_care_cta || "Schedule Home Visit"}
-                </Link>
-              </div>
-            </div>
-
-            <div className="col-lg-6" data-aos="fade-left" data-aos-delay="200">
-              <div className="home-care-img-wrapper ps-lg-5">
-                <img
-                  src={
-                    homeCareSettings.home_care_image ||
-                    "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?q=80&w=2070&auto=format&fit=crop"
-                  }
-                  alt="Medical professional"
-                  className="img-fluid w-100 object-fit-cover"
-                  style={{ borderRadius: "20px", minHeight: "400px" }}
-                />
-                <div className="floating-badge">
-                  <div className="icon-box rounded-circle d-flex align-items-center justify-content-center text-white">
-                    <i className="bi bi-clock-history fs-4"></i>
-                  </div>
-                  <div>
-                    <strong className="d-block text-dark">
-                      Available 24/7
-                    </strong>
-                    <span className="text-muted small">For Emergencies</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <HospitalAtHomeSection
+        homeCareServices={homeCareServices}
+        homeCareSettings={homeCareSettings}
+        SectionHeading={SectionHeading}
+      />
 
       <HealthPackageSection healthPackages={healthPackages} />
 
