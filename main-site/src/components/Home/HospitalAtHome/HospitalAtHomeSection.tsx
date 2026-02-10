@@ -309,10 +309,6 @@ const HospitalAtHomeSection: React.FC<HospitalAtHomeSectionProps> = ({
                                 <Link to="/home-care" className="cta-btn fw-bold shadow">
                                     {homeCareSettings.home_care_cta || "Book Appointment"}
                                 </Link>
-                                <span className="text-muted small fst-italic d-none d-md-block">
-                                    <i className="bi bi-arrow-up-right me-1"></i>
-                                    Cards are interactive!
-                                </span>
                             </div>
                         </motion.div>
                     </div>
