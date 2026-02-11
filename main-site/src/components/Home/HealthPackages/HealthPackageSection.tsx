@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, AnimatePresence, useSpring, useTransform, LayoutGroup } from 'framer-motion';
+import { motion, AnimatePresence, useSpring, useTransform, LayoutGroup, useScroll } from 'framer-motion';
 
 // --- Types ---
 export interface HealthPackage {
@@ -140,13 +140,27 @@ const HomeHealthPackCard: React.FC<{
 // --- Main Section Component ---
 const HealthPackageSection: React.FC<Props> = ({ healthPackages }) => {
     const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
+    const targetRef = useRef<HTMLDivElement>(null);
+
+    const { scrollYProgress } = useScroll({
+        target: targetRef,
+        offset: ["start end", "end start"]
+    });
+
+    const scale = useTransform(scrollYProgress, [0, 0.5], [0.8, 1]);
+    const opacity = useTransform(scrollYProgress, [0, 0.3], [0, 1]);
 
     return (
-        <section className="home-health-pack-section">
-            {/* Standard Header */}
-            <div className="container section-title" data-aos="fade-up">
-                <h2>Choose Your Health Plan</h2>
-                <p>Professional care plans tailored to your specific needs.</p>
+        <section className="home-health-pack-section" ref={targetRef}>
+            <div className="container relative z-10 mb-5">
+                <motion.div
+                    style={{ scale, opacity }}
+                    className="text-center"
+                >
+                    <h2 className="display-6 fw-bold" style={{ color: 'var(--heading-color)' }}>
+                        Choose Your <span className="text-gradient">Health Package</span>
+                    </h2>
+                </motion.div>
             </div>
 
             <div className="container">
@@ -210,6 +224,14 @@ const HealthPackageSection: React.FC<Props> = ({ healthPackages }) => {
                     overflow: hidden;
                     font-family: 'Inter', system-ui, -apple-system, sans-serif;
                 }
+
+                .text-gradient {
+                    background: linear-gradient(135deg, var(--heading-color), var(--accent-color));
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                }
+
+                .text-sm { font-size: 0.875rem; }
 
                 /* --- Typography & Badges --- */
                 .home-health-pack-badge {

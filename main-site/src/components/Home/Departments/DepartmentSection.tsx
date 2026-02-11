@@ -26,6 +26,14 @@ const DepartmentSection: React.FC<DepartmentSectionProps> = ({
 
     const { scrollYProgress } = useScroll({
         target: departmentSectionRef,
+        offset: ["start end", "end start"]
+    });
+
+    const headerScale = useTransform(scrollYProgress, [0, 0.2], [0.8, 1]);
+    const headerOpacity = useTransform(scrollYProgress, [0, 0.1], [0, 1]);
+
+    const { scrollYProgress: horizontalScrollProgress } = useScroll({
+        target: departmentSectionRef,
         offset: ["start start", "end end"]
     });
 
@@ -50,7 +58,7 @@ const DepartmentSection: React.FC<DepartmentSectionProps> = ({
     // Transform vertical scroll to horizontal pixel movement
     // Note: If content fits on screen (scrollRange <= 0), it won't move.
     const xTransform = useTransform(
-        scrollYProgress,
+        horizontalScrollProgress,
         [0, 1],
         ["0px", `-${scrollRange > 0 ? scrollRange : 0}px`]
     );
@@ -81,6 +89,12 @@ const DepartmentSection: React.FC<DepartmentSectionProps> = ({
               background-color: #f0f4f8;
               background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
               background-size: 40px 40px;
+            }
+
+            .text-gradient {
+                background: linear-gradient(135deg, var(--heading-color), var(--accent-color));
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
             }
 
             .sticky-wrapper {
@@ -337,12 +351,19 @@ const DepartmentSection: React.FC<DepartmentSectionProps> = ({
                 ref={departmentSectionRef}
             >
                 <div className="sticky-wrapper">
-                    <div className="section-header-wrapper">
-                        <div className="container section-title" data-aos="fade-up">
-                            <h2>Featured Departments</h2>
-                            <p>
-                                Explore our specialized medical units equipped with the latest technology and expert medical staff.
-                            </p>
+                    <div className="section-header-wrapper py-5">
+                        <div className="container">
+                            <motion.div
+                                style={{ scale: headerScale, opacity: headerOpacity }}
+                                className="text-center"
+                            >
+                                <h2 className="display-6 fw-bold" style={{ color: 'var(--heading-color)' }}>
+                                    Featured <span className="text-gradient">Departments</span>
+                                </h2>
+                                <p className="text-muted mt-3 max-w-2xl mx-auto">
+                                    Explore our specialized medical units equipped with the latest technology and expert medical staff.
+                                </p>
+                            </motion.div>
                         </div>
                     </div>
 

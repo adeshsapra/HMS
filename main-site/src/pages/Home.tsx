@@ -1,10 +1,9 @@
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import AOS from "aos";
 import axios from "axios";
 import {
   departmentAPI,
-  serviceAPI,
   doctorAPI,
   homeCareAPI,
   testimonialAPI,
@@ -12,7 +11,11 @@ import {
 import ContentLoader from "../components/ContentLoader";
 import DepartmentSection from "../components/Home/Departments/DepartmentSection";
 import HealthPackageSection from "../components/Home/HealthPackages/HealthPackageSection";
+import WorkflowSection from "../components/Home/Workflow/WorkflowSection";
+import HospitalAtHomeSection from "../components/Home/HospitalAtHome/HospitalAtHomeSection";
 import "../billing-toggle.css";
+import SectionHeading from "../components/Home/SectionHeading";
+import FindDoctorSection from "../components/Home/FindDoctor/FindDoctorSection";
 
 interface HealthPackage {
   id: number;
@@ -25,6 +28,8 @@ interface HealthPackage {
   featured: boolean;
 }
 
+
+
 const Home = () => {
   const [healthPackages, setHealthPackages] = useState<HealthPackage[]>([]);
 
@@ -36,10 +41,7 @@ const Home = () => {
 
   // Doctors State
   const [doctors, setDoctors] = useState<any[]>([]);
-  const [filteredDoctors, setFilteredDoctors] = useState<any[]>([]);
   const [loadingDoctors, setLoadingDoctors] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedSpecialty, setSelectedSpecialty] = useState("");
 
   // Departments State
   const [departments, setDepartments] = useState<any[]>([]);
@@ -58,34 +60,7 @@ const Home = () => {
     fetchDoctorsAndDepartments(); // Combined fetch for better performance
   }, []);
 
-  // Memoize filtered doctors to avoid recalculation on every render
-  const filteredDoctorsList = useMemo(() => {
-    let filtered = doctors;
 
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (doc) =>
-          doc.first_name?.toLowerCase().includes(query) ||
-          doc.last_name?.toLowerCase().includes(query) ||
-          doc.specialization?.toLowerCase().includes(query)
-      );
-    }
-
-    if (selectedSpecialty) {
-      const specialty = selectedSpecialty.toLowerCase();
-      filtered = filtered.filter((doc) =>
-        doc.specialization?.toLowerCase().includes(specialty)
-      );
-    }
-
-    return filtered.slice(0, 6);
-  }, [searchQuery, selectedSpecialty, doctors]);
-
-  // Update filteredDoctors when memoized list changes
-  useEffect(() => {
-    setFilteredDoctors(filteredDoctorsList);
-  }, [filteredDoctorsList]);
 
   const fetchHomeCareData = async () => {
     try {
@@ -144,7 +119,6 @@ const Home = () => {
       if (doctorsResponse.data.success) {
         const doctorsData = doctorsResponse.data.data.data || doctorsResponse.data.data;
         setDoctors(doctorsData);
-        setFilteredDoctors(doctorsData.slice(0, 6));
       }
 
       // Process departments
@@ -160,9 +134,7 @@ const Home = () => {
     }
   };
 
-  const handleSearch = useCallback((e: React.FormEvent) => {
-    e.preventDefault();
-  }, []);
+
 
   const getFullImageUrl = useCallback((path: string | null) => {
     if (!path) return "/assets/img/person/person-m-12.webp";
@@ -188,6 +160,12 @@ const Home = () => {
 
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   @keyframes slideUp { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+  .text-gradient {
+    background: linear-gradient(135deg, var(--heading-color), var(--accent-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
 `,
         }}
       />
@@ -339,13 +317,9 @@ const Home = () => {
         id="featured-services"
         className="featured-services section light-background"
       >
-        <div className="container section-title" data-aos="fade-up">
-          <h2>Featured Services</h2>
-          <p>
-            Necessitatibus eius consequatur ex aliquid fuga eum quidem sint
-            consectetur velit
-          </p>
-        </div>
+        <SectionHeading desc="Necessitatibus eius consequatur ex aliquid fuga eum quidem sint consectetur velit">
+          Featured <span className="text-gradient">Services</span>
+        </SectionHeading>
 
         <div className="container" data-aos="fade-up" data-aos-delay="100">
           <div className="row gy-4">
@@ -424,141 +398,16 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Find A Doctor Section */}
-      <section id="find-a-doctor" className="find-a-doctor section">
-        <div className="container section-title" data-aos="fade-up">
-          <h2>Find A Doctor</h2>
-          <p>
-            Necessitatibus eius consequatur ex aliquid fuga eum quidem sint
-            consectetur velit
-          </p>
-        </div>
-
-        <div className="container" data-aos="fade-up" data-aos-delay="100">
-          <div
-            className="row justify-content-center"
-            data-aos="fade-up"
-            data-aos-delay="200"
-          >
-            <div className="col-lg-12">
-              <div className="search-container">
-                <form
-                  className="search-form"
-                  onSubmit={handleSearch}
-                >
-                  <div className="row g-3">
-                    <div className="col-md-4">
-                      <input
-                        type="text"
-                        className="form-control"
-                        name="doctor_name"
-                        placeholder="Doctor name or keyword"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                      />
-                    </div>
-                    <div className="col-md-4">
-                      <select
-                        className="form-select"
-                        name="specialty"
-                        id="specialty-select"
-                        value={selectedSpecialty}
-                        onChange={(e) => setSelectedSpecialty(e.target.value)}
-                      >
-                        <option value="">Select Specialty</option>
-                        <option value="cardiology">Cardiology</option>
-                        <option value="neurology">Neurology</option>
-                        <option value="orthopedics">Orthopedics</option>
-                        <option value="pediatrics">Pediatrics</option>
-                        <option value="dermatology">Dermatology</option>
-                        <option value="oncology">Oncology</option>
-                        <option value="surgery">Surgery</option>
-                        <option value="emergency">Emergency Medicine</option>
-                      </select>
-                    </div>
-                    <div className="col-md-4">
-                      <button type="submit" className="btn btn-primary w-100">
-                        <i className="bi bi-search me-2"></i>Search Doctor
-                      </button>
-                    </div>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-
-          <div className="row" data-aos="fade-up" data-aos-delay="400">
-            {loadingDoctors ? (
-              <div className="col-12">
-                <ContentLoader message="Synchronizing Medical Specialists..." height="300px" />
-              </div>
-            ) : filteredDoctors.length > 0 ? (
-              filteredDoctors.map((doctor, idx) => (
-                <div key={doctor.id || idx} className="col-lg-4 col-md-6 mb-4">
-                  <div className="doctor-card">
-                    <div className="doctor-image">
-                      <img
-                        src={getFullImageUrl(doctor.profile_picture)}
-                        alt={`${doctor.first_name} ${doctor.last_name}`}
-                        className="img-fluid"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = '/assets/img/health/staff-3.webp';
-                        }}
-                      />
-                      <div className={`availability-badge ${doctor.is_available ? 'online' : 'offline'}`}>
-                        {doctor.is_available ? 'Available' : 'Unavailable'}
-                      </div>
-                    </div>
-                    <div className="doctor-info">
-                      <h5>{doctor.first_name} {doctor.last_name}</h5>
-                      <p className="specialty">{doctor.specialization}</p>
-                      <p className="experience">{doctor.experience_years}+ years experience</p>
-                      <div className="rating">
-                        {[...Array(5)].map((_, i) => (
-                          <i
-                            key={i}
-                            className={`bi bi-star${i < 4 ? "-fill" : ""}`}
-                          ></i>
-                        ))}
-                        <span className="rating-text">(4.8)</span>
-                      </div>
-                      <div className="appointment-actions">
-                        <Link to={`/doctor-profile/${doctor.id}`} className="btn btn-outline-primary btn-sm">
-                          View Profile
-                        </Link>
-                        <Link
-                          to={`/doctors/${doctor.id}`}
-                          className="btn btn-primary btn-sm"
-                        >
-                          Book Appointment
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="col-12 text-center py-5">
-                <p className="text-muted">No doctors found matching your search criteria.</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
+      <FindDoctorSection doctors={doctors} loadingDoctors={loadingDoctors} />
 
       {/* Call To Action Section */}
       <section id="call-to-action" className="call-to-action section">
         <div className="container" data-aos="fade-up" data-aos-delay="100">
           <div className="row justify-content-center">
             <div className="col-lg-8 text-center">
-              <h2 data-aos="fade-up" data-aos-delay="200">
-                Your Health is Our Priority
-              </h2>
-              <p data-aos="fade-up" data-aos-delay="250">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
-                eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
-                enim ad minim veniam, quis nostrud exercitation ullamco laboris.
-              </p>
+              <SectionHeading desc="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.">
+                Your Health is <span className="text-gradient">Our Priority</span>
+              </SectionHeading>
 
               <div
                 className="cta-buttons"
@@ -653,13 +502,9 @@ const Home = () => {
 
       {/* Home About Section */}
       <section id="home-about" className="home-about section">
-        <div className="container section-title" data-aos="fade-up">
-          <h2>About Us</h2>
-          <p>
-            Necessitatibus eius consequatur ex aliquid fuga eum quidem sint
-            consectetur velit
-          </p>
-        </div>
+        <SectionHeading desc="Necessitatibus eius consequatur ex aliquid fuga eum quidem sint consectetur velit">
+          About <span className="text-gradient">Us</span>
+        </SectionHeading>
 
         <div className="container" data-aos="fade-up" data-aos-delay="100">
           <div className="row gy-5 align-items-center">
@@ -799,13 +644,9 @@ const Home = () => {
       </section>
       {/* Emergency Info Section */}
       <section id="emergency-info" className="emergency-info section">
-        <div className="container section-title" data-aos="fade-up">
-          <h2>Emergency Info</h2>
-          <p>
-            Necessitatibus eius consequatur ex aliquid fuga eum quidem sint
-            consectetur velit
-          </p>
-        </div>
+        <SectionHeading desc="Necessitatibus eius consequatur ex aliquid fuga eum quidem sint consectetur velit">
+          Emergency <span className="text-gradient">Info</span>
+        </SectionHeading>
 
         <div className="container" data-aos="fade-up" data-aos-delay="100">
           <div className="row">
@@ -984,148 +825,15 @@ const Home = () => {
         </div>
       </section>
 
-      {/* --- NEW SECTION: Home Care Services --- */}
-      <section id="home-care" className="home-care section">
-        <div className="container" data-aos="fade-up">
-          <div className="row align-items-center gy-5">
-            <div
-              className="col-lg-6"
-              data-aos="fade-right"
-              data-aos-delay="100"
-            >
-              <div className="home-care-content">
-                <span className="home-care-badge">
-                  {homeCareSettings.home_care_subtitle || "Hospital at Home"}
-                </span>
-                <h2 className="home-care-title">
-                  {homeCareSettings.home_care_title ||
-                    "Professional Home Care Services"}
-                </h2>
-                <p className="home-care-description">
-                  {homeCareSettings.home_care_desc ||
-                    "We bring world-class medical assistance to your doorstep. Perfect for post-surgery recovery, elderly care, or chronic disease management."}
-                </p>
-
-                <div className="row g-4 mb-4">
-                  {homeCareServices.length > 0 ? (
-                    homeCareServices.map((service, idx) => (
-                      <div className="col-md-6" key={idx}>
-                        <div className="home-care-card rounded-3 h-100 position-relative">
-                          {service.is_24_7 && (
-                            <span className="badge-24-7 px-2 py-1 rounded-pill fw-bold d-flex align-items-center">
-                              <i className="bi bi-clock-history me-1"></i>24/7
-                            </span>
-                          )}
-                          <i
-                            className={`bi ${service.icon || "bi-activity"} fs-3 mb-2 d-block`}
-                          ></i>
-                          <h4>{service.title}</h4>
-                          <p className="m-0 small text-muted">
-                            {service.description}
-                          </p>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="col-12">
-                      <p>Loading services...</p>
-                    </div>
-                  )}
-                </div>
-
-                <Link
-                  to="/home-care"
-                  className="btn btn-primary btn-lg rounded-pill home-care-btn px-5 py-3 fw-bold"
-                >
-                  {homeCareSettings.home_care_cta || "Schedule Home Visit"}
-                </Link>
-              </div>
-            </div>
-
-            <div className="col-lg-6" data-aos="fade-left" data-aos-delay="200">
-              <div className="home-care-img-wrapper ps-lg-5">
-                <img
-                  src={
-                    homeCareSettings.home_care_image ||
-                    "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?q=80&w=2070&auto=format&fit=crop"
-                  }
-                  alt="Medical professional"
-                  className="img-fluid w-100 object-fit-cover"
-                  style={{ borderRadius: "20px", minHeight: "400px" }}
-                />
-                <div className="floating-badge">
-                  <div className="icon-box rounded-circle d-flex align-items-center justify-content-center text-white">
-                    <i className="bi bi-clock-history fs-4"></i>
-                  </div>
-                  <div>
-                    <strong className="d-block text-dark">
-                      Available 24/7
-                    </strong>
-                    <span className="text-muted small">For Emergencies</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <HospitalAtHomeSection
+        homeCareServices={homeCareServices}
+        homeCareSettings={homeCareSettings}
+        SectionHeading={SectionHeading}
+      />
 
       <HealthPackageSection healthPackages={healthPackages} />
 
-      {/* --- REDESIGNED: Workflow / Process Section --- */}
-      <section id="workflow" className="workflow section">
-        <div className="container section-title text-center" data-aos="fade-up">
-          <h2>Simple Steps to Better Health</h2>
-          <p>We have streamlined the process to save your time.</p>
-        </div>
-
-        <div className="container">
-          <div className="row gy-4">
-            {[
-              {
-                step: "1",
-                title: "Find Doctor",
-                desc: "Search by name, specialty, or condition.",
-                icon: "bi-search-heart",
-              },
-              {
-                step: "2",
-                title: "Book Slot",
-                desc: "Choose a time that fits your schedule.",
-                icon: "bi-calendar-date",
-              },
-              {
-                step: "3",
-                title: "Instant Confirm",
-                desc: "Receive booking details via SMS/Email.",
-                icon: "bi-patch-check",
-              },
-              {
-                step: "4",
-                title: "Visit Hospital",
-                desc: "Skip the queue and get treated.",
-                icon: "bi-hospital",
-              },
-            ].map((item, idx) => (
-              <div
-                className="col-lg-3 col-md-6"
-                key={idx}
-                data-aos="fade-up"
-                data-aos-delay={100 * idx}
-              >
-                <div className="workflow-step">
-                  <div className="step-icon">
-                    <i className={`bi ${item.icon} `}></i>
-                    <div className="step-count">{item.step}</div>
-                  </div>
-                  <h4>{item.title}</h4>
-                  <p>{item.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <WorkflowSection />
 
       {/* Unique Testimonials Section */}
       <section
@@ -1133,6 +841,9 @@ const Home = () => {
         className="testimonials-section section"
         style={{ padding: "80px 0" }}
       >
+        <SectionHeading desc="Real experiences from real people who have trusted our medical excellence.">
+          Patient <span className="text-gradient">Stories</span>
+        </SectionHeading>
         <div className="container" data-aos="fade-up">
           <div className="row g-5">
             {/* LEFT COLUMN: The "Trust Anchor" (Summary) */}
@@ -1179,22 +890,6 @@ const Home = () => {
 
             {/* RIGHT COLUMN: The Reviews Grid */}
             <div className="col-lg-8">
-              <div className="row">
-                <div className="col-12 mb-4">
-                  <h2
-                    style={{
-                      color: "var(--heading-color)",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    Patient Stories
-                  </h2>
-                  <p style={{ color: "var(--default-color)" }}>
-                    Real experiences from real people.
-                  </p>
-                </div>
-              </div>
-
               <div className="row g-4">
                 {testimonials.length > 0 ? (
                   testimonials.map((review, idx) => (
