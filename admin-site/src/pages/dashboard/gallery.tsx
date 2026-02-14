@@ -26,6 +26,14 @@ import { apiService } from "@/services/api";
 import { useToast } from "@/context/ToastContext";
 import { DataTable, DeleteConfirmModal, Column, AdvancedFilter } from "@/components";
 
+const STORAGE_URL = (import.meta as any).env?.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:8000';
+
+const getImageUrl = (imagePath: string): string => {
+  if (!imagePath) return "/img/placeholder.png";
+  if (imagePath.startsWith('http')) return imagePath;
+  return `${STORAGE_URL}/storage/${imagePath}`;
+};
+
 interface GalleryCategory {
   id: number;
   name: string;
@@ -309,7 +317,7 @@ export default function Gallery(): JSX.Element {
       label: "Image",
       render: (val, row) => (
         <img
-          src={`http://localhost:8000/${val}`}
+          src={getImageUrl(val)}
           alt={row.title}
           className="h-12 w-16 object-cover rounded shadow-sm hover:scale-150 transition-transform cursor-pointer"
           onClick={() => handleView(row as GalleryImage)}
@@ -700,7 +708,7 @@ export default function Gallery(): JSX.Element {
             <div className="flex flex-col gap-6">
               <div className="w-full overflow-hidden rounded-2xl bg-blue-gray-50 flex items-center justify-center border border-blue-gray-100 shadow-inner">
                 <img
-                  src={`http://localhost:8000/${selectedImage.image}`}
+                  src={getImageUrl(selectedImage.image)}
                   alt={selectedImage.title}
                   className="max-w-full max-h-[55vh] object-contain shadow-2xl"
                 />
