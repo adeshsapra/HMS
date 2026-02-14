@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { DataTable, ViewModal, DeleteConfirmModal, Column, ViewField, FormModal, FormField, AdvancedFilter, FilterConfig } from "@/components";
-import { Avatar, Typography, Button } from "@material-tailwind/react";
-import { UserPlusIcon } from "@heroicons/react/24/outline";
+import { Avatar, Typography, Button, IconButton } from "@material-tailwind/react";
+import { UserPlusIcon, Cog6ToothIcon, TrashIcon, PlusIcon, PencilSquareIcon } from "@heroicons/react/24/outline";
 import apiService from "@/services/api";
 import { useToast } from "@/context/ToastContext";
 
@@ -35,6 +35,7 @@ interface StaffMember {
   designation: string;
   department_id?: number;
   department?: { id: number; name: string };
+  staff_type_id?: number;
   staff_type: string;
   employment_type: string;
   joining_date: string;
@@ -66,11 +67,15 @@ const getProfilePictureUrl = (profilePicture?: string): string => {
 export default function Staff(): JSX.Element {
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [departments, setDepartments] = useState<any[]>([]);
+  const [staffTypes, setStaffTypes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [openViewModal, setOpenViewModal] = useState<boolean>(false);
   const [openDeleteModal, setOpenDeleteModal] = useState<boolean>(false);
   const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
+  const [openTypeModal, setOpenTypeModal] = useState<boolean>(false);
+  const [typeFormModal, setTypeFormModal] = useState<boolean>(false);
+  const [selectedType, setSelectedType] = useState<any>(null);
   const [formLoading, setFormLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string[]>>({});
   const { showToast } = useToast();
@@ -85,13 +90,25 @@ export default function Staff(): JSX.Element {
   useEffect(() => {
     loadStaff(currentPage, activeFilters);
     loadDepartments();
+    loadStaffTypes();
   }, [currentPage]);
+
+  const loadStaffTypes = async () => {
+    try {
+      const response = await apiService.getStaffTypes();
+      if (response && response.data) {
+        setStaffTypes(response.data);
+      }
+    } catch (error) {
+      console.error("Failed to load staff types:", error);
+    }
+  };
 
   const loadStaff = async (page: number = currentPage, filters: Record<string, any> = activeFilters) => {
     try {
       setLoading(true);
       const response = await apiService.getStaff(page, perPage, filters);
-      if (response.success && response.data) {
+      if (response && response.data) {
         setStaff(response.data);
         setTotalPages(response.last_page || 1);
         setTotalRecords(response.total || 0);
@@ -215,19 +232,7 @@ export default function Staff(): JSX.Element {
     { key: "designation", label: "Designation" },
     { key: "department", label: "Department", render: (value: any, row: StaffMember) => row.department?.name || "N/A" },
     {
-      key: "staff_type", label: "Staff Type", render: (value: string) => {
-        const types: Record<string, string> = {
-          administrative: "Administrative",
-          medical: "Medical",
-          nursing: "Nursing",
-          technical: "Technical",
-          paramedical: "Paramedical",
-          support: "Support",
-          pharmacy: "Pharmacy",
-          management: "Management"
-        };
-        return types[value] || value || "N/A";
-      }
+      key: "staffType", label: "Staff Type", render: (value: any) => value?.name || "N/A"
     },
     {
       key: "employment_type", label: "Employment Type", render: (value: string) => {
@@ -320,18 +325,9 @@ export default function Staff(): JSX.Element {
       { name: "designation", label: "Designation", type: "text", required: true, placeholder: "e.g. Nurse, Receptionist", error: errors.designation?.[0] },
       { name: "department_id", label: "Department", type: "select", required: true, placeholder: "Select Department", options: departmentOptions, error: errors.department_id?.[0] },
       {
-        name: "staff_type", label: "Staff Type", type: "select", required: true, placeholder: "Select Staff Type",
-        options: [
-          { value: "administrative", label: "Administrative" },
-          { value: "medical", label: "Medical" },
-          { value: "nursing", label: "Nursing" },
-          { value: "technical", label: "Technical" },
-          { value: "paramedical", label: "Paramedical" },
-          { value: "support", label: "Support" },
-          { value: "pharmacy", label: "Pharmacy" },
-          { value: "management", label: "Management" }
-        ],
-        error: errors.staff_type?.[0]
+        name: "staff_type_id", label: "Staff Type", type: "select", required: true, placeholder: "Select Staff Type",
+        options: staffTypes.map(t => ({ value: t.id.toString(), label: t.name })),
+        error: errors.staff_type_id?.[0]
       },
       {
         name: "employment_type", label: "Employment Type", type: "select", required: true, placeholder: "Select Employment Type",
@@ -435,7 +431,7 @@ export default function Staff(): JSX.Element {
         days.forEach((day: string) => {
           formData.append("working_days[]", day);
         });
-      } else if (key === "department_id") {
+      } else if (key === "department_id" || key === "staff_type_id") {
         formData.append(key, data[key].toString());
       } else if (data[key] !== null && data[key] !== undefined && data[key] !== "") {
         formData.append(key, data[key].toString());
@@ -525,6 +521,7 @@ export default function Staff(): JSX.Element {
       email: staffMember.user?.email || staffMember.email || '',
       phone: staffMember.user?.phone || staffMember.phone || '',
       department_id: staffMember.department_id?.toString() || '',
+      staff_type_id: staffMember.staff_type_id?.toString() || '',
       working_days: Array.isArray(staffMember.working_days)
         ? staffMember.working_days.join(", ")
         : staffMember.working_days || "",
@@ -553,15 +550,26 @@ export default function Staff(): JSX.Element {
           <h2 className="text-4xl font-bold text-blue-gray-800 mb-2">Staff Management</h2>
           <p className="text-blue-gray-600 text-base">Manage hospital staff members and roles</p>
         </div>
-        <Button
-          variant="gradient"
-          color="blue"
-          className="flex items-center gap-2 shadow-lg hover:shadow-xl transition-all"
-          onClick={handleAdd}
-        >
-          <UserPlusIcon className="h-5 w-5" />
-          Add Staff
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outlined"
+            color="blue-gray"
+            className="flex items-center gap-2"
+            onClick={() => setOpenTypeModal(true)}
+          >
+            <Cog6ToothIcon className="h-5 w-5" />
+            Manage Types
+          </Button>
+          <Button
+            variant="gradient"
+            color="blue"
+            className="flex items-center gap-2 shadow-lg hover:shadow-xl transition-all"
+            onClick={handleAdd}
+          >
+            <UserPlusIcon className="h-5 w-5" />
+            Add Staff
+          </Button>
+        </div>
       </div>
 
       <AdvancedFilter
@@ -583,19 +591,12 @@ export default function Staff(): JSX.Element {
               ]
             },
             {
-              name: 'staff_type',
+              name: 'staff_type_id',
               label: 'Staff Type',
               type: 'select',
               options: [
                 { label: 'All Types', value: '' },
-                { value: "administrative", label: "Administrative" },
-                { value: "medical", label: "Medical" },
-                { value: "nursing", label: "Nursing" },
-                { value: "technical", label: "Technical" },
-                { value: "paramedical", label: "Paramedical" },
-                { value: "support", label: "Support" },
-                { value: "pharmacy", label: "Pharmacy" },
-                { value: "management", label: "Management" }
+                ...staffTypes.map(t => ({ label: t.name, value: t.id.toString() }))
               ]
             },
             {
@@ -712,6 +713,83 @@ export default function Staff(): JSX.Element {
         title="Delete Staff"
         message="Are you sure you want to delete this staff member?"
         itemName={selectedStaff ? `${selectedStaff.first_name} ${selectedStaff.last_name}` : ""}
+      />
+
+      {/* Staff Types Management Modals */}
+      <ViewModal
+        open={openTypeModal}
+        onClose={() => setOpenTypeModal(false)}
+        title="Manage Staff Types"
+        data={{ staffTypes }}
+        fields={[]}
+        customContent={
+          <div className="flex flex-col gap-4">
+            <Button variant="gradient" color="blue" size="sm" className="flex items-center gap-2 self-end" onClick={() => { setSelectedType(null); setTypeFormModal(true); }}>
+              <PlusIcon className="h-4 w-4" /> Add Type
+            </Button>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[500px] text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-blue-gray-100 bg-blue-gray-50/50">
+                    <th className="p-4 text-xs font-bold uppercase text-blue-gray-400">Name</th>
+                    <th className="p-4 text-xs font-bold uppercase text-blue-gray-400">Description</th>
+                    <th className="p-4 text-xs font-bold uppercase text-blue-gray-400">Staff Count</th>
+                    <th className="p-4 text-xs font-bold uppercase text-blue-gray-400 text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {staffTypes.map((type) => (
+                    <tr key={type.id} className="border-b border-blue-gray-50 hover:bg-blue-gray-50/20">
+                      <td className="p-4 py-3"><Typography variant="small" className="font-bold">{type.name}</Typography></td>
+                      <td className="p-4 py-3"><Typography variant="small" className="font-normal opacity-70">{type.description || "No description"}</Typography></td>
+                      <td className="p-4 py-3"><Typography variant="small">{type.staff_count || 0}</Typography></td>
+                      <td className="p-4 py-3 flex items-center justify-center gap-2">
+                        <IconButton variant="text" color="blue" size="sm" onClick={() => { setSelectedType(type); setTypeFormModal(true); }}>
+                          <PencilSquareIcon className="h-4 w-4" />
+                        </IconButton>
+                        <IconButton variant="text" color="red" size="sm" onClick={async () => {
+                          if (window.confirm("Delete this type?")) {
+                            try {
+                              await apiService.deleteStaffType(type.id);
+                              showToast("Type deleted", "success");
+                              loadStaffTypes();
+                            } catch (e: any) {
+                              showToast(e.message, "error");
+                            }
+                          }
+                        }}>
+                          <TrashIcon className="h-4 w-4" />
+                        </IconButton>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        }
+      />
+
+      <FormModal
+        open={typeFormModal}
+        onClose={() => setTypeFormModal(false)}
+        title={selectedType ? "Edit Staff Type" : "Add Staff Type"}
+        formFields={[
+          { name: "name", label: "Type Name", type: "text", required: true, placeholder: "e.g. Nursing" },
+          { name: "description", label: "Description", type: "textarea", rows: 3 }
+        ]}
+        initialData={selectedType || {}}
+        onSubmit={async (val) => {
+          try {
+            if (selectedType) await apiService.updateStaffType(selectedType.id, val);
+            else await apiService.createStaffType(val);
+            showToast("Staff type saved", "success");
+            loadStaffTypes();
+            setTypeFormModal(false);
+          } catch (e: any) {
+            showToast(e.message, "error");
+          }
+        }}
       />
     </div >
   );

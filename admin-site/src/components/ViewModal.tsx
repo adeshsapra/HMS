@@ -44,6 +44,7 @@ export interface ViewModalProps {
   data: Record<string, any> | null;
   fields: ViewField[];
   actionButton?: React.ReactNode;
+  customContent?: React.ReactNode;
 }
 
 // --- Helper: Status Badge Component (Inline) ---
@@ -74,14 +75,17 @@ export function ViewModal({
   data,
   fields,
   actionButton,
+  customContent,
 }: ViewModalProps): JSX.Element | null {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   if (!data) return null;
 
   // Separate Avatar/Header fields from Data fields
-  const avatarField = fields.find((f) => f.type === "avatar");
-  const dataFields = fields.filter((f) => f.type !== "avatar");
+  const avatarField = fields?.find((f) => f.type === "avatar");
+  const dataFields = fields?.filter((f) => f.type !== "avatar") || [];
+
+  // ... (rest of the logic remains same)
 
   // Copy Logic
   const handleCopy = (text: string, key: string) => {
@@ -221,59 +225,68 @@ export function ViewModal({
             )}
 
             {/* --- 3. DATA GRID --- */}
-            <div>
-              <Typography variant="small" className="font-bold text-gray-400 uppercase tracking-widest mb-4 ml-1">
-                Details Information
-              </Typography>
+            {dataFields.length > 0 && (
+              <div>
+                <Typography variant="small" className="font-bold text-gray-400 uppercase tracking-widest mb-4 ml-1">
+                  Details Information
+                </Typography>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {dataFields.filter(f => f.type !== 'avatar' && !f.key.includes('name')).map((field) => {
-                  const value = data[field.key];
-                  const Icon = getFieldIcon(field);
-                  const isLongText = field.type === "longtext" || field.fullWidth;
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {dataFields.filter(f => f.type !== 'avatar' && !f.key.includes('name')).map((field) => {
+                    const value = data[field.key];
+                    const Icon = getFieldIcon(field);
+                    const isLongText = field.type === "longtext" || field.fullWidth;
 
-                  return (
-                    <div
-                      key={field.key}
-                      className={`
-                        bg-white p-4 rounded-xl border border-gray-200/60 shadow-[0_2px_4px_rgba(0,0,0,0.02)]
-                        hover:border-blue-200 hover:shadow-md transition-all duration-200 group
-                        ${isLongText ? "md:col-span-2" : "md:col-span-1"}
-                      `}
-                    >
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <Icon className="h-4 w-4 text-blue-500" />
-                          <Typography variant="small" className="font-bold text-gray-500 uppercase text-[11px] tracking-wide">
-                            {field.label}
-                          </Typography>
+                    return (
+                      <div
+                        key={field.key}
+                        className={`
+                                        bg-white p-4 rounded-xl border border-gray-200/60 shadow-[0_2px_4px_rgba(0,0,0,0.02)]
+                                        hover:border-blue-200 hover:shadow-md transition-all duration-200 group
+                                        ${isLongText ? "md:col-span-2" : "md:col-span-1"}
+                                    `}
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <Icon className="h-4 w-4 text-blue-500" />
+                            <Typography variant="small" className="font-bold text-gray-500 uppercase text-[11px] tracking-wide">
+                              {field.label}
+                            </Typography>
+                          </div>
+
+                          {/* Copy Button (Only for text/email/phone) */}
+                          {value && ["text", "email", "phone", undefined].includes(field.type) && (
+                            <Tooltip content={copiedKey === field.key ? "Copied!" : "Copy"}>
+                              <button
+                                onClick={() => handleCopy(String(value), field.key)}
+                                className="text-gray-300 hover:text-blue-500 transition-colors"
+                              >
+                                {copiedKey === field.key ? (
+                                  <CheckIcon className="h-4 w-4 text-green-500" />
+                                ) : (
+                                  <DocumentDuplicateIcon className="h-4 w-4" />
+                                )}
+                              </button>
+                            </Tooltip>
+                          )}
                         </div>
 
-                        {/* Copy Button (Only for text/email/phone) */}
-                        {value && ["text", "email", "phone", undefined].includes(field.type) && (
-                          <Tooltip content={copiedKey === field.key ? "Copied!" : "Copy"}>
-                            <button
-                              onClick={() => handleCopy(String(value), field.key)}
-                              className="text-gray-300 hover:text-blue-500 transition-colors"
-                            >
-                              {copiedKey === field.key ? (
-                                <CheckIcon className="h-4 w-4 text-green-500" />
-                              ) : (
-                                <DocumentDuplicateIcon className="h-4 w-4" />
-                              )}
-                            </button>
-                          </Tooltip>
-                        )}
+                        <div className="pl-6 border-l-2 border-transparent group-hover:border-blue-100 transition-colors">
+                          {renderValue(field, value)}
+                        </div>
                       </div>
-
-                      <div className="pl-6 border-l-2 border-transparent group-hover:border-blue-100 transition-colors">
-                        {renderValue(field, value)}
-                      </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* --- 4. CUSTOM CONTENT --- */}
+            {customContent && (
+              <div className="mt-4">
+                {customContent}
+              </div>
+            )}
           </div>
         </DialogBody>
 
