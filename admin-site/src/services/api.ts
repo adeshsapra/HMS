@@ -1307,6 +1307,71 @@ class ApiService {
     async deleteFaqCategory(id: number) {
         return this.delete<any>(`/admin/faq-categories/${id}`);
     }
+
+    // Gallery methods
+    async getGalleries(params?: { page?: number; category_id?: number | string; status?: string; keyword?: string; per_page?: number }) {
+        let endpoint = '/admin/gallery?';
+        const queryParams = new URLSearchParams();
+        if (params?.page) queryParams.append('page', params.page.toString());
+        if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
+        if (params?.category_id) queryParams.append('category_id', params.category_id.toString());
+        if (params?.status) queryParams.append('status', params.status);
+        if (params?.keyword) queryParams.append('keyword', params.keyword);
+        endpoint += queryParams.toString();
+        return this.get<any>(endpoint);
+    }
+
+    async createGallery(formData: FormData) {
+        const token = this.getAuthToken();
+        const response = await fetch(`${API_BASE_URL}/admin/gallery`, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                ...(token && { Authorization: `Bearer ${token}` }),
+            },
+            body: formData,
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Upload failed');
+        return data;
+    }
+
+    async updateGallery(id: number, formData: FormData) {
+        const token = this.getAuthToken();
+        formData.append('_method', 'PUT');
+        const response = await fetch(`${API_BASE_URL}/admin/gallery/${id}`, {
+            method: 'POST', // Use POST with _method=PUT for FormData
+            headers: {
+                'Accept': 'application/json',
+                ...(token && { Authorization: `Bearer ${token}` }),
+            },
+            body: formData,
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Update failed');
+        return data;
+    }
+
+    async deleteGallery(id: number) {
+        return this.delete<any>(`/admin/gallery/${id}`);
+    }
+
+    // Gallery Category methods
+    async getGalleryCategories() {
+        return this.get<any[]>('/admin/gallery-categories');
+    }
+
+    async createGalleryCategory(data: any) {
+        return this.post<any>('/admin/gallery-categories', data);
+    }
+
+    async updateGalleryCategory(id: number, data: any) {
+        return this.put<any>(`/admin/gallery-categories/${id}`, data);
+    }
+
+    async deleteGalleryCategory(id: number) {
+        return this.delete<any>(`/admin/gallery-categories/${id}`);
+    }
 }
 
 export const apiService = new ApiService();
