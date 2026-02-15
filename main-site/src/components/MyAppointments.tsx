@@ -16,6 +16,9 @@ interface Appointment {
     patient_name: string
     patient_email: string
     patient_phone: string
+    service_id?: number | null
+    service_name?: string | null
+    service_price?: number | null
     created_at: string
     updated_at: string
 }
@@ -822,6 +825,14 @@ const MyAppointments = ({ onNavigateToTestimonials }: MyAppointmentsProps) => {
                                         </div>
                                         <span>{appointment.department_name}</span>
                                     </div>
+                                    {appointment.service_name && (
+                                        <div className="profile-appointment-detail-item">
+                                            <div className="profile-appointment-icon-box">
+                                                <i className="bi bi-bag-plus"></i>
+                                            </div>
+                                            <span>{appointment.service_name}{appointment.service_price != null ? ` — $${Number(appointment.service_price).toFixed(2)}` : ''}</span>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="d-flex justify-content-between align-items-center">
@@ -939,6 +950,15 @@ const MyAppointments = ({ onNavigateToTestimonials }: MyAppointmentsProps) => {
                                         <label className="profile-appointment-modal-label">Department</label>
                                         <div className="profile-appointment-modal-value">{selectedAppointment.department_name}</div>
                                     </div>
+                                    {selectedAppointment.service_name && (
+                                        <div className="mb-4">
+                                            <label className="profile-appointment-modal-label">Service</label>
+                                            <div className="profile-appointment-modal-value">
+                                                {selectedAppointment.service_name}
+                                                {selectedAppointment.service_price != null && ` — $${Number(selectedAppointment.service_price).toFixed(2)}`}
+                                            </div>
+                                        </div>
+                                    )}
                                     <div>
                                         <label className="profile-appointment-modal-label">Status</label>
                                         <span className={getStatusBadgeClass(selectedAppointment.status)}>
