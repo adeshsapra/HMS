@@ -1489,6 +1489,80 @@ class ApiService {
     async deleteStaffType(id: number) {
         return this.delete<any>(`/staff-types/${id}`);
     }
+
+    // ========== Reports Module ==========
+
+    async getReportsOverview(range?: string, start_date?: string, end_date?: string) {
+        let endpoint = '/reports/overview?';
+        const queryParams = new URLSearchParams();
+        if (range) queryParams.append('range', range);
+        if (start_date) queryParams.append('start_date', start_date);
+        if (end_date) queryParams.append('end_date', end_date);
+        endpoint += queryParams.toString();
+        return this.get<any>(endpoint);
+    }
+
+    async getRevenueSummary(params?: { start_date?: string; end_date?: string }) {
+        let endpoint = '/reports/revenue-summary';
+        if (params) {
+            const queryParams = new URLSearchParams();
+            if (params.start_date) queryParams.append('start_date', params.start_date);
+            if (params.end_date) queryParams.append('end_date', params.end_date);
+            const qs = queryParams.toString();
+            if (qs) endpoint += `?${qs}`;
+        }
+        return this.get<any>(endpoint);
+    }
+
+    async getAppointmentsSummary(params?: { start_date?: string; end_date?: string; department_id?: number; doctor_id?: number }) {
+        let endpoint = '/reports/appointments-summary';
+        if (params) {
+            const queryParams = new URLSearchParams();
+            if (params.start_date) queryParams.append('start_date', params.start_date);
+            if (params.end_date) queryParams.append('end_date', params.end_date);
+            if (params.department_id) queryParams.append('department_id', params.department_id.toString());
+            if (params.doctor_id) queryParams.append('doctor_id', params.doctor_id.toString());
+            const qs = queryParams.toString();
+            if (qs) endpoint += `?${qs}`;
+        }
+        return this.get<any>(endpoint);
+    }
+
+    async getPaymentsSummary(params?: { start_date?: string; end_date?: string }) {
+        let endpoint = '/reports/payments-summary';
+        if (params) {
+            const queryParams = new URLSearchParams();
+            if (params.start_date) queryParams.append('start_date', params.start_date);
+            if (params.end_date) queryParams.append('end_date', params.end_date);
+            const qs = queryParams.toString();
+            if (qs) endpoint += `?${qs}`;
+        }
+        return this.get<any>(endpoint);
+    }
+
+    async getPatientsSummary(params?: { start_date?: string; end_date?: string }) {
+        let endpoint = '/reports/patients-summary';
+        if (params) {
+            const queryParams = new URLSearchParams();
+            if (params.start_date) queryParams.append('start_date', params.start_date);
+            if (params.end_date) queryParams.append('end_date', params.end_date);
+            const qs = queryParams.toString();
+            if (qs) endpoint += `?${qs}`;
+        }
+        return this.get<any>(endpoint);
+    }
+
+    async getStaffSummary(params?: { start_date?: string; end_date?: string }) {
+        let endpoint = '/reports/staff-summary';
+        if (params) {
+            const queryParams = new URLSearchParams();
+            if (params.start_date) queryParams.append('start_date', params.start_date);
+            if (params.end_date) queryParams.append('end_date', params.end_date);
+            const qs = queryParams.toString();
+            if (qs) endpoint += `?${qs}`;
+        }
+        return this.get<any>(endpoint);
+    }
 }
 
 
