@@ -274,6 +274,13 @@ export const routes: Route[] = [
     layout: "dashboard",
     pages: [
       {
+        icon: <ChartBarIcon {...icon} />,
+        name: "reports",
+        path: "/reports",
+        element: <Reports />,
+        permission: "view-reports",
+      },
+      {
         icon: <Cog6ToothIcon {...icon} />,
         name: "settings",
         path: "/settings",
@@ -286,13 +293,6 @@ export const routes: Route[] = [
     title: "coming soon",
     layout: "dashboard",
     pages: [
-      {
-        icon: <ChartBarIcon {...icon} />,
-        name: "reports",
-        path: "/reports",
-        element: <Reports />,
-        permission: "view-reports",
-      },
       {
         icon: <BeakerIcon {...icon} />,
         name: "pharmacy",
