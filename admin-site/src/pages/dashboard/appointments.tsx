@@ -12,6 +12,7 @@ interface Appointment {
     patientName: string;
     doctorName: string;
     department: string;
+    serviceName?: string | null;
     date: string;
     time: string;
     status: string;
@@ -47,6 +48,7 @@ export default function Appointments(): JSX.Element {
     const [patients, setPatients] = useState<any[]>([]);
     const [doctors, setDoctors] = useState<any[]>([]);
     const [departments, setDepartments] = useState<any[]>([]);
+    const [services, setServices] = useState<any[]>([]);
 
     // Filter State
     const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
@@ -91,6 +93,7 @@ export default function Appointments(): JSX.Element {
                     patientName: appt.patient_name || appt.user?.name || "Unknown",
                     doctorName: appt.doctor ? `${appt.doctor.first_name} ${appt.doctor.last_name}` : "Unknown",
                     department: appt.doctor?.department?.name || "General",
+                    serviceName: appt.service?.name ?? null,
                     date: appt.appointment_date,
                     time: appt.appointment_time,
                     status: appt.status || "pending",
@@ -131,10 +134,11 @@ export default function Appointments(): JSX.Element {
 
     const fetchDropdownData = async () => {
         try {
-            const [patientsRes, doctorsRes, departmentsRes] = await Promise.all([
+            const [patientsRes, doctorsRes, departmentsRes, servicesRes] = await Promise.all([
                 apiService.getPatients(1, 1000),
                 apiService.getDoctors(1, 1000),
-                apiService.getDepartments(1, 1000)
+                apiService.getDepartments(1, 1000),
+                apiService.getServices(1, 1000, {})
             ]);
 
             if (patientsRes && (patientsRes.success || patientsRes.status)) {
@@ -148,6 +152,10 @@ export default function Appointments(): JSX.Element {
             if (departmentsRes && (departmentsRes.success || departmentsRes.status)) {
                 const departmentsList = departmentsRes.data?.data || departmentsRes.data || [];
                 setDepartments(Array.isArray(departmentsList) ? departmentsList : []);
+            }
+            if (servicesRes && (servicesRes.success !== false) && servicesRes.data) {
+                const servicesList = servicesRes.data?.data ?? servicesRes.data;
+                setServices(Array.isArray(servicesList) ? servicesList : []);
             }
         } catch (error) {
             console.error("Error fetching dropdown data:", error);
@@ -197,6 +205,11 @@ export default function Appointments(): JSX.Element {
         {
             key: "department",
             label: "Department",
+        },
+        {
+            key: "serviceName",
+            label: "Service",
+            render: (value: any) => (value ? <span className="font-medium text-blue-gray-700">{value}</span> : <span className="text-gray-400">—</span>),
         },
         {
             key: "date",
@@ -253,6 +266,21 @@ export default function Appointments(): JSX.Element {
         { key: "patientName", label: "Patient Name" },
         { key: "doctorName", label: "Doctor" },
         { key: "department", label: "Department" },
+        {
+            key: "serviceName",
+            label: "Service",
+            render: (_: any, row: any) => {
+                const service = row?.original?.service;
+                if (!service) return <span className="text-gray-400">—</span>;
+                return (
+                    <span>
+                        {service.name}
+                        {service.price != null && ` — $${Number(service.price).toFixed(2)}`}
+                        {service.duration != null && service.duration > 0 && ` (${service.duration} min)`}
+                    </span>
+                );
+            },
+        },
         { key: "date", label: "Date", type: "date" },
         { key: "time", label: "Time" },
         { key: "reason", label: "Reason", fullWidth: true },
@@ -380,6 +408,21 @@ export default function Appointments(): JSX.Element {
             })),
         },
         {
+            name: "service_id",
+            label: "Service",
+            type: "select",
+            required: false,
+            options: [
+                { value: "", label: "No service" },
+                ...services
+                    .filter((s: any) => s.is_active !== false)
+                    .map((s: any) => ({
+                        value: s.id.toString(),
+                        label: `${s.name} — $${Number(s.price).toFixed(2)}${s.duration ? ` (${s.duration} min)` : ""}`
+                    }))
+            ],
+        },
+        {
             name: "date",
             label: "Appointment Date",
             type: "date",
@@ -425,7 +468,7 @@ export default function Appointments(): JSX.Element {
                 { value: "cancelled", label: "Cancelled" },
             ],
         },
-    ], [patients, doctors, departments]);
+    ], [patients, doctors, departments, services]);
 
     const admissionFields: FormField[] = [
         {
@@ -574,10 +617,9 @@ export default function Appointments(): JSX.Element {
 
     const handleSubmit = async (data: Record<string, any>): Promise<void> => {
         try {
-            const payload = {
+            const payload: Record<string, any> = {
                 patient_name: data.patientName,
                 doctor_id: data.doctor_id,
-                department_id: data.department_id,
                 appointment_date: data.date,
                 appointment_time: data.time,
                 reason: data.reason,
@@ -585,6 +627,7 @@ export default function Appointments(): JSX.Element {
                 patient_phone: data.phone,
                 patient_email: data.email,
             };
+            if (data.service_id) payload.service_id = data.service_id;
 
             let response;
             if (selectedAppointment) {
@@ -650,6 +693,7 @@ export default function Appointments(): JSX.Element {
             patientName: appointment.patientName,
             doctor_id: appointment.original?.doctor_id?.toString(),
             department_id: appointment.original?.doctor?.department_id?.toString() || appointment.original?.department_id?.toString(),
+            service_id: appointment.original?.service_id?.toString() || appointment.original?.service?.id?.toString() || "",
             date: appointment.date,
             time: appointment.time,
             phone: appointment.phone,

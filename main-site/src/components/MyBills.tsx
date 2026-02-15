@@ -3,6 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { ApiService } from '../services/api';
 import { useToast } from '../context/ToastContext';
 
+interface BillItem {
+    id: number;
+    name: string;
+    quantity: number;
+    unit_price: number;
+    amount: number;
+}
+
 interface Bill {
     id: number;
     bill_number: string;
@@ -14,6 +22,7 @@ interface Bill {
     finalized_at: string | null;
     invoice_path: string | null;
     payments: Payment[];
+    items?: BillItem[];
 }
 
 interface Payment {
@@ -425,7 +434,7 @@ const MyBills = () => {
 
             <div className="ledger-header">
                 <div className="ledger-title">
-                    <h2>Bils & Payments</h2>
+                    <h2>Bills & Payments</h2>
                     <p>Track your invoices and payment history</p>
                 </div>
                 <button onClick={fetchBills} className="action-icon-btn">
@@ -507,8 +516,39 @@ const MyBills = () => {
                                 <div className="details-panel">
                                     <div className="panel-content">
 
-                                        {/* Left: Payment Timeline */}
+                                        {/* Left: Charge Breakdown + Payment Timeline */}
                                         <div>
+                                            <div className="section-header">
+                                                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                                                Charge Breakdown
+                                            </div>
+                                            {bill.items && bill.items.length > 0 ? (
+                                                <div style={{ marginBottom: '1.5rem', border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden', background: 'white' }}>
+                                                    <table style={{ width: '100%', fontSize: '0.9rem' }}>
+                                                        <thead>
+                                                            <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                                                                <th style={{ padding: '0.75rem 1rem', textAlign: 'left', fontWeight: 600, color: '#64748b' }}>Description</th>
+                                                                <th style={{ padding: '0.75rem 1rem', textAlign: 'center', fontWeight: 600, color: '#64748b' }}>Qty</th>
+                                                                <th style={{ padding: '0.75rem 1rem', textAlign: 'right', fontWeight: 600, color: '#64748b' }}>Amount</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {bill.items.map((item) => (
+                                                                <tr key={item.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                                                    <td style={{ padding: '0.75rem 1rem', fontWeight: 500, color: '#1e293b' }}>{item.name}</td>
+                                                                    <td style={{ padding: '0.75rem 1rem', textAlign: 'center', color: '#64748b' }}>{item.quantity}</td>
+                                                                    <td style={{ padding: '0.75rem 1rem', textAlign: 'right', fontWeight: 600, color: '#1e293b' }}>{formatCurrency(item.amount)}</td>
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            ) : (
+                                                <div style={{ padding: '1rem', border: '1px dashed #cbd5e1', borderRadius: '8px', color: '#94a3b8', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+                                                    No charge details available.
+                                                </div>
+                                            )}
+
                                             <div className="section-header">
                                                 <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                                 Payment Timeline

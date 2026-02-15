@@ -36,6 +36,14 @@ import DataTable, { Column } from '@/components/DataTable';
 import { useToast } from '@/context/ToastContext';
 import { AdvancedFilter } from '@/components/AdvancedFilter';
 
+interface BillItem {
+    id: number;
+    name: string;
+    quantity: number;
+    unit_price: number;
+    amount: number;
+}
+
 interface Bill {
     id: number;
     bill_number: string;
@@ -52,6 +60,7 @@ interface Bill {
     created_at: string;
     finalized_at: string | null;
     payments: Payment[];
+    items?: BillItem[];
 }
 
 interface Payment {
@@ -504,6 +513,39 @@ const Billing = () => {
                                             <Typography variant="small" className="text-gray-400 text-xs mt-1">
                                                 {selectedBill.finalized_at ? 'Ready for accounting' : 'Draft mode'}
                                             </Typography>
+                                        </div>
+                                    </div>
+
+                                    {/* Invoice Items / Charge Breakdown */}
+                                    <div className="mb-6">
+                                        <Typography variant="h6" color="blue-gray" className="mb-3">Invoice Items</Typography>
+                                        <div className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
+                                            {selectedBill.items && selectedBill.items.length > 0 ? (
+                                                <table className="w-full text-left">
+                                                    <thead className="bg-gray-50 border-b border-gray-100">
+                                                        <tr>
+                                                            <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Description</th>
+                                                            <th className="p-4 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Qty</th>
+                                                            <th className="p-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Unit Price</th>
+                                                            <th className="p-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-gray-50">
+                                                        {selectedBill.items.map((item) => (
+                                                            <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
+                                                                <td className="p-4 font-medium text-gray-900 text-sm">{item.name}</td>
+                                                                <td className="p-4 text-center text-sm text-gray-600">{item.quantity}</td>
+                                                                <td className="p-4 text-right text-sm text-gray-600">{formatCurrency(item.unit_price)}</td>
+                                                                <td className="p-4 text-right font-medium text-gray-900">{formatCurrency(item.amount)}</td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            ) : (
+                                                <div className="p-8 text-center text-gray-500">
+                                                    No charge items recorded.
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
 

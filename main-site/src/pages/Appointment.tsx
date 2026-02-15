@@ -4,7 +4,7 @@ import CalendarComponent from '../components/CalendarComponent';
 
 const Appointment = () => {
 
-  // Mock Doctor Data 
+  // Mock Doctor Data (department.id allows CalendarComponent to load services by department)
   const doctor = {
     id: 1,
     img: 'staff-3.webp',
@@ -22,6 +22,7 @@ const Appointment = () => {
     languages: JSON.stringify(['English', 'Spanish', 'French']),
     status: 'Active',
     department_name: 'Cardiology Center',
+    department: { id: 1, name: 'Cardiology Center' },
     address: 'Room 304, West Wing, Heart Institute',
     phone: '+1 (555) 123-4567',
     email: 'j.martinez@hospital.com'
