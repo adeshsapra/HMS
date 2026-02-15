@@ -51,6 +51,16 @@ interface GalleryImage {
   created_at?: string;
 }
 
+interface UploadItem {
+  id: string;
+  file: File;
+  preview: string;
+  title: string;
+  gallery_category_id: string;
+  description: string;
+  status: string;
+}
+
 export default function Gallery(): JSX.Element {
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [categories, setCategories] = useState<GalleryCategory[]>([]);
@@ -84,6 +94,8 @@ export default function Gallery(): JSX.Element {
     status: "1",
     files: [] as File[],
   });
+
+  const [uploadQueue, setUploadQueue] = useState<UploadItem[]>([]);
 
   const [categoryFormData, setCategoryFormData] = useState({
     name: "",
@@ -145,21 +157,63 @@ export default function Gallery(): JSX.Element {
     e.preventDefault();
     setIsDragging(false);
     if (e.dataTransfer.files) {
-      const droppedFiles = Array.from(e.dataTransfer.files);
-      setFormData(prev => ({
-        ...prev,
-        files: selectedImage ? [droppedFiles[0]] : [...prev.files, ...droppedFiles]
-      }));
+      const files = Array.from(e.dataTransfer.files);
+      if (selectedImage) {
+        setFormData(prev => ({
+          ...prev,
+          files: [files[0]]
+        }));
+      } else {
+        if (files.length > 1) {
+          const newItems: UploadItem[] = files.map(file => ({
+            id: Math.random().toString(36).substr(2, 9),
+            file,
+            preview: URL.createObjectURL(file),
+            title: formData.title || file.name.split('.')[0],
+            gallery_category_id: formData.gallery_category_id || (categories.length > 0 ? categories[0].id.toString() : ""),
+            description: formData.description || "",
+            status: formData.status || "1"
+          }));
+          setUploadQueue(prev => [...prev, ...newItems]);
+          setFormData(prev => ({ ...prev, files: [] }));
+        } else {
+          setFormData(prev => ({
+            ...prev,
+            files: [files[0]]
+          }));
+        }
+      }
     }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      const newFiles = Array.from(e.target.files);
-      setFormData(prev => ({
-        ...prev,
-        files: selectedImage ? newFiles : [...prev.files, ...newFiles]
-      }));
+      const files = Array.from(e.target.files);
+      if (selectedImage) {
+        setFormData(prev => ({
+          ...prev,
+          files: files
+        }));
+      } else {
+        if (files.length > 1) {
+          const newItems: UploadItem[] = files.map(file => ({
+            id: Math.random().toString(36).substr(2, 9),
+            file,
+            preview: URL.createObjectURL(file),
+            title: formData.title || file.name.split('.')[0],
+            gallery_category_id: formData.gallery_category_id || (categories.length > 0 ? categories[0].id.toString() : ""),
+            description: formData.description || "",
+            status: formData.status || "1"
+          }));
+          setUploadQueue(prev => [...prev, ...newItems]);
+          setFormData(prev => ({ ...prev, files: [] }));
+        } else {
+          setFormData(prev => ({
+            ...prev,
+            files: files
+          }));
+        }
+      }
     }
   };
 
@@ -172,6 +226,7 @@ export default function Gallery(): JSX.Element {
       status: "1",
       files: [],
     });
+    setUploadQueue([]);
     setOpenModal(true);
   };
 
@@ -184,6 +239,7 @@ export default function Gallery(): JSX.Element {
       status: Number(image.status) === 1 ? "1" : "0",
       files: [],
     });
+    setUploadQueue([]);
     setOpenModal(true);
   };
 
@@ -211,13 +267,74 @@ export default function Gallery(): JSX.Element {
   };
 
   const handleSubmit = async () => {
+    // 1. Edit Mode
+    if (selectedImage) {
+      if (!formData.title || !formData.gallery_category_id) {
+        showToast("Please fill in required fields", "error");
+        return;
+      }
+      try {
+        setSaving(true);
+        const fd = new FormData();
+        fd.append("title", formData.title);
+        fd.append("description", formData.description || "");
+        fd.append("gallery_category_id", formData.gallery_category_id);
+        fd.append("status", formData.status);
+        if (formData.files.length > 0) {
+          fd.append("image", formData.files[0]);
+        }
+        await apiService.updateGallery(selectedImage.id, fd);
+        showToast("Image updated successfully", "success");
+        setOpenModal(false);
+        fetchImages(currentPage, activeFilters);
+      } catch (error: any) {
+        showToast(error.message || "Failed to update gallery", "error");
+      } finally {
+        setSaving(false);
+      }
+      return;
+    }
+
+    // 2. Multi-Upload Mode
+    if (uploadQueue.length > 0) {
+      for (const item of uploadQueue) {
+        if (!item.title || !item.gallery_category_id) {
+          showToast("Please fill in title and category for all images", "error");
+          return;
+        }
+      }
+
+      try {
+        setSaving(true);
+        const fd = new FormData();
+
+        uploadQueue.forEach((item, index) => {
+          fd.append(`items[${index}][title]`, item.title);
+          fd.append(`items[${index}][gallery_category_id]`, item.gallery_category_id);
+          fd.append(`items[${index}][description]`, item.description || "");
+          fd.append(`items[${index}][status]`, item.status);
+          fd.append(`items[${index}][image]`, item.file);
+        });
+
+        await apiService.createGallery(fd);
+        showToast("Images uploaded successfully", "success");
+        setOpenModal(false);
+        fetchImages(currentPage, activeFilters);
+      } catch (error: any) {
+        showToast(error.message || "Failed to save gallery", "error");
+      } finally {
+        setSaving(false);
+      }
+      return;
+    }
+
+    // 3. Single Upload Mode
     if (!formData.title || !formData.gallery_category_id) {
       showToast("Please fill in required fields", "error");
       return;
     }
-
-    if (!selectedImage && formData.files.length === 0) {
-      showToast("Please select at least one image", "error");
+    if (formData.files.length === 0) {
+      showToast("Please select an image", "error");
       return;
     }
 
@@ -228,25 +345,14 @@ export default function Gallery(): JSX.Element {
       fd.append("description", formData.description || "");
       fd.append("gallery_category_id", formData.gallery_category_id);
       fd.append("status", formData.status);
+      fd.append("images[]", formData.files[0]);
 
-      if (selectedImage) {
-        if (formData.files.length > 0) {
-          fd.append("image", formData.files[0]);
-        }
-        await apiService.updateGallery(selectedImage.id, fd);
-        showToast("Image updated successfully", "success");
-      } else {
-        formData.files.forEach((file) => {
-          fd.append("images[]", file);
-        });
-        await apiService.createGallery(fd);
-        showToast("Images uploaded successfully", "success");
-      }
-
+      await apiService.createGallery(fd);
+      showToast("Image uploaded successfully", "success");
       setOpenModal(false);
       fetchImages(currentPage, activeFilters);
     } catch (error: any) {
-      showToast(error.message || "Failed to save gallery", "error");
+      showToast(error.message || "Failed to upload image", "error");
     } finally {
       setSaving(false);
     }
@@ -474,115 +580,193 @@ export default function Gallery(): JSX.Element {
             </Typography>
           </div>
         </DialogHeader>
-        <DialogBody className="flex flex-col gap-5 overflow-y-auto max-h-[70vh] p-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
-              label="Image Title"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              crossOrigin={undefined}
-              containerProps={{ className: "min-w-0" }}
-            />
-            <Select
-              label="Select Category"
-              value={formData.gallery_category_id}
-              onChange={(val) => setFormData({ ...formData, gallery_category_id: val as string })}
-            >
-              {categories.map((cat) => (
-                <Option key={cat.id} value={cat.id.toString()}>
-                  {cat.name}
-                </Option>
-              ))}
-            </Select>
-          </div>
-
-          <Textarea
-            label="Image Description (Optional)"
-            rows={3}
-            value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          />
-
-          <Select
-            label="Visibility Status"
-            value={formData.status}
-            onChange={(val) => setFormData({ ...formData, status: val as string })}
-          >
-            <Option value="1">Active (Visible in Gallery)</Option>
-            <Option value="0">Inactive (Hidden)</Option>
-          </Select>
-
-          <div
-            className={`mt-2 border-2 border-dashed rounded-2xl p-10 transition-all duration-300 flex flex-col items-center justify-center cursor-pointer ${isDragging
-              ? "border-blue-500 bg-blue-50/50 scale-[1.01]"
-              : "border-blue-gray-100 bg-blue-gray-50/20 hover:bg-blue-gray-50/40 hover:border-blue-gray-300"
-              }`}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            onClick={() => document.getElementById('gallery-upload-input')?.click()}
-          >
-            <input
-              id="gallery-upload-input"
-              type="file"
-              multiple={!selectedImage}
-              accept="image/*"
-              onChange={handleFileChange}
-              className="hidden"
-            />
-
-            <div className="text-center group">
-              <div className={`mx-auto h-16 w-16 rounded-full mb-4 flex items-center justify-center transition-all ${isDragging ? "bg-blue-500 text-white shadow-lg shadow-blue-100" : "bg-blue-gray-50 text-blue-gray-300 group-hover:bg-blue-500 group-hover:text-white"
-                }`}>
-                {isDragging ? <PlusIcon className="h-8 w-8 animate-bounce" /> : <PhotoIcon className="h-8 w-8" />}
-              </div>
-              <Typography variant="h6" color="blue-gray" className="mb_1 font-bold">
-                {isDragging ? "Release to drop images" : (selectedImage ? "Click or drag to replace current image" : "Click or drag images to start upload")}
-              </Typography>
-              <Typography variant="small" color="gray" className="text-xs font-normal mt-1">
-                Accepted formats: PNG, JPG, JPEG, WEBP (Max 2MB per file)
-              </Typography>
-            </div>
-
-            {formData.files.length > 0 && (
-              <div className="mt-8 w-full border-t border-blue-gray-100/50 pt-6">
-                <div className="flex flex-wrap gap-3 justify-center">
-                  {formData.files.map((file, idx) => (
-                    <div key={idx} className="relative group/item shadow-sm hover:shadow-md transition-shadow">
-                      <div className="h-20 w-20 rounded-xl overflow-hidden border border-blue-gray-100 bg-white p-1">
-                        <img
-                          src={URL.createObjectURL(file)}
-                          alt="preview"
-                          className="h-full w-full object-cover rounded-lg"
-                        />
-                      </div>
-                      <IconButton
-                        size="sm"
-                        color="red"
-                        variant="gradient"
-                        className="absolute -top-2 -right-2 h-6 w-6 rounded-full opacity-0 group-hover/item:opacity-100 transition-opacity ring-2 ring-white"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setFormData({ ...formData, files: formData.files.filter((_, i) => i !== idx) });
-                        }}
-                      >
-                        <XMarkIcon className="h-4 w-4" />
-                      </IconButton>
-                    </div>
-                  ))}
+        <DialogBody className="flex flex-col gap-5 overflow-y-auto max-h-[70vh] p-8 bg-blue-gray-50/20">
+          {/* MULTI UPLOAD MODE */}
+          {uploadQueue.length > 0 ? (
+            <div className="flex flex-col gap-6">
+              <div className="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm">
+                <div>
+                  <Typography variant="h6" color="blue-gray">Batch Upload</Typography>
+                  <Typography variant="small" color="gray">Editing {uploadQueue.length} items</Typography>
                 </div>
-                <div className="mt-6 flex justify-center">
-                  <Chip
-                    value={`${formData.files.length} file${formData.files.length > 1 ? 's' : ''} selected`}
-                    color="blue"
-                    variant="gradient"
-                    size="sm"
-                    className="rounded-full px-4"
+
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outlined" color="blue" className="flex items-center gap-2" onClick={() => document.getElementById('gallery-upload-input-multi-add')?.click()}>
+                    <PlusIcon className="h-3 w-3" /> Add More
+                  </Button>
+                  <Button size="sm" color="red" variant="text" onClick={() => { setUploadQueue([]); setFormData(prev => ({ ...prev, files: [] })); }}>
+                    Cancel Batch
+                  </Button>
+                  <input
+                    id="gallery-upload-input-multi-add"
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="hidden"
                   />
                 </div>
               </div>
-            )}
-          </div>
+
+              <div className="grid grid-cols-1 gap-4">
+                {uploadQueue.map((item, index) => (
+                  <div key={item.id} className="bg-white p-4 rounded-lg shadow-sm border border-blue-gray-100 flex flex-col md:flex-row gap-4 animate-fade-in-up">
+                    {/* Preview */}
+                    <div className="w-full md:w-28 h-28 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden relative group border border-gray-200">
+                      <img src={item.preview} alt="preview" className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer" onClick={() => setUploadQueue(prev => prev.filter(i => i.id !== item.id))}>
+                        <TrashIcon className="h-6 w-6 text-white" />
+                      </div>
+                    </div>
+
+                    {/* Form Fields */}
+                    <div className="flex-grow grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="col-span-1 md:col-span-2">
+                        <Input
+                          label="Title"
+                          value={item.title}
+                          onChange={(e) => {
+                            const newQueue = [...uploadQueue];
+                            newQueue[index].title = e.target.value;
+                            setUploadQueue(newQueue);
+                          }}
+                          containerProps={{ className: "min-w-0" }}
+                          crossOrigin={undefined}
+                          className="!border-t-blue-gray-200 focus:!border-t-blue-500"
+                        />
+                      </div>
+
+                      <Select
+                        label="Category"
+                        value={item.gallery_category_id}
+                        onChange={(val) => {
+                          const newQueue = [...uploadQueue];
+                          newQueue[index].gallery_category_id = val as string;
+                          setUploadQueue(newQueue);
+                        }}
+                      >
+                        {categories.map((cat) => (
+                          <Option key={cat.id} value={cat.id.toString()}>{cat.name}</Option>
+                        ))}
+                      </Select>
+
+                      <Select
+                        label="Status"
+                        value={item.status}
+                        onChange={(val) => {
+                          const newQueue = [...uploadQueue];
+                          newQueue[index].status = val as string;
+                          setUploadQueue(newQueue);
+                        }}
+                      >
+                        <Option value="1">Active</Option>
+                        <Option value="0">Inactive</Option>
+                      </Select>
+
+                      <div className="col-span-1 md:col-span-2">
+                        <Textarea
+                          label="Description"
+                          rows={1}
+                          resize={true}
+                          value={item.description}
+                          onChange={(e) => {
+                            const newQueue = [...uploadQueue];
+                            newQueue[index].description = e.target.value;
+                            setUploadQueue(newQueue);
+                          }}
+                          className="min-h-[40px]"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Input
+                  label="Image Title"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  crossOrigin={undefined}
+                  containerProps={{ className: "min-w-0" }}
+                />
+                <Select
+                  label="Select Category"
+                  value={formData.gallery_category_id}
+                  onChange={(val) => setFormData({ ...formData, gallery_category_id: val as string })}
+                >
+                  {categories.map((cat) => (
+                    <Option key={cat.id} value={cat.id.toString()}>
+                      {cat.name}
+                    </Option>
+                  ))}
+                </Select>
+              </div>
+
+              <Textarea
+                label="Image Description (Optional)"
+                rows={3}
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              />
+
+              <Select
+                label="Visibility Status"
+                value={formData.status}
+                onChange={(val) => setFormData({ ...formData, status: val as string })}
+              >
+                <Option value="1">Active (Visible in Gallery)</Option>
+                <Option value="0">Inactive (Hidden)</Option>
+              </Select>
+
+              <div
+                className={`mt-2 border-2 border-dashed rounded-2xl p-10 transition-all duration-300 flex flex-col items-center justify-center cursor-pointer ${isDragging
+                  ? "border-blue-500 bg-blue-50/50 scale-[1.01]"
+                  : "border-blue-gray-100 bg-white hover:border-blue-gray-300"
+                  }`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onClick={() => document.getElementById('gallery-upload-input')?.click()}
+              >
+                <input
+                  id="gallery-upload-input"
+                  type="file"
+                  multiple // Allow multiple selection to trigger switch
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+
+                <div className="text-center group">
+                  <div className="mx-auto h-16 w-16 bg-blue-gray-50 rounded-full mb-4 flex items-center justify-center group-hover:bg-blue-500 transition-colors">
+                    {isDragging ? <PlusIcon className="h-8 w-8 animate-bounce text-blue-500" /> : <PhotoIcon className="h-8 w-8 text-blue-gray-300 group-hover:text-white transition-colors" />}
+                  </div>
+                  <Typography variant="h6" color="blue-gray" className="mb-1 font-bold">
+                    {selectedImage ? "Click to replace image" : "Click or drag images here"}
+                  </Typography>
+                  <Typography variant="small" color="gray" className="text-xs font-normal mt-1">
+                    {selectedImage ? "Single file only" : "Upload single image or drag multiple files to batch upload"}
+                  </Typography>
+                </div>
+
+                {formData.files.length > 0 && !selectedImage && (
+                  <div className="mt-4 flex items-center gap-3 bg-blue-50 p-3 rounded-lg border border-blue-100">
+                    <img src={URL.createObjectURL(formData.files[0])} className="h-10 w-10 object-cover rounded" />
+                    <div className="text-left">
+                      <Typography variant="small" className="text-blue-gray-800 font-bold">{formData.files[0].name}</Typography>
+                      <Typography variant="small" className="text-blue-gray-500 text-[10px]">{(formData.files[0].size / 1024).toFixed(1)} KB</Typography>
+                    </div>
+                    <IconButton size="sm" variant="text" color="red" onClick={(e) => { e.stopPropagation(); setFormData(prev => ({ ...prev, files: [] })); }}>
+                      <XMarkIcon className="h-4 w-4" />
+                    </IconButton>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </DialogBody>
         <DialogFooter className="gap-3 border-t border-blue-gray-50 p-6">
           <Button variant="text" color="red" onClick={() => setOpenModal(false)} className="font-bold" disabled={saving}>Cancel</Button>
@@ -592,7 +776,9 @@ export default function Gallery(): JSX.Element {
             ) : (
               selectedImage ? <PlusIcon className="h-4 w-4" /> : <PhotoIcon className="h-4 w-4" />
             )}
-            {saving ? "Processing..." : (selectedImage ? "Update Image" : `Upload ${formData.files.length > 1 ? 'Images' : 'Image'}`)}
+            {saving ? "Processing..." : (
+              selectedImage ? "Update Image" : (uploadQueue.length > 0 ? `Upload ${uploadQueue.length} Images` : "Upload Image")
+            )}
           </Button>
         </DialogFooter>
       </Dialog>
