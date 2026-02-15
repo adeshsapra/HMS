@@ -1386,6 +1386,9 @@ class ApiService {
     async deleteInventoryCategory(id: number) {
         return this.delete<any>(`/inventory/categories/${id}`);
     }
+    async getInventoryCategory(id: number) {
+        return this.get<any>(`/inventory/categories/${id}`);
+    }
 
     async getInventoryVendors() {
         return this.get<any>('/inventory/vendors');
@@ -1399,6 +1402,9 @@ class ApiService {
     async deleteInventoryVendor(id: number) {
         return this.delete<any>(`/inventory/vendors/${id}`);
     }
+    async getInventoryVendor(id: number) {
+        return this.get<any>(`/inventory/vendors/${id}`);
+    }
 
     async getInventoryItems(params?: any) {
         let endpoint = '/inventory/items';
@@ -1407,6 +1413,9 @@ class ApiService {
             endpoint += `?${queryParams.toString()}`;
         }
         return this.get<any>(endpoint);
+    }
+    async getInventoryItem(id: number) {
+        return this.get<any>(`/inventory/items/${id}`);
     }
     async createInventoryItem(data: any) {
         return this.post<any>('/inventory/items', data);
@@ -1420,6 +1429,9 @@ class ApiService {
 
     async getInventoryPurchases() {
         return this.get<any>('/inventory/purchases');
+    }
+    async getInventoryPurchase(id: number) {
+        return this.get<any>(`/inventory/purchases/${id}`);
     }
     async createInventoryPurchase(data: any) {
         return this.post<any>('/inventory/purchases', data);
@@ -1436,6 +1448,9 @@ class ApiService {
         }
         return this.get<any>(endpoint);
     }
+    async getInventoryRequest(id: number) {
+        return this.get<any>(`/inventory/requests/${id}`);
+    }
     async createInventoryRequest(data: any) {
         return this.post<any>('/inventory/requests', data);
     }
@@ -1446,12 +1461,18 @@ class ApiService {
     async getInventoryIssues() {
         return this.get<any>('/inventory/issues');
     }
+    async getInventoryIssue(id: number) {
+        return this.get<any>(`/inventory/issues/${id}`);
+    }
     async createInventoryIssue(data: any) {
         return this.post<any>('/inventory/issues', data);
     }
 
     async getInventoryAdjustments() {
         return this.get<any>('/inventory/adjustments');
+    }
+    async getInventoryAdjustment(id: number) {
+        return this.get<any>(`/inventory/adjustments/${id}`);
     }
     async createInventoryAdjustment(data: any) {
         return this.post<any>('/inventory/adjustments', data);

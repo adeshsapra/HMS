@@ -81,8 +81,8 @@ export default function RolePermissions(): JSX.Element {
     try {
       setLoading(true);
       const [rolesResponse, permissionsResponse] = await Promise.all([
-        apiService.getRoles(),
-        apiService.getPermissions(),
+        apiService.getRoles({ per_page: 1000 }),
+        apiService.getPermissions({ per_page: 1000 }),
       ]);
 
       if (rolesResponse.status && rolesResponse.roles) {
