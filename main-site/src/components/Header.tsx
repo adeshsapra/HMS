@@ -429,358 +429,400 @@ const Header = () => {
           </Link>
         </div>
 
+
         <style>{`
-          .header-container {
-            gap: 20px;
-            position: relative;
+          /* --- Base Header Transitions --- */
+        .header {
+          transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+        border-bottom: 1px solid transparent;
+        z-index: 997;
           }
-          
-          .header .logo {
-            flex-shrink: 0;
-            z-index: 10;
+
+        .header-container {
+          gap: 20px;
+        position: relative;
+        transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+        transform-origin: top center;
           }
-          
-          @media (min-width: 1200px) {
-            .header .navmenu {
-              position: absolute;
-              left: 45%;
-              transform: translateX(-50%);
-              z-index: 5;
-            }
+
+        /* --- Scrolled Header State --- */
+        .header.scrolled {
+          background-color: #ffffff; /* Solid White */
+          padding: 0;
+          box-shadow: 0 4px 30px rgba(0,0,0,0.05);
+          /* The "border below nav" - subtle but distinct */
+          border-bottom: 1px solid rgba(0,0,0,0.08); 
+        }
+
+        /* Optional: Add a colored accent line at the very bottom if desired */
+        .header.scrolled::after {
+          content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(to right, transparent, var(--accent-color) 50%, transparent);
+        opacity: 0.8;
           }
-          
-          .header-auth-buttons {
-            gap: 5px;
-            flex-shrink: 0;
-            z-index: 10;
-            align-items: center;
+
+        .header.scrolled .header-container {
+          background: transparent;
+        box-shadow: none;
+        padding: 15px 40px;
+        border-radius: 0;
+        max-width: 100% !important;
+        width: 100%;
+        margin: 0;
           }
-          
-          .header-auth-buttons .btn-signin {
-            background: #ffffff;
-            border: 1px solid var(--accent-color);
-            color: var(--accent-color);
-            border-radius: 50px;
-            padding: 10px 14px;
-            font-size: 13px;
-            font-weight: 600;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            line-height: 1;
-            white-space: nowrap;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-            will-change: transform;
-            transform: translateZ(0);
+
+
+        .header .logo {
+          flex - shrink: 0;
+        z-index: 10;
           }
-          
-          .header-auth-buttons .btn-signin i {
-            font-size: 18px;
-            color: var(--accent-color);
-            flex-shrink: 0;
-          }
-          
-          .header-auth-buttons .btn-signin span {
-            display: flex;
-            flex-direction: column;
-            line-height: 1.1;
-            gap: 0;
-          }
-          
-          .header-auth-buttons .btn-signin span span {
-            font-size: 12px;
-            line-height: 1.2;
-            font-weight: 600;
-            color: var(--accent-color);
-          }
-          
-          .header-auth-buttons .btn-signin:hover {
-            background: var(--accent-color);
-            color: white;
-            border-color: var(--accent-color);
-            transform: translateZ(0) translateY(-1px);
-            box-shadow: 0 4px 12px rgba(4, 158, 187, 0.25);
-          }
-          
-          .header-auth-buttons .btn-signin:hover i,
-          .header-auth-buttons .btn-signin:hover span span {
-            color: white;
-          }
-          
-          .header-auth-buttons .btn-getstarted {
-            background: var(--accent-color);
-            border: none;
-            color: white;
-            border-radius: 50px;
-            padding: 10px 20px;
-            font-size: 14px;
-            font-weight: 600;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            white-space: nowrap;
-            box-shadow: 0 1px 3px rgba(4, 158, 187, 0.2);
-            margin: 0;
-            will-change: transform;
-            transform: translateZ(0);
-          }
-          
-          .header-auth-buttons .btn-getstarted:hover {
-            background: color-mix(in srgb, var(--accent-color) 90%, black 10%);
-            transform: translateZ(0) translateY(-1px);
-            box-shadow: 0 4px 12px rgba(4, 158, 187, 0.3);
-            color: white;
-          }
-          
-          @media (max-width: 1199px) {
-            .header-container {
-              flex-wrap: nowrap;
-              gap: 10px;
-            }
-            
-            .header .logo {
-              margin-right: 0;
-              flex-shrink: 0;
-            }
-            
-            .header .navmenu {
-              flex: 0 0 auto;
-              order: 3;
-            }
-            
-            .header-auth-buttons {
-              order: 2;
-              margin-left: auto;
-              margin-right: 10px;
-            }
-            
-            .header-auth-buttons .btn-signin {
-              display: none !important;
-            }
-            
-            .header-auth-buttons .btn-getstarted {
-              padding: 8px 18px;
-              font-size: 13px;
-              white-space: nowrap;
+
+        @media (min-width: 1200px) {
+            .header.navmenu {
+          position: absolute;
+        left: 45%;
+        transform: translateX(-50%);
+        z-index: 5;
             }
           }
-          
-          @media (max-width: 768px) {
-            .header-auth-buttons {
-              margin-right: 8px;
+
+        .header-auth-buttons {
+          gap: 5px;
+        flex-shrink: 0;
+        z-index: 10;
+        align-items: center;
+          }
+
+        .header-auth-buttons .btn-signin {
+          background: #ffffff;
+        border: 1px solid var(--accent-color);
+        color: var(--accent-color);
+        border-radius: 50px;
+        padding: 10px 14px;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        line-height: 1;
+        white-space: nowrap;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        will-change: transform;
+        transform: translateZ(0);
+          }
+
+        .header-auth-buttons .btn-signin i {
+          font - size: 18px;
+        color: var(--accent-color);
+        flex-shrink: 0;
+          }
+
+        .header-auth-buttons .btn-signin span {
+          display: flex;
+        flex-direction: column;
+        line-height: 1.1;
+        gap: 0;
+          }
+
+        .header-auth-buttons .btn-signin span span {
+          font - size: 12px;
+        line-height: 1.2;
+        font-weight: 600;
+        color: var(--accent-color);
+          }
+
+        .header-auth-buttons .btn-signin:hover {
+          background: var(--accent-color);
+        color: white;
+        border-color: var(--accent-color);
+        transform: translateZ(0) translateY(-1px);
+        box-shadow: 0 4px 12px rgba(4, 158, 187, 0.25);
+          }
+
+        .header-auth-buttons .btn-signin:hover i,
+        .header-auth-buttons .btn-signin:hover span span {
+          color: white;
+          }
+
+        .header-auth-buttons .btn-getstarted {
+          background: var(--accent-color);
+        border: none;
+        color: white;
+        border-radius: 50px;
+        padding: 10px 20px;
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+        box-shadow: 0 1px 3px rgba(4, 158, 187, 0.2);
+        margin: 0;
+        will-change: transform;
+        transform: translateZ(0);
+          }
+
+        .header-auth-buttons .btn-getstarted:hover {
+          background: color-mix(in srgb, var(--accent-color) 90%, black 10%);
+        transform: translateZ(0) translateY(-1px);
+        box-shadow: 0 4px 12px rgba(4, 158, 187, 0.3);
+        color: white;
+          }
+
+        @media (max-width: 1199px) {
+            .header - container {
+          flex - wrap: nowrap;
+        gap: 10px;
             }
-            
-            .header-auth-buttons .btn-getstarted {
-              padding: 7px 16px;
-              font-size: 12px;
+
+        .header .logo {
+          margin - right: 0;
+        flex-shrink: 0;
+            }
+
+        .header .navmenu {
+          flex: 0 0 auto;
+        order: 3;
+            }
+
+        .header-auth-buttons {
+          order: 2;
+        margin-left: auto;
+        margin-right: 10px;
+            }
+
+        .header-auth-buttons .btn-signin {
+          display: none !important;
+            }
+
+        .header-auth-buttons .btn-getstarted {
+          padding: 8px 18px;
+        font-size: 13px;
+        white-space: nowrap;
             }
           }
-          
-          @media (max-width: 576px) {
-            .header-auth-buttons .btn-getstarted {
-              padding: 6px 14px;
-              font-size: 11px;
+
+        @media (max-width: 768px) {
+            .header - auth - buttons {
+          margin - right: 8px;
             }
-            
-            .header-container {
-              padding-left: 15px !important;
-              padding-right: 15px !important;
-            }
-          }
-          
-          @media (min-width: 768px) and (max-width: 991px) {
-            .header-auth-buttons .btn-signin {
-              padding: 8px 12px;
-              font-size: 12px;
-              gap: 8px;
-            }
-            
-            .header-auth-buttons .btn-signin i {
-              font-size: 16px;
-            }
-            
-            .header-auth-buttons .btn-signin span span {
-              font-size: 11px;
+
+        .header-auth-buttons .btn-getstarted {
+          padding: 7px 16px;
+        font-size: 12px;
             }
           }
-          
-          /* Mobile menu improvements */
-          @media (max-width: 1199px) {
-            .mobile-nav-toggle {
-              display: flex !important;
-              align-items: center;
-              justify-content: center;
-              width: 40px;
-              height: 40px;
-              border-radius: 8px;
-              background: rgba(4, 158, 187, 0.1);
-              transition: all 0.3s ease;
+
+        @media (max-width: 576px) {
+            .header - auth - buttons.btn - getstarted {
+          padding: 6px 14px;
+        font-size: 11px;
             }
-            
-            .mobile-nav-toggle:hover {
-              background: rgba(4, 158, 187, 0.2);
+
+        .header-container {
+          padding - left: 15px !important;
+        padding-right: 15px !important;
             }
-            
-            .navmenu.mobile-nav-active .mobile-nav-toggle {
-              background: rgba(255, 255, 255, 0.2);
-              color: white;
+          }
+
+        @media (min-width: 768px) and (max-width: 991px) {
+            .header - auth - buttons.btn - signin {
+          padding: 8px 12px;
+        font-size: 12px;
+        gap: 8px;
             }
-            
-            .navmenu.mobile-nav-active .mobile-nav-toggle:hover {
-              background: rgba(255, 255, 255, 0.3);
+
+        .header-auth-buttons .btn-signin i {
+          font - size: 16px;
             }
-            
-            .navmenu ul {
-              animation: slideInRight 0.3s ease-out;
+
+        .header-auth-buttons .btn-signin span span {
+          font - size: 11px;
             }
-            
-            @keyframes slideInRight {
-              from {
-                transform: translateX(100%);
-                opacity: 0;
+          }
+
+        /* Mobile menu improvements */
+        @media (max-width: 1199px) {
+            .mobile - nav - toggle {
+          display: flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        background: rgba(4, 158, 187, 0.1);
+        transition: all 0.3s ease;
+            }
+
+        .mobile-nav-toggle:hover {
+          background: rgba(4, 158, 187, 0.2);
+            }
+
+        .navmenu.mobile-nav-active .mobile-nav-toggle {
+          background: rgba(255, 255, 255, 0.2);
+        color: white;
+            }
+
+        .navmenu.mobile-nav-active .mobile-nav-toggle:hover {
+          background: rgba(255, 255, 255, 0.3);
+            }
+
+        .navmenu ul {
+          animation: slideInRight 0.3s ease-out;
+            }
+
+        @keyframes slideInRight {
+          from {
+          transform: translateX(100%);
+        opacity: 0;
               }
-              to {
-                transform: translateX(0);
-                opacity: 1;
+        to {
+          transform: translateX(0);
+        opacity: 1;
               }
             }
             
             .navmenu .dropdown.active > ul {
-              display: block !important;
-              animation: slideDown 0.3s ease-out;
+          display: block !important;
+        animation: slideDown 0.3s ease-out;
             }
-            
-            @keyframes slideDown {
-              from {
-                opacity: 0;
-                transform: translateY(-10px);
+
+        @keyframes slideDown {
+          from {
+          opacity: 0;
+        transform: translateY(-10px);
               }
-              to {
-                opacity: 1;
-                transform: translateY(0);
+        to {
+          opacity: 1;
+        transform: translateY(0);
               }
             }
           }
 
-          /* User Profile Dropdown Styles */
-          .header-auth-buttons .btn-profile-toggle {
-            background: #ffffff;
-            border: 1px solid #eef2f6;
-            color: var(--heading-color);
-            border-radius: 50px;
-            padding: 8px 16px;
-            font-size: 14px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+        /* User Profile Dropdown Styles */
+        .header-auth-buttons .btn-profile-toggle {
+          background: #ffffff;
+        border: 1px solid #eef2f6;
+        color: var(--heading-color);
+        border-radius: 50px;
+        padding: 8px 16px;
+        font-size: 14px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.03);
           }
 
-          .header-auth-buttons .btn-profile-toggle:hover,
-          .header-auth-buttons .btn-profile-toggle.show {
-            background: #ffffff;
-            border-color: var(--accent-color);
-            color: var(--accent-color);
-            box-shadow: 0 4px 10px rgba(4, 158, 187, 0.15);
-            transform: translateY(-1px);
+        .header-auth-buttons .btn-profile-toggle:hover,
+        .header-auth-buttons .btn-profile-toggle.show {
+          background: #ffffff;
+        border-color: var(--accent-color);
+        color: var(--accent-color);
+        box-shadow: 0 4px 10px rgba(4, 158, 187, 0.15);
+        transform: translateY(-1px);
           }
 
-          
-          .header-auth-buttons .btn-profile-toggle:hover i,
-          .header-auth-buttons .btn-profile-toggle.show i {
-            color: var(--accent-color);
+
+        .header-auth-buttons .btn-profile-toggle:hover i,
+        .header-auth-buttons .btn-profile-toggle.show i {
+          color: var(--accent-color);
           }
 
-          .header-auth-buttons .dropdown-menu {
-            background: #ffffff;
-            border: none;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-            border-radius: 12px;
-            padding: 8px;
-            min-width: 220px;
-            animation: dropdownSlideIn 0.3s ease;
-            margin-top: 15px !important;
+        .header-auth-buttons .dropdown-menu {
+          background: #ffffff;
+        border: none;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        border-radius: 12px;
+        padding: 8px;
+        min-width: 220px;
+        animation: dropdownSlideIn 0.3s ease;
+        margin-top: 15px !important;
           }
 
-          .header-auth-buttons .dropdown-menu::before {
-            content: '';
-            position: absolute;
-            top: -6px;
-            right: 20px;
-            width: 12px;
-            height: 12px;
-            background: #ffffff;
-            transform: rotate(45deg);
-            box-shadow: -2px -2px 5px rgba(0, 0, 0, 0.04);
+        .header-auth-buttons .dropdown-menu::before {
+          content: '';
+        position: absolute;
+        top: -6px;
+        right: 20px;
+        width: 12px;
+        height: 12px;
+        background: #ffffff;
+        transform: rotate(45deg);
+        box-shadow: -2px -2px 5px rgba(0, 0, 0, 0.04);
           }
 
-          .header-auth-buttons .dropdown-header {
-            color: var(--heading-color);
-            font-weight: 700;
-            padding: 10px 16px;
-            font-size: 0.95rem;
+        .header-auth-buttons .dropdown-header {
+          color: var(--heading-color);
+        font-weight: 700;
+        padding: 10px 16px;
+        font-size: 0.95rem;
           }
 
-          .header-auth-buttons .dropdown-divider {
-            margin: 4px 0;
-            border-color: rgba(0, 0, 0, 0.05);
+        .header-auth-buttons .dropdown-divider {
+          margin: 4px 0;
+        border-color: rgba(0, 0, 0, 0.05);
           }
 
-          .header-auth-buttons .dropdown-item {
-            padding: 10px 16px;
-            border-radius: 8px;
-            transition: all 0.2s ease;
-            font-weight: 500;
-            color: var(--default-color);
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .header-auth-buttons .dropdown-item {
+          padding: 10px 16px;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        font-weight: 500;
+        color: var(--default-color);
+        display: flex;
+        align-items: center;
+        gap: 10px;
           }
 
-          .header-auth-buttons .dropdown-item i {
-            font-size: 1.1rem;
-            transition: all 0.2s ease;
+        .header-auth-buttons .dropdown-item i {
+          font - size: 1.1rem;
+        transition: all 0.2s ease;
           }
 
-          .header-auth-buttons .dropdown-item:hover {
-            background-color: #f8f9fa; /* Subtle gray background */
-            color: var(--accent-color);
-          }
-          
-          .header-auth-buttons .dropdown-item:hover i {
-            color: var(--accent-color);
+        .header-auth-buttons .dropdown-item:hover {
+          background - color: #f8f9fa; /* Subtle gray background */
+        color: var(--accent-color);
           }
 
-          .header-auth-buttons .dropdown-item.text-danger {
-            color: #dc3545;
+        .header-auth-buttons .dropdown-item:hover i {
+          color: var(--accent-color);
           }
 
-          .header-auth-buttons .dropdown-item.text-danger:hover {
-            background-color: rgba(220, 53, 69, 0.05);
-            color: #dc3545;
-          }
-          
-          .header-auth-buttons .dropdown-item.text-danger:hover i {
-            color: #dc3545;
+        .header-auth-buttons .dropdown-item.text-danger {
+          color: #dc3545;
           }
 
-          @keyframes dropdownSlideIn {
-            from {
-              opacity: 0;
-              transform: translateY(15px);
+        .header-auth-buttons .dropdown-item.text-danger:hover {
+          background - color: rgba(220, 53, 69, 0.05);
+        color: #dc3545;
+          }
+
+        .header-auth-buttons .dropdown-item.text-danger:hover i {
+          color: #dc3545;
+          }
+
+        @keyframes dropdownSlideIn {
+          from {
+          opacity: 0;
+        transform: translateY(15px);
             }
-            to {
-              opacity: 1;
-              transform: translateY(0);
+        to {
+          opacity: 1;
+        transform: translateY(0);
             }
           }
         `}</style>
       </div>
-    </header>
+    </header >
   );
 };
 
