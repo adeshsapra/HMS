@@ -4,6 +4,14 @@ import { ApiService } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 
+interface BillItem {
+    id: number;
+    name: string;
+    quantity: number;
+    unit_price: number;
+    amount: number;
+}
+
 interface Bill {
     id: number;
     bill_number: string;
@@ -13,6 +21,7 @@ interface Bill {
     status: string;
     created_at: string;
     finalized_at: string | null;
+    items?: BillItem[];
 }
 
 const Payment = () => {
@@ -407,6 +416,20 @@ const Payment = () => {
                     <div className="bill-details-box">
                         <div className="detail-row"><span>Issue Date</span><span>{formatDate(bill.created_at)}</span></div>
                         <div className="detail-row"><span>Status</span><span style={{ textTransform: 'capitalize' }}>{bill.status}</span></div>
+                        {bill.items && bill.items.length > 0 && (
+                            <>
+                                <div className="divider"></div>
+                                <div style={{ marginBottom: '1rem', fontSize: '0.85rem' }}>
+                                    <div style={{ fontWeight: 600, color: '#64748b', marginBottom: '0.5rem' }}>Charges</div>
+                                    {bill.items.map((item) => (
+                                        <div key={item.id} className="detail-row" style={{ marginBottom: '0.5rem' }}>
+                                            <span>{item.name} {item.quantity > 1 ? `× ${item.quantity}` : ''}</span>
+                                            <span>{formatCurrency(item.amount)}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </>
+                        )}
                         <div className="divider"></div>
                         <div className="detail-row"><span>Subtotal</span><span>{formatCurrency(bill.total_amount)}</span></div>
                         {bill.paid_amount > 0 && <div className="detail-row" style={{ color: '#10b981' }}><span>Paid</span><span>- {formatCurrency(bill.paid_amount)}</span></div>}

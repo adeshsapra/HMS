@@ -2,7 +2,15 @@ import { useEffect, useState, useMemo } from 'react'
 import AOS from 'aos'
 import { useToast } from '../context/ToastContext'
 import PageHero from '../components/PageHero'
-import { departmentAPI, doctorAPI, appointmentAPI } from '../services/api'
+import { departmentAPI, doctorAPI, appointmentAPI, serviceAPI } from '../services/api'
+
+interface ServiceItem {
+  id: number;
+  name: string;
+  price: number;
+  duration?: number | null;
+  description?: string | null;
+}
 
 const QuickAppointment = () => {
   const [formData, setFormData] = useState({
@@ -11,6 +19,7 @@ const QuickAppointment = () => {
     phone: '',
     department_id: '',
     doctor_id: '',
+    service_id: '',
     date: '',
     time: '09:00 AM', // Default time
     message: ''
@@ -23,8 +32,9 @@ const QuickAppointment = () => {
 
   const [departments, setDepartments] = useState<any[]>([])
   const [doctors, setDoctors] = useState<any[]>([])
+  const [services, setServices] = useState<ServiceItem[]>([])
   const [loading, setLoading] = useState(false)
-  const [isFetching, setIsFetching] = useState({ depts: false, docs: false })
+  const [isFetching, setIsFetching] = useState({ depts: false, docs: false, services: false })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const toast = useToast()
 
@@ -62,9 +72,34 @@ const QuickAppointment = () => {
       fetchDoctors(formData.department_id)
     } else {
       setDoctors([])
-      setFormData(prev => ({ ...prev, doctor_id: '' }))
+      setFormData(prev => ({ ...prev, doctor_id: '', service_id: '' }))
+      setServices([])
     }
   }, [formData.department_id])
+
+  const departmentIdForDoctor = formData.doctor_id
+    ? (doctors.find((d: any) => String(d.id) === String(formData.doctor_id))?.department_id ?? formData.department_id)
+    : null
+
+  useEffect(() => {
+    if (!departmentIdForDoctor) {
+      setServices([])
+      setFormData(prev => ({ ...prev, service_id: '' }))
+      return
+    }
+    let cancelled = false
+    setFormData(prev => ({ ...prev, service_id: '' }))
+    setIsFetching(prev => ({ ...prev, services: true }))
+    serviceAPI.getByDepartment(departmentIdForDoctor)
+      .then((res) => {
+        if (cancelled) return
+        const data = res.data?.data ?? res.data
+        setServices(Array.isArray(data) ? data : [])
+      })
+      .catch(() => { if (!cancelled) setServices([]) })
+      .finally(() => { if (!cancelled) setIsFetching(prev => ({ ...prev, services: false })) })
+    return () => { cancelled = true }
+  }, [departmentIdForDoctor])
 
   const fetchDoctors = async (deptId: string) => {
     try {
@@ -93,6 +128,7 @@ const QuickAppointment = () => {
     if (!formData.phone.trim()) newErrors.phone = 'Phone number is required'
     if (!formData.department_id) newErrors.department_id = 'Please select a department'
     if (!formData.doctor_id) newErrors.doctor_id = 'Please select a doctor'
+    if (services.length > 0 && !formData.service_id) newErrors.service_id = 'Please select a service'
     if (!formData.date) newErrors.date = 'Date is required'
 
     const selectedDate = new Date(formData.date)
@@ -120,24 +156,28 @@ const QuickAppointment = () => {
 
     setLoading(true)
     try {
-      const payload = {
+      const userStr = localStorage.getItem('user')
+      const user = userStr ? JSON.parse(userStr) : null
+
+      const payload: Record<string, unknown> = {
         patient_name: formData.name,
         patient_email: formData.email,
         patient_phone: formData.phone,
-        department_id: formData.department_id,
         doctor_id: formData.doctor_id,
         appointment_date: formData.date,
         appointment_time: formData.time,
         reason: formData.message || "Quick Appointment Request",
         status: 'pending'
       }
+      if (user?.id) payload.user_id = user.id
+      if (formData.service_id) payload.service_id = formData.service_id
 
       const response = await appointmentAPI.create(payload)
       if (response.data) {
         toast.success('Your appointment has been requested successfully!')
         setFormData({
           name: '', email: '', phone: '', department_id: '',
-          doctor_id: '', date: '', time: '09:00 AM', message: ''
+          doctor_id: '', service_id: '', date: '', time: '09:00 AM', message: ''
         })
         setSelectedHour('09')
         setSelectedMinute('00')
@@ -155,7 +195,11 @@ const QuickAppointment = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
+    setFormData(prev => {
+      const next = { ...prev, [name]: value }
+      if (name === 'doctor_id') next.service_id = ''
+      return next
+    })
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }))
     }
@@ -427,6 +471,34 @@ const QuickAppointment = () => {
                       </select>
                       {errors.doctor_id && <div className="invalid-feedback">{errors.doctor_id}</div>}
                     </div>
+
+                    {formData.doctor_id && (
+                      <div className="col-12 text-start">
+                        <label className="qa-label">Service</label>
+                        <select
+                          name="service_id"
+                          className={`form-select ${errors.service_id ? 'is-invalid' : ''}`}
+                          value={formData.service_id}
+                          onChange={handleChange}
+                          disabled={isFetching.services}
+                        >
+                          <option value="">
+                            {isFetching.services ? 'Loading services...' : services.length === 0 ? 'No services for this department' : 'Select Service'}
+                          </option>
+                          {services.map(svc => (
+                            <option key={svc.id} value={svc.id}>
+                              {svc.name} — ${Number(svc.price).toFixed(2)}
+                              {svc.duration != null && svc.duration > 0 ? ` (${svc.duration} min)` : ''}
+                            </option>
+                          ))}
+                        </select>
+                        {errors.service_id && <div className="invalid-feedback">{errors.service_id}</div>}
+                        {services.length > 0 && formData.service_id && (() => {
+                          const svc = services.find(s => String(s.id) === formData.service_id)
+                          return svc?.description ? <p className="small text-muted mt-1 mb-0">{svc.description}</p> : null
+                        })()}
+                      </div>
+                    )}
 
                     <div className="col-12 text-start">
                       <div className="qa-time-picker-wrapper">

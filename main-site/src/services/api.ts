@@ -58,6 +58,11 @@ export const serviceAPI = {
         return api.get(`/public/services${params.toString() ? '?' + params.toString() : ''}`);
     },
     getById: (id: number) => api.get(`/public/services/${id}`),
+    getByDepartment: (departmentId: number | string) => {
+        const params = new URLSearchParams();
+        params.append('department_id', String(departmentId));
+        return api.get(`/public/services?${params.toString()}`);
+    },
 };
 
 export const doctorAPI = {

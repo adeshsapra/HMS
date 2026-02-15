@@ -1,11 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from '../context/ToastContext';
-import { appointmentAPI } from '../services/api';
+import { appointmentAPI, serviceAPI } from '../services/api';
+
+interface ServiceItem {
+  id: number;
+  name: string;
+  price: number;
+  duration?: number | null;
+  description?: string | null;
+}
 
 interface Doctor {
   id: number;
   working_hours_start: string;
   working_hours_end: string;
+  department?: { id: number; name: string };
 }
 
 interface CalendarComponentProps {
@@ -23,6 +32,10 @@ const CalendarComponent = ({ doctor, onDateSelect }: CalendarComponentProps) => 
   const [selectedMinute, setSelectedMinute] = useState<string>('00');
   const [selectedPeriod, setSelectedPeriod] = useState<string>('AM');
 
+  const [services, setServices] = useState<ServiceItem[]>([]);
+  const [selectedServiceId, setSelectedServiceId] = useState<number | ''>('');
+  const [servicesLoading, setServicesLoading] = useState(false);
+
   const [form, setForm] = useState({
     patient_name: '',
     patient_email: '',
@@ -34,6 +47,30 @@ const CalendarComponent = ({ doctor, onDateSelect }: CalendarComponentProps) => 
   const [loading, setLoading] = useState(false);
   const toast = useToast();
 
+  useEffect(() => {
+    if (!showModal || !doctor.department?.id) {
+      setServices([]);
+      setSelectedServiceId('');
+      return;
+    }
+    let cancelled = false;
+    setServicesLoading(true);
+    serviceAPI.getByDepartment(doctor.department.id)
+      .then((res) => {
+        if (cancelled) return;
+        const data = res.data?.data ?? res.data;
+        setServices(Array.isArray(data) ? data : []);
+        setSelectedServiceId('');
+      })
+      .catch(() => {
+        if (!cancelled) setServices([]);
+      })
+      .finally(() => {
+        if (!cancelled) setServicesLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [showModal, doctor.department?.id]);
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     if (!form.patient_name.trim()) newErrors.patient_name = 'Patient name is required';
@@ -44,6 +81,9 @@ const CalendarComponent = ({ doctor, onDateSelect }: CalendarComponentProps) => 
       newErrors.patient_email = 'Invalid email address';
     }
     if (!form.reason.trim()) newErrors.reason = 'Reason for visit is required';
+    if (services.length > 0 && !selectedServiceId) {
+      newErrors.service_id = 'Please select a service';
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -80,9 +120,9 @@ const CalendarComponent = ({ doctor, onDateSelect }: CalendarComponentProps) => 
       const userStr = localStorage.getItem('user');
       const user = userStr ? JSON.parse(userStr) : null;
 
-      const payload = {
+      const payload: Record<string, unknown> = {
         doctor_id: doctor.id,
-        user_id: user?.id || null, // Add user_id if available
+        user_id: user?.id || null,
         patient_name: form.patient_name,
         patient_email: form.patient_email,
         patient_phone: form.patient_phone,
@@ -90,11 +130,13 @@ const CalendarComponent = ({ doctor, onDateSelect }: CalendarComponentProps) => 
         appointment_time: timeStr,
         reason: `${form.reason}${form.notes ? '\nNotes: ' + form.notes : ''}`
       };
+      if (selectedServiceId) payload.service_id = selectedServiceId;
 
       const response = await appointmentAPI.create(payload);
       if (response.status === 201 || (response.data && response.data.status)) {
         toast.success('Appointment booked successfully!');
         setShowModal(false);
+        setSelectedServiceId('');
         setForm({
           patient_name: '',
           patient_email: '',
@@ -131,13 +173,17 @@ const CalendarComponent = ({ doctor, onDateSelect }: CalendarComponentProps) => 
 
     if (clickedDate >= today) {
       setSelectedDate(clickedDate);
+      setSelectedServiceId('');
       setShowModal(true);
-      setErrors({}); // Clear previous errors
+      setErrors({});
       if (onDateSelect) {
         onDateSelect(clickedDate);
       }
     }
   };
+
+  const selectedService = services.find((s) => s.id === selectedServiceId);
+  const canSubmit = services.length === 0 || selectedServiceId !== '';
 
   // Helper to generate hours (01-12)
   const hoursList = Array.from({ length: 12 }, (_, i) => (i + 1).toString().padStart(2, '0'));
@@ -487,6 +533,40 @@ const CalendarComponent = ({ doctor, onDateSelect }: CalendarComponentProps) => 
             cursor: pointer;
         }
 
+        .appointment-service-list {
+            margin-bottom: 20px;
+        }
+        .appointment-service-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #fafafa;
+        }
+        .appointment-service-card:hover {
+            border-color: var(--accent-color);
+            background: #f0fbfc;
+        }
+        .appointment-service-card.appointment-service-selected {
+            border-color: var(--accent-color);
+            background: rgba(4, 158, 187, 0.08);
+            box-shadow: 0 0 0 2px rgba(4, 158, 187, 0.2);
+        }
+        .appointment-service-name { font-weight: 700; color: var(--heading-color); font-size: 1rem; }
+        .appointment-service-meta { font-size: 0.85rem; color: #666; margin-top: 4px; }
+        .appointment-service-desc { font-size: 0.8rem; color: #888; margin-top: 6px; line-height: 1.4; }
+        .appointment-summary-line {
+            background: #f0fbfc;
+            border: 1px solid rgba(4, 158, 187, 0.2);
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            font-size: 0.95rem;
+        }
+        .appointment-summary-line strong { color: var(--accent-color); }
+
         @media (max-width: 991px) {
           .appointment-calendar-grid {
             gap: 8px;
@@ -665,6 +745,35 @@ const CalendarComponent = ({ doctor, onDateSelect }: CalendarComponentProps) => 
                 </div>
               </div>
 
+              {doctor.department?.id && (
+                <>
+                  <label className="form-label text-muted small fw-bold">Select Service</label>
+                  <div className="appointment-service-list">
+                    {servicesLoading ? (
+                      <p className="text-muted small">Loading services...</p>
+                    ) : services.length === 0 ? (
+                      <p className="text-muted small">No services available for this department.</p>
+                    ) : (
+                      services.map((svc) => (
+                        <div
+                          key={svc.id}
+                          className={`appointment-service-card ${selectedServiceId === svc.id ? 'appointment-service-selected' : ''}`}
+                          onClick={() => { setSelectedServiceId(svc.id); setErrors((e) => ({ ...e, service_id: '' })); }}
+                        >
+                          <div className="appointment-service-name">{svc.name}</div>
+                          <div className="appointment-service-meta">
+                            ${Number(svc.price).toFixed(2)}
+                            {svc.duration != null && svc.duration > 0 && ` · ${svc.duration} min`}
+                          </div>
+                          {svc.description && <div className="appointment-service-desc">{svc.description}</div>}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                  {errors.service_id && <div className="appointment-error-message">{errors.service_id}</div>}
+                </>
+              )}
+
               <label className="form-label text-muted small fw-bold">Reason for Visit</label>
               <div className="appointment-input-wrapper">
                 <input
@@ -691,10 +800,17 @@ const CalendarComponent = ({ doctor, onDateSelect }: CalendarComponentProps) => 
                 ></textarea>
               </div>
 
+              {selectedService && (
+                <div className="appointment-summary-line">
+                  <strong>Summary:</strong> {selectedService.name} — ${Number(selectedService.price).toFixed(2)}
+                  {selectedService.duration != null && selectedService.duration > 0 && ` (${selectedService.duration} min)`}
+                </div>
+              )}
+
               <button
                 type="button"
                 onClick={handleBookAppointment}
-                disabled={loading}
+                disabled={loading || (services.length > 0 && !canSubmit)}
                 className="appointment-btn-confirm"
               >
                 {loading ? 'Booking...' : 'Confirm Booking'}
