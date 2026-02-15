@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { DataTable, ViewModal, DeleteConfirmModal, Column, ViewField, FormModal, FormField, AdvancedFilter, FilterConfig } from "@/components";
 import { Avatar, Typography, Button, IconButton } from "@material-tailwind/react";
 import { UserPlusIcon, Cog6ToothIcon, TrashIcon, PlusIcon, PencilSquareIcon } from "@heroicons/react/24/outline";
@@ -36,7 +36,8 @@ interface StaffMember {
   department_id?: number;
   department?: { id: number; name: string };
   staff_type_id?: number;
-  staff_type: string;
+  staff_type: any; // Can be string or object relation
+  staffType?: { id: number; name: string }; // Relation object version
   employment_type: string;
   joining_date: string;
   probation_end_date?: string;
@@ -232,7 +233,9 @@ export default function Staff(): JSX.Element {
     { key: "designation", label: "Designation" },
     { key: "department", label: "Department", render: (value: any, row: StaffMember) => row.department?.name || "N/A" },
     {
-      key: "staffType", label: "Staff Type", render: (value: any) => value?.name || "N/A"
+      key: "staff_type",
+      label: "Staff Type",
+      render: (value: any) => typeof value === 'object' ? value?.name : (value || "N/A")
     },
     {
       key: "employment_type", label: "Employment Type", render: (value: string) => {
@@ -409,6 +412,41 @@ export default function Staff(): JSX.Element {
     setOpenViewModal(true);
   };
 
+  const convertTo24Hour = (timeStr: string): string | null => {
+    if (!timeStr) return null;
+    if (!timeStr.includes(' ')) return timeStr;
+
+    const [time, modifier] = timeStr.split(' ');
+    let [hours, minutes] = time.split(':');
+
+    let h = parseInt(hours, 10);
+    if (modifier === 'PM' && h < 12) {
+      h += 12;
+    } else if (modifier === 'AM' && h === 12) {
+      h = 0;
+    }
+
+    return `${h.toString().padStart(2, '0')}:${minutes}`;
+  };
+
+  const convertTo12Hour = (timeStr: string): string => {
+    if (!timeStr) return '';
+    if (timeStr.includes('AM') || timeStr.includes('PM')) return timeStr;
+
+    const parts = timeStr.split(':');
+    let hours = parseInt(parts[0], 10);
+    const minutes = parts[1] || '00';
+
+    let modifier = 'AM';
+    if (hours >= 12) {
+      modifier = 'PM';
+      if (hours > 12) hours -= 12;
+    }
+    if (hours === 0) hours = 12;
+
+    return `${hours.toString().padStart(2, '0')}:${minutes} ${modifier}`;
+  };
+
   const convertToFormData = (data: Record<string, any>): FormData => {
     const formData = new FormData();
 
@@ -433,6 +471,9 @@ export default function Staff(): JSX.Element {
         });
       } else if (key === "department_id" || key === "staff_type_id") {
         formData.append(key, data[key].toString());
+      } else if (key === "work_hours_start" || key === "work_hours_end") {
+        const time24 = convertTo24Hour(data[key]);
+        if (time24) formData.append(key, time24);
       } else if (data[key] !== null && data[key] !== undefined && data[key] !== "") {
         formData.append(key, data[key].toString());
       }
@@ -526,18 +567,22 @@ export default function Staff(): JSX.Element {
         ? staffMember.working_days.join(", ")
         : staffMember.working_days || "",
       password: '', // Clear password field for edit
+      work_hours_start: staffMember.work_hours_start ? convertTo12Hour(staffMember.work_hours_start) : '',
+      work_hours_end: staffMember.work_hours_end ? convertTo12Hour(staffMember.work_hours_end) : '',
     };
 
     // Convert date strings to YYYY-MM-DD format for input fields
     const dateFields = ['date_of_birth', 'joining_date', 'probation_end_date', 'contract_end_date'];
     dateFields.forEach(field => {
-      if (initialData[field]) {
-        initialData[field] = initialData[field].split('T')[0];
+      if (initialData[field as keyof typeof initialData]) {
+        initialData[field as keyof typeof initialData] = (initialData[field as keyof typeof initialData] as string).split('T')[0];
       }
     });
 
     return initialData;
   };
+
+  const initialData = useMemo(() => prepareInitialData(selectedStaff), [selectedStaff]);
 
   const handlePageChange = (page: number): void => {
     setCurrentPage(page);
@@ -686,7 +731,7 @@ export default function Staff(): JSX.Element {
         }}
         title={selectedStaff ? "Edit Staff" : "Add New Staff"}
         formFields={getFormFields()}
-        initialData={prepareInitialData(selectedStaff)}
+        initialData={initialData}
         onSubmit={handleSubmit}
         submitLabel={selectedStaff ? "Update Staff" : "Add Staff"}
         loading={formLoading}
