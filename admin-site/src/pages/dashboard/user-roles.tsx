@@ -66,7 +66,7 @@ export default function UserRoles(): JSX.Element {
           keyword: currentFilters.keyword,
           role_id: currentFilters.role_id
         }),
-        apiService.getRoles({ per_page: 100 }), // Get all roles for select dropdown
+        apiService.getRoles({ per_page: 1000 }), // Get all roles for select dropdown
       ]);
 
       if (usersResponse.status && usersResponse.users) {
@@ -261,7 +261,7 @@ export default function UserRoles(): JSX.Element {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-          <div className="lg:col-span-2">
+          <div className={selectedUser ? "lg:col-span-2" : "lg:col-span-3"}>
             <DataTable
               title="Users"
               data={users}

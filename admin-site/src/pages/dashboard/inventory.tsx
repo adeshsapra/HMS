@@ -46,8 +46,8 @@ import { DataTable, Column, ViewModal, ViewField, ActionItem, AdvancedFilter } f
 
 export default function Inventory(): JSX.Element {
   const { showToast } = useToast();
-  const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState("items");
+  const { user, hasPermission } = useAuth();
+  const [activeTab, setActiveTab] = useState("requests"); // Default to requests for better staff UX
   const [loading, setLoading] = useState(false);
 
   // State for all entities
@@ -147,9 +147,28 @@ export default function Inventory(): JSX.Element {
     setModalOpen(true);
   };
 
-  const handleOpenViewModal = (data: any) => {
-    setSelectedData(data);
-    setViewModalOpen(true);
+  const handleOpenViewModal = async (data: any) => {
+    setLoading(true);
+    try {
+      let fullData = data;
+      const type = data._type || modalType;
+
+      // Fetch full details based on type to ensure all relationships are loaded
+      if (type === 'item') fullData = await apiService.getInventoryItem(data.id);
+      else if (type === 'category') fullData = await apiService.getInventoryCategory(data.id);
+      else if (type === 'vendor') fullData = await apiService.getInventoryVendor(data.id);
+      else if (type === 'purchase') fullData = await apiService.getInventoryPurchase(data.id);
+      else if (type === 'request') fullData = await apiService.getInventoryRequest(data.id);
+      else if (type === 'issue') fullData = (await apiService.getInventoryIssue(data.id));
+      else if (type === 'adjustment') fullData = await apiService.getInventoryAdjustment(data.id);
+
+      setSelectedData({ ...fullData, _type: type });
+      setViewModalOpen(true);
+    } catch (e: any) {
+      showToast("Failed to fetch details: " + e.message, "error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleRequestAction = async (row: any, status: string) => {
@@ -242,6 +261,7 @@ export default function Inventory(): JSX.Element {
               }
             }
           }}
+          onView={(row) => handleOpenViewModal({ ...row, _type: 'category' })}
           addButtonLabel="Add Category"
         />
       </CardBody>
@@ -274,6 +294,7 @@ export default function Inventory(): JSX.Element {
               }
             }
           }}
+          onView={(row) => handleOpenViewModal({ ...row, _type: 'vendor' })}
           addButtonLabel="Add Vendor"
         />
       </CardBody>
@@ -394,8 +415,10 @@ export default function Inventory(): JSX.Element {
     const columns: Column[] = [
       { key: "reference_number", label: "Ref #" },
       { key: "issue_date", label: "Date", render: (val: any) => new Date(val).toLocaleDateString() },
-      { key: "request", label: "Dept", render: (req: any) => req?.department?.name || "N/A" },
-      { key: "items", label: "Items Issued", render: (its: any[]) => its?.length || 0 },
+      { key: "request", label: "Department", render: (req: any) => req?.department?.name || "Direct" },
+      { key: "request", label: "Staff", render: (req: any) => req?.staff ? `${req.staff.first_name} ${req.staff.last_name}` : "N/A" },
+      { key: "notes", label: "Reason/Notes" },
+      { key: "items", label: "Items count", render: (its: any[]) => its?.length || 0 },
     ];
     return (
       <CardBody className="p-0">
@@ -426,6 +449,7 @@ export default function Inventory(): JSX.Element {
           data={adjustments}
           columns={columns}
           onAdd={() => handleOpenModal("adjustment")}
+          onView={(row) => handleOpenViewModal({ ...row, _type: 'adjustment' })}
           addButtonLabel="Manual Adjustment"
         />
       </CardBody>
@@ -505,14 +529,18 @@ export default function Inventory(): JSX.Element {
       <Card className="border border-blue-gray-100 shadow-sm overflow-hidden">
         <Tabs value={activeTab}>
           <TabsHeader className="bg-blue-gray-50/50 border-b border-blue-gray-100 p-0 rounded-none overflow-x-auto">
-            <Tab value="items" onClick={() => setActiveTab("items")} className="py-4 font-bold text-sm tracking-wide">ITEMS</Tab>
-            <Tab value="categories" onClick={() => setActiveTab("categories")} className="py-4 font-bold text-sm tracking-wide">CATEGORIES</Tab>
-            <Tab value="vendors" onClick={() => setActiveTab("vendors")} className="py-4 font-bold text-sm tracking-wide">VENDORS</Tab>
-            <Tab value="purchases" onClick={() => setActiveTab("purchases")} className="py-4 font-bold text-sm tracking-wide">PURCHASES</Tab>
             <Tab value="requests" onClick={() => setActiveTab("requests")} className="py-4 font-bold text-sm tracking-wide">REQUESTS</Tab>
-            <Tab value="issues" onClick={() => setActiveTab("issues")} className="py-4 font-bold text-sm tracking-wide">ISSUES</Tab>
-            <Tab value="adjustments" onClick={() => setActiveTab("adjustments")} className="py-4 font-bold text-sm tracking-wide">ADJUSTMENTS</Tab>
-            <Tab value="reports" onClick={() => setActiveTab("reports")} className="py-4 font-bold text-sm tracking-wide">REPORTS</Tab>
+            <Tab value="items" onClick={() => setActiveTab("items")} className="py-4 font-bold text-sm tracking-wide">ITEMS</Tab>
+            {hasPermission("create-inventory") && (
+              <>
+                <Tab value="categories" onClick={() => setActiveTab("categories")} className="py-4 font-bold text-sm tracking-wide">CATEGORIES</Tab>
+                <Tab value="vendors" onClick={() => setActiveTab("vendors")} className="py-4 font-bold text-sm tracking-wide">VENDORS</Tab>
+                <Tab value="purchases" onClick={() => setActiveTab("purchases")} className="py-4 font-bold text-sm tracking-wide">PURCHASES</Tab>
+                <Tab value="issues" onClick={() => setActiveTab("issues")} className="py-4 font-bold text-sm tracking-wide">ISSUES</Tab>
+                <Tab value="adjustments" onClick={() => setActiveTab("adjustments")} className="py-4 font-bold text-sm tracking-wide">ADJUSTMENTS</Tab>
+                <Tab value="reports" onClick={() => setActiveTab("reports")} className="py-4 font-bold text-sm tracking-wide">REPORTS</Tab>
+              </>
+            )}
           </TabsHeader>
           <TabsBody
             animate={{
@@ -548,9 +576,9 @@ export default function Inventory(): JSX.Element {
         <ViewModal
           open={viewModalOpen}
           onClose={() => setViewModalOpen(false)}
-          title={`${modalType.toUpperCase()} Details`}
+          title={`${(selectedData?._type || modalType).toUpperCase()} Details`}
           data={selectedData}
-          fields={getViewFields(modalType)}
+          fields={getViewFields(selectedData?._type || modalType)}
         />
       )}
     </div>
@@ -561,40 +589,91 @@ function getViewFields(type: string): ViewField[] {
   switch (type) {
     case "item":
       return [
-        { key: "name", label: "Name" },
-        { key: "category", label: "Category", render: (v: any) => v?.name },
-        { key: "unit", label: "Unit" },
-        { key: "current_stock", label: "Current Stock" },
-        { key: "min_stock_level", label: "Min Level" },
-        { key: "batch_number", label: "Batch #" },
-        { key: "expiry_date", label: "Expiry", type: "date" },
+        { key: "name", label: "Item Name" },
+        { key: "category", label: "Category", render: (v: any) => v?.name || "N/A" },
+        { key: "unit", label: "Measurement Unit" },
+        { key: "current_stock", label: "In Stock", render: (v: any) => <Typography className="font-bold text-blue-600">{v}</Typography> },
+        { key: "min_stock_level", label: "Low Stock Alert Level" },
+        { key: "batch_number", label: "Latest Batch #" },
+        { key: "expiry_date", label: "Expiry Date", type: "date" },
+        { key: "description", label: "Item Description" },
+        { key: "created_at", label: "Added On", type: "date" },
+      ];
+    case "category":
+      return [
+        { key: "name", label: "Category Name" },
         { key: "description", label: "Description" },
+        { key: "items_count", label: "Total Items in Category" },
+      ];
+    case "vendor":
+      return [
+        { key: "name", label: "Company Name" },
+        { key: "contact_person", label: "Contact Person" },
+        { key: "phone", label: "Phone Number" },
+        { key: "email", label: "Email Address" },
+        { key: "address", label: "Warehouse Address" },
       ];
     case "purchase":
       return [
-        { key: "invoice_number", label: "Invoice #" },
-        { key: "vendor", label: "Vendor", render: (v: any) => v?.name },
-        { key: "purchase_date", label: "Date", type: "date" },
-        { key: "total_amount", label: "Total Amount" },
-        { key: "status", label: "Status" },
+        { key: "invoice_number", label: "Invoice Number" },
+        { key: "vendor", label: "Supplier", render: (v: any) => v?.name || "N/A" },
+        { key: "purchase_date", label: "Purchase Date", type: "date" },
+        { key: "total_amount", label: "Total Amount (Invoice)", render: (v: any) => `$${parseFloat(v).toLocaleString()}` },
+        { key: "status", label: "Payment/Logistics Status", type: "status" },
+        {
+          key: "items",
+          label: "Purchased Items",
+          render: (items: any[]) => (
+            <div className="flex flex-col gap-1">
+              {items?.map((it: any, idx: number) => (
+                <div key={idx} className="text-sm bg-blue-gray-50 p-1 rounded">
+                  {it.item?.name}: {it.quantity} {it.item?.unit} @ ${it.unit_price}
+                </div>
+              ))}
+            </div>
+          )
+        },
       ];
     case "request":
       return [
-        { key: "item", label: "Item", render: (v: any) => v?.name },
-        { key: "quantity", label: "Quantity" },
-        { key: "department", label: "Department", render: (v: any) => v?.name },
-        { key: "staff", label: "Requested By", render: (v: any) => (v?.first_name + ' ' + v?.last_name) },
-        { key: "reason", label: "Reason" },
-        { key: "remarks", label: "Admin Remarks" },
-        { key: "status", label: "Status", type: "status" },
-        { key: "request_date", label: "Date", type: "date" },
+        { key: "item", label: "Requested Item", render: (v: any) => v?.name || "N/A" },
+        { key: "quantity", label: "Requested Quantity" },
+        { key: "department", label: "From Department", render: (v: any) => v?.name || "N/A" },
+        { key: "staff", label: "Requested By", render: (v: any) => `${v?.first_name} ${v?.last_name}` },
+        { key: "reason", label: "Reason for Request" },
+        { key: "remarks", label: "Admin Response/Remarks" },
+        { key: "status", label: "Current Status", type: "status" },
+        { key: "request_date", label: "Request Date", type: "date" },
       ];
     case "issue":
       return [
-        { key: "reference_number", label: "Reference #" },
-        { key: "issue_date", label: "Issue Date", type: "date" },
-        { key: "request", label: "Linked Request ID", render: (v: any) => v?.id || "None" },
-        { key: "items", label: "Items Contained", render: (v: any[]) => v?.length + " items" },
+        { key: "reference_number", label: "Issue Reference #" },
+        { key: "issue_date", label: "Date Dispatched", type: "date" },
+        { key: "request", label: "Linked Request", render: (v: any) => v ? `Dept: ${v.department?.name} (#${v.id})` : "Direct Issue" },
+        { key: "notes", label: "Reason / Implementation Notes" },
+        { key: "issuer", label: "Issued By (Admin)", render: (v: any) => v?.name || "N/A" },
+        {
+          key: "items",
+          label: "Items Dispatched",
+          render: (items: any[]) => (
+            <div className="flex flex-col gap-1">
+              {items?.map((it: any, idx: number) => (
+                <div key={idx} className="text-sm bg-blue-gray-50 p-1 rounded">
+                  {it.item?.name}: {it.quantity} {it.item?.unit}
+                </div>
+              ))}
+            </div>
+          )
+        },
+      ];
+    case "adjustment":
+      return [
+        { key: "item", label: "Adjusted Item", render: (v: any) => v?.name || "N/A" },
+        { key: "type", label: "Adjustment Type", render: (v: any) => <Chip value={v?.toUpperCase()} color={v === 'increase' ? 'green' : 'red'} size="sm" /> },
+        { key: "quantity", label: "Quantity Adjusted" },
+        { key: "reason", label: "Detailed Reason" },
+        { key: "adjustment_date", label: "Date of Adjustment", type: "date" },
+        { key: "adjustedBy", label: "Performed By", render: (v: any) => v?.name || "N/A" },
       ];
     default:
       return [];
@@ -709,19 +788,56 @@ function InventoryDialogs({ open, onClose, type, data, categories, vendors, item
         )}
         {type === "issue" && (
           <>
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-2">
+              <Typography variant="small" color="blue" className="font-bold flex items-center gap-2 mb-2">
+                <CheckIcon className="h-4 w-4" />
+                ISSUE DETAILS
+              </Typography>
+              {formData.request_id ? (
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <span className="text-blue-gray-600 font-medium">Linked Request:</span>
+                  <span className="font-bold text-blue-gray-800">#{formData.request_id}</span>
+                  <span className="text-blue-gray-600 font-medium">Recommended Item:</span>
+                  <span className="font-bold text-blue-gray-800">
+                    {items.find((i: any) => i.id == formData.item_id)?.name || "Unknown"}
+                  </span>
+                  <span className="text-blue-gray-600 font-medium">Requested Qty:</span>
+                  <span className="font-bold text-blue-gray-800">{formData.quantity}</span>
+                </div>
+              ) : (
+                <Typography variant="small" className="italic text-blue-gray-500">
+                  Direct issue without a formal request link.
+                </Typography>
+              )}
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <Input label="Reference Number" crossOrigin={undefined} value={formData.reference_number || ""} onChange={(e) => setFormData({ ...formData, reference_number: e.target.value })} />
               <Input type="date" label="Issue Date" crossOrigin={undefined} value={formData.issue_date || ""} onChange={(e) => setFormData({ ...formData, issue_date: e.target.value })} />
             </div>
-            <Select label="Select Item to Issue" value={formData.item_id ? String(formData.item_id) : ""} onChange={(val) => setFormData({ ...formData, item_id: val })}>
+
+            <Select
+              label="Select Item to Issue"
+              value={formData.item_id ? String(formData.item_id) : ""}
+              onChange={(val) => setFormData({ ...formData, item_id: val })}
+              disabled={!!formData.request_id}
+            >
               {items.map((i: any) => <Option key={i.id} value={String(i.id)}>{i.name} (Available: {i.current_stock} {i.unit})</Option>)}
             </Select>
-            <Input type="number" label="Quantity to Issue" crossOrigin={undefined} value={formData.quantity || ""} onChange={(e) => setFormData({ ...formData, quantity: e.target.value })} />
-            {formData.request_id && (
-              <Typography variant="small" color="blue" className="font-medium italic">
-                * This issue is linked to request #{formData.request_id}
-              </Typography>
-            )}
+
+            <Input
+              type="number"
+              label="Quantity to Issue"
+              crossOrigin={undefined}
+              value={formData.quantity || ""}
+              onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+              className={formData.request_id ? "font-bold text-blue-700" : ""}
+            />
+            <Textarea
+              label="Issue Reason / Additional Notes"
+              value={formData.notes || ""}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+            />
           </>
         )}
         {type === "request" && (

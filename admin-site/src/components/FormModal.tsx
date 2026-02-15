@@ -327,7 +327,7 @@ export function FormModal({
       setErrors({});
       setGeneralError("");
     }
-  }, [open, initialData]);
+  }, [open]);
 
   const handleChange = (name: string, value: any): void => {
     setFormData((prev) => ({ ...prev, [name]: value }));
