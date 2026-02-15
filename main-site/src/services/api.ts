@@ -269,6 +269,19 @@ export const faqAPI = {
     getAll: () => api.get('/public/faqs'),
 };
 
+export const galleryAPI = {
+    getGalleries: (params?: { page?: number; category_id?: number | string; per_page?: number; keyword?: string }) => {
+        const queryParams = new URLSearchParams();
+        if (params?.page) queryParams.append('page', params.page.toString());
+        if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
+        if (params?.category_id) queryParams.append('category_id', params.category_id.toString());
+        if (params?.keyword) queryParams.append('keyword', params.keyword);
+        queryParams.append('status', '1'); // Only active images for public site
+        return api.get(`/public/gallery?${queryParams.toString()}`);
+    },
+    getCategories: () => api.get('/public/gallery-categories'),
+};
+
 export const subscriptionAPI = {
     subscribe: (data: { package_id: number; type: 'monthly' | 'yearly'; payment_details: any }) =>
         api.post('/subscriptions/subscribe', data),

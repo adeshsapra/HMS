@@ -1307,7 +1307,190 @@ class ApiService {
     async deleteFaqCategory(id: number) {
         return this.delete<any>(`/admin/faq-categories/${id}`);
     }
+
+    // Gallery methods
+    async getGalleries(params?: { page?: number; category_id?: number | string; status?: string; keyword?: string; per_page?: number }) {
+        let endpoint = '/admin/gallery?';
+        const queryParams = new URLSearchParams();
+        if (params?.page) queryParams.append('page', params.page.toString());
+        if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
+        if (params?.category_id) queryParams.append('category_id', params.category_id.toString());
+        if (params?.status) queryParams.append('status', params.status);
+        if (params?.keyword) queryParams.append('keyword', params.keyword);
+        endpoint += queryParams.toString();
+        return this.get<any>(endpoint);
+    }
+
+    async createGallery(formData: FormData) {
+        const token = this.getAuthToken();
+        const response = await fetch(`${API_BASE_URL}/admin/gallery`, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                ...(token && { Authorization: `Bearer ${token}` }),
+            },
+            body: formData,
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Upload failed');
+        return data;
+    }
+
+    async updateGallery(id: number, formData: FormData) {
+        const token = this.getAuthToken();
+        formData.append('_method', 'PUT');
+        const response = await fetch(`${API_BASE_URL}/admin/gallery/${id}`, {
+            method: 'POST', // Use POST with _method=PUT for FormData
+            headers: {
+                'Accept': 'application/json',
+                ...(token && { Authorization: `Bearer ${token}` }),
+            },
+            body: formData,
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Update failed');
+        return data;
+    }
+
+    async deleteGallery(id: number) {
+        return this.delete<any>(`/admin/gallery/${id}`);
+    }
+
+    // Gallery Category methods
+    async getGalleryCategories() {
+        return this.get<any[]>('/admin/gallery-categories');
+    }
+
+    async createGalleryCategory(data: any) {
+        return this.post<any>('/admin/gallery-categories', data);
+    }
+
+    async updateGalleryCategory(id: number, data: any) {
+        return this.put<any>(`/admin/gallery-categories/${id}`, data);
+    }
+
+    async deleteGalleryCategory(id: number) {
+        return this.delete<any>(`/admin/gallery-categories/${id}`);
+    }
+
+    // Inventory methods
+    async getInventoryCategories() {
+        return this.get<any>('/inventory/categories');
+    }
+    async createInventoryCategory(data: any) {
+        return this.post<any>('/inventory/categories', data);
+    }
+    async updateInventoryCategory(id: number, data: any) {
+        return this.put<any>(`/inventory/categories/${id}`, data);
+    }
+    async deleteInventoryCategory(id: number) {
+        return this.delete<any>(`/inventory/categories/${id}`);
+    }
+
+    async getInventoryVendors() {
+        return this.get<any>('/inventory/vendors');
+    }
+    async createInventoryVendor(data: any) {
+        return this.post<any>('/inventory/vendors', data);
+    }
+    async updateInventoryVendor(id: number, data: any) {
+        return this.put<any>(`/inventory/vendors/${id}`, data);
+    }
+    async deleteInventoryVendor(id: number) {
+        return this.delete<any>(`/inventory/vendors/${id}`);
+    }
+
+    async getInventoryItems(params?: any) {
+        let endpoint = '/inventory/items';
+        if (params) {
+            const queryParams = new URLSearchParams(params);
+            endpoint += `?${queryParams.toString()}`;
+        }
+        return this.get<any>(endpoint);
+    }
+    async createInventoryItem(data: any) {
+        return this.post<any>('/inventory/items', data);
+    }
+    async updateInventoryItem(id: number, data: any) {
+        return this.put<any>(`/inventory/items/${id}`, data);
+    }
+    async deleteInventoryItem(id: number) {
+        return this.delete<any>(`/inventory/items/${id}`);
+    }
+
+    async getInventoryPurchases() {
+        return this.get<any>('/inventory/purchases');
+    }
+    async createInventoryPurchase(data: any) {
+        return this.post<any>('/inventory/purchases', data);
+    }
+
+    async getInventoryRequests(params?: any) {
+        let endpoint = '/inventory/requests';
+        if (params) {
+            const queryParams = new URLSearchParams();
+            Object.keys(params).forEach(key => {
+                if (params[key]) queryParams.append(key, params[key]);
+            });
+            endpoint += `?${queryParams.toString()}`;
+        }
+        return this.get<any>(endpoint);
+    }
+    async createInventoryRequest(data: any) {
+        return this.post<any>('/inventory/requests', data);
+    }
+    async updateInventoryRequestStatus(id: number, data: { status: string, remarks?: string }) {
+        return this.patch<any>(`/inventory/requests/${id}/status`, data);
+    }
+
+    async getInventoryIssues() {
+        return this.get<any>('/inventory/issues');
+    }
+    async createInventoryIssue(data: any) {
+        return this.post<any>('/inventory/issues', data);
+    }
+
+    async getInventoryAdjustments() {
+        return this.get<any>('/inventory/adjustments');
+    }
+    async createInventoryAdjustment(data: any) {
+        return this.post<any>('/inventory/adjustments', data);
+    }
+
+    // Reports
+    getReportUrl(type: string, params?: any) {
+        let url = `${API_BASE_URL}/inventory/reports/${type}`;
+        if (params) {
+            const queryParams = new URLSearchParams(params);
+            url += `?${queryParams.toString()}`;
+        }
+        return url;
+    }
+
+    async getInventoryReport(type: string, params?: any) {
+        let endpoint = `/inventory/reports/${type}`;
+        if (params) {
+            const queryParams = new URLSearchParams(params);
+            endpoint += `?${queryParams.toString()}`;
+        }
+        return this.get<any>(endpoint);
+    }
+
+    // Staff Types
+    async getStaffTypes() {
+        return this.get<any>('/staff-types');
+    }
+    async createStaffType(data: any) {
+        return this.post<any>('/staff-types', data);
+    }
+    async updateStaffType(id: number, data: any) {
+        return this.put<any>(`/staff-types/${id}`, data);
+    }
+    async deleteStaffType(id: number) {
+        return this.delete<any>(`/staff-types/${id}`);
+    }
 }
+
 
 export const apiService = new ApiService();
 export default apiService;
