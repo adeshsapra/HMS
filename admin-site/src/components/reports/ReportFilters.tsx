@@ -132,17 +132,20 @@ export function ReportFilters({
             const range = preset.getRange();
             setCustomStart(range.start);
             setCustomEnd(range.end);
-            applyFilters(range.start, range.end);
+            applyFilters(range.start, range.end, departmentId, doctorId);
         }
     };
 
-    const applyFilters = (start?: string, end?: string) => {
+    const applyFilters = (start?: string, end?: string, dept?: string, doc?: string) => {
         const filters: any = {
             start_date: start || customStart,
             end_date: end || customEnd,
         };
-        if (departmentId) filters.department_id = parseInt(departmentId);
-        if (doctorId) filters.doctor_id = parseInt(doctorId);
+        const activeDept = dept !== undefined ? dept : departmentId;
+        const activeDoc = doc !== undefined ? doc : doctorId;
+
+        if (activeDept) filters.department_id = parseInt(activeDept);
+        if (activeDoc) filters.doctor_id = parseInt(activeDoc);
         onFilterChange(filters);
     };
 
@@ -169,8 +172,8 @@ export function ReportFilters({
                                 key={preset.value}
                                 onClick={() => handlePresetChange(preset.value)}
                                 className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${selectedPreset === preset.value
-                                        ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md shadow-blue-500/25'
-                                        : 'bg-blue-gray-50 text-blue-gray-700 hover:bg-blue-gray-100'
+                                    ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md shadow-blue-500/25'
+                                    : 'bg-blue-gray-50 text-blue-gray-700 hover:bg-blue-gray-100'
                                     }`}
                             >
                                 {preset.label}
@@ -179,8 +182,8 @@ export function ReportFilters({
                         <button
                             onClick={() => setSelectedPreset('custom')}
                             className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${selectedPreset === 'custom'
-                                    ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md shadow-blue-500/25'
-                                    : 'bg-blue-gray-50 text-blue-gray-700 hover:bg-blue-gray-100'
+                                ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md shadow-blue-500/25'
+                                : 'bg-blue-gray-50 text-blue-gray-700 hover:bg-blue-gray-100'
                                 }`}
                         >
                             Custom
@@ -203,33 +206,50 @@ export function ReportFilters({
                 </div>
 
                 {/* Custom Date Range */}
-                {selectedPreset === 'custom' && (
-                    <div className="flex flex-wrap items-end gap-3 mt-4 pt-4 border-t border-blue-gray-50">
-                        <div className="w-44">
-                            <Input
-                                type="date"
-                                label="Start Date"
-                                value={customStart}
-                                onChange={(e) => setCustomStart(e.target.value)}
-                                crossOrigin=""
-                            />
-                        </div>
-                        <div className="w-44">
-                            <Input
-                                type="date"
-                                label="End Date"
-                                value={customEnd}
-                                onChange={(e) => setCustomEnd(e.target.value)}
-                                crossOrigin=""
-                            />
-                        </div>
+                {(showDepartmentFilter || showDoctorFilter || selectedPreset === 'custom') && (
+                    <div className="flex flex-wrap items-end gap-3 mt-4 pt-4 border-t border-blue-gray-50/50">
+                        {selectedPreset === 'custom' && (
+                            <>
+                                <div className="w-44">
+                                    <Input
+                                        type="date"
+                                        label="Start Date"
+                                        value={customStart}
+                                        onChange={(e) => setCustomStart(e.target.value)}
+                                        crossOrigin=""
+                                    />
+                                </div>
+                                <div className="w-44">
+                                    <Input
+                                        type="date"
+                                        label="End Date"
+                                        value={customEnd}
+                                        onChange={(e) => setCustomEnd(e.target.value)}
+                                        crossOrigin=""
+                                    />
+                                </div>
+                                <Button
+                                    size="sm"
+                                    className="flex items-center gap-1 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl"
+                                    onClick={handleApplyCustom}
+                                    disabled={!customStart || !customEnd}
+                                >
+                                    <FunnelIcon className="h-4 w-4" />
+                                    Apply Range
+                                </Button>
+                            </>
+                        )}
 
                         {showDepartmentFilter && departments.length > 0 && (
-                            <div className="w-48">
+                            <div className="w-56">
                                 <Select
-                                    label="Department"
+                                    label="Department Filter"
                                     value={departmentId}
-                                    onChange={(val) => setDepartmentId(val || '')}
+                                    onChange={(val) => {
+                                        const newDept = val || '';
+                                        setDepartmentId(newDept);
+                                        applyFilters(undefined, undefined, newDept);
+                                    }}
                                 >
                                     <Option value="">All Departments</Option>
                                     {departments.map((dept: any) => (
@@ -242,31 +262,25 @@ export function ReportFilters({
                         )}
 
                         {showDoctorFilter && doctors.length > 0 && (
-                            <div className="w-48">
+                            <div className="w-56">
                                 <Select
-                                    label="Doctor"
+                                    label="Doctor Filter"
                                     value={doctorId}
-                                    onChange={(val) => setDoctorId(val || '')}
+                                    onChange={(val) => {
+                                        const newDoc = val || '';
+                                        setDoctorId(newDoc);
+                                        applyFilters(undefined, undefined, undefined, newDoc);
+                                    }}
                                 >
                                     <Option value="">All Doctors</Option>
                                     {doctors.map((doc: any) => (
                                         <Option key={doc.id} value={doc.id.toString()}>
-                                            Dr. {doc.first_name} {doc.last_name}
+                                            Dr. {doc.first_name || doc.name} {doc.last_name || ''}
                                         </Option>
                                     ))}
                                 </Select>
                             </div>
                         )}
-
-                        <Button
-                            size="sm"
-                            className="flex items-center gap-1 bg-gradient-to-r from-blue-500 to-cyan-500"
-                            onClick={handleApplyCustom}
-                            disabled={!customStart || !customEnd}
-                        >
-                            <FunnelIcon className="h-4 w-4" />
-                            Apply
-                        </Button>
                     </div>
                 )}
             </CardBody>

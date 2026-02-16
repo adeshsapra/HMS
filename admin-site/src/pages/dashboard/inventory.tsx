@@ -20,6 +20,7 @@ import {
   Textarea,
   Select,
   Option,
+  Spinner,
 } from "@material-tailwind/react";
 import {
   CubeIcon,
@@ -41,11 +42,19 @@ import {
   XCircleIcon,
   CalendarDaysIcon,
   CheckCircleIcon,
+  ArrowRightIcon,
+  ArrowPathIcon,
+  ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
 import { apiService } from "@/services/api";
 import { useToast } from "@/context/ToastContext";
 import { useAuth } from "@/context/AuthContext";
 import { DataTable, Column, ViewModal, ViewField, ActionItem, AdvancedFilter } from "@/components";
+import { ReportFilters } from "@/components/reports/ReportFilters";
+import { ReportChart } from "@/components/reports/ReportChart";
+import { ReportTable } from "@/components/reports/ReportTable";
+import { ReportExport } from "@/components/reports/ReportExport";
+import { useReportData } from "@/hooks/useReportData";
 
 export default function Inventory(): JSX.Element {
   const { showToast } = useToast();
@@ -89,10 +98,29 @@ export default function Inventory(): JSX.Element {
   const [selectedData, setSelectedData] = useState<any>(null);
   const [viewModalOpen, setViewModalOpen] = useState(false);
 
+  // Reports State
+  const [inventoryReportType, setInventoryReportType] = useState("inventory-low-stock");
+  const [reportFilters, setReportFilters] = useState<any>(() => {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    return {
+      start_date: start.toISOString().split("T")[0],
+      end_date: now.toISOString().split("T")[0],
+    };
+  });
+  const { data: reportData, loading: reportLoading, fetchReport: fetchInventoryReport } = useReportData();
+
   useEffect(() => {
     loadData();
     if (departments.length === 0) loadDepartments();
   }, [activeTab, requestCurrentPage]);
+
+  // Fetch report when activeTab, inventoryReportType, or reportFilters change
+  useEffect(() => {
+    if (activeTab === 'reports') {
+      fetchInventoryReport(inventoryReportType, reportFilters);
+    }
+  }, [activeTab, inventoryReportType, reportFilters, fetchInventoryReport]);
 
   const loadDepartments = async () => {
     try {
@@ -590,65 +618,304 @@ export default function Inventory(): JSX.Element {
   };
 
   const renderReportsTab = () => {
-    return (
-      <CardBody className="p-6">
-        <Typography variant="h5" color="blue-gray" className="mb-4 font-bold">Generate Inventory Reports</Typography>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Button variant="outlined" color="blue" className="flex items-center justify-center gap-3 py-6" onClick={() => window.open(apiService.getReportUrl('stock-in'), '_blank')}>
-            <ArrowDownOnSquareIcon className="h-6 w-6" />
-            <div className="text-left">
-              <Typography variant="small" className="font-bold">Stock In Report</Typography>
-              <Typography variant="small" className="font-normal lowercase opacity-70">Purchase History</Typography>
+    const inventorySubTypes = [
+      { id: "inventory-low-stock", label: "Low Stock", icon: ExclamationTriangleIcon, color: "red" },
+      { id: "inventory-expiry", label: "Expiry Report", icon: ClipboardDocumentCheckIcon, color: "orange" },
+      { id: "inventory-stock-in", label: "Stock In", icon: ArrowDownOnSquareIcon, color: "blue" },
+      { id: "inventory-stock-out", label: "Stock Out", icon: ArrowUpOnSquareIcon, color: "indigo" },
+      { id: "inventory-department-usage", label: "Dept Usage", icon: CubeIcon, color: "teal" },
+      { id: "inventory-vendor-summary", label: "Vendor Summary", icon: TruckIcon, color: "blue-gray" },
+    ];
+
+    const currentSubType = inventorySubTypes.find(s => s.id === inventoryReportType);
+
+    const renderReportContent = () => {
+      if (reportLoading) {
+        return (
+          <div className="flex items-center justify-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+          </div>
+        );
+      }
+
+      if (!reportData || (Array.isArray(reportData) && reportData.length === 0)) {
+        return (
+          <div className="p-16 text-center bg-white rounded-3xl border border-dashed border-blue-gray-100 shadow-sm">
+            <div className="bg-blue-gray-50 h-16 w-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CubeIcon className="h-8 w-8 text-blue-gray-200" />
             </div>
-          </Button>
-          <Button variant="outlined" color="indigo" className="flex items-center justify-center gap-3 py-6" onClick={() => window.open(apiService.getReportUrl('stock-out'), '_blank')}>
-            <ArrowUpOnSquareIcon className="h-6 w-6" />
-            <div className="text-left">
-              <Typography variant="small" className="font-bold">Stock Out Report</Typography>
-              <Typography variant="small" className="font-normal lowercase opacity-70">Issued Items</Typography>
+            <Typography variant="h6" color="blue-gray" className="font-bold">No report data found</Typography>
+            <Typography variant="small" className="text-blue-gray-400 max-w-xs mx-auto mt-1">
+              There are no records matching your selected filters for {currentSubType?.label}.
+            </Typography>
+          </div>
+        );
+      }
+
+      // Dynamic columns logic based on report type
+      let columns: any[] = [];
+      switch (inventoryReportType) {
+        case "inventory-low-stock":
+          columns = [
+            { key: "name", label: "Item Name" },
+            {
+              key: "current_stock",
+              label: "Current Stock",
+              align: "right",
+              render: (val: any) => <Typography className="font-bold text-red-500">{val}</Typography>
+            },
+            { key: "min_stock_level", label: "Min Level", align: "right" },
+            {
+              key: "category", label: "Category",
+              render: (cat: any) => <Chip value={cat?.name || "N/A"} size="sm" variant="ghost" color="blue-gray" className="rounded-full" />
+            },
+          ];
+          break;
+        case "inventory-expiry":
+          columns = [
+            { key: "name", label: "Item Name" },
+            {
+              key: "expiry_date", label: "Expiry Date",
+              render: (val: string) => {
+                const isExpired = new Date(val) < new Date();
+                return (
+                  <div className="flex items-center gap-2">
+                    <Typography className={isExpired ? "text-red-500 font-bold" : "text-blue-gray-700"}>
+                      {val ? new Date(val).toLocaleDateString() : "—"}
+                    </Typography>
+                    {isExpired && <Chip value="Expired" color="red" size="sm" variant="ghost" className="rounded-full" />}
+                  </div>
+                );
+              }
+            },
+            { key: "current_stock", label: "Stock", align: "right" },
+          ];
+          break;
+        case "inventory-department-usage":
+          columns = [
+            { key: "department", label: "Department", render: (val: any) => val || "Direct Issue / Hospital Wide" },
+            { key: "item", label: "Item" },
+            {
+              key: "total_quantity",
+              label: "Quantity Used",
+              align: "right",
+              render: (val: any) => <Typography className="font-bold text-indigo-500">{val}</Typography>
+            },
+          ];
+          break;
+        case "inventory-vendor-summary":
+          columns = [
+            { key: "name", label: "Vendor" },
+            { key: "purchases_count", label: "Orders Count", align: "right" },
+            {
+              key: "total_spent", label: "Total Spent", align: "right",
+              render: (val: any) => <Typography className="font-bold text-green-600">${parseFloat(val || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Typography>
+            },
+          ];
+          break;
+        case "inventory-stock-in":
+          columns = [
+            { key: "purchase_number", label: "Order #" },
+            {
+              key: "vendor", label: "Vendor",
+              render: (v: any) => v?.name || "—"
+            },
+            {
+              key: "purchase_date", label: "Date",
+              render: (val: string) => val ? new Date(val).toLocaleDateString() : "—"
+            },
+            {
+              key: "total_amount", label: "Amount", align: "right",
+              render: (val: any) => <Typography className="font-bold text-blue-600">${parseFloat(val || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Typography>
+            },
+          ];
+          break;
+        case "inventory-stock-out":
+          columns = [
+            { key: "issue_number", label: "Issue #" },
+            {
+              key: "request", label: "To Department",
+              render: (req: any) => req?.department?.name || "Direct Issue"
+            },
+            {
+              key: "issue_date", label: "Date",
+              render: (val: string) => val ? new Date(val).toLocaleDateString() : "—"
+            },
+            {
+              key: "items", label: "Items Count", align: "right",
+              render: (its: any[]) => <Chip value={its?.length || 0} size="sm" color="blue" variant="ghost" className="rounded-full" />
+            },
+          ];
+          break;
+      }
+
+      const exportColumns = columns.map(c => ({ key: c.key, label: c.label }));
+
+      return (
+        <div className="space-y-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-3xl border border-blue-gray-50 shadow-sm">
+            <div className="flex items-center gap-4">
+              <div className={`p-3 rounded-2xl bg-${currentSubType?.color}-50 text-${currentSubType?.color}-500 shadow-sm`}>
+                {currentSubType?.icon && <currentSubType.icon className="h-6 w-6" />}
+              </div>
+              <div>
+                <Typography variant="h6" color="blue-gray" className="font-bold leading-tight">
+                  {currentSubType?.label} Results
+                </Typography>
+                <Typography variant="small" className="text-blue-gray-400 font-medium">
+                  Analysis based on selected period and filters
+                </Typography>
+              </div>
             </div>
-          </Button>
-          <Button variant="outlined" color="orange" className="flex items-center justify-center gap-3 py-6" onClick={() => window.open(apiService.getReportUrl('low-stock'), '_blank')}>
-            <ExclamationTriangleIcon className="h-6 w-6" />
-            <div className="text-left">
-              <Typography variant="small" className="font-bold">Low Stock Report</Typography>
-              <Typography variant="small" className="font-normal lowercase opacity-70">Below Minimum Level</Typography>
+            <div className="flex items-center gap-2">
+              <ReportExport
+                data={reportData}
+                columns={exportColumns}
+                filename={`${inventoryReportType}_report`}
+                title={`${currentSubType?.label}`}
+              />
+              <Button
+                variant="outlined"
+                size="sm"
+                color="blue-gray"
+                className="flex items-center gap-2 rounded-xl border-blue-gray-100 bg-white"
+                onClick={() => fetchInventoryReport(inventoryReportType, reportFilters)}
+              >
+                <ArrowPathIcon className={`h-4 w-4 ${reportLoading ? "animate-spin" : ""}`} />
+                Refresh
+              </Button>
             </div>
-          </Button>
-          <Button variant="outlined" color="red" className="flex items-center justify-center gap-3 py-6" onClick={() => window.open(apiService.getReportUrl('expiry'), '_blank')}>
-            <ClipboardDocumentCheckIcon className="h-6 w-6" />
-            <div className="text-left">
-              <Typography variant="small" className="font-bold">Expiry Report</Typography>
-              <Typography variant="small" className="font-normal lowercase opacity-70">Soon to Expire Items</Typography>
+          </div>
+
+          <div id="report-print-area" className="bg-white rounded-3xl border border-blue-gray-50 shadow-sm overflow-hidden">
+            <ReportTable columns={columns} data={reportData} />
+          </div>
+
+          <Card className="bg-blue-gray-50/50 p-6 border-none shadow-none rounded-[2rem]">
+            <div className="flex items-center gap-4">
+              <div className="bg-white p-2.5 rounded-xl shadow-sm">
+                <ShieldCheckIcon className="h-5 w-5 text-indigo-500" />
+              </div>
+              <Typography variant="small" className="text-blue-gray-600 font-medium leading-relaxed">
+                <strong>Data Integrity Notice:</strong> All reports are synchronized in real-time with the hospital logistics database. Exported files (CSV/Excel) contain the exact snapshot of data currently displayed in the table above.
+              </Typography>
             </div>
-          </Button>
-          <Button variant="outlined" color="teal" className="flex items-center justify-center gap-3 py-6" onClick={() => window.open(apiService.getReportUrl('department-usage'), '_blank')}>
-            <CubeIcon className="h-6 w-6" />
-            <div className="text-left">
-              <Typography variant="small" className="font-bold">Dept Usage Report</Typography>
-              <Typography variant="small" className="font-normal lowercase opacity-70">Usage by Department</Typography>
-            </div>
-          </Button>
-          <Button variant="outlined" color="blue-gray" className="flex items-center justify-center gap-3 py-6" onClick={() => window.open(apiService.getReportUrl('vendor-summary'), '_blank')}>
-            <TruckIcon className="h-6 w-6" />
-            <div className="text-left">
-              <Typography variant="small" className="font-bold">Vendor Summary</Typography>
-              <Typography variant="small" className="font-normal lowercase opacity-70">Purchase History by Vendor</Typography>
-            </div>
-          </Button>
+          </Card>
         </div>
-        <Card className="mt-8 bg-blue-gray-50/50 p-4 border border-blue-gray-100">
-          <Typography variant="small" className="text-blue-gray-600">
-            <strong>Note:</strong> Reports are generated in real-time. For large date ranges, the generation might take a few moments.
-          </Typography>
-        </Card>
+      );
+    };
+
+    return (
+      <CardBody className="p-8 bg-blue-gray-50/20 min-h-[700px]">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="h-2 w-2 bg-indigo-500 rounded-full animate-pulse" />
+              <Typography variant="small" className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-500">
+                Reporting & Intelligence
+              </Typography>
+            </div>
+            <Typography variant="h3" color="blue-gray" className="font-extrabold tracking-tight">
+              Hospital Inventory Registry
+            </Typography>
+            <Typography variant="small" className="text-blue-gray-400 mt-1 font-medium text-lg">
+              Generate actionable insights from supply chains and stock movements.
+            </Typography>
+          </div>
+
+          <div className="flex items-center gap-3 no-print">
+            <Button
+              variant="gradient"
+              color="indigo"
+              size="sm"
+              className="flex items-center gap-2 rounded-2xl shadow-lg shadow-indigo-100 px-6"
+              onClick={() => window.print()}
+            >
+              <ArrowDownOnSquareIcon className="h-4 w-4" />
+              Print Page Report
+            </Button>
+          </div>
+        </div>
+
+        {/* Strategic Intelligence Tabs */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-5 mb-10">
+          {inventorySubTypes.map((st) => (
+            <button
+              key={st.id}
+              onClick={() => setInventoryReportType(st.id)}
+              className={`group flex flex-col items-center gap-4 p-5 rounded-[2.5rem] transition-all duration-500 border relative overflow-hidden ${inventoryReportType === st.id
+                ? `bg-white border-${st.color}-100 shadow-xl shadow-${st.color}-500/10 scale-[1.05] z-10`
+                : "bg-white/40 border-transparent hover:bg-white/80 hover:border-blue-gray-100 hover:scale-[1.02]"
+                }`}
+            >
+              {inventoryReportType === st.id && (
+                <div className={`absolute top-0 left-0 w-full h-1.5 bg-${st.color}-500`} />
+              )}
+              <div className={`p-4 rounded-[1.5rem] transition-all duration-500 ${inventoryReportType === st.id
+                ? `bg-${st.color}-50 text-${st.color}-500 shadow-inner`
+                : "bg-blue-gray-50 text-blue-gray-300 group-hover:bg-white group-hover:text-blue-gray-500"
+                }`}>
+                <st.icon className="h-7 w-7" />
+              </div>
+              <div className="text-center">
+                <Typography variant="small" className={`font-black text-[10px] uppercase tracking-widest leading-none mb-1 ${inventoryReportType === st.id ? `text-${st.color}-700` : "text-blue-gray-400"
+                  }`}>
+                  {st.label.split(' ')[0]}
+                </Typography>
+                <Typography variant="small" className={`font-bold text-[9px] opacity-60 uppercase tracking-tighter ${inventoryReportType === st.id ? `text-${st.color}-500` : "text-blue-gray-300"
+                  }`}>
+                  {st.label.split(' ').slice(1).join(' ') || "Report"}
+                </Typography>
+              </div>
+            </button>
+          ))}
+        </div>
+
+        {/* Intelligence Filters Dashboard */}
+        <div className="mb-10 bg-white p-6 rounded-[2.5rem] border border-blue-gray-50 shadow-sm relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-6 opacity-[0.03] pointer-events-none">
+            <AdjustmentsHorizontalIcon className="h-32 w-32" />
+          </div>
+          <ReportFilters
+            onFilterChange={(filters) => setReportFilters(filters)}
+            onRefresh={() => fetchInventoryReport(inventoryReportType, reportFilters)}
+            loading={reportLoading}
+            showDepartmentFilter={inventoryReportType.includes('department') || inventoryReportType.includes('stock-out')}
+            showDoctorFilter={false}
+            departments={departments}
+          />
+        </div>
+
+        {/* Dynamic Data Panel */}
+        <div className="animate-in fade-in slide-in-from-bottom-5 duration-700">
+          {renderReportContent()}
+        </div>
       </CardBody>
     );
   };
 
   return (
     <div className="mt-12 mb-8 flex flex-col gap-8">
-      <div className="mb-4">
+      <style dangerouslySetInnerHTML={{
+        __html: `
+        @media print {
+          nav, aside, footer, header, .no-print, button, .button-group, [role="tablist"], .header-glass {
+            display: none !important;
+          }
+          body { background: white !important; margin: 0 !important; padding: 0 !important; }
+          .print-only { display: block !important; }
+          .Card, .CardBody { box-shadow: none !important; border: none !important; margin: 0 !important; padding: 0 !important; background: white !important; }
+          .TabsBody { padding: 0 !important; }
+          table { width: 100% !important; border-collapse: collapse !important; font-size: 12px !important; }
+          th, td { border: 1px solid #eee !important; padding: 10px !important; text-align: left !important; }
+          .rounded-3xl, .rounded-[2.5rem], .rounded-[2rem] { border-radius: 0 !important; }
+          .shadow-sm, .shadow-xl, .shadow-md { box-shadow: none !important; }
+          .bg-blue-gray-50/20, .bg-blue-gray-50/50, .bg-blue-gray-50 { background: white !important; }
+          .animate-pulse, .animate-spin { display: none !important; }
+          .text-indigo-500, .text-blue-500 { color: black !important; }
+        }
+      `}} />
+      <div className="mb-4 no-print">
         <Typography variant="h2" color="blue-gray" className="mb-2">
           Inventory Management
         </Typography>
@@ -848,14 +1115,22 @@ export default function Inventory(): JSX.Element {
               unmount: { opacity: 0, y: 20 },
             }}
           >
-            <TabPanel value="items" className="p-0">{renderItemsTab()}</TabPanel>
-            <TabPanel value="categories" className="p-0">{renderCategoriesTab()}</TabPanel>
-            <TabPanel value="vendors" className="p-0">{renderVendorsTab()}</TabPanel>
-            <TabPanel value="purchases" className="p-0">{renderPurchasesTab()}</TabPanel>
-            <TabPanel value="requests" className="p-0">{renderRequestsTab()}</TabPanel>
-            <TabPanel value="issues" className="p-0">{renderIssuesTab()}</TabPanel>
-            <TabPanel value="adjustments" className="p-0">{renderAdjustmentsTab()}</TabPanel>
-            <TabPanel value="reports" className="p-0">{renderReportsTab()}</TabPanel>
+            {loading ? (
+              <div className="flex items-center justify-center py-20">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+              </div>
+            ) : (
+              <>
+                <TabPanel value="items" className="p-0">{renderItemsTab()}</TabPanel>
+                <TabPanel value="categories" className="p-0">{renderCategoriesTab()}</TabPanel>
+                <TabPanel value="vendors" className="p-0">{renderVendorsTab()}</TabPanel>
+                <TabPanel value="purchases" className="p-0">{renderPurchasesTab()}</TabPanel>
+                <TabPanel value="requests" className="p-0">{renderRequestsTab()}</TabPanel>
+                <TabPanel value="issues" className="p-0">{renderIssuesTab()}</TabPanel>
+                <TabPanel value="adjustments" className="p-0">{renderAdjustmentsTab()}</TabPanel>
+                <TabPanel value="reports" className="p-0">{renderReportsTab()}</TabPanel>
+              </>
+            )}
           </TabsBody>
         </Tabs>
       </Card>
