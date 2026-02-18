@@ -42,6 +42,7 @@ import {
   HealthPackages,
   HomeCare,
   Integrations,
+  EmailTemplates,
 } from "@/pages/dashboard";
 import { SignIn } from "@/pages/auth";
 
@@ -239,6 +240,13 @@ export const routes: Route[] = [
         path: "/home-care",
         element: <HomeCare />,
         permission: "view-services", // Using general view-services for now
+      },
+      {
+        icon: <EnvelopeIcon {...icon} />,
+        name: "email studio",
+        path: "/email-templates",
+        element: <EmailTemplates />,
+        permission: "view-email-templates",
       },
     ],
   },

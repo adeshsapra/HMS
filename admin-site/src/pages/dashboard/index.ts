@@ -35,3 +35,4 @@ export { default as UserRoles } from "./user-roles";
 export { default as HealthPackages } from "./health-packages";
 export { default as HomeCare } from "./home-care";
 export { default as Integrations } from "./integrations";
+export { default as EmailTemplates } from "./email-templates";

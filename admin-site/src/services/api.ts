@@ -1622,6 +1622,34 @@ class ApiService {
         }
         return this.get<any>(endpoint);
     }
+
+    // Email Template methods
+    async getEmailTemplates(params?: { keyword?: string; status?: string }) {
+        let endpoint = '/email-templates?';
+        const queryParams = new URLSearchParams();
+
+        if (params?.keyword) queryParams.append('keyword', params.keyword);
+        if (params?.status) queryParams.append('status', params.status);
+
+        endpoint += queryParams.toString();
+        return this.get<any>(endpoint);
+    }
+
+    async createEmailTemplate(data: { name: string; subject: string; body: string; type: string; status?: boolean }) {
+        return this.post<any>('/email-templates', data);
+    }
+
+    async updateEmailTemplate(id: number, data: { name: string; subject: string; body: string; type: string; status?: boolean }) {
+        return this.put<any>(`/email-templates/${id}`, data);
+    }
+
+    async deleteEmailTemplate(id: number) {
+        return this.delete<any>(`/email-templates/${id}`);
+    }
+
+    async sendEmail(data: { to: string; subject: string; body: string; cc?: string; bcc?: string }) {
+        return this.post<any>('/email-templates/send', data);
+    }
 }
 
 

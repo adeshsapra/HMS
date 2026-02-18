@@ -65,3 +65,28 @@
 .animate-shake {
   animation: shake 0.6s cubic-bezier(.36, .07, .19, .97) both;
 }
+
+/* Rich Text Editor Styles */
+.ql-container {
+  min-height: 200px;
+  font-family: inherit;
+  font-size: 0.875rem;
+}
+
+.ql-toolbar.ql-snow {
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
+  border-color: rgb(207, 214, 228) !important;
+  background-color: rgb(248, 250, 252);
+}
+
+.ql-container.ql-snow {
+  border-bottom-left-radius: 0.5rem;
+  border-bottom-right-radius: 0.5rem;
+  border-color: rgb(207, 214, 228) !important;
+}
+
+.rich-text-editor.border-red-500 .ql-toolbar,
+.rich-text-editor.border-red-500 .ql-container {
+  border-color: rgb(239, 68, 68) !important;
+}
