@@ -26,7 +26,6 @@ const Header = () => {
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
-      // Cleanup: remove mobile nav class on unmount
       document.body.classList.remove("mobile-nav-active");
       document.body.style.overflow = "";
     };
@@ -36,7 +35,6 @@ const Header = () => {
     const newState = !isMobileNavActive;
     setIsMobileNavActive(newState);
 
-    // Add/remove class on body for CSS styling
     if (newState) {
       document.body.classList.add("mobile-nav-active");
     } else {
@@ -49,10 +47,9 @@ const Header = () => {
     document.body.classList.remove("mobile-nav-active");
   };
 
-  // Close mobile nav when clicking outside and manage body scroll
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
+      const target = event.target as Node;
       const navmenu = document.getElementById("navmenu");
       const toggle = document.querySelector(".mobile-nav-toggle");
 
@@ -70,7 +67,6 @@ const Header = () => {
 
     if (isMobileNavActive) {
       document.addEventListener("mousedown", handleClickOutside);
-      // Prevent body scroll when menu is open
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
@@ -82,8 +78,7 @@ const Header = () => {
     };
   }, [isMobileNavActive]);
 
-
-  const isActive = (path: string) => {
+  const isActive = (path) => {
     return location.pathname === path ? "active" : "";
   };
 
@@ -97,105 +92,21 @@ const Header = () => {
       <g id="bgCarrier" strokeWidth="0"></g>
       <g id="tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
       <g id="iconCarrier">
-        <path
-          d="M22 22L2 22"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-        ></path>
-        <path
-          d="M17 22V6C17 4.11438 17 3.17157 16.4142 2.58579C15.8284 2 14.8856 2 13 2H11C9.11438 2 8.17157 2 7.58579 2.58579C7 3.17157 7 4.11438 7 6V22"
-          stroke="currentColor"
-          strokeWidth="1.5"
-        ></path>
-        <path
-          opacity="0.5"
-          d="M21 22V8.5C21 7.09554 21 6.39331 20.6629 5.88886C20.517 5.67048 20.3295 5.48298 20.1111 5.33706C19.6067 5 18.9045 5 17.5 5"
-          stroke="currentColor"
-          strokeWidth="1.5"
-        ></path>
-        <path
-          opacity="0.5"
-          d="M3 22V8.5C3 7.09554 3 6.39331 3.33706 5.88886C3.48298 5.67048 3.67048 5.48298 3.88886 5.33706C4.39331 5 5.09554 5 6.5 5"
-          stroke="currentColor"
-          strokeWidth="1.5"
-        ></path>
-        <path
-          d="M12 22V19"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-        ></path>
-        <path
-          opacity="0.5"
-          d="M10 12H14"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-        ></path>
-        <path
-          opacity="0.5"
-          d="M5.5 11H7"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-        ></path>
-        <path
-          opacity="0.5"
-          d="M5.5 14H7"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-        ></path>
-        <path
-          opacity="0.5"
-          d="M17 11H18.5"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-        ></path>
-        <path
-          opacity="0.5"
-          d="M17 14H18.5"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-        ></path>
-        <path
-          opacity="0.5"
-          d="M5.5 8H7"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-        ></path>
-        <path
-          opacity="0.5"
-          d="M17 8H18.5"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-        ></path>
-        <path
-          opacity="0.5"
-          d="M10 15H14"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-        ></path>
-        <path
-          d="M12 9V5"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        ></path>
-        <path
-          d="M14 7L10 7"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        ></path>
+        <path d="M22 22L2 22" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"></path>
+        <path d="M17 22V6C17 4.11438 17 3.17157 16.4142 2.58579C15.8284 2 14.8856 2 13 2H11C9.11438 2 8.17157 2 7.58579 2.58579C7 3.17157 7 4.11438 7 6V22" stroke="currentColor" strokeWidth="1.5"></path>
+        <path opacity="0.5" d="M21 22V8.5C21 7.09554 21 6.39331 20.6629 5.88886C20.517 5.67048 20.3295 5.48298 20.1111 5.33706C19.6067 5 18.9045 5 17.5 5" stroke="currentColor" strokeWidth="1.5"></path>
+        <path opacity="0.5" d="M3 22V8.5C3 7.09554 3 6.39331 3.33706 5.88886C3.48298 5.67048 3.67048 5.48298 3.88886 5.33706C4.39331 5 5.09554 5 6.5 5" stroke="currentColor" strokeWidth="1.5"></path>
+        <path d="M12 22V19" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"></path>
+        <path opacity="0.5" d="M10 12H14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"></path>
+        <path opacity="0.5" d="M5.5 11H7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"></path>
+        <path opacity="0.5" d="M5.5 14H7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"></path>
+        <path opacity="0.5" d="M17 11H18.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"></path>
+        <path opacity="0.5" d="M17 14H18.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"></path>
+        <path opacity="0.5" d="M5.5 8H7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"></path>
+        <path opacity="0.5" d="M17 8H18.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"></path>
+        <path opacity="0.5" d="M10 15H14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"></path>
+        <path d="M12 9V5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
+        <path d="M14 7L10 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
       </g>
     </svg>
   );
@@ -221,158 +132,19 @@ const Header = () => {
         <nav
           id="navmenu"
           className={`navmenu ${isMobileNavActive ? "mobile-nav-active" : ""}`}
-          onClick={(e) => {
-            // Prevent closing when clicking inside the nav
-            e.stopPropagation();
-          }}
+          onClick={(e) => e.stopPropagation()}
         >
           <ul>
-            <li>
-              <Link to="/" className={isActive("/")} onClick={closeMobileNav}>
-                Home
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/about"
-                className={isActive("/about")}
-                onClick={closeMobileNav}
-              >
-                About
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/departments"
-                className={isActive("/departments")}
-                onClick={closeMobileNav}
-              >
-                Departments
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/services"
-                className={isActive("/services")}
-                onClick={closeMobileNav}
-              >
-                Services
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/home-care"
-                className={isActive("/home-care")}
-                onClick={closeMobileNav}
-              >
-                Home Care
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/doctors"
-                className={isActive("/doctors")}
-                onClick={closeMobileNav}
-              >
-                Doctors
-              </Link>
-            </li>
-            {/* <li
-              className={`dropdown ${activeDropdown === "more" ? "active dropdown-active" : ""
-                }`}
-            >
-              <a href="#" onClick={(e) => toggleDropdown(e, "more")}>
-                <span>More Pages</span>{" "}
-                <i className="bi bi-chevron-down toggle-dropdown"></i>
-              </a>
-              <ul
-                className={activeDropdown === "more" ? "dropdown-active" : ""}
-              >
-                <li>
-                  <Link to="/department-details" onClick={closeMobileNav}>
-                    Department Details
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/service-details" onClick={closeMobileNav}>
-                    Service Details
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/quickappointment" onClick={closeMobileNav}>
-                    Quick Appointment
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/plan-details" onClick={closeMobileNav}>
-                    Health Plans
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/testimonials" onClick={closeMobileNav}>
-                    Testimonials
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/faq" onClick={closeMobileNav}>
-                    Frequently Asked Questions
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/gallery" onClick={closeMobileNav}>
-                    Gallery
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/terms" onClick={closeMobileNav}>
-                    Terms
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/privacy" onClick={closeMobileNav}>
-                    Privacy
-                  </Link>
-                </li>
-                {!isAuthenticated ? (
-                  <>
-                    <li>
-                      <Link to="/sign-in" onClick={closeMobileNav}>
-                        <i className="bi bi-box-arrow-in-right me-2"></i>Sign In
-                      </Link>
-                    </li>
-                    <li>
-                      <Link to="/sign-up" onClick={closeMobileNav}>
-                        <i className="bi bi-person-plus me-2"></i>Sign Up
-                      </Link>
-                    </li>
-                  </>
-                ) : (
-                  <li>
-                    <a href="#" onClick={(e) => { e.preventDefault(); handleLogout(); }}>
-                      <i className="bi bi-box-arrow-right me-2"></i>Logout ({user?.name})
-                    </a>
-                  </li>
-                )}
-                <li>
-                  <Link to="/404" onClick={closeMobileNav}>
-                    404
-                  </Link>
-                </li>
-              </ul>
-            </li> */}
-            <li>
-              <Link
-                to="/contact"
-                className={isActive("/contact")}
-                onClick={closeMobileNav}
-              >
-                Contact
-              </Link>
-            </li>
+            <li><Link to="/" className={isActive("/")} onClick={closeMobileNav}>Home</Link></li>
+            <li><Link to="/about" className={isActive("/about")} onClick={closeMobileNav}>About</Link></li>
+            <li><Link to="/departments" className={isActive("/departments")} onClick={closeMobileNav}>Departments</Link></li>
+            <li><Link to="/services" className={isActive("/services")} onClick={closeMobileNav}>Services</Link></li>
+            <li><Link to="/home-care" className={isActive("/home-care")} onClick={closeMobileNav}>Home Care</Link></li>
+            <li><Link to="/doctors" className={isActive("/doctors")} onClick={closeMobileNav}>Doctors</Link></li>
+            <li><Link to="/contact" className={isActive("/contact")} onClick={closeMobileNav}>Contact</Link></li>
           </ul>
           <i
-            className={`mobile-nav-toggle d-xl-none bi ${isMobileNavActive ? "bi-x" : "bi-list"
-              }`}
+            className={`mobile-nav-toggle d-xl-none bi ${isMobileNavActive ? "bi-x" : "bi-list"}`}
             onClick={toggleMobileNav}
             aria-label="Toggle mobile menu"
           ></i>
@@ -429,400 +201,395 @@ const Header = () => {
           </Link>
         </div>
 
-
         <style>{`
-          /* --- Base Header Transitions --- */
+        /* --- Base Header Transitions --- */
         .header {
           transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
-        border-bottom: 1px solid transparent;
-        z-index: 997;
-          }
+          border-bottom: none; /* Ensures no border in base state */
+          z-index: 997;
+        }
 
         .header-container {
           gap: 20px;
-        position: relative;
-        transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
-        transform-origin: top center;
-          }
-
-        /* --- Scrolled Header State --- */
-        .header.scrolled {
-          background-color: #ffffff; /* Solid White */
-          padding: 0;
-          box-shadow: 0 4px 30px rgba(0,0,0,0.05);
-          /* The "border below nav" - subtle but distinct */
-          border-bottom: 1px solid rgba(0,0,0,0.08); 
+          position: relative;
+          transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+          transform-origin: top center;
         }
 
-        /* Optional: Add a colored accent line at the very bottom if desired */
-        .header.scrolled::after {
-          content: '';
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 2px;
-        background: linear-gradient(to right, transparent, var(--accent-color) 50%, transparent);
-        opacity: 0.8;
-          }
+        /* --- Scrolled Header State (PREMIUM LIGHT GLASS EFFECT) --- */
+        .header.scrolled {
+          /* Much more transparent to let the background show through deeply */
+          background-color: rgba(255, 255, 255, 0.35); 
+          
+          /* The combination of a higher blur AND saturation gives that beautiful Apple-style magnifying/pop effect to photos & headings underneath */
+          backdrop-filter: blur(16px) saturate(180%); 
+          -webkit-backdrop-filter: blur(16px) saturate(180%);
+          
+          padding: 0;
+          border-bottom: none; /* Removed the bottom border completely */
+          
+          /* Added a very soft, elegant shadow to separate the header instead of using a hard border line */
+          box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
+          
+          /* A 1px translucent white top border creates a highly realistic "3D glass edge" reflection */
+          border-top: 1px solid rgba(255, 255, 255, 0.6); 
+        }
 
         .header.scrolled .header-container {
           background: transparent;
-        box-shadow: none;
-        padding: 15px 40px;
-        border-radius: 0;
-        max-width: 100% !important;
-        width: 100%;
-        margin: 0;
-          }
-
+          box-shadow: none;
+          padding: 15px 40px;
+          border-radius: 0;
+          max-width: 100% !important;
+          width: 100%;
+          margin: 0;
+        }
 
         .header .logo {
-          flex - shrink: 0;
-        z-index: 10;
-          }
+          flex-shrink: 0;
+          z-index: 10;
+        }
 
         @media (min-width: 1200px) {
-            .header.navmenu {
-          position: absolute;
-        left: 45%;
-        transform: translateX(-50%);
-        z-index: 5;
-            }
+          .header.navmenu {
+            position: absolute;
+            left: 45%;
+            transform: translateX(-50%);
+            z-index: 5;
           }
+        }
 
         .header-auth-buttons {
           gap: 5px;
-        flex-shrink: 0;
-        z-index: 10;
-        align-items: center;
-          }
+          flex-shrink: 0;
+          z-index: 10;
+          align-items: center;
+        }
 
         .header-auth-buttons .btn-signin {
           background: #ffffff;
-        border: 1px solid var(--accent-color);
-        color: var(--accent-color);
-        border-radius: 50px;
-        padding: 10px 14px;
-        font-size: 13px;
-        font-weight: 600;
-        text-decoration: none;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        line-height: 1;
-        white-space: nowrap;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-        will-change: transform;
-        transform: translateZ(0);
-          }
+          border: 1px solid var(--accent-color);
+          color: var(--accent-color);
+          border-radius: 50px;
+          padding: 10px 14px;
+          font-size: 13px;
+          font-weight: 600;
+          text-decoration: none;
+          transition: all 0.3s ease;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          line-height: 1;
+          white-space: nowrap;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+          will-change: transform;
+          transform: translateZ(0);
+        }
 
         .header-auth-buttons .btn-signin i {
-          font - size: 18px;
-        color: var(--accent-color);
-        flex-shrink: 0;
-          }
+          font-size: 18px;
+          color: var(--accent-color);
+          flex-shrink: 0;
+        }
 
         .header-auth-buttons .btn-signin span {
           display: flex;
-        flex-direction: column;
-        line-height: 1.1;
-        gap: 0;
-          }
+          flex-direction: column;
+          line-height: 1.1;
+          gap: 0;
+        }
 
         .header-auth-buttons .btn-signin span span {
-          font - size: 12px;
-        line-height: 1.2;
-        font-weight: 600;
-        color: var(--accent-color);
-          }
+          font-size: 12px;
+          line-height: 1.2;
+          font-weight: 600;
+          color: var(--accent-color);
+        }
 
         .header-auth-buttons .btn-signin:hover {
           background: var(--accent-color);
-        color: white;
-        border-color: var(--accent-color);
-        transform: translateZ(0) translateY(-1px);
-        box-shadow: 0 4px 12px rgba(4, 158, 187, 0.25);
-          }
+          color: white;
+          border-color: var(--accent-color);
+          transform: translateZ(0) translateY(-1px);
+          box-shadow: 0 4px 12px rgba(4, 158, 187, 0.25);
+        }
 
         .header-auth-buttons .btn-signin:hover i,
         .header-auth-buttons .btn-signin:hover span span {
           color: white;
-          }
+        }
 
         .header-auth-buttons .btn-getstarted {
           background: var(--accent-color);
-        border: none;
-        color: white;
-        border-radius: 50px;
-        padding: 10px 20px;
-        font-size: 14px;
-        font-weight: 600;
-        text-decoration: none;
-        transition: all 0.3s ease;
-        white-space: nowrap;
-        box-shadow: 0 1px 3px rgba(4, 158, 187, 0.2);
-        margin: 0;
-        will-change: transform;
-        transform: translateZ(0);
-          }
+          border: none;
+          color: white;
+          border-radius: 50px;
+          padding: 10px 20px;
+          font-size: 14px;
+          font-weight: 600;
+          text-decoration: none;
+          transition: all 0.3s ease;
+          white-space: nowrap;
+          box-shadow: 0 1px 3px rgba(4, 158, 187, 0.2);
+          margin: 0;
+          will-change: transform;
+          transform: translateZ(0);
+        }
 
         .header-auth-buttons .btn-getstarted:hover {
           background: color-mix(in srgb, var(--accent-color) 90%, black 10%);
-        transform: translateZ(0) translateY(-1px);
-        box-shadow: 0 4px 12px rgba(4, 158, 187, 0.3);
-        color: white;
-          }
+          transform: translateZ(0) translateY(-1px);
+          box-shadow: 0 4px 12px rgba(4, 158, 187, 0.3);
+          color: white;
+        }
 
         @media (max-width: 1199px) {
-            .header - container {
-          flex - wrap: nowrap;
-        gap: 10px;
-            }
-
-        .header .logo {
-          margin - right: 0;
-        flex-shrink: 0;
-            }
-
-        .header .navmenu {
-          flex: 0 0 auto;
-        order: 3;
-            }
-
-        .header-auth-buttons {
-          order: 2;
-        margin-left: auto;
-        margin-right: 10px;
-            }
-
-        .header-auth-buttons .btn-signin {
-          display: none !important;
-            }
-
-        .header-auth-buttons .btn-getstarted {
-          padding: 8px 18px;
-        font-size: 13px;
-        white-space: nowrap;
-            }
+          .header-container {
+            flex-wrap: nowrap;
+            gap: 10px;
           }
+
+          .header .logo {
+            margin-right: 0;
+            flex-shrink: 0;
+          }
+
+          .header .navmenu {
+            flex: 0 0 auto;
+            order: 3;
+          }
+
+          .header-auth-buttons {
+            order: 2;
+            margin-left: auto;
+            margin-right: 10px;
+          }
+
+          .header-auth-buttons .btn-signin {
+            display: none !important;
+          }
+
+          .header-auth-buttons .btn-getstarted {
+            padding: 8px 18px;
+            font-size: 13px;
+            white-space: nowrap;
+          }
+        }
 
         @media (max-width: 768px) {
-            .header - auth - buttons {
-          margin - right: 8px;
-            }
-
-        .header-auth-buttons .btn-getstarted {
-          padding: 7px 16px;
-        font-size: 12px;
-            }
+          .header-auth-buttons {
+            margin-right: 8px;
           }
+
+          .header-auth-buttons .btn-getstarted {
+            padding: 7px 16px;
+            font-size: 12px;
+          }
+        }
 
         @media (max-width: 576px) {
-            .header - auth - buttons.btn - getstarted {
-          padding: 6px 14px;
-        font-size: 11px;
-            }
-
-        .header-container {
-          padding - left: 15px !important;
-        padding-right: 15px !important;
-            }
+          .header-auth-buttons .btn-getstarted {
+            padding: 6px 14px;
+            font-size: 11px;
           }
+
+          .header-container {
+            padding-left: 15px !important;
+            padding-right: 15px !important;
+          }
+        }
 
         @media (min-width: 768px) and (max-width: 991px) {
-            .header - auth - buttons.btn - signin {
-          padding: 8px 12px;
-        font-size: 12px;
-        gap: 8px;
-            }
-
-        .header-auth-buttons .btn-signin i {
-          font - size: 16px;
-            }
-
-        .header-auth-buttons .btn-signin span span {
-          font - size: 11px;
-            }
+          .header-auth-buttons .btn-signin {
+            padding: 8px 12px;
+            font-size: 12px;
+            gap: 8px;
           }
+
+          .header-auth-buttons .btn-signin i {
+            font-size: 16px;
+          }
+
+          .header-auth-buttons .btn-signin span span {
+            font-size: 11px;
+          }
+        }
 
         /* Mobile menu improvements */
         @media (max-width: 1199px) {
-            .mobile - nav - toggle {
-          display: flex !important;
-        align-items: center;
-        justify-content: center;
-        width: 40px;
-        height: 40px;
-        border-radius: 8px;
-        background: rgba(4, 158, 187, 0.1);
-        transition: all 0.3s ease;
-            }
+          .mobile-nav-toggle {
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: rgba(4, 158, 187, 0.1);
+            transition: all 0.3s ease;
+          }
 
-        .mobile-nav-toggle:hover {
-          background: rgba(4, 158, 187, 0.2);
-            }
+          .mobile-nav-toggle:hover {
+            background: rgba(4, 158, 187, 0.2);
+          }
 
-        .navmenu.mobile-nav-active .mobile-nav-toggle {
-          background: rgba(255, 255, 255, 0.2);
-        color: white;
-            }
+          .navmenu.mobile-nav-active .mobile-nav-toggle {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+          }
 
-        .navmenu.mobile-nav-active .mobile-nav-toggle:hover {
-          background: rgba(255, 255, 255, 0.3);
-            }
+          .navmenu.mobile-nav-active .mobile-nav-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+          }
 
-        .navmenu ul {
-          animation: slideInRight 0.3s ease-out;
-            }
+          .navmenu ul {
+            animation: slideInRight 0.3s ease-out;
+          }
 
-        @keyframes slideInRight {
-          from {
-          transform: translateX(100%);
-        opacity: 0;
-              }
-        to {
-          transform: translateX(0);
-        opacity: 1;
-              }
+          @keyframes slideInRight {
+            from {
+              transform: translateX(100%);
+              opacity: 0;
             }
-            
-            .navmenu .dropdown.active > ul {
-          display: block !important;
-        animation: slideDown 0.3s ease-out;
-            }
-
-        @keyframes slideDown {
-          from {
-          opacity: 0;
-        transform: translateY(-10px);
-              }
-        to {
-          opacity: 1;
-        transform: translateY(0);
-              }
+            to {
+              transform: translateX(0);
+              opacity: 1;
             }
           }
+            
+          .navmenu .dropdown.active > ul {
+            display: block !important;
+            animation: slideDown 0.3s ease-out;
+          }
+
+          @keyframes slideDown {
+            from {
+              opacity: 0;
+              transform: translateY(-10px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+        }
 
         /* User Profile Dropdown Styles */
         .header-auth-buttons .btn-profile-toggle {
           background: #ffffff;
-        border: 1px solid #eef2f6;
-        color: var(--heading-color);
-        border-radius: 50px;
-        padding: 8px 16px;
-        font-size: 14px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        cursor: pointer;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.03);
-          }
+          border: 1px solid #eef2f6;
+          color: var(--heading-color);
+          border-radius: 50px;
+          padding: 8px 16px;
+          font-size: 14px;
+          font-weight: 600;
+          transition: all 0.3s ease;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          cursor: pointer;
+          box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+        }
 
         .header-auth-buttons .btn-profile-toggle:hover,
         .header-auth-buttons .btn-profile-toggle.show {
           background: #ffffff;
-        border-color: var(--accent-color);
-        color: var(--accent-color);
-        box-shadow: 0 4px 10px rgba(4, 158, 187, 0.15);
-        transform: translateY(-1px);
-          }
-
+          border-color: var(--accent-color);
+          color: var(--accent-color);
+          box-shadow: 0 4px 10px rgba(4, 158, 187, 0.15);
+          transform: translateY(-1px);
+        }
 
         .header-auth-buttons .btn-profile-toggle:hover i,
         .header-auth-buttons .btn-profile-toggle.show i {
           color: var(--accent-color);
-          }
+        }
 
         .header-auth-buttons .dropdown-menu {
           background: #ffffff;
-        border: none;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-        border-radius: 12px;
-        padding: 8px;
-        min-width: 220px;
-        animation: dropdownSlideIn 0.3s ease;
-        margin-top: 15px !important;
-          }
+          border: none;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+          border-radius: 12px;
+          padding: 8px;
+          min-width: 220px;
+          animation: dropdownSlideIn 0.3s ease;
+          margin-top: 15px !important;
+        }
 
         .header-auth-buttons .dropdown-menu::before {
           content: '';
-        position: absolute;
-        top: -6px;
-        right: 20px;
-        width: 12px;
-        height: 12px;
-        background: #ffffff;
-        transform: rotate(45deg);
-        box-shadow: -2px -2px 5px rgba(0, 0, 0, 0.04);
-          }
+          position: absolute;
+          top: -6px;
+          right: 20px;
+          width: 12px;
+          height: 12px;
+          background: #ffffff;
+          transform: rotate(45deg);
+          box-shadow: -2px -2px 5px rgba(0, 0, 0, 0.04);
+        }
 
         .header-auth-buttons .dropdown-header {
           color: var(--heading-color);
-        font-weight: 700;
-        padding: 10px 16px;
-        font-size: 0.95rem;
-          }
+          font-weight: 700;
+          padding: 10px 16px;
+          font-size: 0.95rem;
+        }
 
         .header-auth-buttons .dropdown-divider {
           margin: 4px 0;
-        border-color: rgba(0, 0, 0, 0.05);
-          }
+          border-color: rgba(0, 0, 0, 0.05);
+        }
 
         .header-auth-buttons .dropdown-item {
           padding: 10px 16px;
-        border-radius: 8px;
-        transition: all 0.2s ease;
-        font-weight: 500;
-        color: var(--default-color);
-        display: flex;
-        align-items: center;
-        gap: 10px;
-          }
+          border-radius: 8px;
+          transition: all 0.2s ease;
+          font-weight: 500;
+          color: var(--default-color);
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
 
         .header-auth-buttons .dropdown-item i {
-          font - size: 1.1rem;
-        transition: all 0.2s ease;
-          }
+          font-size: 1.1rem;
+          transition: all 0.2s ease;
+        }
 
         .header-auth-buttons .dropdown-item:hover {
-          background - color: #f8f9fa; /* Subtle gray background */
-        color: var(--accent-color);
-          }
+          background-color: #f8f9fa; /* Subtle gray background */
+          color: var(--accent-color);
+        }
 
         .header-auth-buttons .dropdown-item:hover i {
           color: var(--accent-color);
-          }
+        }
 
         .header-auth-buttons .dropdown-item.text-danger {
           color: #dc3545;
-          }
+        }
 
         .header-auth-buttons .dropdown-item.text-danger:hover {
-          background - color: rgba(220, 53, 69, 0.05);
-        color: #dc3545;
-          }
+          background-color: rgba(220, 53, 69, 0.05);
+          color: #dc3545;
+        }
 
         .header-auth-buttons .dropdown-item.text-danger:hover i {
           color: #dc3545;
-          }
+        }
 
         @keyframes dropdownSlideIn {
           from {
-          opacity: 0;
-        transform: translateY(15px);
-            }
-        to {
-          opacity: 1;
-        transform: translateY(0);
-            }
+            opacity: 0;
+            transform: translateY(15px);
           }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
         `}</style>
       </div>
-    </header >
+    </header>
   );
 };
 
