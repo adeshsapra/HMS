@@ -20,6 +20,7 @@ import {
   Textarea,
   Select,
   Option,
+  Spinner,
 } from "@material-tailwind/react";
 import {
   CubeIcon,
@@ -38,11 +39,22 @@ import {
   CheckIcon,
   XMarkIcon,
   ArrowLongRightIcon,
+  XCircleIcon,
+  CalendarDaysIcon,
+  CheckCircleIcon,
+  ArrowRightIcon,
+  ArrowPathIcon,
+  ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
 import { apiService } from "@/services/api";
 import { useToast } from "@/context/ToastContext";
 import { useAuth } from "@/context/AuthContext";
 import { DataTable, Column, ViewModal, ViewField, ActionItem, AdvancedFilter } from "@/components";
+import { ReportFilters } from "@/components/reports/ReportFilters";
+import { ReportChart } from "@/components/reports/ReportChart";
+import { ReportTable } from "@/components/reports/ReportTable";
+import { ReportExport } from "@/components/reports/ReportExport";
+import { useReportData } from "@/hooks/useReportData";
 
 export default function Inventory(): JSX.Element {
   const { showToast } = useToast();
@@ -62,7 +74,23 @@ export default function Inventory(): JSX.Element {
   const [requestCurrentPage, setRequestCurrentPage] = useState(1);
   const [requestsTotalPages, setRequestsTotalPages] = useState(1);
   const [requestsTotalItems, setRequestsTotalItems] = useState(0);
+  const [itemFilters, setItemFilters] = useState<Record<string, any>>({});
+  const [purchaseFilters, setPurchaseFilters] = useState<Record<string, any>>({});
+  const [issueFilters, setIssueFilters] = useState<Record<string, any>>({});
+  const [adjustmentFilters, setAdjustmentFilters] = useState<Record<string, any>>({});
+  const [categoryFilters, setCategoryFilters] = useState<Record<string, any>>({});
+  const [vendorFilters, setVendorFilters] = useState<Record<string, any>>({});
   const [departments, setDepartments] = useState<any[]>([]);
+  const [stats, setStats] = useState({
+    totalItems: 0,
+    lowStock: 0,
+    outOfStock: 0,
+    nearExpiry: 0,
+    pendingRequests: 0,
+    approvedRequests: 0,
+    totalCategories: 0,
+    totalVendors: 0,
+  });
 
   // Modals state
   const [modalOpen, setModalOpen] = useState(false);
@@ -70,14 +98,33 @@ export default function Inventory(): JSX.Element {
   const [selectedData, setSelectedData] = useState<any>(null);
   const [viewModalOpen, setViewModalOpen] = useState(false);
 
+  // Reports State
+  const [inventoryReportType, setInventoryReportType] = useState("inventory-low-stock");
+  const [reportFilters, setReportFilters] = useState<any>(() => {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    return {
+      start_date: start.toISOString().split("T")[0],
+      end_date: now.toISOString().split("T")[0],
+    };
+  });
+  const { data: reportData, loading: reportLoading, fetchReport: fetchInventoryReport } = useReportData();
+
   useEffect(() => {
     loadData();
     if (departments.length === 0) loadDepartments();
   }, [activeTab, requestCurrentPage]);
 
+  // Fetch report when activeTab, inventoryReportType, or reportFilters change
+  useEffect(() => {
+    if (activeTab === 'reports') {
+      fetchInventoryReport(inventoryReportType, reportFilters);
+    }
+  }, [activeTab, inventoryReportType, reportFilters, fetchInventoryReport]);
+
   const loadDepartments = async () => {
     try {
-      const res = await apiService.getDepartments();
+      const res = await apiService.getDepartments(1, 100);
       setDepartments(res.data || []);
     } catch (e) { }
   };
@@ -85,53 +132,58 @@ export default function Inventory(): JSX.Element {
   const loadData = async () => {
     setLoading(true);
     try {
+      // Load stats from backend
+      const statsData = await apiService.getInventoryStatistics();
+      setStats(statsData as any);
+
+      // Load all items for modals (needed in multiple tabs)
+      const itemsRes = await apiService.getInventoryItems();
+      const allItems = Array.isArray(itemsRes) ? itemsRes : itemsRes.data || [];
+
       switch (activeTab) {
         case "items":
-          const itemsRes = await apiService.getInventoryItems();
-          setItems(Array.isArray(itemsRes) ? itemsRes : itemsRes.data || []);
+          const itemsFilteredRes = await apiService.getInventoryItems(itemFilters);
+          setItems(Array.isArray(itemsFilteredRes) ? itemsFilteredRes : itemsFilteredRes.data || []);
           const catRes = await apiService.getInventoryCategories();
           setCategories(Array.isArray(catRes) ? catRes : catRes.data || []);
           break;
         case "categories":
-          const categoriesRes = await apiService.getInventoryCategories();
+          const categoriesRes = await apiService.getInventoryCategories(categoryFilters);
           setCategories(Array.isArray(categoriesRes) ? categoriesRes : categoriesRes.data || []);
           break;
         case "vendors":
-          const vendorsRes = await apiService.getInventoryVendors();
+          const vendorsRes = await apiService.getInventoryVendors(vendorFilters);
           setVendors(Array.isArray(vendorsRes) ? vendorsRes : vendorsRes.data || []);
           break;
         case "purchases":
-          const purchasesRes = await apiService.getInventoryPurchases();
+          const purchasesRes = await apiService.getInventoryPurchases(purchaseFilters);
           setPurchases(Array.isArray(purchasesRes) ? purchasesRes : purchasesRes.data || []);
           const vendRes = await apiService.getInventoryVendors();
           setVendors(Array.isArray(vendRes) ? vendRes : vendRes.data || []);
-          const itRes = await apiService.getInventoryItems();
-          setItems(Array.isArray(itRes) ? itRes : itRes.data || []);
+          setItems(allItems);
           break;
         case "requests":
-          const requestsRes = await apiService.getInventoryRequests({
+          const reqsRes = await apiService.getInventoryRequests({
             page: requestCurrentPage,
             ...requestFilters
           });
-          if (requestsRes.data) {
-            setRequests(requestsRes.data);
-            setRequestsTotalPages(requestsRes.last_page || 1);
-            setRequestsTotalItems(requestsRes.total || 0);
+          if (reqsRes.data) {
+            setRequests(reqsRes.data);
+            setRequestsTotalPages(reqsRes.last_page || 1);
+            setRequestsTotalItems(reqsRes.total || 0);
           } else {
-            setRequests(Array.isArray(requestsRes) ? requestsRes : []);
+            setRequests(Array.isArray(reqsRes) ? reqsRes : []);
           }
-          const itReqRes = await apiService.getInventoryItems();
-          setItems(Array.isArray(itReqRes) ? itReqRes : itReqRes.data || []);
+          setItems(allItems);
           break;
         case "issues":
-          const issuesRes = await apiService.getInventoryIssues();
+          const issuesRes = await apiService.getInventoryIssues(issueFilters);
           setIssues(Array.isArray(issuesRes) ? issuesRes : issuesRes.data || []);
           break;
         case "adjustments":
-          const adjustmentsRes = await apiService.getInventoryAdjustments();
+          const adjustmentsRes = await apiService.getInventoryAdjustments(adjustmentFilters);
           setAdjustments(Array.isArray(adjustmentsRes) ? adjustmentsRes : adjustmentsRes.data || []);
-          const itAdjRes = await apiService.getInventoryItems();
-          setItems(Array.isArray(itAdjRes) ? itAdjRes : itAdjRes.data || []);
+          setItems(allItems);
           break;
       }
     } catch (error: any) {
@@ -211,6 +263,32 @@ export default function Inventory(): JSX.Element {
 
     return (
       <CardBody className="p-0">
+        <div className="px-4 py-2 border-b border-blue-gray-50 bg-blue-gray-50/20">
+          <AdvancedFilter
+            config={{
+              fields: [
+                {
+                  name: 'category_id',
+                  label: 'Category',
+                  type: 'select',
+                  options: [
+                    { label: 'All Categories', value: '' },
+                    ...categories.map(c => ({ label: c.name, value: c.id.toString() }))
+                  ]
+                },
+                {
+                  name: 'stock_status', label: 'Stock Status', type: 'select', options: [
+                    { label: 'All', value: '' },
+                    { label: 'Low Stock', value: 'low' },
+                    { label: 'Out of Stock', value: 'out' }
+                  ]
+                },
+              ],
+              onApplyFilters: (f) => { setItemFilters(f); loadData(); },
+              onResetFilters: () => { setItemFilters({}); loadData(); }
+            }}
+          />
+        </div>
         <DataTable
           title="Inventory Items"
           data={items}
@@ -228,7 +306,7 @@ export default function Inventory(): JSX.Element {
               }
             }
           }}
-          onView={(row) => handleOpenViewModal(row)}
+          onView={(row) => handleOpenViewModal({ ...row, _type: 'item' })}
           searchable
           addButtonLabel="Add Item"
         />
@@ -244,6 +322,17 @@ export default function Inventory(): JSX.Element {
     ];
     return (
       <CardBody className="p-0">
+        <div className="px-4 py-2 border-b border-blue-gray-50 bg-blue-gray-50/20">
+          <AdvancedFilter
+            config={{
+              fields: [
+                { name: 'keyword', label: 'Search Categories', type: 'text' }
+              ],
+              onApplyFilters: (f) => { setCategoryFilters(f); loadData(); },
+              onResetFilters: () => { setCategoryFilters({}); loadData(); }
+            }}
+          />
+        </div>
         <DataTable
           title="Categories"
           data={categories}
@@ -277,6 +366,17 @@ export default function Inventory(): JSX.Element {
     ];
     return (
       <CardBody className="p-0">
+        <div className="px-4 py-2 border-b border-blue-gray-50 bg-blue-gray-50/20">
+          <AdvancedFilter
+            config={{
+              fields: [
+                { name: 'keyword', label: 'Search Vendors', type: 'text' }
+              ],
+              onApplyFilters: (f) => { setVendorFilters(f); loadData(); },
+              onResetFilters: () => { setVendorFilters({}); loadData(); }
+            }}
+          />
+        </div>
         <DataTable
           title="Vendors"
           data={vendors}
@@ -311,12 +411,32 @@ export default function Inventory(): JSX.Element {
     ];
     return (
       <CardBody className="p-0">
+        <div className="px-4 py-2 border-b border-blue-gray-50 bg-blue-gray-50/20">
+          <AdvancedFilter
+            config={{
+              fields: [
+                {
+                  name: 'vendor_id',
+                  label: 'Vendor',
+                  type: 'select',
+                  options: [
+                    { label: 'All Vendors', value: '' },
+                    ...vendors.map(v => ({ label: v.name, value: v.id.toString() }))
+                  ]
+                },
+                { name: 'purchase_date', label: 'Purchase Date', type: 'date' }
+              ],
+              onApplyFilters: (f) => { setPurchaseFilters(f); loadData(); },
+              onResetFilters: () => { setPurchaseFilters({}); loadData(); }
+            }}
+          />
+        </div>
         <DataTable
           title="Stock Purchases"
           data={purchases}
           columns={columns}
           onAdd={() => handleOpenModal("purchase")}
-          onView={(row) => handleOpenViewModal(row)}
+          onView={(row) => handleOpenViewModal({ ...row, _type: 'purchase' })}
           addButtonLabel="Record Purchase"
         />
       </CardBody>
@@ -396,7 +516,7 @@ export default function Inventory(): JSX.Element {
           data={requests}
           columns={columns}
           onAdd={() => handleOpenModal("request")}
-          onView={(row) => handleOpenViewModal(row)}
+          onView={(row) => handleOpenViewModal({ ...row, _type: 'request' })}
           customActions={getCustomActions}
           addButtonLabel="New Request"
           pagination={{
@@ -422,12 +542,32 @@ export default function Inventory(): JSX.Element {
     ];
     return (
       <CardBody className="p-0">
+        <div className="px-4 py-2 border-b border-blue-gray-50 bg-blue-gray-50/20">
+          <AdvancedFilter
+            config={{
+              fields: [
+                {
+                  name: 'department_id',
+                  label: 'Department',
+                  type: 'select',
+                  options: [
+                    { label: 'All Depts', value: '' },
+                    ...departments.map(d => ({ label: d.name, value: d.id.toString() }))
+                  ]
+                },
+                { name: 'issue_date', label: 'Issue Date', type: 'date' }
+              ],
+              onApplyFilters: (f) => { setIssueFilters(f); loadData(); },
+              onResetFilters: () => { setIssueFilters({}); loadData(); }
+            }}
+          />
+        </div>
         <DataTable
           title="Stock Issues"
           data={issues}
           columns={columns}
           onAdd={() => handleOpenModal("issue")}
-          onView={(row) => handleOpenViewModal(row)}
+          onView={(row) => handleOpenViewModal({ ...row, _type: 'issue' })}
           addButtonLabel="New Issue"
         />
       </CardBody>
@@ -444,6 +584,27 @@ export default function Inventory(): JSX.Element {
     ];
     return (
       <CardBody className="p-0">
+        <div className="px-4 py-2 border-b border-blue-gray-50 bg-blue-gray-50/20">
+          <AdvancedFilter
+            config={{
+              fields: [
+                {
+                  name: 'type',
+                  label: 'Adjustment Type',
+                  type: 'select',
+                  options: [
+                    { label: 'All Types', value: '' },
+                    { label: 'Increase (+)', value: 'increase' },
+                    { label: 'Decrease (-)', value: 'decrease' }
+                  ]
+                },
+                { name: 'adjustment_date', label: 'Adjustment Date', type: 'date' }
+              ],
+              onApplyFilters: (f) => { setAdjustmentFilters(f); loadData(); },
+              onResetFilters: () => { setAdjustmentFilters({}); loadData(); }
+            }}
+          />
+        </div>
         <DataTable
           title="Stock Adjustments"
           data={adjustments}
@@ -457,106 +618,519 @@ export default function Inventory(): JSX.Element {
   };
 
   const renderReportsTab = () => {
-    return (
-      <CardBody className="p-6">
-        <Typography variant="h5" color="blue-gray" className="mb-4 font-bold">Generate Inventory Reports</Typography>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Button variant="outlined" color="blue" className="flex items-center justify-center gap-3 py-6" onClick={() => window.open(apiService.getReportUrl('stock-in'), '_blank')}>
-            <ArrowDownOnSquareIcon className="h-6 w-6" />
-            <div className="text-left">
-              <Typography variant="small" className="font-bold">Stock In Report</Typography>
-              <Typography variant="small" className="font-normal lowercase opacity-70">Purchase History</Typography>
+    const inventorySubTypes = [
+      { id: "inventory-low-stock", label: "Low Stock", icon: ExclamationTriangleIcon, color: "red" },
+      { id: "inventory-expiry", label: "Expiry Report", icon: ClipboardDocumentCheckIcon, color: "orange" },
+      { id: "inventory-stock-in", label: "Stock In", icon: ArrowDownOnSquareIcon, color: "blue" },
+      { id: "inventory-stock-out", label: "Stock Out", icon: ArrowUpOnSquareIcon, color: "indigo" },
+      { id: "inventory-department-usage", label: "Dept Usage", icon: CubeIcon, color: "teal" },
+      { id: "inventory-vendor-summary", label: "Vendor Summary", icon: TruckIcon, color: "blue-gray" },
+    ];
+
+    const currentSubType = inventorySubTypes.find(s => s.id === inventoryReportType);
+
+    const renderReportContent = () => {
+      if (reportLoading) {
+        return (
+          <div className="flex items-center justify-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+          </div>
+        );
+      }
+
+      if (!reportData || (Array.isArray(reportData) && reportData.length === 0)) {
+        return (
+          <div className="p-16 text-center bg-white rounded-3xl border border-dashed border-blue-gray-100 shadow-sm">
+            <div className="bg-blue-gray-50 h-16 w-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CubeIcon className="h-8 w-8 text-blue-gray-200" />
             </div>
-          </Button>
-          <Button variant="outlined" color="indigo" className="flex items-center justify-center gap-3 py-6" onClick={() => window.open(apiService.getReportUrl('stock-out'), '_blank')}>
-            <ArrowUpOnSquareIcon className="h-6 w-6" />
-            <div className="text-left">
-              <Typography variant="small" className="font-bold">Stock Out Report</Typography>
-              <Typography variant="small" className="font-normal lowercase opacity-70">Issued Items</Typography>
+            <Typography variant="h6" color="blue-gray" className="font-bold">No report data found</Typography>
+            <Typography variant="small" className="text-blue-gray-400 max-w-xs mx-auto mt-1">
+              There are no records matching your selected filters for {currentSubType?.label}.
+            </Typography>
+          </div>
+        );
+      }
+
+      // Dynamic columns logic based on report type
+      let columns: any[] = [];
+      switch (inventoryReportType) {
+        case "inventory-low-stock":
+          columns = [
+            { key: "name", label: "Item Name" },
+            {
+              key: "current_stock",
+              label: "Current Stock",
+              align: "right",
+              render: (val: any) => <Typography className="font-bold text-red-500">{val}</Typography>
+            },
+            { key: "min_stock_level", label: "Min Level", align: "right" },
+            {
+              key: "category", label: "Category",
+              render: (cat: any) => <Chip value={cat?.name || "N/A"} size="sm" variant="ghost" color="blue-gray" className="rounded-full" />
+            },
+          ];
+          break;
+        case "inventory-expiry":
+          columns = [
+            { key: "name", label: "Item Name" },
+            {
+              key: "expiry_date", label: "Expiry Date",
+              render: (val: string) => {
+                const isExpired = new Date(val) < new Date();
+                return (
+                  <div className="flex items-center gap-2">
+                    <Typography className={isExpired ? "text-red-500 font-bold" : "text-blue-gray-700"}>
+                      {val ? new Date(val).toLocaleDateString() : "—"}
+                    </Typography>
+                    {isExpired && <Chip value="Expired" color="red" size="sm" variant="ghost" className="rounded-full" />}
+                  </div>
+                );
+              }
+            },
+            { key: "current_stock", label: "Stock", align: "right" },
+          ];
+          break;
+        case "inventory-department-usage":
+          columns = [
+            { key: "department", label: "Department", render: (val: any) => val || "Direct Issue / Hospital Wide" },
+            { key: "item", label: "Item" },
+            {
+              key: "total_quantity",
+              label: "Quantity Used",
+              align: "right",
+              render: (val: any) => <Typography className="font-bold text-indigo-500">{val}</Typography>
+            },
+          ];
+          break;
+        case "inventory-vendor-summary":
+          columns = [
+            { key: "name", label: "Vendor" },
+            { key: "purchases_count", label: "Orders Count", align: "right" },
+            {
+              key: "total_spent", label: "Total Spent", align: "right",
+              render: (val: any) => <Typography className="font-bold text-green-600">${parseFloat(val || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Typography>
+            },
+          ];
+          break;
+        case "inventory-stock-in":
+          columns = [
+            { key: "purchase_number", label: "Order #" },
+            {
+              key: "vendor", label: "Vendor",
+              render: (v: any) => v?.name || "—"
+            },
+            {
+              key: "purchase_date", label: "Date",
+              render: (val: string) => val ? new Date(val).toLocaleDateString() : "—"
+            },
+            {
+              key: "total_amount", label: "Amount", align: "right",
+              render: (val: any) => <Typography className="font-bold text-blue-600">${parseFloat(val || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Typography>
+            },
+          ];
+          break;
+        case "inventory-stock-out":
+          columns = [
+            { key: "issue_number", label: "Issue #" },
+            {
+              key: "request", label: "To Department",
+              render: (req: any) => req?.department?.name || "Direct Issue"
+            },
+            {
+              key: "issue_date", label: "Date",
+              render: (val: string) => val ? new Date(val).toLocaleDateString() : "—"
+            },
+            {
+              key: "items", label: "Items Count", align: "right",
+              render: (its: any[]) => <Chip value={its?.length || 0} size="sm" color="blue" variant="ghost" className="rounded-full" />
+            },
+          ];
+          break;
+      }
+
+      const exportColumns = columns.map(c => ({ key: c.key, label: c.label }));
+
+      return (
+        <div className="space-y-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-3xl border border-blue-gray-50 shadow-sm">
+            <div className="flex items-center gap-4">
+              <div className={`p-3 rounded-2xl bg-${currentSubType?.color}-50 text-${currentSubType?.color}-500 shadow-sm`}>
+                {currentSubType?.icon && <currentSubType.icon className="h-6 w-6" />}
+              </div>
+              <div>
+                <Typography variant="h6" color="blue-gray" className="font-bold leading-tight">
+                  {currentSubType?.label} Results
+                </Typography>
+                <Typography variant="small" className="text-blue-gray-400 font-medium">
+                  Analysis based on selected period and filters
+                </Typography>
+              </div>
             </div>
-          </Button>
-          <Button variant="outlined" color="orange" className="flex items-center justify-center gap-3 py-6" onClick={() => window.open(apiService.getReportUrl('low-stock'), '_blank')}>
-            <ExclamationTriangleIcon className="h-6 w-6" />
-            <div className="text-left">
-              <Typography variant="small" className="font-bold">Low Stock Report</Typography>
-              <Typography variant="small" className="font-normal lowercase opacity-70">Below Minimum Level</Typography>
+            <div className="flex items-center gap-2">
+              <ReportExport
+                data={reportData}
+                columns={exportColumns}
+                filename={`${inventoryReportType}_report`}
+                title={`${currentSubType?.label}`}
+              />
+              <Button
+                variant="outlined"
+                size="sm"
+                color="blue-gray"
+                className="flex items-center gap-2 rounded-xl border-blue-gray-100 bg-white"
+                onClick={() => fetchInventoryReport(inventoryReportType, reportFilters)}
+              >
+                <ArrowPathIcon className={`h-4 w-4 ${reportLoading ? "animate-spin" : ""}`} />
+                Refresh
+              </Button>
             </div>
-          </Button>
-          <Button variant="outlined" color="red" className="flex items-center justify-center gap-3 py-6" onClick={() => window.open(apiService.getReportUrl('expiry'), '_blank')}>
-            <ClipboardDocumentCheckIcon className="h-6 w-6" />
-            <div className="text-left">
-              <Typography variant="small" className="font-bold">Expiry Report</Typography>
-              <Typography variant="small" className="font-normal lowercase opacity-70">Soon to Expire Items</Typography>
+          </div>
+
+          <div id="report-print-area" className="bg-white rounded-3xl border border-blue-gray-50 shadow-sm overflow-hidden">
+            <ReportTable columns={columns} data={reportData} />
+          </div>
+
+          <Card className="bg-blue-gray-50/50 p-6 border-none shadow-none rounded-[2rem]">
+            <div className="flex items-center gap-4">
+              <div className="bg-white p-2.5 rounded-xl shadow-sm">
+                <ShieldCheckIcon className="h-5 w-5 text-indigo-500" />
+              </div>
+              <Typography variant="small" className="text-blue-gray-600 font-medium leading-relaxed">
+                <strong>Data Integrity Notice:</strong> All reports are synchronized in real-time with the hospital logistics database. Exported files (CSV/Excel) contain the exact snapshot of data currently displayed in the table above.
+              </Typography>
             </div>
-          </Button>
-          <Button variant="outlined" color="teal" className="flex items-center justify-center gap-3 py-6" onClick={() => window.open(apiService.getReportUrl('department-usage'), '_blank')}>
-            <CubeIcon className="h-6 w-6" />
-            <div className="text-left">
-              <Typography variant="small" className="font-bold">Dept Usage Report</Typography>
-              <Typography variant="small" className="font-normal lowercase opacity-70">Usage by Department</Typography>
-            </div>
-          </Button>
-          <Button variant="outlined" color="blue-gray" className="flex items-center justify-center gap-3 py-6" onClick={() => window.open(apiService.getReportUrl('vendor-summary'), '_blank')}>
-            <TruckIcon className="h-6 w-6" />
-            <div className="text-left">
-              <Typography variant="small" className="font-bold">Vendor Summary</Typography>
-              <Typography variant="small" className="font-normal lowercase opacity-70">Purchase History by Vendor</Typography>
-            </div>
-          </Button>
+          </Card>
         </div>
-        <Card className="mt-8 bg-blue-gray-50/50 p-4 border border-blue-gray-100">
-          <Typography variant="small" className="text-blue-gray-600">
-            <strong>Note:</strong> Reports are generated in real-time. For large date ranges, the generation might take a few moments.
-          </Typography>
-        </Card>
+      );
+    };
+
+    return (
+      <CardBody className="p-8 bg-blue-gray-50/20 min-h-[700px]">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="h-2 w-2 bg-indigo-500 rounded-full animate-pulse" />
+              <Typography variant="small" className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-500">
+                Reporting & Intelligence
+              </Typography>
+            </div>
+            <Typography variant="h3" color="blue-gray" className="font-extrabold tracking-tight">
+              Hospital Inventory Registry
+            </Typography>
+            <Typography variant="small" className="text-blue-gray-400 mt-1 font-medium text-lg">
+              Generate actionable insights from supply chains and stock movements.
+            </Typography>
+          </div>
+
+          <div className="flex items-center gap-3 no-print">
+            <Button
+              variant="gradient"
+              color="indigo"
+              size="sm"
+              className="flex items-center gap-2 rounded-2xl shadow-lg shadow-indigo-100 px-6"
+              onClick={() => window.print()}
+            >
+              <ArrowDownOnSquareIcon className="h-4 w-4" />
+              Print Page Report
+            </Button>
+          </div>
+        </div>
+
+        {/* Strategic Intelligence Tabs */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-5 mb-10">
+          {inventorySubTypes.map((st) => (
+            <button
+              key={st.id}
+              onClick={() => setInventoryReportType(st.id)}
+              className={`group flex flex-col items-center gap-4 p-5 rounded-[2.5rem] transition-all duration-500 border relative overflow-hidden ${inventoryReportType === st.id
+                ? `bg-white border-${st.color}-100 shadow-xl shadow-${st.color}-500/10 scale-[1.05] z-10`
+                : "bg-white/40 border-transparent hover:bg-white/80 hover:border-blue-gray-100 hover:scale-[1.02]"
+                }`}
+            >
+              {inventoryReportType === st.id && (
+                <div className={`absolute top-0 left-0 w-full h-1.5 bg-${st.color}-500`} />
+              )}
+              <div className={`p-4 rounded-[1.5rem] transition-all duration-500 ${inventoryReportType === st.id
+                ? `bg-${st.color}-50 text-${st.color}-500 shadow-inner`
+                : "bg-blue-gray-50 text-blue-gray-300 group-hover:bg-white group-hover:text-blue-gray-500"
+                }`}>
+                <st.icon className="h-7 w-7" />
+              </div>
+              <div className="text-center">
+                <Typography variant="small" className={`font-black text-[10px] uppercase tracking-widest leading-none mb-1 ${inventoryReportType === st.id ? `text-${st.color}-700` : "text-blue-gray-400"
+                  }`}>
+                  {st.label.split(' ')[0]}
+                </Typography>
+                <Typography variant="small" className={`font-bold text-[9px] opacity-60 uppercase tracking-tighter ${inventoryReportType === st.id ? `text-${st.color}-500` : "text-blue-gray-300"
+                  }`}>
+                  {st.label.split(' ').slice(1).join(' ') || "Report"}
+                </Typography>
+              </div>
+            </button>
+          ))}
+        </div>
+
+        {/* Intelligence Filters Dashboard */}
+        <div className="mb-10 bg-white p-6 rounded-[2.5rem] border border-blue-gray-50 shadow-sm relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-6 opacity-[0.03] pointer-events-none">
+            <AdjustmentsHorizontalIcon className="h-32 w-32" />
+          </div>
+          <ReportFilters
+            onFilterChange={(filters) => setReportFilters(filters)}
+            onRefresh={() => fetchInventoryReport(inventoryReportType, reportFilters)}
+            loading={reportLoading}
+            showDepartmentFilter={inventoryReportType.includes('department') || inventoryReportType.includes('stock-out')}
+            showDoctorFilter={false}
+            departments={departments}
+          />
+        </div>
+
+        {/* Dynamic Data Panel */}
+        <div className="animate-in fade-in slide-in-from-bottom-5 duration-700">
+          {renderReportContent()}
+        </div>
       </CardBody>
     );
   };
 
   return (
-    <div className="mt-12 mb-8 flex flex-col gap-12">
-      <CardHeader variant="gradient" color="blue" className="mb-0 p-6 flex items-center justify-between shadow-blue-500/20">
-        <div>
-          <Typography variant="h3" color="white" className="font-bold tracking-tight">
-            Inventory Management System
-          </Typography>
-          <Typography variant="small" color="white" className="font-medium opacity-90 mt-1">
-            Comprehensive control over hospital supplies, stocks, and departmental issued items
-          </Typography>
-        </div>
-      </CardHeader>
+    <div className="mt-12 mb-8 flex flex-col gap-8">
+      <style dangerouslySetInnerHTML={{
+        __html: `
+        @media print {
+          nav, aside, footer, header, .no-print, button, .button-group, [role="tablist"], .header-glass {
+            display: none !important;
+          }
+          body { background: white !important; margin: 0 !important; padding: 0 !important; }
+          .print-only { display: block !important; }
+          .Card, .CardBody { box-shadow: none !important; border: none !important; margin: 0 !important; padding: 0 !important; background: white !important; }
+          .TabsBody { padding: 0 !important; }
+          table { width: 100% !important; border-collapse: collapse !important; font-size: 12px !important; }
+          th, td { border: 1px solid #eee !important; padding: 10px !important; text-align: left !important; }
+          .rounded-3xl, .rounded-[2.5rem], .rounded-[2rem] { border-radius: 0 !important; }
+          .shadow-sm, .shadow-xl, .shadow-md { box-shadow: none !important; }
+          .bg-blue-gray-50/20, .bg-blue-gray-50/50, .bg-blue-gray-50 { background: white !important; }
+          .animate-pulse, .animate-spin { display: none !important; }
+          .text-indigo-500, .text-blue-500 { color: black !important; }
+        }
+      `}} />
+      <div className="mb-4 no-print">
+        <Typography variant="h2" color="blue-gray" className="mb-2">
+          Inventory Management
+        </Typography>
+        <Typography variant="small" color="blue-gray">
+          Comprehensive control over hospital supplies, stocks, and departmental issued items
+        </Typography>
+      </div>
+
+      {/* Stats Cards - Comprehensive Grid of 8 */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-0">
+        <Card className="border border-blue-gray-100 shadow-sm">
+          <CardBody className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <Typography variant="small" color="blue-gray" className="mb-1 font-medium">Total Items</Typography>
+                <Typography variant="h5" color="blue-gray" className="font-bold">{stats.totalItems}</Typography>
+              </div>
+              <div className="p-2 bg-blue-50 rounded-lg">
+                <CubeIcon className="h-6 w-6 text-blue-500" />
+              </div>
+            </div>
+          </CardBody>
+        </Card>
+
+        <Card className="border border-blue-gray-100 shadow-sm">
+          <CardBody className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <Typography variant="small" color="blue-gray" className="mb-1 font-medium">Low Stock</Typography>
+                <Typography variant="h5" color="blue-gray" className="font-bold">{stats.lowStock}</Typography>
+              </div>
+              <div className="p-2 bg-amber-50 rounded-lg">
+                <ExclamationTriangleIcon className="h-6 w-6 text-amber-500" />
+              </div>
+            </div>
+          </CardBody>
+        </Card>
+
+        <Card className="border border-blue-gray-100 shadow-sm">
+          <CardBody className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <Typography variant="small" color="blue-gray" className="mb-1 font-medium">Out of Stock</Typography>
+                <Typography variant="h5" color="red" className="font-bold">{stats.outOfStock}</Typography>
+              </div>
+              <div className="p-2 bg-red-50 rounded-lg">
+                <XCircleIcon className="h-6 w-6 text-red-500" />
+              </div>
+            </div>
+          </CardBody>
+        </Card>
+
+        <Card className="border border-blue-gray-100 shadow-sm">
+          <CardBody className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <Typography variant="small" color="blue-gray" className="mb-1 font-medium">Near Expiry</Typography>
+                <Typography variant="h5" color="orange" className="font-bold">{stats.nearExpiry}</Typography>
+              </div>
+              <div className="p-2 bg-orange-50 rounded-lg">
+                <CalendarDaysIcon className="h-6 w-6 text-orange-500" />
+              </div>
+            </div>
+          </CardBody>
+        </Card>
+
+        <Card className="border border-blue-gray-100 shadow-sm">
+          <CardBody className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <Typography variant="small" color="blue-gray" className="mb-1 font-medium">Pending Req.</Typography>
+                <Typography variant="h5" color="blue-gray" className="font-bold">{stats.pendingRequests}</Typography>
+              </div>
+              <div className="p-2 bg-indigo-50 rounded-lg">
+                <ClipboardDocumentCheckIcon className="h-6 w-6 text-indigo-500" />
+              </div>
+            </div>
+          </CardBody>
+        </Card>
+
+        <Card className="border border-blue-gray-100 shadow-sm">
+          <CardBody className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <Typography variant="small" color="blue-gray" className="mb-1 font-medium">Approved Req.</Typography>
+                <Typography variant="h5" color="green" className="font-bold">{stats.approvedRequests}</Typography>
+              </div>
+              <div className="p-2 bg-green-50 rounded-lg">
+                <CheckCircleIcon className="h-6 w-6 text-green-500" />
+              </div>
+            </div>
+          </CardBody>
+        </Card>
+
+        <Card className="border border-blue-gray-100 shadow-sm">
+          <CardBody className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <Typography variant="small" color="blue-gray" className="mb-1 font-medium">Categories</Typography>
+                <Typography variant="h5" color="blue-gray" className="font-bold">{stats.totalCategories}</Typography>
+              </div>
+              <div className="p-2 bg-teal-50 rounded-lg">
+                <TagIcon className="h-6 w-6 text-teal-500" />
+              </div>
+            </div>
+          </CardBody>
+        </Card>
+
+        <Card className="border border-blue-gray-100 shadow-sm">
+          <CardBody className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <Typography variant="small" color="blue-gray" className="mb-1 font-medium">Active Vendors</Typography>
+                <Typography variant="h5" color="blue-gray" className="font-bold">{stats.totalVendors}</Typography>
+              </div>
+              <div className="p-2 bg-gray-50 rounded-lg">
+                <TruckIcon className="h-6 w-6 text-gray-500" />
+              </div>
+            </div>
+          </CardBody>
+        </Card>
+      </div>
 
       <Card className="border border-blue-gray-100 shadow-sm overflow-hidden">
         <Tabs value={activeTab}>
-          <TabsHeader className="bg-blue-gray-50/50 border-b border-blue-gray-100 p-0 rounded-none overflow-x-auto">
-            <Tab value="requests" onClick={() => setActiveTab("requests")} className="py-4 font-bold text-sm tracking-wide">REQUESTS</Tab>
-            <Tab value="items" onClick={() => setActiveTab("items")} className="py-4 font-bold text-sm tracking-wide">ITEMS</Tab>
+          <TabsHeader
+            className="bg-transparent border-b border-blue-gray-50 px-6 rounded-none"
+            indicatorProps={{
+              className: "bg-blue-500/10 shadow-none border-b-2 border-blue-500 rounded-none !z-0",
+            }}
+          >
+            <Tab
+              value="requests"
+              onClick={() => setActiveTab("requests")}
+              className={`py-4 font-semibold text-sm transition-colors duration-300 ${activeTab === "requests" ? "text-blue-500" : "text-blue-gray-500 hover:text-blue-700"}`}
+            >
+              REQUESTS {stats.pendingRequests > 0 && <Chip value={stats.pendingRequests} size="sm" color="amber" className="ml-2 rounded-full" />}
+            </Tab>
+            <Tab
+              value="items"
+              onClick={() => setActiveTab("items")}
+              className={`py-4 font-semibold text-sm transition-colors duration-300 ${activeTab === "items" ? "text-blue-500" : "text-blue-gray-500 hover:text-blue-700"}`}
+            >
+              ITEMS
+            </Tab>
             {hasPermission("create-inventory") && (
               <>
-                <Tab value="categories" onClick={() => setActiveTab("categories")} className="py-4 font-bold text-sm tracking-wide">CATEGORIES</Tab>
-                <Tab value="vendors" onClick={() => setActiveTab("vendors")} className="py-4 font-bold text-sm tracking-wide">VENDORS</Tab>
-                <Tab value="purchases" onClick={() => setActiveTab("purchases")} className="py-4 font-bold text-sm tracking-wide">PURCHASES</Tab>
-                <Tab value="issues" onClick={() => setActiveTab("issues")} className="py-4 font-bold text-sm tracking-wide">ISSUES</Tab>
-                <Tab value="adjustments" onClick={() => setActiveTab("adjustments")} className="py-4 font-bold text-sm tracking-wide">ADJUSTMENTS</Tab>
-                <Tab value="reports" onClick={() => setActiveTab("reports")} className="py-4 font-bold text-sm tracking-wide">REPORTS</Tab>
+                <Tab
+                  value="categories"
+                  onClick={() => setActiveTab("categories")}
+                  className={`py-4 font-semibold text-sm transition-colors duration-300 ${activeTab === "categories" ? "text-blue-500" : "text-blue-gray-500 hover:text-blue-700"}`}
+                >
+                  CATEGORIES
+                </Tab>
+                <Tab
+                  value="vendors"
+                  onClick={() => setActiveTab("vendors")}
+                  className={`py-4 font-semibold text-sm transition-colors duration-300 ${activeTab === "vendors" ? "text-blue-500" : "text-blue-gray-500 hover:text-blue-700"}`}
+                >
+                  VENDORS
+                </Tab>
+                <Tab
+                  value="purchases"
+                  onClick={() => setActiveTab("purchases")}
+                  className={`py-4 font-semibold text-sm transition-colors duration-300 ${activeTab === "purchases" ? "text-blue-500" : "text-blue-gray-500 hover:text-blue-700"}`}
+                >
+                  PURCHASES
+                </Tab>
+                <Tab
+                  value="issues"
+                  onClick={() => setActiveTab("issues")}
+                  className={`py-4 font-semibold text-sm transition-colors duration-300 ${activeTab === "issues" ? "text-blue-500" : "text-blue-gray-500 hover:text-blue-700"}`}
+                >
+                  ISSUES
+                </Tab>
+                <Tab
+                  value="adjustments"
+                  onClick={() => setActiveTab("adjustments")}
+                  className={`py-4 font-semibold text-sm transition-colors duration-300 ${activeTab === "adjustments" ? "text-blue-500" : "text-blue-gray-500 hover:text-blue-700"}`}
+                >
+                  ADJUSTMENTS
+                </Tab>
+                <Tab
+                  value="reports"
+                  onClick={() => setActiveTab("reports")}
+                  className={`py-4 font-semibold text-sm transition-colors duration-300 ${activeTab === "reports" ? "text-blue-500" : "text-blue-gray-500 hover:text-blue-700"}`}
+                >
+                  REPORTS
+                </Tab>
               </>
             )}
           </TabsHeader>
           <TabsBody
             animate={{
-              initial: { y: 250 },
-              mount: { y: 0 },
-              unmount: { y: 250 },
+              initial: { opacity: 0, y: 20 },
+              mount: { opacity: 1, y: 0 },
+              unmount: { opacity: 0, y: 20 },
             }}
           >
-            <TabPanel value="items" className="p-0">{renderItemsTab()}</TabPanel>
-            <TabPanel value="categories" className="p-0">{renderCategoriesTab()}</TabPanel>
-            <TabPanel value="vendors" className="p-0">{renderVendorsTab()}</TabPanel>
-            <TabPanel value="purchases" className="p-0">{renderPurchasesTab()}</TabPanel>
-            <TabPanel value="requests" className="p-0">{renderRequestsTab()}</TabPanel>
-            <TabPanel value="issues" className="p-0">{renderIssuesTab()}</TabPanel>
-            <TabPanel value="adjustments" className="p-0">{renderAdjustmentsTab()}</TabPanel>
-            <TabPanel value="reports" className="p-0">{renderReportsTab()}</TabPanel>
+            {loading ? (
+              <div className="flex items-center justify-center py-20">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+              </div>
+            ) : (
+              <>
+                <TabPanel value="items" className="p-0">{renderItemsTab()}</TabPanel>
+                <TabPanel value="categories" className="p-0">{renderCategoriesTab()}</TabPanel>
+                <TabPanel value="vendors" className="p-0">{renderVendorsTab()}</TabPanel>
+                <TabPanel value="purchases" className="p-0">{renderPurchasesTab()}</TabPanel>
+                <TabPanel value="requests" className="p-0">{renderRequestsTab()}</TabPanel>
+                <TabPanel value="issues" className="p-0">{renderIssuesTab()}</TabPanel>
+                <TabPanel value="adjustments" className="p-0">{renderAdjustmentsTab()}</TabPanel>
+                <TabPanel value="reports" className="p-0">{renderReportsTab()}</TabPanel>
+              </>
+            )}
           </TabsBody>
         </Tabs>
       </Card>

@@ -8,6 +8,8 @@ import {
   Typography,
 } from "@material-tailwind/react";
 import { XMarkIcon, CheckCircleIcon, ChevronDownIcon, ExclamationCircleIcon } from "@heroicons/react/24/outline";
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 export interface FormField {
   name: string;
@@ -35,6 +37,7 @@ export interface FormModalProps {
   onSubmit: (data: Record<string, any>) => Promise<void>;
   submitLabel?: string;
   loading?: boolean;
+  onValuesChange?: (name: string, value: any, setValues: (values: any) => void) => void;
 }
 
 const COMMON_ICONS = [
@@ -315,6 +318,7 @@ export function FormModal({
   onSubmit,
   submitLabel = "Save",
   loading = false,
+  onValuesChange,
 }: FormModalProps): JSX.Element {
   const [formData, setFormData] = useState<Record<string, any>>(initialData);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -327,10 +331,17 @@ export function FormModal({
       setErrors({});
       setGeneralError("");
     }
-  }, [open]);
+  }, [open, initialData]);
 
   const handleChange = (name: string, value: any): void => {
     setFormData((prev) => ({ ...prev, [name]: value }));
+
+    if (onValuesChange) {
+      onValuesChange(name, value, (updatedData: any) => {
+        setFormData((prev) => ({ ...prev, ...updatedData }));
+      });
+    }
+
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
@@ -450,6 +461,33 @@ export function FormModal({
             label={field.label}
             error={hasError}
           />
+        );
+      case "rich-text":
+        return (
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-blue-gray-700 mb-2">
+              {field.label}
+              {field.required && <span className="text-red-500 ml-1">*</span>}
+            </label>
+            <div className={`rich-text-editor ${hasError ? 'border-red-500 ring-1 ring-red-500 rounded-lg' : ''}`}>
+              <ReactQuill
+                theme="snow"
+                value={fieldValue}
+                onChange={(content) => handleChange(field.name, content)}
+                placeholder={field.placeholder || `Write ${field.label.toLowerCase()} here...`}
+                className="bg-white"
+                modules={{
+                  toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+                    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                    ['link', 'color'],
+                    ['clean']
+                  ],
+                }}
+              />
+            </div>
+          </div>
         );
       case "file":
         return (

@@ -57,11 +57,11 @@ export function ReportExport({ data, columns, filename = 'report', title = 'Repo
     };
 
     const handlePrint = () => {
-        const printContent = document.getElementById('report-print-area');
-        if (printContent) {
-            const printWindow = window.open('', '_blank');
-            if (printWindow) {
-                printWindow.document.write(`
+        if (!data || data.length === 0) return;
+
+        const printWindow = window.open('', '_blank');
+        if (printWindow) {
+            printWindow.document.write(`
                     <html>
                     <head>
                         <title>${title}</title>
@@ -87,9 +87,8 @@ export function ReportExport({ data, columns, filename = 'report', title = 'Repo
                     </body>
                     </html>
                 `);
-                printWindow.document.close();
-                printWindow.print();
-            }
+            printWindow.document.close();
+            printWindow.print();
         }
     };
 

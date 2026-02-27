@@ -1374,8 +1374,17 @@ class ApiService {
     }
 
     // Inventory methods
-    async getInventoryCategories() {
-        return this.get<any>('/inventory/categories');
+    async getInventoryStatistics() {
+        return this.get<any>('/inventory/stats');
+    }
+
+    async getInventoryCategories(params?: any) {
+        let endpoint = '/inventory/categories';
+        if (params) {
+            const queryParams = new URLSearchParams(params);
+            endpoint += `?${queryParams.toString()}`;
+        }
+        return this.get<any>(endpoint);
     }
     async createInventoryCategory(data: any) {
         return this.post<any>('/inventory/categories', data);
@@ -1390,8 +1399,13 @@ class ApiService {
         return this.get<any>(`/inventory/categories/${id}`);
     }
 
-    async getInventoryVendors() {
-        return this.get<any>('/inventory/vendors');
+    async getInventoryVendors(params?: any) {
+        let endpoint = '/inventory/vendors';
+        if (params) {
+            const queryParams = new URLSearchParams(params);
+            endpoint += `?${queryParams.toString()}`;
+        }
+        return this.get<any>(endpoint);
     }
     async createInventoryVendor(data: any) {
         return this.post<any>('/inventory/vendors', data);
@@ -1427,8 +1441,16 @@ class ApiService {
         return this.delete<any>(`/inventory/items/${id}`);
     }
 
-    async getInventoryPurchases() {
-        return this.get<any>('/inventory/purchases');
+    async getInventoryPurchases(params?: any) {
+        let endpoint = '/inventory/purchases';
+        if (params) {
+            const queryParams = new URLSearchParams();
+            Object.keys(params).forEach(key => {
+                if (params[key]) queryParams.append(key, params[key]);
+            });
+            endpoint += `?${queryParams.toString()}`;
+        }
+        return this.get<any>(endpoint);
     }
     async getInventoryPurchase(id: number) {
         return this.get<any>(`/inventory/purchases/${id}`);
@@ -1458,8 +1480,16 @@ class ApiService {
         return this.patch<any>(`/inventory/requests/${id}/status`, data);
     }
 
-    async getInventoryIssues() {
-        return this.get<any>('/inventory/issues');
+    async getInventoryIssues(params?: any) {
+        let endpoint = '/inventory/issues';
+        if (params) {
+            const queryParams = new URLSearchParams();
+            Object.keys(params).forEach(key => {
+                if (params[key]) queryParams.append(key, params[key]);
+            });
+            endpoint += `?${queryParams.toString()}`;
+        }
+        return this.get<any>(endpoint);
     }
     async getInventoryIssue(id: number) {
         return this.get<any>(`/inventory/issues/${id}`);
@@ -1468,8 +1498,16 @@ class ApiService {
         return this.post<any>('/inventory/issues', data);
     }
 
-    async getInventoryAdjustments() {
-        return this.get<any>('/inventory/adjustments');
+    async getInventoryAdjustments(params?: any) {
+        let endpoint = '/inventory/adjustments';
+        if (params) {
+            const queryParams = new URLSearchParams();
+            Object.keys(params).forEach(key => {
+                if (params[key]) queryParams.append(key, params[key]);
+            });
+            endpoint += `?${queryParams.toString()}`;
+        }
+        return this.get<any>(endpoint);
     }
     async getInventoryAdjustment(id: number) {
         return this.get<any>(`/inventory/adjustments/${id}`);
@@ -1583,6 +1621,34 @@ class ApiService {
             if (qs) endpoint += `?${qs}`;
         }
         return this.get<any>(endpoint);
+    }
+
+    // Email Template methods
+    async getEmailTemplates(params?: { keyword?: string; status?: string }) {
+        let endpoint = '/email-templates?';
+        const queryParams = new URLSearchParams();
+
+        if (params?.keyword) queryParams.append('keyword', params.keyword);
+        if (params?.status) queryParams.append('status', params.status);
+
+        endpoint += queryParams.toString();
+        return this.get<any>(endpoint);
+    }
+
+    async createEmailTemplate(data: { name: string; subject: string; body: string; type: string; status?: boolean }) {
+        return this.post<any>('/email-templates', data);
+    }
+
+    async updateEmailTemplate(id: number, data: { name: string; subject: string; body: string; type: string; status?: boolean }) {
+        return this.put<any>(`/email-templates/${id}`, data);
+    }
+
+    async deleteEmailTemplate(id: number) {
+        return this.delete<any>(`/email-templates/${id}`);
+    }
+
+    async sendEmail(data: { to: string; subject: string; body: string; cc?: string; bcc?: string }) {
+        return this.post<any>('/email-templates/send', data);
     }
 }
 
