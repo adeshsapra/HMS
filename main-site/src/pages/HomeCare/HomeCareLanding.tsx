@@ -146,11 +146,11 @@ const HomeCareLanding = () => {
           { label: "Home Care" }
         ]}
       >
-        <div className="d-flex flex-column align-items-center mt-2">
-          <span className="badge rounded-pill hc-badge-new mb-4">
+        <div className="d-flex flex-column align-items-center mt-2 px-2">
+          <span className="badge rounded-pill hc-badge-new mb-3 mb-md-4">
             <i className="bi bi-stars me-2"></i>New Feature
           </span>
-          <div className="d-flex gap-4 flex-wrap justify-content-center">
+          <div className="d-flex gap-2 gap-md-4 flex-wrap justify-content-center">
             <Link to="/home-care/booking" className="hc-btn hc-btn-primary">
               <i className="bi bi-calendar-check"></i> Book a Visit
             </Link>
@@ -281,10 +281,10 @@ const HomeCareLanding = () => {
           className="modal show d-block"
           style={{ backgroundColor: "rgba(0,0,0,0.5)", zIndex: 1060 }}
         >
-          <div className="modal-dialog modal-lg modal-dialog-centered">
-            <div className="modal-content border-0 rounded-4 overflow-hidden shadow-lg animate-fade-in mx-3">
-              <div className="row g-0">
-                <div className="col-md-5 d-none d-md-block">
+          <div className="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div className="modal-content border-0 rounded-4 overflow-hidden shadow-lg animate-fade-in mx-2 mx-md-3">
+              <div className="row g-0 flex-column flex-md-row">
+                <div className="col-12 col-md-5 d-none d-md-block">
                   <img
                     src={
                       selectedService.image ||
