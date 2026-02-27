@@ -20,6 +20,8 @@ interface Service {
   category?: string;
   icon?: string;
   duration?: number;
+  features?: string[];
+  is_home?: boolean;
   is_active: boolean;
   created_at?: string;
   updated_at?: string;
@@ -135,6 +137,15 @@ export default function Services(): JSX.Element {
         </span>
       ),
     },
+    {
+      key: "is_home",
+      label: "Featured",
+      render: (value: any) => (
+        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${value ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>
+          {value ? 'Home' : '-'}
+        </span>
+      ),
+    },
   ];
 
   const viewFields: ViewField[] = [
@@ -153,6 +164,28 @@ export default function Services(): JSX.Element {
       render: (value: any) => value ? `${value} minutes` : '-'
     },
     { key: "icon", label: "Icon" },
+    {
+      key: "features",
+      label: "Features",
+      render: (value: any) => (
+        value && Array.isArray(value) ? (
+          <ul className="list-disc list-inside text-sm">
+            {value.map((feature: string, idx: number) => (
+              <li key={idx}>{feature}</li>
+            ))}
+          </ul>
+        ) : '-'
+      )
+    },
+    {
+      key: "is_home",
+      label: "Featured",
+      render: (value: any) => (
+        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${value ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>
+          {value ? 'Yes' : 'No'}
+        </span>
+      ),
+    },
     {
       key: "is_active",
       label: "Status",
@@ -226,6 +259,24 @@ export default function Services(): JSX.Element {
       placeholder: "Select an icon",
     },
     {
+      name: "features",
+      label: "Features (comma-separated)",
+      type: "textarea",
+      required: false,
+      placeholder: "Advanced Heart Surgery, 24/7 Emergency Care, Preventive Screenings",
+      fullWidth: true,
+    },
+    {
+      name: "is_home",
+      label: "Show on Home Page",
+      type: "select",
+      required: true,
+      options: [
+        { value: "true", label: "Yes - Show in Featured Services" },
+        { value: "false", label: "No - Don't show on home page" },
+      ],
+    },
+    {
       name: "is_active",
       label: "Status",
       type: "select",
@@ -243,7 +294,12 @@ export default function Services(): JSX.Element {
   };
 
   const handleEdit = (service: Service): void => {
-    setSelectedService(service);
+    // Convert arrays to comma-separated strings for editing
+    const editData = {
+      ...service,
+      features: service.features ? service.features.join(', ') : '',
+    };
+    setSelectedService(editData as any);
     setOpenModal(true);
   };
 
@@ -281,6 +337,20 @@ export default function Services(): JSX.Element {
         data.is_active = true;
       } else if (data.is_active === "false" || data.is_active === false) {
         data.is_active = false;
+      }
+
+      if (data.is_home === "true" || data.is_home === true) {
+        data.is_home = true;
+      } else if (data.is_home === "false" || data.is_home === false) {
+        data.is_home = false;
+      }
+
+      // Handle features array
+      if (data.features) {
+        const featuresArray = typeof data.features === 'string'
+          ? data.features.split(',').map((f: string) => f.trim()).filter(Boolean)
+          : data.features;
+        data.features = JSON.stringify(featuresArray);
       }
 
       if (selectedService) {
@@ -357,6 +427,16 @@ export default function Services(): JSX.Element {
                 { label: 'All Statuses', value: '' },
                 { label: 'Active', value: '1' },
                 { label: 'Inactive', value: '0' }
+              ]
+            },
+            {
+              name: 'is_home',
+              label: 'Featured',
+              type: 'select',
+              options: [
+                { label: 'All', value: '' },
+                { label: 'Show on Home', value: '1' },
+                { label: 'Not on Home', value: '0' }
               ]
             },
             {

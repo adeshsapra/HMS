@@ -63,6 +63,12 @@ export const serviceAPI = {
         params.append('department_id', String(departmentId));
         return api.get(`/public/services?${params.toString()}`);
     },
+    getFeatured: () => {
+        const params = new URLSearchParams();
+        params.append('is_home', 'true');
+        params.append('is_active', 'true');
+        return api.get(`/public/services?${params.toString()}`);
+    },
 };
 
 export const doctorAPI = {

@@ -12,6 +12,7 @@ interface Service {
   category?: string
   icon?: string
   duration?: string | number  // Backend may return as string
+  features?: string[] | string
   department?: {
     id: number
     name: string
@@ -41,7 +42,11 @@ const ServiceDetails = () => {
       setLoading(true)
       const response = await serviceAPI.getById(Number(id))
       if (response.data.success && response.data.data) {
-        setService(response.data.data)
+        const normalized = {
+          ...response.data.data,
+          features: parseFeatures(response.data.data?.features)
+        }
+        setService(normalized)
         // Fetch related services
         fetchRelatedServices(response.data.data.category)
       }
@@ -50,6 +55,21 @@ const ServiceDetails = () => {
     } finally {
       setLoading(false)
     }
+  }
+
+  const parseFeatures = (features: unknown): string[] => {
+    if (!features) return []
+    if (Array.isArray(features)) return features.filter(Boolean).map(String)
+    if (typeof features === 'string') {
+      try {
+        const parsed = JSON.parse(features)
+        if (Array.isArray(parsed)) return parsed.filter(Boolean).map(String)
+      } catch {
+        // If not JSON, treat as comma-separated string
+        return features.split(',').map((f) => f.trim()).filter(Boolean)
+      }
+    }
+    return []
   }
 
   const fetchRelatedServices = async (category?: string) => {
@@ -300,6 +320,32 @@ const ServiceDetails = () => {
           font-weight: 700;
           font-size: 1.2rem;
         }
+
+        .feature-list {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          gap: 12px 18px;
+        }
+
+        .feature-list li {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          font-size: 1rem;
+          color: #555;
+          background: #f8f9fa;
+          border-radius: 10px;
+          padding: 10px 12px;
+          border-left: 4px solid var(--accent-color);
+        }
+
+        .feature-list li i {
+          color: var(--accent-color);
+          font-size: 1.05rem;
+        }
       `}</style>
 
       <PageHero
@@ -357,6 +403,21 @@ const ServiceDetails = () => {
                   {service.description}
                 </p>
               </div>
+
+              {/* Features */}
+              {Array.isArray(service.features) && service.features.length > 0 && (
+                <div className="details-card" data-aos="fade-up" data-aos-delay="150">
+                  <h4><i className="bi bi-check2-circle me-2"></i>Key Features</h4>
+                  <ul className="feature-list">
+                    {service.features.map((feature, idx) => (
+                      <li key={idx}>
+                        <i className="bi bi-check-circle-fill"></i>
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
               {/* Service Details */}
               <div className="details-card" data-aos="fade-up" data-aos-delay="200">
