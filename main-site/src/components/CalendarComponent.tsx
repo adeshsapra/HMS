@@ -209,6 +209,8 @@ const CalendarComponent = ({ doctor, onDateSelect }: CalendarComponentProps) => 
 
         .appointment-calendar-section {
           position: relative;
+          max-width: 100%;
+          overflow-x: hidden;
         }
 
         .appointment-calendar-container {
@@ -217,6 +219,9 @@ const CalendarComponent = ({ doctor, onDateSelect }: CalendarComponentProps) => 
           box-shadow: var(--soft-shadow);
           padding: 40px;
           position: relative;
+          max-width: 100%;
+          overflow-x: hidden;
+          box-sizing: border-box;
         }
 
         .appointment-calendar-header {
@@ -224,6 +229,8 @@ const CalendarComponent = ({ doctor, onDateSelect }: CalendarComponentProps) => 
           justify-content: space-between;
           align-items: center;
           margin-bottom: 30px;
+          flex-wrap: wrap;
+          gap: 12px;
         }
 
         .appointment-month-display {
@@ -237,6 +244,8 @@ const CalendarComponent = ({ doctor, onDateSelect }: CalendarComponentProps) => 
           border: 1px solid #eee;
           width: 45px;
           height: 45px;
+          min-width: 45px;
+          min-height: 45px;
           border-radius: 50%;
           color: var(--heading-color);
           transition: all 0.3s;
@@ -255,8 +264,10 @@ const CalendarComponent = ({ doctor, onDateSelect }: CalendarComponentProps) => 
 
         .appointment-calendar-grid {
           display: grid;
-          grid-template-columns: repeat(7, 1fr);
+          grid-template-columns: repeat(7, minmax(0, 1fr));
           gap: 15px;
+          max-width: 100%;
+          min-width: 0;
         }
 
         .appointment-weekday-header {
@@ -266,11 +277,13 @@ const CalendarComponent = ({ doctor, onDateSelect }: CalendarComponentProps) => 
           text-transform: uppercase;
           font-size: 0.85rem;
           padding-bottom: 10px;
+          min-width: 0;
         }
 
         .appointment-date-box {
-           width: 90px;
-           height: 90px;
+           width: 100%;
+           max-width: 90px;
+           aspect-ratio: 1;
            border-radius: 16px;
            background: #f9f9f9;
            display: flex;
@@ -282,6 +295,8 @@ const CalendarComponent = ({ doctor, onDateSelect }: CalendarComponentProps) => 
            position: relative;
            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
            border: 1px solid transparent;
+           min-width: 0;
+           box-sizing: border-box;
          }
 
         .appointment-date-box:not(.appointment-disabled):hover {
@@ -568,12 +583,112 @@ const CalendarComponent = ({ doctor, onDateSelect }: CalendarComponentProps) => 
         .appointment-summary-line strong { color: var(--accent-color); }
 
         @media (max-width: 991px) {
+          .appointment-calendar-container {
+            padding: 28px 24px;
+          }
+          .appointment-calendar-header {
+            margin-bottom: 20px;
+          }
+          .appointment-month-display {
+            font-size: 1.5rem;
+          }
+          .appointment-nav-btn {
+            width: 40px;
+            height: 40px;
+            min-width: 40px;
+            min-height: 40px;
+          }
           .appointment-calendar-grid {
-            gap: 8px;
+            gap: 10px;
+          }
+          .appointment-weekday-header {
+            font-size: 0.75rem;
+            padding-bottom: 6px;
           }
           .appointment-date-box {
             font-size: 0.9rem;
+            border-radius: 12px;
+            max-width: none;
+          }
+        }
+
+        @media (max-width: 768px) {
+          .appointment-calendar-container {
+            padding: 20px 16px;
+          }
+          .appointment-month-display {
+            font-size: 1.35rem;
+          }
+          .appointment-nav-btn {
+            width: 36px;
+            height: 36px;
+            min-width: 36px;
+            min-height: 36px;
+            font-size: 0.9rem;
+          }
+          .appointment-calendar-grid {
+            gap: 6px;
+          }
+          .appointment-weekday-header {
+            font-size: 0.65rem;
+            padding-bottom: 4px;
+          }
+          .appointment-date-box {
+            font-size: 0.85rem;
+            border-radius: 10px;
+          }
+          .appointment-plus-icon {
+            font-size: 10px;
+            top: 4px;
+            right: 4px;
+          }
+        }
+
+        @media (max-width: 576px) {
+          .appointment-calendar-container {
+            padding: 16px 12px;
+          }
+          .appointment-calendar-header {
+            margin-bottom: 16px;
+          }
+          .appointment-month-display {
+            font-size: 1.2rem;
+          }
+          .appointment-nav-btn {
+            width: 32px;
+            height: 32px;
+            min-width: 32px;
+            min-height: 32px;
+            font-size: 0.85rem;
+          }
+          .appointment-calendar-grid {
+            gap: 4px;
+          }
+          .appointment-weekday-header {
+            font-size: 0.6rem;
+            padding-bottom: 2px;
+          }
+          .appointment-date-box {
+            font-size: 0.8rem;
             border-radius: 8px;
+          }
+        }
+
+        @media (max-width: 380px) {
+          .appointment-calendar-container {
+            padding: 12px 8px;
+          }
+          .appointment-month-display {
+            font-size: 1rem;
+          }
+          .appointment-calendar-grid {
+            gap: 3px;
+          }
+          .appointment-weekday-header {
+            font-size: 0.55rem;
+          }
+          .appointment-date-box {
+            font-size: 0.75rem;
           }
         }
         `}

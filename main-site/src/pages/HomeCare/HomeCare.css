@@ -142,6 +142,54 @@
   margin-bottom: 1.5rem;
 }
 
+@media (max-width: 576px) {
+  .hc-hero {
+    min-height: 380px;
+  }
+  .hc-hero h1 {
+    font-size: 1.85rem;
+  }
+  .hc-hero p {
+    font-size: 0.95rem;
+  }
+  .hc-btn {
+    padding: 0.85rem 1.5rem;
+    font-size: 0.9rem;
+  }
+  .hc-badge-new {
+    font-size: 0.7rem;
+    padding: 0.4rem 1rem !important;
+  }
+  .hc-section-title h2 {
+    font-size: 1.65rem;
+  }
+  .hc-section-title p {
+    font-size: 0.9rem;
+  }
+  .hc-card-image {
+    height: 180px;
+  }
+  .hc-feature-box {
+    padding: 1.75rem 1.25rem;
+  }
+  .hc-feature-box h4 {
+    font-size: 1.1rem;
+  }
+  .hc-feature-box p {
+    font-size: 0.9rem;
+  }
+  .home-care-container .bg-primary.rounded-4.p-5 {
+    padding: 1.5rem 1rem !important;
+  }
+  .home-care-container .bg-primary.rounded-4 .display-6 {
+    font-size: 1.35rem;
+  }
+  .home-care-container .bg-primary.rounded-4 .btn {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.9rem;
+  }
+}
+
 /* Section Titles */
 .hc-section-title {
   text-align: center;
@@ -164,6 +212,11 @@
   margin: 0 auto;
   font-size: 1.1rem;
   line-height: 1.6;
+}
+
+.home-care-container {
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 /* Card Grid & Service Cards */
@@ -680,6 +733,41 @@
   background-color: rgba(2, 20, 24, 0.5) !important;
 }
 
+/* Home Care modal responsive */
+@media (max-width: 768px) {
+  .home-care-container .modal-dialog.modal-lg {
+    max-width: 100%;
+    margin: 0.5rem;
+  }
+  .home-care-container .modal-content.rounded-4 {
+    border-radius: 1rem !important;
+  }
+  .home-care-container .modal-body.p-4 {
+    padding: 1rem 1.25rem !important;
+  }
+  .home-care-container .modal-body h2 {
+    font-size: 1.35rem;
+  }
+  .home-care-container .modal-body .row.g-2 .col-6 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 576px) {
+  .home-care-container .modal-dialog.modal-lg {
+    margin: 0.25rem;
+  }
+  .home-care-container .modal-body .d-flex.p-3.rounded-3 {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+  .home-care-container .modal-body .d-flex.p-3.rounded-3 .btn {
+    width: 100%;
+  }
+}
+
 .rounded-4 {
   border-radius: 1.5rem !important;
 }
@@ -772,8 +860,16 @@
 }
 
 @media (max-width: 768px) {
+  .hc-hero {
+    min-height: 420px;
+  }
+
   .hc-hero h1 {
     font-size: 2.5rem;
+  }
+
+  .hc-hero p {
+    font-size: 1.05rem;
   }
 
   .hc-hero-content {
@@ -782,6 +878,54 @@
 
   .hc-card-grid {
     grid-template-columns: 1fr;
+    gap: 1.5rem;
+    padding: 0.5rem;
+  }
+
+  .hc-section-title {
+    margin-bottom: 2.5rem;
+  }
+
+  .hc-section-title h2 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+  }
+
+  .hc-section-title p {
+    font-size: 0.95rem;
+    padding: 0 0.5rem;
+  }
+
+  .hc-service-card .hc-card-body {
+    padding: 1.25rem;
+  }
+
+  .hc-card-title {
+    font-size: 1.25rem;
+  }
+
+  .hc-features {
+    padding: 3rem 0;
+  }
+
+  .hc-feature-box {
+    padding: 2rem 1.5rem;
+  }
+
+  .hc-feature-icon {
+    font-size: 2rem;
+  }
+
+  .home-care-container .bg-primary.rounded-4.p-5 {
+    padding: 2rem 1.5rem !important;
+  }
+
+  .home-care-container .bg-primary.rounded-4 .display-6 {
+    font-size: 1.5rem;
+  }
+
+  .home-care-container .bg-primary.rounded-4 .lead {
+    font-size: 1rem;
   }
 
   .booking-container {
@@ -1142,12 +1286,17 @@
 /* Modern Calendar UI */
 .modern-calendar {
   user-select: none;
+  max-width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 .calendar-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .current-month {
@@ -1161,6 +1310,8 @@
   border: 1px solid color-mix(in srgb, var(--default-color), transparent 90%);
   width: 32px;
   height: 32px;
+  min-width: 32px;
+  min-height: 32px;
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -1178,9 +1329,11 @@
 
 .calendar-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 8px;
   text-align: center;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .calendar-weekday {
@@ -1188,10 +1341,12 @@
   font-weight: 700;
   color: color-mix(in srgb, var(--default-color), transparent 50%);
   padding-bottom: 8px;
+  min-width: 0;
 }
 
 .calendar-day {
   aspect-ratio: 1/1;
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1224,6 +1379,66 @@
 .calendar-day.disabled {
   color: color-mix(in srgb, var(--default-color), transparent 80%);
   cursor: not-allowed;
+}
+
+/* Modern calendar responsive */
+@media (max-width: 768px) {
+  .modern-calendar .current-month {
+    font-size: 1rem;
+  }
+  .modern-calendar .calendar-nav-btn {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    min-height: 28px;
+    font-size: 0.85rem;
+  }
+  .calendar-grid {
+    gap: 6px;
+  }
+  .calendar-weekday {
+    font-size: 0.65rem;
+    padding-bottom: 4px;
+  }
+  .calendar-day {
+    font-size: 0.8rem;
+    border-radius: 8px;
+  }
+}
+
+@media (max-width: 576px) {
+  .modern-calendar .current-month {
+    font-size: 0.95rem;
+  }
+  .modern-calendar .calendar-nav-btn {
+    width: 26px;
+    height: 26px;
+    min-width: 26px;
+    min-height: 26px;
+  }
+  .calendar-grid {
+    gap: 4px;
+  }
+  .calendar-weekday {
+    font-size: 0.6rem;
+    padding-bottom: 2px;
+  }
+  .calendar-day {
+    font-size: 0.75rem;
+    border-radius: 6px;
+  }
+}
+
+@media (max-width: 380px) {
+  .calendar-grid {
+    gap: 3px;
+  }
+  .calendar-weekday {
+    font-size: 0.55rem;
+  }
+  .calendar-day {
+    font-size: 0.7rem;
+  }
 }
 
 /* Time Slot V2 */

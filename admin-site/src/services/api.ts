@@ -946,6 +946,107 @@ class ApiService {
         return this.post<any>('/gateway-settings', data);
     }
 
+    // Settings: General
+    async getGeneralSettings() {
+        return this.get<{
+            hospital_name: string;
+            contact_email: string;
+            phone: string;
+            address: string;
+            working_hours: string;
+        }>('/settings/general');
+    }
+
+    async updateGeneralSettings(data: {
+        hospital_name?: string;
+        contact_email?: string;
+        phone?: string;
+        address?: string;
+        working_hours?: string;
+    }) {
+        return this.put<{
+            hospital_name: string;
+            contact_email: string;
+            phone: string;
+            address: string;
+            working_hours: string;
+        }>('/settings/general', data);
+    }
+
+    // Settings: Notification Center
+    async getNotificationCenterSetting() {
+        return this.get<{ enabled: boolean }>('/settings/notification-center');
+    }
+
+    async updateNotificationCenterSetting(data: { enabled: boolean }) {
+        return this.put<{ enabled: boolean }>('/settings/notification-center', data);
+    }
+
+    async getEmailNotificationSetting() {
+        return this.get<{ enabled: boolean }>('/settings/email-notifications');
+    }
+
+    async updateEmailNotificationSetting(data: { enabled: boolean }) {
+        return this.put<{ enabled: boolean }>('/settings/email-notifications', data);
+    }
+
+    // Settings: Database backup — real SQL dump; optional onProgress(0-100) for progress bar
+    async downloadDatabaseBackup(onProgress?: (percent: number) => void): Promise<void> {
+        const token = this.getAuthToken();
+        const url = `${API_BASE_URL}/settings/database-backup`;
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                Accept: 'application/sql, application/octet-stream, */*',
+                ...(token && { Authorization: `Bearer ${token}` }),
+            },
+        });
+        if (!response.ok) {
+            const text = await response.text();
+            let msg = 'Download failed';
+            try {
+                const j = JSON.parse(text);
+                msg = j.message || msg;
+            } catch (_) {}
+            throw new Error(msg);
+        }
+
+        const contentLength = response.headers.get('Content-Length');
+        const total = contentLength ? parseInt(contentLength, 10) : 0;
+        const body = response.body;
+        if (!body) throw new Error('No response body');
+
+        const reader = body.getReader();
+        const chunks: Uint8Array[] = [];
+        let received = 0;
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            chunks.push(value);
+            received += value.length;
+            if (total > 0 && onProgress) {
+                const percent = Math.min(100, Math.round((received / total) * 100));
+                onProgress(percent);
+            }
+        }
+
+        if (onProgress) onProgress(100);
+
+        const blob = new Blob(chunks as BlobPart[]);
+        const disposition = response.headers.get('Content-Disposition');
+        let filename = 'hms_backup_' + new Date().toISOString().slice(0, 19).replace(/[-:T]/g, '-') + '.sql';
+        if (disposition) {
+            const match = /filename\*?=(?:UTF-8'')?"?([^";\n]+)"?/i.exec(disposition) || /filename="?([^";\n]+)"?/i.exec(disposition);
+            if (match?.[1]) filename = match[1].trim();
+        }
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        link.click();
+        URL.revokeObjectURL(link.href);
+    }
+
     async getLowStockAlerts(params?: {
         page?: number;
         per_page?: number;
@@ -1017,6 +1118,10 @@ class ApiService {
 
     async getNotificationStats() {
         return this.get<any>('/notifications/stats');
+    }
+
+    async sendTestNotification() {
+        return this.post<{ message: string }>('/notifications/send-test');
     }
 
     // Room Management

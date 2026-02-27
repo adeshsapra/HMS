@@ -8,6 +8,8 @@
     --about-bg: #ffffff;
     --about-surface: #f8fbff;
     --about-text-muted: #64748b;
+    overflow-x: hidden;
+    max-width: 100vw;
 }
 
 /* Global Overrides specifically for About Page */
@@ -432,5 +434,245 @@
 
     .about-page .img-secondary {
         display: none;
+    }
+
+    .about-page .experience-image-grid {
+        padding: 20px 0;
+    }
+
+    .about-page .premium-stat-card {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .about-page .stat-info {
+        text-align: center;
+    }
+
+    .about-page .journey-item {
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .about-page .about-section {
+        padding: 50px 0;
+    }
+
+    .about-page .section-title {
+        font-size: 1.85rem;
+        margin-bottom: 20px;
+    }
+
+    .about-page .section-subtitle {
+        font-size: 0.8rem;
+        padding-left: 40px;
+    }
+
+    .about-page .section-subtitle::before {
+        width: 35px;
+    }
+
+    .about-page .experience-image-grid {
+        padding: 15px 0;
+    }
+
+    .about-page .experience-badge {
+        padding: 18px;
+        top: 5px;
+        left: 5px;
+    }
+
+    .about-page .experience-badge .number {
+        font-size: 2rem;
+    }
+
+    .about-page .experience-badge .text {
+        font-size: 0.75rem;
+    }
+
+    .about-page .premium-stat-card {
+        padding: 18px 15px;
+    }
+
+    .about-page .stat-icon {
+        width: 52px;
+        height: 52px;
+        min-width: 52px;
+        font-size: 1.25rem;
+    }
+
+    .about-page .stat-value {
+        font-size: 1.85rem;
+    }
+
+    .about-page .stat-title {
+        font-size: 0.9rem;
+    }
+
+    .about-page .value-card {
+        padding: 30px 24px;
+        border-radius: 24px;
+    }
+
+    .about-page .value-icon-circle {
+        width: 64px;
+        height: 64px;
+        font-size: 1.75rem;
+        margin-bottom: 20px;
+    }
+
+    .about-page .value-card h4 {
+        font-size: 1.2rem;
+    }
+
+    .about-page .journey-dot {
+        min-width: 36px;
+        height: 36px;
+        font-size: 0.9rem;
+        flex-shrink: 0;
+    }
+
+    .about-page .journey-item::before {
+        left: 17px;
+        top: 34px;
+    }
+
+    .about-page .journey-content {
+        min-width: 0;
+    }
+
+    .about-page .bg-image-wrapper {
+        height: 260px !important;
+    }
+
+    .about-page .card .p-5 {
+        padding: 1.5rem !important;
+    }
+
+    .about-page .blockquote p {
+        font-size: 1.05rem;
+    }
+
+    .about-page .bg-surface {
+        padding: 40px 0;
+    }
+}
+
+@media (max-width: 576px) {
+    .about-page .about-section {
+        padding: 40px 0;
+    }
+
+    .about-page .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    .about-page .section-title {
+        font-size: 1.5rem;
+        line-height: 1.3;
+    }
+
+    .about-page .lead {
+        font-size: 1rem;
+    }
+
+    .about-page .experience-badge {
+        padding: 14px;
+        top: 0;
+        left: 0;
+    }
+
+    .about-page .experience-badge .number {
+        font-size: 1.65rem;
+    }
+
+    .about-page .experience-badge .text {
+        font-size: 0.65rem;
+    }
+
+    .about-page .btn-lg {
+        padding: 0.75rem 1.5rem !important;
+        font-size: 0.95rem;
+    }
+
+    .about-page .row.g-4 .col-sm-6 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+
+    .about-page .premium-stat-card {
+        padding: 16px 12px;
+    }
+
+    .about-page .stat-value {
+        font-size: 1.65rem;
+    }
+
+    .about-page .value-card {
+        padding: 24px 20px;
+        border-radius: 20px;
+    }
+
+    .about-page .value-icon-circle {
+        width: 56px;
+        height: 56px;
+        font-size: 1.5rem;
+    }
+
+    .about-page .journey-item {
+        gap: 0.75rem;
+        padding-bottom: 28px;
+    }
+
+    .about-page .journey-dot {
+        flex-shrink: 0;
+    }
+
+    .about-page .journey-item::before {
+        left: 14px;
+        top: 34px;
+        height: calc(100% - 10px);
+    }
+
+    .about-page .journey-content {
+        min-width: 0;
+    }
+
+    .about-page .journey-content h5 {
+        font-size: 0.95rem;
+    }
+
+    .about-page .journey-content p {
+        font-size: 0.8rem;
+        line-height: 1.5;
+    }
+
+    .about-page .bg-image-wrapper {
+        height: 220px !important;
+    }
+
+    .about-page .cert-logo {
+        max-height: 40px !important;
+    }
+
+    .about-page .row.g-5 {
+        --bs-gutter-y: 1.5rem;
+        --bs-gutter-x: 1rem;
+    }
+}
+
+@media (max-width: 400px) {
+    .about-page .section-title {
+        font-size: 1.35rem;
+    }
+
+    .about-page .experience-badge .number {
+        font-size: 1.5rem;
+    }
+
+    .about-page .stat-value {
+        font-size: 1.5rem;
     }
 }

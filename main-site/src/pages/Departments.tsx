@@ -382,6 +382,147 @@ const Departments = () => {
           border-radius: 12px;
           border: 1px dashed #ddd;
         }
+
+        /* --- Responsive: Tablet --- */
+        @media (max-width: 991px) {
+          .departments-page .sidebar-wrapper {
+            position: relative;
+            top: 0;
+            margin-bottom: 1.5rem;
+            padding: 24px;
+          }
+          .departments-page .results-header {
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+          }
+          .departments-page .results-header h4 {
+            font-size: 1.2rem;
+            width: 100%;
+          }
+          .departments-page .results-count {
+            font-size: 0.85rem;
+          }
+          .departments-page .department-image-wrapper {
+            height: 200px;
+          }
+          .departments-page .department-content {
+            padding: 20px;
+          }
+          .departments-page .dept-title {
+            font-size: 1.25rem;
+          }
+        }
+
+        /* --- Responsive: Mobile --- */
+        @media (max-width: 768px) {
+          .departments-page .section,
+          .departments-page #departments {
+            padding-top: 2rem;
+            padding-bottom: 2.5rem;
+          }
+          .departments-page .container {
+            padding-left: 1rem;
+            padding-right: 1rem;
+          }
+          .departments-page .sidebar-wrapper {
+            padding: 20px 18px;
+            border-radius: 10px;
+          }
+          .departments-page .sidebar-title {
+            font-size: 1.1rem;
+            margin-bottom: 16px;
+          }
+          .departments-page .search-box {
+            margin-bottom: 20px;
+          }
+          .departments-page .search-box input {
+            padding: 10px 12px 10px 40px;
+            font-size: 0.9rem;
+          }
+          .departments-page .help-widget {
+            margin-top: 28px;
+            padding: 20px 18px;
+          }
+          .departments-page .help-widget h5 {
+            font-size: 1rem;
+          }
+          .departments-page .results-header {
+            margin-bottom: 18px;
+          }
+          .departments-page .results-header h4 {
+            font-size: 1.15rem;
+          }
+          .departments-page .department-card {
+            border-radius: 10px;
+          }
+          .departments-page .department-image-wrapper {
+            height: 180px;
+          }
+          .departments-page .department-content {
+            padding: 18px 16px;
+          }
+          .departments-page .icon-box {
+            width: 44px;
+            height: 44px;
+            font-size: 1.25rem;
+            margin-top: -44px;
+            margin-bottom: 12px;
+          }
+          .departments-page .dept-title {
+            font-size: 1.15rem;
+          }
+          .departments-page .dept-desc {
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+          }
+          .departments-page .no-results {
+            padding: 32px 24px;
+          }
+        }
+
+        @media (max-width: 576px) {
+          .departments-page .section,
+          .departments-page #departments {
+            padding-top: 1.5rem;
+            padding-bottom: 2rem;
+          }
+          .departments-page .container {
+            padding-left: 0.75rem;
+            padding-right: 0.75rem;
+          }
+          .departments-page .sidebar-wrapper {
+            padding: 18px 16px;
+          }
+          .departments-page .category-btn {
+            padding: 8px 12px;
+            font-size: 0.9rem;
+          }
+          .departments-page .department-image-wrapper {
+            height: 200px;
+          }
+          .departments-page .department-content {
+            padding: 16px 14px;
+          }
+          .departments-page .dept-title {
+            font-size: 1.1rem;
+          }
+          .departments-page .dept-stats {
+            padding: 8px 12px;
+            font-size: 0.85rem;
+          }
+          .departments-page .no-results {
+            padding: 28px 20px;
+          }
+          .departments-page .no-results h4 {
+            font-size: 1.1rem;
+          }
+        }
+
+        .departments-page {
+          overflow-x: hidden;
+          max-width: 100vw;
+        }
       `}</style>
 
       <PageHero
