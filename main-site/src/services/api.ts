@@ -72,10 +72,13 @@ export const serviceAPI = {
 };
 
 export const doctorAPI = {
-    getAll: (page?: number, perPage?: number) => {
+    getAll: (page?: number, perPage?: number, filters?: { search?: string; department?: string; experience?: number }) => {
         const params = new URLSearchParams();
         if (page) params.append('page', page.toString());
         if (perPage) params.append('per_page', perPage.toString());
+        if (filters?.search) params.append('search', filters.search);
+        if (filters?.department) params.append('department', filters.department);
+        if (filters?.experience) params.append('experience', filters.experience.toString());
         return api.get(`/public/doctors${params.toString() ? '?' + params.toString() : ''}`);
     },
     getById: (id: number | string) => api.get(`/public/doctors/${id}`),

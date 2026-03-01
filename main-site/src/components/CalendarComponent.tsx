@@ -14,7 +14,7 @@ interface Doctor {
   id: number;
   working_hours_start: string;
   working_hours_end: string;
-  department?: { id: number; name: string };
+  department?: { id?: number; name: string };
 }
 
 interface CalendarComponentProps {

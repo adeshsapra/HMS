@@ -146,44 +146,57 @@
   .hc-hero {
     min-height: 380px;
   }
+
   .hc-hero h1 {
     font-size: 1.85rem;
   }
+
   .hc-hero p {
     font-size: 0.95rem;
   }
+
   .hc-btn {
     padding: 0.85rem 1.5rem;
     font-size: 0.9rem;
   }
+
   .hc-badge-new {
     font-size: 0.7rem;
     padding: 0.4rem 1rem !important;
   }
+
   .hc-section-title h2 {
     font-size: 1.65rem;
   }
+
   .hc-section-title p {
     font-size: 0.9rem;
   }
+
   .hc-card-image {
     height: 180px;
   }
+
   .hc-feature-box {
     padding: 1.75rem 1.25rem;
   }
+
   .hc-feature-box h4 {
     font-size: 1.1rem;
   }
+
   .hc-feature-box p {
     font-size: 0.9rem;
   }
+
   .home-care-container .bg-primary.rounded-4.p-5 {
     padding: 1.5rem 1rem !important;
   }
+
   .home-care-container .bg-primary.rounded-4 .display-6 {
     font-size: 1.35rem;
   }
+
   .home-care-container .bg-primary.rounded-4 .btn {
     padding: 0.75rem 1.5rem;
     font-size: 0.9rem;
@@ -216,7 +229,9 @@
 
 .home-care-container {
   overflow-x: hidden;
-  max-width: 100vw;
+  overflow-y: hidden;
+  width: 100%;
+  max-width: 100%;
 }
 
 /* Card Grid & Service Cards */
@@ -739,15 +754,19 @@
     max-width: 100%;
     margin: 0.5rem;
   }
+
   .home-care-container .modal-content.rounded-4 {
     border-radius: 1rem !important;
   }
+
   .home-care-container .modal-body.p-4 {
     padding: 1rem 1.25rem !important;
   }
+
   .home-care-container .modal-body h2 {
     font-size: 1.35rem;
   }
+
   .home-care-container .modal-body .row.g-2 .col-6 {
     flex: 0 0 100%;
     max-width: 100%;
@@ -758,11 +777,13 @@
   .home-care-container .modal-dialog.modal-lg {
     margin: 0.25rem;
   }
+
   .home-care-container .modal-body .d-flex.p-3.rounded-3 {
     flex-direction: column;
     gap: 1rem;
     text-align: center;
   }
+
   .home-care-container .modal-body .d-flex.p-3.rounded-3 .btn {
     width: 100%;
   }
@@ -1386,6 +1407,7 @@
   .modern-calendar .current-month {
     font-size: 1rem;
   }
+
   .modern-calendar .calendar-nav-btn {
     width: 28px;
     height: 28px;
@@ -1393,13 +1415,16 @@
     min-height: 28px;
     font-size: 0.85rem;
   }
+
   .calendar-grid {
     gap: 6px;
   }
+
   .calendar-weekday {
     font-size: 0.65rem;
     padding-bottom: 4px;
   }
+
   .calendar-day {
     font-size: 0.8rem;
     border-radius: 8px;
@@ -1410,19 +1435,23 @@
   .modern-calendar .current-month {
     font-size: 0.95rem;
   }
+
   .modern-calendar .calendar-nav-btn {
     width: 26px;
     height: 26px;
     min-width: 26px;
     min-height: 26px;
   }
+
   .calendar-grid {
     gap: 4px;
   }
+
   .calendar-weekday {
     font-size: 0.6rem;
     padding-bottom: 2px;
   }
+
   .calendar-day {
     font-size: 0.75rem;
     border-radius: 6px;
@@ -1433,9 +1462,11 @@
   .calendar-grid {
     gap: 3px;
   }
+
   .calendar-weekday {
     font-size: 0.55rem;
   }
+
   .calendar-day {
     font-size: 0.7rem;
   }
