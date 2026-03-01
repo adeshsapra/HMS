@@ -547,6 +547,17 @@ const Header = () => {
           }
         }
 
+        @media (max-width: 767px) {
+          .header-auth-buttons {
+            display: none !important;
+          }
+
+          .header .navmenu {
+            order: 2;
+            margin-left: auto;
+          }
+        }
+
         @media (min-width: 768px) and (max-width: 991px) {
           .header-auth-buttons .btn-signin {
             padding: 8px 12px;

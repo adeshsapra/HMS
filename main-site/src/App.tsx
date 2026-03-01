@@ -7,6 +7,7 @@ import Header from './components/Header'
 import Footer from './components/Footer'
 import ScrollTop from './components/ScrollTop'
 import Preloader from './components/Preloader'
+import MobileBottomNav from './components/MobileBottomNav'
 
 // Pages
 import Home from './pages/Home'
@@ -46,6 +47,7 @@ import PlanDetails from './pages/PlanDetails'
 function App() {
   const location = useLocation()
   const isAuthPage = location.pathname === '/sign-in' || location.pathname === '/sign-up'
+  const showMobileBottomNav = !isAuthPage
 
   useEffect(() => {
     // Initialize AOS
@@ -86,7 +88,7 @@ function App() {
         <ToastProvider>
           {!isAuthPage && <Preloader />}
           {!isAuthPage && <Header />}
-          <main className={isAuthPage ? "main-auth" : "main"}>
+          <main className={`${isAuthPage ? 'main-auth' : 'main'} ${showMobileBottomNav ? 'main-with-mobile-nav' : ''}`}>
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/about" element={<About />} />
@@ -144,8 +146,16 @@ function App() {
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>
+          {!isAuthPage && showMobileBottomNav && <MobileBottomNav />}
           {!isAuthPage && <Footer />}
           {!isAuthPage && <ScrollTop />}
+          <style>{`
+            @media (max-width: 767px) {
+              .main-with-mobile-nav {
+                padding-bottom: 96px;
+              }
+            }
+          `}</style>
         </ToastProvider>
       </NotificationProvider>
     </AuthProvider>
