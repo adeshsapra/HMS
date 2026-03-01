@@ -6,6 +6,7 @@ import NotificationBell from "./NotificationBell";
 const Header = () => {
   const [isMobileNavActive, setIsMobileNavActive] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [isDarkBackground, setIsDarkBackground] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuth();
@@ -17,15 +18,90 @@ const Header = () => {
   };
 
   useEffect(() => {
+    const getBrightness = (color: string) => {
+      const match = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+      if (!match) return 255;
+      const r = Number(match[1]);
+      const g = Number(match[2]);
+      const b = Number(match[3]);
+      return (r * 299 + g * 587 + b * 114) / 1000;
+    };
+
+    const hasVisibleBackground = (color: string) => {
+      if (!color || color === "transparent") return false;
+      const rgbaMatch = color.match(/rgba\(\d+,\s*\d+,\s*\d+,\s*([0-9.]+)\)/i);
+      if (!rgbaMatch) return true;
+      return Number(rgbaMatch[1]) > 0;
+    };
+
+    const getBackgroundColorFromTree = (startElement: Element | null) => {
+      let current = startElement;
+      while (current && current !== document.documentElement) {
+        const styles = window.getComputedStyle(current);
+        if (hasVisibleBackground(styles.backgroundColor)) {
+          return styles.backgroundColor;
+        }
+        current = current.parentElement;
+      }
+
+      const bodyBg = window.getComputedStyle(document.body).backgroundColor;
+      return hasVisibleBackground(bodyBg) ? bodyBg : "rgb(255, 255, 255)";
+    };
+
+    const isKnownDarkSection = (element: Element | null) => {
+      if (!element) return false;
+      return Boolean(
+        element.closest(".modern-hero-section") ||
+        element.closest(".dark-background") ||
+        element.closest(".page-title.dark-background")
+      );
+    };
+
+    const isDarkFooterVisibleOnMobile = () => {
+      if (window.innerWidth >= 1200) return false;
+      const footer = document.querySelector(".footer-section");
+      if (!footer) return false;
+      const rect = footer.getBoundingClientRect();
+      return rect.top < window.innerHeight && rect.bottom > 0;
+    };
+
+    const updateHeaderMode = () => {
+      setScrolled(window.scrollY > 0);
+
+      const header = document.getElementById("header");
+      if (!header) return;
+
+      const sampleX = Math.floor(window.innerWidth / 2);
+      const sampleY = Math.min(
+        window.innerHeight - 1,
+        Math.floor(header.getBoundingClientRect().height + 8)
+      );
+
+      const stack = document.elementsFromPoint(sampleX, sampleY);
+      const targetElement =
+        stack.find((el) => el !== header && !header.contains(el)) ?? document.body;
+
+      if (isKnownDarkSection(targetElement) || isDarkFooterVisibleOnMobile()) {
+        setIsDarkBackground(true);
+        return;
+      }
+
+      const bgColor = getBackgroundColorFromTree(targetElement);
+      const isDark = getBrightness(bgColor) < 140;
+      setIsDarkBackground(isDark);
+    };
+
     const handleScroll = () => {
-      setScrolled(window.scrollY > 100);
+      updateHeaderMode();
     };
 
     window.addEventListener("scroll", handleScroll);
-    handleScroll();
+    window.addEventListener("resize", updateHeaderMode);
+    updateHeaderMode();
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", updateHeaderMode);
       document.body.classList.remove("mobile-nav-active");
       document.body.style.overflow = "";
     };
@@ -109,7 +185,7 @@ const Header = () => {
   return (
     <header
       id="header"
-      className={`header d-flex align-items-center fixed-top ${scrolled ? "scrolled" : ""}`}
+      className={`header d-flex align-items-center fixed-top ${scrolled ? "scrolled" : ""} ${isDarkBackground ? "dark-underlay" : ""}`}
     >
       <div className="header-container container-fluid container-xl position-relative d-flex align-items-center justify-content-between">
         {/* Logo - Left Side */}
@@ -228,6 +304,14 @@ const Header = () => {
           max-width: 100% !important;
           width: 100%;
           margin: 0;
+        }
+
+        /* Keep only nav text white on scrolled/darker glass header */
+        .header.scrolled.dark-underlay .navmenu:not(.mobile-nav-active) a,
+        .header.scrolled.dark-underlay .navmenu:not(.mobile-nav-active) a:focus,
+        .header.scrolled.dark-underlay .navmenu:not(.mobile-nav-active) a.active,
+        .header.scrolled.dark-underlay .navmenu:not(.mobile-nav-active) li:hover > a {
+          color: #ffffff !important;
         }
 
         .header .logo {
@@ -387,6 +471,16 @@ const Header = () => {
 
           .mobile-nav-toggle:hover {
             background: rgba(4, 158, 187, 0.2);
+          }
+
+          .header.scrolled.dark-underlay .mobile-nav-toggle {
+            background: #ffffff;
+            color: var(--accent-color);
+          }
+
+          .header.scrolled.dark-underlay .mobile-nav-toggle:hover {
+            background: #ffffff;
+            color: var(--accent-color);
           }
 
           .navmenu.mobile-nav-active .mobile-nav-toggle {
