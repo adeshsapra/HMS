@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { patientProfileAPI } from "../services/api";
 import { useToast } from "../context/ToastContext";
+import ProfileTabLoader from "./ProfileTabLoader";
 
 interface MedicalRecord {
   id: number;
@@ -34,8 +35,13 @@ interface MedicalRecordPagination {
   per_page: number;
 }
 
-const MyMedicalRecords = () => {
+interface MyMedicalRecordsProps {
+  focusRecordId?: number | null;
+}
+
+const MyMedicalRecords = ({ focusRecordId }: MyMedicalRecordsProps) => {
   const { showToast } = useToast();
+  const focusedRecordRef = useRef<number | null>(null);
 
   // State management
   const [records, setRecords] = useState<MedicalRecord[]>([]);
@@ -270,6 +276,86 @@ const MyMedicalRecords = () => {
   useEffect(() => {
     fetchMedicalRecords(1);
   }, [recordFilters]);
+
+  useEffect(() => {
+    const openFocusedRecord = async () => {
+      if (!focusRecordId || recordsLoading || focusedRecordRef.current === focusRecordId) {
+        return;
+      }
+
+      const existingRecord = records.find((record) => record.id === focusRecordId);
+      if (existingRecord) {
+        handleViewRecord(existingRecord);
+        focusedRecordRef.current = focusRecordId;
+        return;
+      }
+
+      try {
+        const firstPageResponse = await patientProfileAPI.getMyMedicalRecords({
+          ...recordFilters,
+          per_page: 10,
+          page: 1,
+        });
+
+        if (!firstPageResponse.data?.status) {
+          return;
+        }
+
+        const firstPagePaginator = firstPageResponse.data.data;
+        const firstPageRecords = firstPagePaginator.data as MedicalRecord[];
+        const firstMatch = firstPageRecords.find((record) => record.id === focusRecordId);
+        if (firstMatch) {
+          setRecords(firstPageRecords);
+          setRecordsPagination({
+            current_page: firstPagePaginator.current_page,
+            last_page: firstPagePaginator.last_page,
+            total: firstPagePaginator.total,
+            per_page: firstPagePaginator.per_page,
+          });
+          setSelectedRecord(firstMatch);
+          setViewModalOpen(true);
+          focusedRecordRef.current = focusRecordId;
+          return;
+        }
+
+        const totalPages = Math.min(Number(firstPagePaginator.last_page) || 1, 50);
+        for (let page = 2; page <= totalPages; page++) {
+          const pageResponse = await patientProfileAPI.getMyMedicalRecords({
+            ...recordFilters,
+            per_page: 10,
+            page,
+          });
+
+          if (!pageResponse.data?.status) {
+            continue;
+          }
+
+          const paginator = pageResponse.data.data;
+          const pageRecords = paginator.data as MedicalRecord[];
+          const match = pageRecords.find((record) => record.id === focusRecordId);
+          if (!match) {
+            continue;
+          }
+
+          setRecords(pageRecords);
+          setRecordsPagination({
+            current_page: paginator.current_page,
+            last_page: paginator.last_page,
+            total: paginator.total,
+            per_page: paginator.per_page,
+          });
+          setSelectedRecord(match);
+          setViewModalOpen(true);
+          focusedRecordRef.current = focusRecordId;
+          return;
+        }
+      } catch (error) {
+        console.error("Error loading focused medical record:", error);
+      }
+    };
+
+    openFocusedRecord();
+  }, [focusRecordId, records, recordsLoading, recordFilters]);
 
   return (
     <div className="profile-medical-record-container">
@@ -803,16 +889,7 @@ const MyMedicalRecords = () => {
         </div>
 
         {recordsLoading ? (
-          <div className="text-center py-5">
-            <div
-              className="spinner-border text-primary"
-              role="status"
-              style={{ color: "var(--pmr-accent-color)" }}
-            >
-              <span className="visually-hidden">Loading...</span>
-            </div>
-            <p className="mt-3 text-muted">Loading your medical records...</p>
-          </div>
+          <ProfileTabLoader message="Loading your medical records..." />
         ) : records.length === 0 ? (
           <div className="no-records text-center py-5">
             <div

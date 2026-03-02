@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 
 type NavItem = {
   id: string
@@ -9,7 +10,7 @@ type NavItem = {
   isActive: (pathname: string, search: string) => boolean
 }
 
-const navItems: NavItem[] = [
+const loggedInNavItems: NavItem[] = [
   {
     id: 'notifications',
     label: 'Notification',
@@ -33,20 +34,42 @@ const navItems: NavItem[] = [
   }
 ]
 
+const guestNavItems: NavItem[] = [
+  {
+    id: 'appointments',
+    label: 'Appointment',
+    icon: 'bi-calendar2-check',
+    path: '/quickappointment',
+    isActive: (pathname) => pathname.startsWith('/quickappointment') || pathname.startsWith('/appointment')
+  },
+  {
+    id: 'sign-in',
+    label: 'Sign In',
+    icon: 'bi-box-arrow-in-right',
+    path: '/sign-in',
+    isActive: (pathname) => pathname.startsWith('/sign-in')
+  }
+]
+
 const MobileBottomNav = () => {
+  const { isAuthenticated, isLoading } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
   const navRef = useRef<HTMLElement | null>(null)
   const [isDarkUnderlay, setIsDarkUnderlay] = useState(false)
+  const navItems = useMemo(
+    () => (isAuthenticated ? loggedInNavItems : guestNavItems),
+    [isAuthenticated]
+  )
 
   const activeId = useMemo(() => {
     const active = navItems.find((item) => item.isActive(location.pathname, location.search))
     return active?.id ?? ''
-  }, [location.pathname, location.search])
+  }, [location.pathname, location.search, navItems])
   const activeIndex = useMemo(() => {
     const index = navItems.findIndex((item) => item.id === activeId)
     return index >= 0 ? index : 0
-  }, [activeId])
+  }, [activeId, navItems])
 
   useEffect(() => {
     const getBrightness = (color: string) => {
@@ -121,13 +144,20 @@ const MobileBottomNav = () => {
     }
   }, [location.pathname, location.search])
 
+  if (isLoading) return null
+
   return (
     <>
       <nav
         ref={navRef}
         className={`mobile-bottom-nav ${isDarkUnderlay ? 'dark-underlay' : ''}`}
         aria-label="Mobile quick navigation"
-        style={{ '--active-index': activeIndex } as CSSProperties}
+        style={
+          {
+            '--active-index': activeIndex,
+            '--item-count': navItems.length
+          } as CSSProperties
+        }
       >
         <span className="mobile-bottom-nav-active-pill" aria-hidden="true"></span>
         {navItems.map((item) => {
@@ -152,7 +182,6 @@ const MobileBottomNav = () => {
 
       <style>{`
         .mobile-bottom-nav {
-          --item-count: 3;
           position: fixed;
           left: 0;
           right: 0;

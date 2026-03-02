@@ -27,6 +27,8 @@ interface Doctor {
   phone: string;
   email: string;
   gender: string;
+  average_rating?: number | string | null;
+  total_reviews?: number | string | null;
 }
 
 const DoctorDetails = () => {
@@ -36,16 +38,13 @@ const DoctorDetails = () => {
   const [loading, setLoading] = useState(!location.state?.doctor);
 
   useEffect(() => {
-    if (!doctor && id) {
-      fetchDoctor(id);
-    } else {
-      setLoading(false);
-    }
-  }, [id, doctor]);
+    if (!id) return;
+    fetchDoctor(id, !doctor);
+  }, [id]);
 
-  const fetchDoctor = async (doctorId: string) => {
+  const fetchDoctor = async (doctorId: string, withLoader = true) => {
     try {
-      setLoading(true);
+      if (withLoader) setLoading(true);
       const response = await doctorAPI.getById(doctorId);
       if (response.data.success) {
         setDoctor(response.data.data);
@@ -53,16 +52,17 @@ const DoctorDetails = () => {
     } catch (error) {
       console.error("Failed to fetch doctor details", error);
     } finally {
-      setLoading(false);
+      if (withLoader) setLoading(false);
     }
   };
 
-  const DEFAULT_DOCTOR_IMAGE =
-    "https://ui-avatars.com/api/?name=Doctor&background=0D8ABC&color=fff&size=256";
+  const getFallbackDoctorImage = (firstName?: string, lastName?: string) => {
+    const name = `${firstName || ''} ${lastName || ''}`.trim() || 'Doctor';
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0D8ABC&color=fff&size=512&margin=20`;
+  };
 
-
-  const getImageUrl = (path: string | null) => {
-    if (!path) return DEFAULT_DOCTOR_IMAGE;
+  const getImageUrl = (path: string | null, firstName?: string, lastName?: string) => {
+    if (!path) return getFallbackDoctorImage(firstName, lastName);
     if (path.startsWith('http')) return path;
     return `http://localhost:8000/storage/${path}`;
   };
@@ -75,6 +75,12 @@ const DoctorDetails = () => {
       return list;
     }
   };
+
+  const averageRating = Number(doctor?.average_rating);
+  const totalReviews = Number(doctor?.total_reviews);
+  const displayAverageRating = Number.isFinite(averageRating) ? averageRating.toFixed(1) : '0.0';
+  const displayTotalReviews = Number.isFinite(totalReviews) ? totalReviews : 0;
+  const filledStars = Number.isFinite(averageRating) ? Math.max(0, Math.min(5, Math.round(averageRating))) : 0;
 
   if (loading) {
     return (
@@ -212,6 +218,19 @@ const DoctorDetails = () => {
           border-color: var(--accent-color);
         }
 
+        .appointment-rating-stars {
+          margin-top: 4px;
+          display: flex;
+          justify-content: center;
+          gap: 3px;
+          color: #e2e8f0;
+          font-size: 0.8rem;
+        }
+
+        .appointment-rating-stars i.filled {
+          color: #ffc107;
+        }
+
         .appointment-info-label {
           display: block;
           font-size: 0.8rem;
@@ -274,10 +293,10 @@ const DoctorDetails = () => {
               <div className="col-lg-4">
                 <div className="appointment-doctor-img-wrapper">
                   <img
-                    src={getImageUrl(doctor.profile_picture)}
+                    src={getImageUrl(doctor.profile_picture, doctor.first_name, doctor.last_name)}
                     alt={`${doctor.first_name} ${doctor.last_name}`}
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x400?text=Doctor';
+                      (e.target as HTMLImageElement).src = getFallbackDoctorImage(doctor.first_name, doctor.last_name);
                     }}
                   />
                   <div className="appointment-status-badge">
@@ -298,6 +317,20 @@ const DoctorDetails = () => {
                     <div className="appointment-info-box">
                       <span className="appointment-info-label">Experience</span>
                       <span className="appointment-info-value">{doctor.experience_years} Years</span>
+                    </div>
+                    <div className="appointment-info-box">
+                      <span className="appointment-info-label">Rating</span>
+                      <span className="appointment-info-value">
+                        {displayAverageRating} ({displayTotalReviews})
+                      </span>
+                      <div className="appointment-rating-stars">
+                        {[0, 1, 2, 3, 4].map((index) => (
+                          <i
+                            key={index}
+                            className={`bi bi-star-fill ${index < filledStars ? 'filled' : ''}`}
+                          ></i>
+                        ))}
+                      </div>
                     </div>
                     <div className="appointment-info-box">
                       <span className="appointment-info-label">Consultation Fee</span>

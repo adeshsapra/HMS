@@ -1,19 +1,49 @@
 import { useState, useEffect } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import AOS from 'aos'
 import PageHero from '../components/PageHero'
 import { profileAPI } from '../services/api'
 import { useToast } from '../context/ToastContext'
+import { useAuth } from '../context/AuthContext'
 import MyAppointments from '../components/MyAppointments'
 import MyMedicalRecords from '../components/MyMedicalRecords'
 import MyBills from '../components/MyBills'
 import MyTestimonials from '../components/MyTestimonials'
 import MyHomeCareRequests from '../components/MyHomeCareRequests'
 import MySubscriptions from '../components/MySubscriptions'
+import ProfileTabLoader from '../components/ProfileTabLoader'
+
+const parsePositiveInt = (value: string | null): number | null => {
+  if (!value) return null
+  const parsed = Number(value)
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : null
+}
+
+const getTabFromSearch = (search: string, validTabs: string[]): string | null => {
+  const params = new URLSearchParams(search)
+  const tab = params.get('tab')
+  if (tab && validTabs.includes(tab)) {
+    return tab
+  }
+
+  if (parsePositiveInt(params.get('appointmentId')) || parsePositiveInt(params.get('appointment_id')) || parsePositiveInt(params.get('apptId'))) {
+    return 'appointments'
+  }
+  if (parsePositiveInt(params.get('recordId')) || parsePositiveInt(params.get('record_id')) || parsePositiveInt(params.get('medicalReportId')) || parsePositiveInt(params.get('medical_report_id'))) {
+    return 'medical'
+  }
+  if (parsePositiveInt(params.get('billId')) || parsePositiveInt(params.get('bill_id')) || parsePositiveInt(params.get('invoiceId')) || parsePositiveInt(params.get('invoice_id'))) {
+    return 'bills'
+  }
+
+  return null
+}
 
 const Profile = () => {
   const location = useLocation()
+  const navigate = useNavigate()
   const { showToast } = useToast()
+  const { logout } = useAuth()
   const [activeTab, setActiveTab] = useState('personal')
   const [user, setUser] = useState<any>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
@@ -34,6 +64,7 @@ const Profile = () => {
 
   const [isPasswordLoading, setIsPasswordLoading] = useState(false)
   const [isEmailLoading, setIsEmailLoading] = useState(false)
+  const [isProfileLoading, setIsProfileLoading] = useState(false)
   const [showPasswordForm, setShowPasswordForm] = useState(false)
   const [showEmailForm, setShowEmailForm] = useState(false)
 
@@ -56,14 +87,14 @@ const Profile = () => {
   const tabs = [
     { id: 'personal', label: 'Personal Information', icon: 'bi-person' },
     { id: 'account', label: 'Account Settings', icon: 'bi-gear' },
-    { id: 'security', label: 'Security', icon: 'bi-shield-lock' },
     { id: 'notifications', label: 'Notifications', icon: 'bi-bell' },
     { id: 'appointments', label: 'My Appointments', icon: 'bi-calendar-check' },
     { id: 'subscriptions', label: 'My Subscriptions', icon: 'bi-card-checklist' },
     { id: 'home-care', label: 'Home Care Requests', icon: 'bi-house-heart' },
     { id: 'medical', label: 'Medical Records', icon: 'bi-file-medical' },
     { id: 'bills', label: 'Bills & Payments', icon: 'bi-receipt' },
-    { id: 'testimonials', label: 'Reviews & Feedback', icon: 'bi-star' }
+    { id: 'testimonials', label: 'Reviews & Feedback', icon: 'bi-star' },
+    { id: 'logout', label: 'Logout', icon: 'bi-box-arrow-right' }
   ]
 
   useEffect(() => {
@@ -74,10 +105,8 @@ const Profile = () => {
       mirror: false
     })
 
-    // Check for tab in URL
-    const params = new URLSearchParams(window.location.search)
-    const tab = params.get('tab')
-    if (tab && tabs.some(t => t.id === tab)) {
+    const tab = getTabFromSearch(window.location.search, tabs.map(t => t.id))
+    if (tab) {
       setActiveTab(tab)
     }
 
@@ -85,14 +114,49 @@ const Profile = () => {
   }, [])
 
   useEffect(() => {
-    const params = new URLSearchParams(location.search)
-    const tab = params.get('tab')
-    if (tab && tabs.some(t => t.id === tab)) {
+    const tab = getTabFromSearch(location.search, tabs.map(t => t.id))
+    if (tab) {
       setActiveTab(tab)
     }
   }, [location.search])
 
+  useEffect(() => {
+    if (activeTab === 'notifications') {
+      navigate('/notifications')
+    }
+    if (activeTab === 'logout') {
+      const runLogout = async () => {
+        try {
+          await logout()
+          navigate('/')
+        } catch (error) {
+          console.error('Error logging out:', error)
+          showToast('Failed to logout. Please try again.', 'error')
+          setActiveTab('personal')
+        }
+      }
+      runLogout()
+    }
+  }, [activeTab, navigate, logout, showToast])
+
+  const currentSearchParams = new URLSearchParams(location.search)
+  const focusAppointmentId =
+    parsePositiveInt(currentSearchParams.get('appointmentId')) ||
+    parsePositiveInt(currentSearchParams.get('appointment_id')) ||
+    parsePositiveInt(currentSearchParams.get('apptId'))
+  const focusRecordId =
+    parsePositiveInt(currentSearchParams.get('recordId')) ||
+    parsePositiveInt(currentSearchParams.get('record_id')) ||
+    parsePositiveInt(currentSearchParams.get('medicalReportId')) ||
+    parsePositiveInt(currentSearchParams.get('medical_report_id'))
+  const focusBillId =
+    parsePositiveInt(currentSearchParams.get('billId')) ||
+    parsePositiveInt(currentSearchParams.get('bill_id')) ||
+    parsePositiveInt(currentSearchParams.get('invoiceId')) ||
+    parsePositiveInt(currentSearchParams.get('invoice_id'))
+
   const fetchProfile = async () => {
+    setIsProfileLoading(true)
     try {
       const response = await profileAPI.get()
       if (response.data.status && response.data.user) {
@@ -126,6 +190,8 @@ const Profile = () => {
     } catch (error) {
       console.error('Error fetching profile:', error)
       showToast('Failed to load profile data', 'error')
+    } finally {
+      setIsProfileLoading(false)
     }
   }
 
@@ -256,6 +322,10 @@ const Profile = () => {
   }
 
   const renderTabContent = () => {
+    if (isProfileLoading && (activeTab === 'personal' || activeTab === 'account')) {
+      return <ProfileTabLoader message="Loading your profile..." />
+    }
+
     switch (activeTab) {
       case 'personal':
         return (
@@ -778,15 +848,15 @@ const Profile = () => {
           </div>
         )
       case 'appointments':
-        return <MyAppointments onNavigateToTestimonials={() => setActiveTab('testimonials')} />
+        return <MyAppointments onNavigateToTestimonials={() => setActiveTab('testimonials')} focusAppointmentId={focusAppointmentId} />
       case 'subscriptions':
         return <MySubscriptions />
       case 'home-care':
         return <MyHomeCareRequests />
       case 'medical':
-        return <MyMedicalRecords />
+        return <MyMedicalRecords focusRecordId={focusRecordId} />
       case 'bills':
-        return <MyBills />
+        return <MyBills focusBillId={focusBillId} />
       case 'testimonials':
         return <MyTestimonials />
       default:
@@ -830,7 +900,17 @@ const Profile = () => {
                       <li key={tab.id} className="nav-item">
                         <button
                           className={`nav-link ${activeTab === tab.id ? 'active' : ''}`}
-                          onClick={() => setActiveTab(tab.id)}
+                          onClick={() => {
+                            if (tab.id === 'notifications') {
+                              navigate('/notifications')
+                              return
+                            }
+                            if (tab.id === 'logout') {
+                              setActiveTab('logout')
+                              return
+                            }
+                            setActiveTab(tab.id)
+                          }}
                         >
                           <i className={`bi ${tab.icon}`}></i>
                           <span>{tab.label}</span>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { patientProfileAPI } from '../services/api';
 import { useToast } from '../context/ToastContext';
+import ProfileTabLoader from './ProfileTabLoader';
 
 interface HomeCareRequest {
     id: number;
@@ -128,11 +129,7 @@ const MyHomeCareRequests = () => {
 
     if (loading) {
         return (
-            <div className="d-flex justify-content-center align-items-center min-vh-50 py-5">
-                <div className="spinner-border text-primary" role="status">
-                    <span className="visually-hidden">Loading...</span>
-                </div>
-            </div>
+            <ProfileTabLoader message="Loading your home care requests..." />
         );
     }
 
@@ -172,11 +169,9 @@ const MyHomeCareRequests = () => {
                             <div className="card border-0 shadow-lg rounded-4 overflow-hidden bg-white group-hover-parent transition-all" style={{ transform: 'translateZ(0)' }}>
                                 <div className="card-body p-0">
                                     <div className="d-md-flex">
-                                        {/* Status Sidebar - Always use theme color */}
                                         <div className="p-1 d-none d-md-block bg-primary" style={{ width: '6px' }}></div>
 
                                         <div className="flex-grow-1 p-4">
-                                            {/* Header Row */}
                                             <div className="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
                                                 <div>
                                                     <div className="d-flex align-items-center gap-2 mb-2">

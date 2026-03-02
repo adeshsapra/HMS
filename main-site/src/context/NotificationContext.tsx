@@ -30,6 +30,12 @@ interface NotificationStats {
     by_type?: Record<string, number>;
 }
 
+export interface NotificationFilters {
+    category?: string;
+    type?: string;
+    unread?: boolean;
+}
+
 interface NotificationContextType {
     notifications: Notification[];
     unreadCount: number;
@@ -41,7 +47,7 @@ interface NotificationContextType {
     markAllAsRead: () => Promise<void>;
     deleteNotification: (id: string) => Promise<void>;
     clearAllNotifications: () => Promise<void>;
-    fetchNotifications: (page?: number) => Promise<void>;
+    fetchNotifications: (page?: number, filters?: NotificationFilters) => Promise<void>;
     fetchStats: () => Promise<void>;
     requestBrowserPermission: () => Promise<boolean>;
     hasMoreNotifications: boolean;
@@ -106,11 +112,11 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
         return false;
     }, []);
 
-    const fetchNotifications = useCallback(async (page: number = 1) => {
+    const fetchNotifications = useCallback(async (page: number = 1, filters: NotificationFilters = {}) => {
         try {
             setLoading(true);
             setError(null);
-            const response = await notificationAPI.getAll(page, 20);
+            const response = await notificationAPI.getAll(page, 20, filters);
             if (response.data.status) {
                 const notifs = response.data.data.data;
                 if (page === 1) {

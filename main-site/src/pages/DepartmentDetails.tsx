@@ -123,12 +123,13 @@ const DepartmentDetails = () => {
     }
   }
 
-  const DEFAULT_DOCTOR_IMAGE =
-    "https://ui-avatars.com/api/?name=Doctor&background=0D8ABC&color=fff&size=256";
-
+  const getDoctorFallbackImage = (firstName?: string, lastName?: string) => {
+    const name = `${firstName || ''} ${lastName || ''}`.trim() || 'Doctor';
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0D8ABC&color=fff&size=512&margin=20`;
+  };
 
   const getImageUrl = (path: string | null) => {
-    if (!path) return DEFAULT_DOCTOR_IMAGE;
+    if (!path) return '';
     if (path.startsWith('http')) return path;
     return `http://localhost:8000/storage/${path}`;
   };
@@ -550,18 +551,14 @@ const DepartmentDetails = () => {
                   {doctors.map((doctor) => (
                     <div key={doctor.id} className="specialist-card" data-aos="fade-up">
                       <div className="specialist-img">
-                        {doctor.profile_picture ? (
-                          <img
-                            src={getImageUrl(doctor.profile_picture)}
-                            alt={`${doctor.first_name} ${doctor.last_name}`}
-                            className="w-100 h-100 object-fit-cover rounded-circle"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = 'https://via.placeholder.com/80x80?text=Doctor'
-                            }}
-                          />
-                        ) : (
-                          <i className="bi bi-person-circle"></i>
-                        )}
+                        <img
+                          src={doctor.profile_picture ? getImageUrl(doctor.profile_picture) : getDoctorFallbackImage(doctor.first_name, doctor.last_name)}
+                          alt={`${doctor.first_name} ${doctor.last_name}`}
+                          className="w-100 h-100 object-fit-cover rounded-circle"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = getDoctorFallbackImage(doctor.first_name, doctor.last_name)
+                          }}
+                        />
                       </div>
                       <div className="specialist-info">
                         <h5>{doctor.first_name} {doctor.last_name}</h5>

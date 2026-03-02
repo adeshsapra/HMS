@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { patientProfileAPI } from '../services/api'
 import { useToast } from '../context/ToastContext'
 import DoctorReviewModal from './DoctorReviewModal'
+import ProfileTabLoader from './ProfileTabLoader'
 
 interface Appointment {
     id: number
@@ -32,10 +33,12 @@ interface AppointmentFilters {
 
 interface MyAppointmentsProps {
     onNavigateToTestimonials?: () => void
+    focusAppointmentId?: number | null
 }
 
-const MyAppointments = ({ onNavigateToTestimonials }: MyAppointmentsProps) => {
+const MyAppointments = ({ onNavigateToTestimonials, focusAppointmentId }: MyAppointmentsProps) => {
     const { showToast } = useToast()
+    const focusedAppointmentRef = useRef<number | null>(null)
 
     // State management
     const [appointments, setAppointments] = useState<Appointment[]>([])
@@ -252,6 +255,35 @@ const MyAppointments = ({ onNavigateToTestimonials }: MyAppointmentsProps) => {
     useEffect(() => {
         fetchAppointments()
     }, [])
+
+    useEffect(() => {
+        const openFocusedAppointment = async () => {
+            if (!focusAppointmentId || appointmentsLoading || focusedAppointmentRef.current === focusAppointmentId) {
+                return
+            }
+
+            const existingAppointment = appointments.find((appointment) => appointment.id === focusAppointmentId)
+            if (existingAppointment) {
+                handleViewAppointment(existingAppointment)
+                focusedAppointmentRef.current = focusAppointmentId
+                return
+            }
+
+            try {
+                const response = await patientProfileAPI.getAppointmentDetails(focusAppointmentId)
+                if (response.data?.success && response.data?.data) {
+                    const detailedAppointment = response.data.data as Appointment
+                    setSelectedAppointment(detailedAppointment)
+                    setViewModalOpen(true)
+                    focusedAppointmentRef.current = focusAppointmentId
+                }
+            } catch (error) {
+                console.error('Error loading focused appointment:', error)
+            }
+        }
+
+        openFocusedAppointment()
+    }, [focusAppointmentId, appointments, appointmentsLoading])
 
     return (
         <div className="profile-appointment-container">
@@ -771,12 +803,7 @@ const MyAppointments = ({ onNavigateToTestimonials }: MyAppointmentsProps) => {
                 </div>
 
                 {appointmentsLoading ? (
-                    <div className="text-center py-5">
-                        <div className="spinner-border text-primary" role="status" style={{ color: 'var(--pa-accent-color)' }}>
-                            <span className="visually-hidden">Loading...</span>
-                        </div>
-                        <p className="mt-3 text-muted">Loading your appointments...</p>
-                    </div>
+                    <ProfileTabLoader message="Loading your appointments..." />
                 ) : appointments.length === 0 ? (
                     <div className="no-appointments text-center py-5">
                         <div style={{ fontSize: '3rem', color: '#e0e0e0' }} className="mb-3">

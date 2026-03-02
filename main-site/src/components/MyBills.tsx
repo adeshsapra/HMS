@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ApiService } from '../services/api';
 import { useToast } from '../context/ToastContext';
+import ProfileTabLoader from './ProfileTabLoader';
 
 interface BillItem {
     id: number;
@@ -34,16 +35,50 @@ interface Payment {
     payment_date: string | null;
 }
 
-const MyBills = () => {
+interface MyBillsProps {
+    focusBillId?: number | null;
+}
+
+const MyBills = ({ focusBillId }: MyBillsProps) => {
     const [bills, setBills] = useState<Bill[]>([]);
     const [loading, setLoading] = useState(true);
     const [expandedBillId, setExpandedBillId] = useState<number | null>(null);
     const { showToast } = useToast();
     const navigate = useNavigate();
+    const focusedBillRef = useRef<number | null>(null);
 
     useEffect(() => {
         fetchBills();
     }, []);
+
+    useEffect(() => {
+        const openFocusedBill = async () => {
+            if (!focusBillId || loading || focusedBillRef.current === focusBillId) {
+                return;
+            }
+
+            const existingBill = bills.find((bill) => bill.id === focusBillId);
+            if (existingBill) {
+                setExpandedBillId(focusBillId);
+                focusedBillRef.current = focusBillId;
+                return;
+            }
+
+            try {
+                const response = await ApiService.getBillById(focusBillId);
+                if (response.data?.success && response.data?.data) {
+                    const focusedBill = response.data.data as Bill;
+                    setBills((prev) => [focusedBill, ...prev]);
+                    setExpandedBillId(focusedBill.id);
+                    focusedBillRef.current = focusedBill.id;
+                }
+            } catch (error) {
+                console.error('Error loading focused bill:', error);
+            }
+        };
+
+        openFocusedBill();
+    }, [focusBillId, bills, loading]);
 
     const fetchBills = async () => {
         try {
@@ -445,8 +480,7 @@ const MyBills = () => {
 
             {loading ? (
                 <div className="center-state">
-                    <div className="spinner"></div>
-                    <p>Retrieving records...</p>
+                    <ProfileTabLoader message="Retrieving records..." />
                 </div>
             ) : bills.length === 0 ? (
                 <div className="center-state">
