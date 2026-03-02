@@ -157,6 +157,163 @@ const Contact = () => {
           color: var(--accent-color);
           opacity: 0.8;
         }
+
+        /* --- Layout & Panels --- */
+        .contact-wrapper {
+          display: flex;
+          background: #fff;
+          border-radius: 20px;
+          overflow: hidden;
+          box-shadow: 0 15px 40px rgba(0,0,0,0.08);
+          margin-bottom: 60px;
+        }
+
+        .contact-info-panel {
+          flex: 0 0 40%;
+          background: linear-gradient(135deg, var(--heading-color), var(--accent-color));
+          padding: 50px;
+          color: white;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+        }
+
+        .contact-form-panel {
+          flex: 0 0 60%;
+          background: white;
+          position: relative;
+        }
+
+        .contact-info-header h3 {
+          font-size: 2rem;
+          font-weight: 800;
+          margin-bottom: 15px;
+          color: white;
+        }
+
+        .contact-info-header p {
+          opacity: 0.8;
+          font-size: 1rem;
+          line-height: 1.6;
+          margin-bottom: 40px;
+        }
+
+        .contact-info-cards {
+          display: flex;
+          flex-direction: column;
+          gap: 25px;
+        }
+
+        .info-card {
+          display: flex;
+          align-items: center;
+          gap: 20px;
+        }
+
+        .icon-container {
+          width: 50px;
+          height: 50px;
+          background: rgba(255,255,255,0.15);
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1.4rem;
+          backdrop-filter: blur(5px);
+        }
+
+        .card-content h4 {
+          font-size: 1.1rem;
+          font-weight: 700;
+          margin-bottom: 2px;
+          color: white;
+        }
+
+        .card-content p {
+          margin: 0;
+          opacity: 0.8;
+          font-size: 0.95rem;
+        }
+
+        .social-links-panel {
+          margin-top: 50px;
+        }
+
+        .social-icons {
+          display: flex;
+          gap: 15px;
+        }
+
+        .social-icons a {
+          width: 40px;
+          height: 40px;
+          background: rgba(255,255,255,0.1);
+          color: white;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1.1rem;
+          transition: all 0.3s;
+        }
+
+        .social-icons a:hover {
+          background: white;
+          color: var(--accent-color);
+          transform: translateY(-3px);
+        }
+
+        .map-container {
+          height: 300px;
+          width: 100%;
+        }
+
+        .form-container {
+          padding: 50px;
+        }
+
+        .form-container h3 {
+          font-size: 1.75rem;
+          font-weight: 800;
+          color: var(--heading-color);
+          margin-bottom: 10px;
+        }
+
+        .form-container p {
+          color: #666;
+          margin-bottom: 30px;
+        }
+
+        /* --- Responsive --- */
+        @media (max-width: 991px) {
+          .contact-wrapper {
+            flex-direction: column;
+          }
+          .contact-info-panel, .contact-form-panel {
+            flex: 0 0 100%;
+          }
+          .contact-info-panel {
+            padding: 40px;
+          }
+          .form-container {
+            padding: 40px;
+          }
+        }
+
+        @media (max-width: 768px) {
+          .contact-info-header h3 {
+            font-size: 1.5rem;
+          }
+          .form-container {
+            padding: 30px 20px;
+          }
+          .contact-info-panel {
+            padding: 30px 20px;
+          }
+          .form-container h3 {
+            font-size: 1.5rem;
+          }
+        }
       `}</style>
       <PageHero
         title="Contact"

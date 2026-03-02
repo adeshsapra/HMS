@@ -350,6 +350,38 @@ const Services = () => {
           border-radius: 12px;
           border: 1px dashed #ddd;
         }
+
+        /* --- Responsive Adjustments --- */
+        @media (max-width: 991px) {
+          .sidebar-wrapper {
+            position: relative;
+            top: 0;
+            margin-bottom: 30px;
+            padding: 20px;
+          }
+          
+          .results-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+          }
+        }
+
+        @media (max-width: 768px) {
+          .service-card {
+            padding: 20px;
+          }
+          
+          .service-icon {
+            width: 60px;
+            height: 60px;
+            font-size: 1.5rem;
+          }
+
+          .service-content h3 {
+            font-size: 1.2rem;
+          }
+        }
       `}</style>
 
       <PageHero
