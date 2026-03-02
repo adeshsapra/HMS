@@ -184,3 +184,13 @@ section a,
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
+
+/* Minimal Top Spacing for Floating Header */
+.header:not(.scrolled) {
+  padding: 5px 0 !important;
+  transition: all 0.5s ease !important;
+}
+
+.header.scrolled {
+  padding: 0 !important;
+}

@@ -24,11 +24,12 @@ import {
 } from "@heroicons/react/24/solid";
 import {
   useMaterialTailwindController,
-  setOpenConfigurator,
   setOpenSidenav,
 } from "@/context";
 import { useAuth } from "@/context/AuthContext";
 import { NotificationMenu } from "./notification-menu";
+import AdminSearchModal from "../../components/AdminSearchModal";
+import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 
 export function DashboardNavbar(): JSX.Element {
   const [controller, dispatch] = useMaterialTailwindController();
@@ -37,6 +38,18 @@ export function DashboardNavbar(): JSX.Element {
   const [layout, page] = pathname.split("/").filter((el) => el !== "");
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [isSearchOpen, setIsSearchOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsSearchOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const handleLogout = async () => {
     await logout();
@@ -82,7 +95,14 @@ export function DashboardNavbar(): JSX.Element {
         </div>
         <div className="flex items-center">
           <div className="mr-auto md:mr-4 md:w-56">
-            <Input label="Search" crossOrigin={undefined} />
+            <button
+              onClick={() => setIsSearchOpen(true)}
+              className="flex items-center gap-3 px-4 py-2 w-full rounded-xl bg-white/50 border border-blue-gray-100/50 text-blue-gray-400 hover:bg-white hover:border-blue-500/20 hover:shadow-lg hover:shadow-blue-500/5 transition-all text-sm group"
+            >
+              <MagnifyingGlassIcon className="h-4 w-4 group-hover:text-blue-500 transition-colors" />
+              <span className="flex-1 text-left">Search...</span>
+              <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-bold bg-blue-gray-50/50 border border-blue-gray-100 rounded text-blue-gray-300">⌘K</kbd>
+            </button>
           </div>
           <IconButton
             variant="text"
@@ -193,12 +213,13 @@ export function DashboardNavbar(): JSX.Element {
           <IconButton
             variant="text"
             color="blue-gray"
-            onClick={() => setOpenConfigurator(dispatch, true)}
+            onClick={() => navigate("/dashboard/settings")}
           >
             <Cog6ToothIcon className="h-5 w-5 text-blue-gray-500" />
           </IconButton>
         </div>
       </div>
+      <AdminSearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </Navbar>
   );
 }

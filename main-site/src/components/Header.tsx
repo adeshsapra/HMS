@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import NotificationBell from "./NotificationBell";
+import SearchModal from "./SearchModal";
 
 const Header = () => {
   const [isMobileNavActive, setIsMobileNavActive] = useState(false);
@@ -10,6 +11,7 @@ const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuth();
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const handleLogout = async () => {
     await logout();
@@ -66,7 +68,7 @@ const Header = () => {
     };
 
     const updateHeaderMode = () => {
-      setScrolled(window.scrollY > 0);
+      setScrolled(window.scrollY > 15);
 
       const header = document.getElementById("header");
       if (!header) return;
@@ -155,7 +157,18 @@ const Header = () => {
     };
   }, [isMobileNavActive]);
 
-  const isActive = (path: string) => {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsSearchOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const isActive = (path) => {
     return location.pathname === path ? "active" : "";
   };
 
@@ -219,6 +232,14 @@ const Header = () => {
 
         {/* Auth Buttons - Right Side */}
         <div className="d-flex align-items-center header-auth-buttons">
+          <button
+            className="btn-search-trigger"
+            onClick={() => setIsSearchOpen(true)}
+            aria-label="Search"
+          >
+            <i className="bi bi-search"></i>
+          </button>
+
           {isAuthenticated && <NotificationBell />}
           {!isAuthenticated ? (
             <Link to="/sign-in" className="btn-signin d-flex align-items-center" onClick={closeMobileNav}>
@@ -689,8 +710,42 @@ const Header = () => {
             transform: translateY(0);
           }
         }
+
+        /* Search Trigger Button */
+        .btn-search-trigger {
+          background: rgba(4, 158, 187, 0.05);
+          border: 1px solid rgba(4, 158, 187, 0.1);
+          color: var(--default-color);
+          height: 42px;
+          padding: 0 16px;
+          border-radius: 50px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.3s ease;
+          margin-right: 8px;
+        }
+
+        .btn-search-trigger:hover {
+          background: white;
+          border-color: var(--accent-color);
+          box-shadow: 0 4px 12px rgba(4, 158, 187, 0.15);
+          color: var(--accent-color);
+        }
+
+        .btn-search-trigger i {
+          font-size: 16px;
+        }
+
+        @media (max-width: 991px) {
+          .btn-search-trigger {
+            padding: 0;
+            width: 42px;
+          }
+        }
         `}</style>
       </div>
+      <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </header >
   );
 };

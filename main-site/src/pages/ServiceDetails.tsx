@@ -346,6 +346,50 @@ const ServiceDetails = () => {
           color: var(--accent-color);
           font-size: 1.05rem;
         }
+
+        /* --- Responsive Adjustments --- */
+        @media (max-width: 991px) {
+          .service-header-card {
+            padding: 30px 20px;
+          }
+          
+          .service-title {
+            font-size: 2rem;
+          }
+
+          .cta-box {
+            margin-top: 20px;
+          }
+        }
+
+        @media (max-width: 768px) {
+          .service-title {
+            font-size: 1.75rem;
+          }
+
+          .service-icon-large {
+            width: 60px;
+            height: 60px;
+            font-size: 2rem;
+          }
+
+          .details-card {
+            padding: 20px;
+          }
+
+          .info-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .feature-list {
+            grid-template-columns: 1fr;
+          }
+          
+          .meta-badge {
+            font-size: 0.8rem;
+            padding: 6px 12px;
+          }
+        }
       `}</style>
 
       <PageHero
