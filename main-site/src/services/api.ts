@@ -63,13 +63,22 @@ export const serviceAPI = {
         params.append('department_id', String(departmentId));
         return api.get(`/public/services?${params.toString()}`);
     },
+    getFeatured: () => {
+        const params = new URLSearchParams();
+        params.append('is_home', 'true');
+        params.append('is_active', 'true');
+        return api.get(`/public/services?${params.toString()}`);
+    },
 };
 
 export const doctorAPI = {
-    getAll: (page?: number, perPage?: number) => {
+    getAll: (page?: number, perPage?: number, filters?: { search?: string; department?: string; experience?: number }) => {
         const params = new URLSearchParams();
         if (page) params.append('page', page.toString());
         if (perPage) params.append('per_page', perPage.toString());
+        if (filters?.search) params.append('search', filters.search);
+        if (filters?.department) params.append('department', filters.department);
+        if (filters?.experience) params.append('experience', filters.experience.toString());
         return api.get(`/public/doctors${params.toString() ? '?' + params.toString() : ''}`);
     },
     getById: (id: number | string) => api.get(`/public/doctors/${id}`),

@@ -46,7 +46,6 @@ const Departments = () => {
       setLoading(true)
       const response = await departmentAPI.getAll(currentPage, perPage)
       if (response.data.success && response.data.data) {
-        // Check if response is paginated
         if (response.data.meta) {
           setDepartments(response.data.data)
           setTotalPages(response.data.meta.last_page || 1)
@@ -54,7 +53,6 @@ const Departments = () => {
           setFrom(response.data.meta.from || 0)
           setTo(response.data.meta.to || 0)
         } else {
-          // Fallback for non-paginated response
           setDepartments(response.data.data)
           setTotalRecords(response.data.data.length)
           setTotalPages(1)
@@ -75,11 +73,8 @@ const Departments = () => {
     return `${rootUrl}/${path.replace(/^\//, '')}`;
   }
 
-  // Get unique categories from departments
   const categories = ['All', ...Array.from(new Set(departments.map(d => d.category).filter(Boolean))) as string[]]
 
-  // Filter Logic (Note: With pagination, filtering should ideally be done server-side)
-  // For now, we'll display all departments from the current page
   const filteredDepartments = departments.filter((dept) => {
     const matchesSearch = dept.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (dept.subtitle && dept.subtitle.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -88,7 +83,6 @@ const Departments = () => {
     return matchesSearch && matchesCategory
   })
 
-  // Handle page change
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -96,22 +90,37 @@ const Departments = () => {
 
   return (
     <div className="departments-page">
-      {/* Internal CSS for this specific page */}
       <style>{`
         /* --- General Layout --- */
         .section-bg {
           background-color: #f9fbfb;
+          /* Important: Ensure overflow is visible for sticky to work */
+          overflow: visible; 
+        }
+
+        /* Prevent parent overflow from breaking sticky */
+        .departments-page {
+          overflow: visible; 
+          width: 100%;
         }
         
-        /* --- Sidebar Styles --- */
+        /* --- Sidebar Styles (Sticky Logic) --- */
         .sidebar-wrapper {
+          /* Sticky Positioning */
+          position: -webkit-sticky; /* For Safari */
           position: sticky;
-          top: 100px;
+          top: 100px; /* Adjust this value based on your Navbar height */
+          z-index: 10;
+          
+          /* Visuals */
           background: var(--surface-color);
           padding: 30px;
           border-radius: 12px;
           box-shadow: 0 5px 25px rgba(0, 0, 0, 0.05);
           border: 1px solid rgba(0,0,0,0.03);
+          
+          /* REMOVED: max-height and overflow-y to prevent internal scrollbar */
+          width: 100%;
         }
 
         .sidebar-title {
@@ -341,38 +350,12 @@ const Departments = () => {
           transition: 0.3s;
         }
 
-        .dept-link i {
-          margin-left: 6px;
-          transition: 0.3s;
-        }
-
         .dept-link:hover {
           color: var(--accent-color);
         }
 
         .dept-link:hover i {
-          margin-left: 10px;
-        }
-
-        /* --- Loading & Empty States --- */
-        .loading-spinner {
-          text-align: center;
-          padding: 60px;
-        }
-
-        .spinner {
-          border: 4px solid #f3f3f3;
-          border-top: 4px solid var(--accent-color);
-          border-radius: 50%;
-          width: 50px;
-          height: 50px;
-          animation: spin 1s linear infinite;
-          margin: 0 auto 20px;
-        }
-
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
+          margin-left: 6px;
         }
 
         .no-results {
@@ -383,14 +366,15 @@ const Departments = () => {
           border: 1px dashed #ddd;
         }
 
-        /* --- Responsive: Tablet --- */
+        /* --- Responsive: Tablet/Mobile --- */
         @media (max-width: 991px) {
-          .departments-page .sidebar-wrapper {
+          /* On smaller screens, the sidebar goes to top and shouldn't stick */
+          .sidebar-wrapper {
             position: relative;
             top: 0;
             margin-bottom: 1.5rem;
-            padding: 24px;
           }
+          
           .departments-page .results-header {
             flex-wrap: wrap;
             gap: 12px;
@@ -400,128 +384,6 @@ const Departments = () => {
             font-size: 1.2rem;
             width: 100%;
           }
-          .departments-page .results-count {
-            font-size: 0.85rem;
-          }
-          .departments-page .department-image-wrapper {
-            height: 200px;
-          }
-          .departments-page .department-content {
-            padding: 20px;
-          }
-          .departments-page .dept-title {
-            font-size: 1.25rem;
-          }
-        }
-
-        /* --- Responsive: Mobile --- */
-        @media (max-width: 768px) {
-          .departments-page .section,
-          .departments-page #departments {
-            padding-top: 2rem;
-            padding-bottom: 2.5rem;
-          }
-          .departments-page .container {
-            padding-left: 1rem;
-            padding-right: 1rem;
-          }
-          .departments-page .sidebar-wrapper {
-            padding: 20px 18px;
-            border-radius: 10px;
-          }
-          .departments-page .sidebar-title {
-            font-size: 1.1rem;
-            margin-bottom: 16px;
-          }
-          .departments-page .search-box {
-            margin-bottom: 20px;
-          }
-          .departments-page .search-box input {
-            padding: 10px 12px 10px 40px;
-            font-size: 0.9rem;
-          }
-          .departments-page .help-widget {
-            margin-top: 28px;
-            padding: 20px 18px;
-          }
-          .departments-page .help-widget h5 {
-            font-size: 1rem;
-          }
-          .departments-page .results-header {
-            margin-bottom: 18px;
-          }
-          .departments-page .results-header h4 {
-            font-size: 1.15rem;
-          }
-          .departments-page .department-card {
-            border-radius: 10px;
-          }
-          .departments-page .department-image-wrapper {
-            height: 180px;
-          }
-          .departments-page .department-content {
-            padding: 18px 16px;
-          }
-          .departments-page .icon-box {
-            width: 44px;
-            height: 44px;
-            font-size: 1.25rem;
-            margin-top: -44px;
-            margin-bottom: 12px;
-          }
-          .departments-page .dept-title {
-            font-size: 1.15rem;
-          }
-          .departments-page .dept-desc {
-            font-size: 0.9rem;
-            margin-bottom: 16px;
-          }
-          .departments-page .no-results {
-            padding: 32px 24px;
-          }
-        }
-
-        @media (max-width: 576px) {
-          .departments-page .section,
-          .departments-page #departments {
-            padding-top: 1.5rem;
-            padding-bottom: 2rem;
-          }
-          .departments-page .container {
-            padding-left: 0.75rem;
-            padding-right: 0.75rem;
-          }
-          .departments-page .sidebar-wrapper {
-            padding: 18px 16px;
-          }
-          .departments-page .category-btn {
-            padding: 8px 12px;
-            font-size: 0.9rem;
-          }
-          .departments-page .department-image-wrapper {
-            height: 200px;
-          }
-          .departments-page .department-content {
-            padding: 16px 14px;
-          }
-          .departments-page .dept-title {
-            font-size: 1.1rem;
-          }
-          .departments-page .dept-stats {
-            padding: 8px 12px;
-            font-size: 0.85rem;
-          }
-          .departments-page .no-results {
-            padding: 28px 20px;
-          }
-          .departments-page .no-results h4 {
-            font-size: 1.1rem;
-          }
-        }
-
-        .departments-page {
-          overflow-x: hidden;
-          max-width: 100vw;
         }
       `}</style>
 
@@ -539,6 +401,10 @@ const Departments = () => {
           <div className="row">
 
             {/* --- Left Sidebar Filter --- */}
+            {/* 
+                1. 'col-lg-3' determines width.
+                2. 'sidebar-wrapper' has 'position: sticky', so it sticks inside this column.
+            */}
             <div className="col-lg-3 mb-5 mb-lg-0">
               <div className="sidebar-wrapper">
                 <div className="sidebar-title">
@@ -647,7 +513,6 @@ const Departments = () => {
                     ))}
                   </div>
 
-                  {/* Pagination Component */}
                   <Pagination
                     currentPage={currentPage}
                     totalPages={totalPages}

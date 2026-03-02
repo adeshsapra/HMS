@@ -17,9 +17,9 @@ import SectionHeading from "../components/Home/SectionHeading";
 import FindDoctorSection from "../components/Home/FindDoctor/FindDoctorSection";
 import CallToActionSection from "../components/Home/CallToAction/CallToActionSection";
 import AboutSection from "../components/Home/About/AboutSection";
-import TestimonialsSection from "../components/Home/Testimonials/TestimonialsSection";
 import FeaturedServicesSection from "../components/Home/FeaturedServices/FeaturedServicesSection";
 import EmergencyInfoSection from "../components/Home/EmergencyInfo/EmergencyInfoSection";
+import TestimonialsSection from "../components/Home/Testimonials/TestimonialsSection";
 
 interface HealthPackage {
   id: number;

@@ -6,6 +6,7 @@ import NotificationBell from "./NotificationBell";
 const Header = () => {
   const [isMobileNavActive, setIsMobileNavActive] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [isDarkBackground, setIsDarkBackground] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuth();
@@ -17,15 +18,90 @@ const Header = () => {
   };
 
   useEffect(() => {
+    const getBrightness = (color: string) => {
+      const match = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+      if (!match) return 255;
+      const r = Number(match[1]);
+      const g = Number(match[2]);
+      const b = Number(match[3]);
+      return (r * 299 + g * 587 + b * 114) / 1000;
+    };
+
+    const hasVisibleBackground = (color: string) => {
+      if (!color || color === "transparent") return false;
+      const rgbaMatch = color.match(/rgba\(\d+,\s*\d+,\s*\d+,\s*([0-9.]+)\)/i);
+      if (!rgbaMatch) return true;
+      return Number(rgbaMatch[1]) > 0;
+    };
+
+    const getBackgroundColorFromTree = (startElement: Element | null) => {
+      let current = startElement;
+      while (current && current !== document.documentElement) {
+        const styles = window.getComputedStyle(current);
+        if (hasVisibleBackground(styles.backgroundColor)) {
+          return styles.backgroundColor;
+        }
+        current = current.parentElement;
+      }
+
+      const bodyBg = window.getComputedStyle(document.body).backgroundColor;
+      return hasVisibleBackground(bodyBg) ? bodyBg : "rgb(255, 255, 255)";
+    };
+
+    const isKnownDarkSection = (element: Element | null) => {
+      if (!element) return false;
+      return Boolean(
+        element.closest(".modern-hero-section") ||
+        element.closest(".dark-background") ||
+        element.closest(".page-title.dark-background")
+      );
+    };
+
+    const isDarkFooterVisibleOnMobile = () => {
+      if (window.innerWidth >= 1200) return false;
+      const footer = document.querySelector(".footer-section");
+      if (!footer) return false;
+      const rect = footer.getBoundingClientRect();
+      return rect.top < window.innerHeight && rect.bottom > 0;
+    };
+
+    const updateHeaderMode = () => {
+      setScrolled(window.scrollY > 0);
+
+      const header = document.getElementById("header");
+      if (!header) return;
+
+      const sampleX = Math.floor(window.innerWidth / 2);
+      const sampleY = Math.min(
+        window.innerHeight - 1,
+        Math.floor(header.getBoundingClientRect().height + 8)
+      );
+
+      const stack = document.elementsFromPoint(sampleX, sampleY);
+      const targetElement =
+        stack.find((el) => el !== header && !header.contains(el)) ?? document.body;
+
+      if (isKnownDarkSection(targetElement) || isDarkFooterVisibleOnMobile()) {
+        setIsDarkBackground(true);
+        return;
+      }
+
+      const bgColor = getBackgroundColorFromTree(targetElement);
+      const isDark = getBrightness(bgColor) < 140;
+      setIsDarkBackground(isDark);
+    };
+
     const handleScroll = () => {
-      setScrolled(window.scrollY > 100);
+      updateHeaderMode();
     };
 
     window.addEventListener("scroll", handleScroll);
-    handleScroll();
+    window.addEventListener("resize", updateHeaderMode);
+    updateHeaderMode();
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", updateHeaderMode);
       document.body.classList.remove("mobile-nav-active");
       document.body.style.overflow = "";
     };
@@ -48,8 +124,8 @@ const Header = () => {
   };
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Node;
+    const handleClickOutside = (event) => {
+      const target = event.target;
       const navmenu = document.getElementById("navmenu");
       const toggle = document.querySelector(".mobile-nav-toggle");
 
@@ -83,12 +159,7 @@ const Header = () => {
   };
 
   const LogoIcon = () => (
-    <svg
-      className="my-icon"
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
+    <svg className="my-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <g id="bgCarrier" strokeWidth="0"></g>
       <g id="tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
       <g id="iconCarrier">
@@ -114,16 +185,11 @@ const Header = () => {
   return (
     <header
       id="header"
-      className={`header d-flex align-items-center fixed-top ${scrolled ? "scrolled" : ""
-        }`}
+      className={`header d-flex align-items-center fixed-top ${scrolled ? "scrolled" : ""} ${isDarkBackground ? "dark-underlay" : ""}`}
     >
       <div className="header-container container-fluid container-xl position-relative d-flex align-items-center justify-content-between">
         {/* Logo - Left Side */}
-        <Link
-          to="/"
-          className="logo d-flex align-items-center"
-          onClick={closeMobileNav}
-        >
+        <Link to="/" className="logo d-flex align-items-center" onClick={closeMobileNav}>
           <LogoIcon />
           <h1 className="sitename">MediTrust</h1>
         </Link>
@@ -154,26 +220,23 @@ const Header = () => {
         <div className="d-flex align-items-center header-auth-buttons">
           {isAuthenticated && <NotificationBell />}
           {!isAuthenticated ? (
-            <Link
-              to="/sign-in"
-              className="btn-signin d-none d-md-flex align-items-center"
-              onClick={closeMobileNav}
-            >
+            <Link to="/sign-in" className="btn-signin d-flex align-items-center" onClick={closeMobileNav}>
               <i className="bi bi-box-arrow-in-right"></i>
-              <span className="d-flex flex-column">
+              <span className="d-none d-md-flex flex-column">
                 <span>Sign In</span>
               </span>
             </Link>
           ) : (
-            <div className="dropdown d-none d-md-block">
+            < div className="dropdown">
               <button
-                className="btn-profile-toggle d-flex align-items-center gap-2 dropdown-toggle"
+                className="btn-profile-toggle d-flex align-items-center gap-md-2 dropdown-toggle"
                 type="button"
                 data-bs-toggle="dropdown"
                 aria-expanded="false"
               >
                 <i className="bi bi-person-circle fs-5"></i>
-                <span className="fw-bold">{user?.name?.split(' ')[0]}</span>
+                {/* FIXED: Moved d-none to the user name so it becomes a neat icon on mobile */}
+                <span className="fw-bold d-none d-md-block">{user?.name?.split(' ')[0]}</span>
               </button>
               <ul className="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 mt-2">
                 <li><h6 className="dropdown-header">Hello, {user?.name}</h6></li>
@@ -191,11 +254,7 @@ const Header = () => {
               </ul>
             </div>
           )}
-          <Link
-            className="btn-getstarted"
-            to="/quickappointment"
-            onClick={closeMobileNav}
-          >
+          <Link className="btn-getstarted" to="/quickappointment" onClick={closeMobileNav}>
             <i className="bi bi-calendar-check me-2"></i>
             Appointment
           </Link>
@@ -205,8 +264,10 @@ const Header = () => {
         /* --- Base Header Transitions --- */
         .header {
           transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
-          border-bottom: none; /* Ensures no border in base state */
+          border-bottom: none; 
           z-index: 997;
+          position: fixed; 
+          width: 100%;
         }
 
         .header-container {
@@ -218,21 +279,21 @@ const Header = () => {
 
         /* --- Scrolled Header State (PREMIUM LIGHT GLASS EFFECT) --- */
         .header.scrolled {
-          /* Much more transparent to let the background show through deeply */
+          padding: 0;
+          border-bottom: none; 
+          box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
+          border-top: 1px solid rgba(255, 255, 255, 0.6); 
+        }
+
+        .header.scrolled::before {
+          content: "";
+          position: absolute;
+          inset: 0;
           background-color: rgba(255, 255, 255, 0.35); 
-          
-          /* The combination of a higher blur AND saturation gives that beautiful Apple-style magnifying/pop effect to photos & headings underneath */
           backdrop-filter: blur(16px) saturate(180%); 
           -webkit-backdrop-filter: blur(16px) saturate(180%);
-          
-          padding: 0;
-          border-bottom: none; /* Removed the bottom border completely */
-          
-          /* Added a very soft, elegant shadow to separate the header instead of using a hard border line */
-          box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
-          
-          /* A 1px translucent white top border creates a highly realistic "3D glass edge" reflection */
-          border-top: 1px solid rgba(255, 255, 255, 0.6); 
+          z-index: -1;
+          pointer-events: none; 
         }
 
         .header.scrolled .header-container {
@@ -243,6 +304,14 @@ const Header = () => {
           max-width: 100% !important;
           width: 100%;
           margin: 0;
+        }
+
+        /* Keep only nav text white on scrolled/darker glass header */
+        .header.scrolled.dark-underlay .navmenu:not(.mobile-nav-active) a,
+        .header.scrolled.dark-underlay .navmenu:not(.mobile-nav-active) a:focus,
+        .header.scrolled.dark-underlay .navmenu:not(.mobile-nav-active) a.active,
+        .header.scrolled.dark-underlay .navmenu:not(.mobile-nav-active) li:hover > a {
+          color: #ffffff !important;
         }
 
         .header .logo {
@@ -365,8 +434,18 @@ const Header = () => {
             margin-right: 10px;
           }
 
+          /* FIXED: Removed "display: none !important" from .btn-signin */
           .header-auth-buttons .btn-signin {
-            display: none !important;
+            padding: 8px 12px; /* Adjusted padding to make it a circle/square icon on mobile */
+          }
+          
+          .header-auth-buttons .btn-profile-toggle {
+            padding: 6px 10px;
+          }
+
+          /* Hide the dropdown arrow on mobile profile button to save space */
+          .header-auth-buttons .btn-profile-toggle::after {
+             display: none !important;
           }
 
           .header-auth-buttons .btn-getstarted {
@@ -374,49 +453,8 @@ const Header = () => {
             font-size: 13px;
             white-space: nowrap;
           }
-        }
 
-        @media (max-width: 768px) {
-          .header-auth-buttons {
-            margin-right: 8px;
-          }
-
-          .header-auth-buttons .btn-getstarted {
-            padding: 7px 16px;
-            font-size: 12px;
-          }
-        }
-
-        @media (max-width: 576px) {
-          .header-auth-buttons .btn-getstarted {
-            padding: 6px 14px;
-            font-size: 11px;
-          }
-
-          .header-container {
-            padding-left: 15px !important;
-            padding-right: 15px !important;
-          }
-        }
-
-        @media (min-width: 768px) and (max-width: 991px) {
-          .header-auth-buttons .btn-signin {
-            padding: 8px 12px;
-            font-size: 12px;
-            gap: 8px;
-          }
-
-          .header-auth-buttons .btn-signin i {
-            font-size: 16px;
-          }
-
-          .header-auth-buttons .btn-signin span span {
-            font-size: 11px;
-          }
-        }
-
-        /* Mobile menu improvements */
-        @media (max-width: 1199px) {
+          /* --- MOBILE TOGGLE FIX --- */
           .mobile-nav-toggle {
             display: flex !important;
             align-items: center;
@@ -426,10 +464,23 @@ const Header = () => {
             border-radius: 8px;
             background: rgba(4, 158, 187, 0.1);
             transition: all 0.3s ease;
+            position: relative; 
+            z-index: 9999;      
+            cursor: pointer;
           }
 
           .mobile-nav-toggle:hover {
             background: rgba(4, 158, 187, 0.2);
+          }
+
+          .header.scrolled.dark-underlay .mobile-nav-toggle {
+            background: #ffffff;
+            color: var(--accent-color);
+          }
+
+          .header.scrolled.dark-underlay .mobile-nav-toggle:hover {
+            background: #ffffff;
+            color: var(--accent-color);
           }
 
           .navmenu.mobile-nav-active .mobile-nav-toggle {
@@ -470,6 +521,56 @@ const Header = () => {
               opacity: 1;
               transform: translateY(0);
             }
+          }
+        }
+
+        @media (max-width: 768px) {
+          .header-auth-buttons {
+            margin-right: 8px;
+          }
+
+          .header-auth-buttons .btn-getstarted {
+            padding: 7px 16px;
+            font-size: 12px;
+          }
+        }
+
+        @media (max-width: 576px) {
+          .header-auth-buttons .btn-getstarted {
+            padding: 6px 14px;
+            font-size: 11px;
+          }
+
+          .header-container {
+            padding-left: 15px !important;
+            padding-right: 15px !important;
+          }
+        }
+
+        @media (max-width: 767px) {
+          .header-auth-buttons {
+            display: none !important;
+          }
+
+          .header .navmenu {
+            order: 2;
+            margin-left: auto;
+          }
+        }
+
+        @media (min-width: 768px) and (max-width: 991px) {
+          .header-auth-buttons .btn-signin {
+            padding: 8px 12px;
+            font-size: 12px;
+            gap: 8px;
+          }
+
+          .header-auth-buttons .btn-signin i {
+            font-size: 16px;
+          }
+
+          .header-auth-buttons .btn-signin span span {
+            font-size: 11px;
           }
         }
 
@@ -556,7 +657,7 @@ const Header = () => {
         }
 
         .header-auth-buttons .dropdown-item:hover {
-          background-color: #f8f9fa; /* Subtle gray background */
+          background-color: #f8f9fa;
           color: var(--accent-color);
         }
 
@@ -589,7 +690,7 @@ const Header = () => {
         }
         `}</style>
       </div>
-    </header>
+    </header >
   );
 };
 

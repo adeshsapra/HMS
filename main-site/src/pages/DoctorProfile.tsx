@@ -149,7 +149,8 @@ const DoctorProfile = () => {
 
                 .professional-doctor-profile {
                     background-color: #f8fafc;
-                    padding-bottom: 5rem;
+                    padding-bottom: 3rem;
+                    min-height: 100vh;
                 }
 
                 .profile-content-loading {
@@ -164,15 +165,19 @@ const DoctorProfile = () => {
 
                 .loader-box { text-align: center; }
 
-                /* Hero Section Overrides */
+                /* Hero Section Overrides - Fixed for responsive */
                 .profile-hero-content {
                     margin-bottom: 0;
                 }
 
                 .profile-content-container {
-                    margin-top: -60px;
+                    margin-top: 0;
                     position: relative;
                     z-index: 10;
+                    max-width: 1400px;
+                    margin-left: auto;
+                    margin-right: auto;
+                    padding: 0 15px;
                 }
 
                 /* Layout Components */
@@ -186,20 +191,20 @@ const DoctorProfile = () => {
 
                 .profile-header-strip {
                     display: flex;
-                    padding: 3rem;
-                    gap: 3rem;
+                    padding: 2rem;
+                    gap: 2rem;
                     background: linear-gradient(to right, #ffffff, #f8fafc);
                     border-bottom: 1px solid #f1f5f9;
                 }
 
                 .doc-image-wrapper {
                     flex-shrink: 0;
-                    width: 280px;
-                    height: 280px;
-                    border-radius: 20px;
+                    width: 200px;
+                    height: 200px;
+                    border-radius: 16px;
                     overflow: hidden;
                     box-shadow: 0 10px 30px rgba(13, 138, 188, 0.15);
-                    border: 6px solid white;
+                    border: 4px solid white;
                 }
 
                 .doc-image-wrapper img {
@@ -216,27 +221,30 @@ const DoctorProfile = () => {
                 }
 
                 .doc-name-hero {
-                    font-size: 3rem;
+                    font-size: 2rem;
                     font-weight: 900;
                     color: var(--hospital-dark);
                     margin-bottom: 0.5rem;
-                    letter-spacing: -1px;
+                    letter-spacing: -0.5px;
+                    line-height: 1.2;
                 }
 
                 .doc-spec-hero {
-                    font-size: 1.25rem;
+                    font-size: 1rem;
                     color: var(--hospital-blue);
                     font-weight: 700;
-                    margin-bottom: 1.5rem;
+                    margin-bottom: 1rem;
                     display: flex;
                     align-items: center;
-                    gap: 10px;
+                    gap: 8px;
+                    flex-wrap: wrap;
                 }
 
                 .doc-stats-row {
                     display: flex;
-                    gap: 2rem;
-                    margin-top: 1rem;
+                    gap: 1.5rem;
+                    margin-top: 0.75rem;
+                    flex-wrap: wrap;
                 }
 
                 .stat-item-premium {
@@ -245,68 +253,71 @@ const DoctorProfile = () => {
                 }
 
                 .stat-v-premium {
-                    font-size: 1.8rem;
+                    font-size: 1.4rem;
                     font-weight: 800;
                     color: var(--hospital-dark);
                 }
 
                 .stat-l-premium {
-                    font-size: 0.8rem;
+                    font-size: 0.7rem;
                     text-transform: uppercase;
-                    letter-spacing: 1px;
+                    letter-spacing: 0.5px;
                     color: #94a3b8;
                     font-weight: 700;
                 }
 
                 /* Content Sections */
                 .profile-sections-wrapper {
-                    padding: 3rem;
+                    padding: 1.5rem;
                 }
+
                 .p-section-title {
-                    font-size: 1.5rem;
+                    font-size: 1.25rem;
                     font-weight: 800;
                     color: var(--hospital-dark);
-                    margin-bottom: 1.5rem;
+                    margin-bottom: 1rem;
                     position: relative;
-                    padding-left: 15px;
+                    padding-left: 12px;
                 }
 
                 .p-section-title::before {
                     content: '';
                     position: absolute;
                     left: 0;
-                    top: 5px;
-                    bottom: 5px;
-                    width: 5px;
+                    top: 3px;
+                    bottom: 3px;
+                    width: 4px;
                     background: var(--hospital-blue);
-                    border-radius: 10px;
+                    border-radius: 8px;
                 }
 
                 .p-text-content {
-                    font-size: 1.1rem;
-                    line-height: 1.8;
+                    font-size: 1rem;
+                    line-height: 1.7;
                     color: #475569;
                 }
 
                 .expertise-grid {
                     display: grid;
-                    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-                    gap: 1rem;
+                    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                    gap: 0.75rem;
                 }
 
                 .expertise-item {
                     background: #f1f5f9;
-                    padding: 12px 20px;
-                    border-radius: 12px;
+                    padding: 10px 14px;
+                    border-radius: 10px;
                     font-weight: 600;
                     color: var(--hospital-dark);
                     display: flex;
                     align-items: center;
-                    gap: 10px;
+                    gap: 8px;
+                    font-size: 0.85rem;
                 }
 
                 .expertise-item i {
                     color: var(--hospital-blue);
+                    font-size: 0.9rem;
                 }
 
                 /* Sidebar Design */
@@ -314,19 +325,19 @@ const DoctorProfile = () => {
                     position: sticky;
                     top: 100px;
                     background: white;
-                    border-radius: 24px;
+                    border-radius: 20px;
                     box-shadow: var(--premium-shadow);
-                    padding: 2.5rem;
+                    padding: 1.5rem;
                     border: 1px solid rgba(0,0,0,0.05);
                 }
 
                 .availability-banner {
-                    padding: 10px;
-                    border-radius: 10px;
+                    padding: 8px 12px;
+                    border-radius: 8px;
                     text-align: center;
                     font-weight: 700;
-                    margin-bottom: 1.5rem;
-                    font-size: 0.9rem;
+                    margin-bottom: 1rem;
+                    font-size: 0.8rem;
                 }
 
                 .available-now { background: #dcfce7; color: #166534; }
@@ -336,70 +347,72 @@ const DoctorProfile = () => {
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
-                    margin-bottom: 2rem;
+                    margin-bottom: 1.5rem;
                     padding-bottom: 1rem;
                     border-bottom: 1px solid #f1f5f9;
                 }
 
-                .fee-label { font-size: 1.1rem; font-weight: 600; color: #64748b; }
-                .fee-price { font-size: 2rem; font-weight: 900; color: var(--hospital-dark); }
+                .fee-label { font-size: 1rem; font-weight: 600; color: #64748b; }
+                .fee-price { font-size: 1.5rem; font-weight: 900; color: var(--hospital-dark); }
 
                 .sidebar-info-group {
-                    margin-bottom: 1.5rem;
+                    margin-bottom: 1rem;
                 }
 
                 .si-label {
-                    font-size: 0.75rem;
+                    font-size: 0.7rem;
                     font-weight: 800;
                     text-transform: uppercase;
                     color: #94a3b8;
-                    margin-bottom: 5px;
+                    margin-bottom: 4px;
                     display: block;
                 }
 
                 .si-value {
-                    font-size: 1rem;
+                    font-size: 0.9rem;
                     font-weight: 700;
                     color: var(--hospital-dark);
                 }
 
+                /* Fixed Button Size - Responsive */
                 .btn-instant-appointment {
                     background: linear-gradient(135deg, #0d8abc 0%, #0c76a1 100%);
                     color: white;
                     border: none;
                     width: 100%;
-                    padding: 18px;
-                    border-radius: 15px;
-                    font-weight: 800;
+                    padding: 14px 20px;
+                    border-radius: 12px;
+                    font-weight: 700;
                     text-transform: uppercase;
-                    letter-spacing: 1px;
-                    box-shadow: 0 10px 20px rgba(13, 138, 188, 0.2);
+                    letter-spacing: 0.5px;
+                    box-shadow: 0 6px 15px rgba(13, 138, 188, 0.25);
                     transition: all 0.3s ease;
                     margin-top: 1rem;
+                    font-size: 0.9rem;
                 }
 
                 .btn-instant-appointment:hover {
-                    transform: translateY(-3px);
-                    box-shadow: 0 15px 30px rgba(13, 138, 188, 0.3);
+                    transform: translateY(-2px);
+                    box-shadow: 0 10px 25px rgba(13, 138, 188, 0.35);
                     color: white;
                 }
 
                 /* Review Form Styles */
                 .review-submission-box {
                     background: #f8fafc;
-                    border-radius: 20px;
-                    padding: 2.5rem;
-                    margin-top: 3rem;
+                    border-radius: 16px;
+                    padding: 1.5rem;
+                    margin-top: 2rem;
                 }
 
                 .rating-selector {
                     display: flex;
-                    gap: 10px;
-                    margin-bottom: 1.5rem;
+                    gap: 8px;
+                    margin-bottom: 1rem;
                 }
 
                 .star-selector {
-                    font-size: 1.5rem;
+                    font-size: 1.3rem;
                     cursor: pointer;
                     color: #cbd5e1;
                     transition: color 0.2s;
@@ -411,28 +424,30 @@ const DoctorProfile = () => {
 
                 .form-premium-input {
                     border: 2px solid #e2e8f0;
-                    border-radius: 12px;
-                    padding: 12px 18px;
+                    border-radius: 10px;
+                    padding: 10px 14px;
                     width: 100%;
-                    margin-bottom: 1.2rem;
+                    margin-bottom: 1rem;
                     font-weight: 500;
                     transition: all 0.3s;
+                    font-size: 0.95rem;
                 }
 
                 .form-premium-input:focus {
                     border-color: var(--hospital-blue);
                     outline: none;
-                    box-shadow: 0 0 0 4px rgba(13, 138, 188, 0.1);
+                    box-shadow: 0 0 0 3px rgba(13, 138, 188, 0.1);
                 }
 
                 .btn-submit-review-premium {
                     background: var(--hospital-dark);
                     color: white;
                     border: none;
-                    padding: 12px 30px;
-                    border-radius: 12px;
+                    padding: 10px 24px;
+                    border-radius: 10px;
                     font-weight: 700;
                     transition: all 0.3s;
+                    font-size: 0.9rem;
                 }
 
                 .btn-submit-review-premium:hover {
@@ -442,8 +457,8 @@ const DoctorProfile = () => {
                 /* Reviews Display */
                 .review-card-premium {
                     border-bottom: 1px solid #f1f5f9;
-                    padding-bottom: 2rem;
-                    margin-bottom: 2rem;
+                    padding-bottom: 1.5rem;
+                    margin-bottom: 1.5rem;
                 }
 
                 .review-card-premium:last-child {
@@ -453,18 +468,20 @@ const DoctorProfile = () => {
                 .rc-header {
                     display: flex;
                     justify-content: space-between;
-                    margin-bottom: 1rem;
+                    margin-bottom: 0.75rem;
+                    flex-wrap: wrap;
+                    gap: 0.5rem;
                 }
 
                 .rc-author-box {
                     display: flex;
-                    gap: 15px;
+                    gap: 12px;
                     align-items: center;
                 }
 
                 .rc-avatar {
-                    width: 50px;
-                    height: 50px;
+                    width: 40px;
+                    height: 40px;
                     background: var(--hospital-blue);
                     color: white;
                     border-radius: 50%;
@@ -472,17 +489,18 @@ const DoctorProfile = () => {
                     align-items: center;
                     justify-content: center;
                     font-weight: 800;
-                    font-size: 1.2rem;
+                    font-size: 1rem;
+                    flex-shrink: 0;
                 }
 
-                .rc-author-name { font-weight: 800; color: var(--hospital-dark); }
-                .rc-stars { color: #fbbf24; font-size: 0.9rem; }
-                .rc-date { font-size: 0.85rem; color: #94a3b8; font-weight: 600; }
-                .rc-title { font-weight: 800; font-size: 1.1rem; color: var(--hospital-dark); margin-bottom: 8px; }
-                .rc-body { color: #64748b; line-height: 1.7; }
+                .rc-author-name { font-weight: 800; color: var(--hospital-dark); font-size: 0.95rem; }
+                .rc-stars { color: #fbbf24; font-size: 0.8rem; }
+                .rc-date { font-size: 0.8rem; color: #94a3b8; font-weight: 600; }
+                .rc-title { font-weight: 800; font-size: 1rem; color: var(--hospital-dark); margin-bottom: 6px; }
+                .rc-body { color: #64748b; line-height: 1.6; font-size: 0.95rem; }
 
                 .profile-loading-screen {
-                    height: 80vh;
+                    min-height: 60vh;
                     display: flex;
                     align-items: center;
                     justify-content: center;
@@ -490,16 +508,291 @@ const DoctorProfile = () => {
                 }
 
                 .loader-box { text-align: center; }
-                .loader-box p { margin-top: 1.5rem; font-weight: 700; color: var(--hospital-blue); }
+                .loader-box p { margin-top: 1rem; font-weight: 700; color: var(--hospital-blue); }
 
-                @media (max-width: 991px) {
-                    .profile-header-strip { flex-direction: column; text-align: center; align-items: center; padding: 2rem; }
-                    .doc-image-wrapper { width: 200px; height: 200px; }
-                    .doc-name-hero { font-size: 2.2rem; }
-                    .doc-stats-row { justify-content: center; }
-                    .profile-content-container { margin-top: -30px; }
-                    .booking-sidebar-premium { margin-top: 2rem; position: static; }
-                    .profile-sections-wrapper { padding: 1.5rem; }
+                /* ============================================ */
+                /* RESPONSIVE STYLES - MOBILE FIRST APPROACH  */
+                /* ============================================ */
+
+                /* Tablet Breakpoint (768px - 1024px) */
+                @media (max-width: 1024px) {
+                    .profile-content-container {
+                        padding: 0 20px;
+                    }
+
+                    .profile-header-strip {
+                        padding: 1.5rem;
+                        gap: 1.5rem;
+                    }
+
+                    .doc-image-wrapper {
+                        width: 160px;
+                        height: 160px;
+                    }
+
+                    .doc-name-hero {
+                        font-size: 1.75rem;
+                    }
+
+                    .doc-spec-hero {
+                        font-size: 0.95rem;
+                    }
+
+                    .doc-stats-row {
+                        gap: 1.25rem;
+                    }
+
+                    .stat-v-premium {
+                        font-size: 1.2rem;
+                    }
+
+                    .booking-sidebar-premium {
+                        top: 80px;
+                        padding: 1.25rem;
+                    }
+
+                    .fee-price {
+                        font-size: 1.35rem;
+                    }
+                }
+
+                /* Mobile Breakpoint (max-width: 767px) */
+                @media (max-width: 767px) {
+                    .professional-doctor-profile {
+                        padding-bottom: 2rem;
+                    }
+
+                    .profile-content-container {
+                        padding: 0 12px;
+                        margin-top: 0;
+                    }
+
+                    .profile-header-strip {
+                        flex-direction: column;
+                        text-align: center;
+                        align-items: center;
+                        padding: 1.25rem;
+                        gap: 1rem;
+                    }
+
+                    .doc-image-wrapper {
+                        width: 140px;
+                        height: 140px;
+                        border-radius: 14px;
+                        border: 3px solid white;
+                    }
+
+                    .doc-primary-details {
+                        width: 100%;
+                    }
+
+                    .doc-name-hero {
+                        font-size: 1.5rem;
+                        letter-spacing: 0;
+                    }
+
+                    .doc-spec-hero {
+                        font-size: 0.85rem;
+                        justify-content: center;
+                    }
+
+                    .doc-stats-row {
+                        justify-content: center;
+                        gap: 1rem;
+                    }
+
+                    .stat-item-premium {
+                        align-items: center;
+                    }
+
+                    .stat-v-premium {
+                        font-size: 1.1rem;
+                    }
+
+                    .stat-l-premium {
+                        font-size: 0.6rem;
+                    }
+
+                    .profile-sections-wrapper {
+                        padding: 1rem;
+                    }
+
+                    .p-section-title {
+                        font-size: 1.1rem;
+                    }
+
+                    .p-text-content {
+                        font-size: 0.9rem;
+                        line-height: 1.6;
+                    }
+
+                    .expertise-grid {
+                        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+                        gap: 0.5rem;
+                    }
+
+                    .expertise-item {
+                        padding: 8px 10px;
+                        font-size: 0.75rem;
+                        border-radius: 8px;
+                    }
+
+                    /* Sidebar Mobile */
+                    .booking-sidebar-premium {
+                        position: static;
+                        margin-top: 1.5rem;
+                        padding: 1rem;
+                        border-radius: 16px;
+                    }
+
+                    .booking-fee-row {
+                        margin-bottom: 1rem;
+                        padding-bottom: 0.75rem;
+                    }
+
+                    .fee-label {
+                        font-size: 0.9rem;
+                    }
+
+                    .fee-price {
+                        font-size: 1.25rem;
+                    }
+
+                    .hospital-details-sidebar {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 0.75rem;
+                    }
+
+                    .sidebar-info-group {
+                        margin-bottom: 0;
+                    }
+
+                    .si-label {
+                        font-size: 0.65rem;
+                    }
+
+                    .si-value {
+                        font-size: 0.8rem;
+                    }
+
+                    /* Button Mobile - Properly Sized */
+                    .btn-instant-appointment {
+                        padding: 12px 18px;
+                        font-size: 0.85rem;
+                        border-radius: 10px;
+                        margin-top: 0.75rem;
+                    }
+
+                    .review-submission-box {
+                        padding: 1rem;
+                        margin-top: 1.5rem;
+                        border-radius: 14px;
+                    }
+
+                    .rating-selector {
+                        gap: 6px;
+                    }
+
+                    .star-selector {
+                        font-size: 1.2rem;
+                    }
+
+                    .form-premium-input {
+                        padding: 10px 12px;
+                        font-size: 0.9rem;
+                        margin-bottom: 0.75rem;
+                    }
+
+                    .btn-submit-review-premium {
+                        padding: 10px 20px;
+                        font-size: 0.85rem;
+                        width: 100%;
+                    }
+
+                    .review-card-premium {
+                        padding-bottom: 1rem;
+                        margin-bottom: 1rem;
+                    }
+
+                    .rc-avatar {
+                        width: 36px;
+                        height: 36px;
+                        font-size: 0.9rem;
+                    }
+
+                    .rc-author-name {
+                        font-size: 0.9rem;
+                    }
+
+                    .rc-title {
+                        font-size: 0.95rem;
+                    }
+
+                    .rc-body {
+                        font-size: 0.85rem;
+                    }
+
+                    .info-grid-premium {
+                        grid-template-columns: 1fr 1fr;
+                        gap: 0.75rem;
+                    }
+
+                    .info-card-modern {
+                        padding: 1rem;
+                        gap: 0.75rem;
+                    }
+
+                    .icm-icon {
+                        width: 36px;
+                        height: 36px;
+                        font-size: 1rem;
+                    }
+
+                    .icm-label {
+                        font-size: 0.65rem;
+                    }
+
+                    .icm-value {
+                        font-size: 0.85rem;
+                    }
+                }
+
+                /* Extra Small Mobile (max-width: 480px) */
+                @media (max-width: 480px) {
+                    .profile-header-strip {
+                        padding: 1rem;
+                    }
+
+                    .doc-image-wrapper {
+                        width: 120px;
+                        height: 120px;
+                    }
+
+                    .doc-name-hero {
+                        font-size: 1.3rem;
+                    }
+
+                    .doc-stats-row {
+                        gap: 0.75rem;
+                    }
+
+                    .stat-v-premium {
+                        font-size: 1rem;
+                    }
+
+                    .hospital-details-sidebar {
+                        grid-template-columns: 1fr;
+                    }
+
+                    .info-grid-premium {
+                        grid-template-columns: 1fr;
+                    }
+
+                    .btn-instant-appointment {
+                        padding: 11px 16px;
+                        font-size: 0.8rem;
+                    }
                 }
                 `}
             </style>

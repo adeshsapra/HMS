@@ -2,9 +2,9 @@ import { Link } from "react-router-dom";
 import SectionHeading from "../SectionHeading";
 
 const AboutSection = () => {
-    return (
-        <>
-            <style>{`
+  return (
+    <>
+      <style>{`
         /* Home About Section Styles */
         .home-about {
           background-color: #ffffff;
@@ -224,150 +224,145 @@ const AboutSection = () => {
         }
       `}</style>
 
-            {/* Home About Section */}
-            <section id="home-about" className="home-about section">
-                <SectionHeading desc="Necessitatibus eius consequatur ex aliquid fuga eum quidem sint consectetur velit">
-                    About <span className="text-gradient">Us</span>
-                </SectionHeading>
+      {/* Home About Section */}
+      <section id="home-about" className="home-about section">
+        <SectionHeading desc="Pioneering the future of healthcare with a perfect blend of advanced technology and human compassion since 1998.">
+          About <span className="text-gradient">Us</span>
+        </SectionHeading>
 
-                <div className="container" data-aos="fade-up" data-aos-delay="100">
-                    <div className="row gy-5 align-items-center">
-                        <div
-                            className="col-lg-6"
-                            data-aos="fade-right"
-                            data-aos-delay="200"
-                        >
-                            <div className="about-image">
-                                <img
-                                    src="/assets/img/health/facilities-1.webp"
-                                    alt="Modern Healthcare Facility"
-                                    className="img-fluid rounded-3 mb-4"
-                                />
-                                <div className="experience-badge">
-                                    <span className="years">25+</span>
-                                    <span className="text">Years of Excellence</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="col-lg-6" data-aos="fade-left" data-aos-delay="300">
-                            <div className="about-content">
-                                <h2>Committed to Exceptional Patient Care</h2>
-                                <p className="lead">
-                                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut
-                                    elit tellus, luctus nec ullamcorper mattis, pulvinar dapibus
-                                    leo.
-                                </p>
-                                <p>
-                                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin
-                                    consequat magna eu accumsan mattis. Duis non augue in tortor
-                                    facilisis tincidunt ac sit amet sapien. Suspendisse id risus
-                                    non nisi sodales condimentum.
-                                </p>
-
-                                <div className="row g-4 mt-4">
-                                    <div
-                                        className="col-md-6"
-                                        data-aos="fade-up"
-                                        data-aos-delay="400"
-                                    >
-                                        <div className="feature-item">
-                                            <div className="icon">
-                                                <i className="bi bi-heart-pulse"></i>
-                                            </div>
-                                            <h4>Compassionate Care</h4>
-                                            <p>
-                                                Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div
-                                        className="col-md-6"
-                                        data-aos="fade-up"
-                                        data-aos-delay="500"
-                                    >
-                                        <div className="feature-item">
-                                            <div className="icon">
-                                                <i className="bi bi-star"></i>
-                                            </div>
-                                            <h4>Medical Excellence</h4>
-                                            <p>
-                                                Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="cta-wrapper mt-4">
-                                    <Link to="/about" className="btn btn-primary">
-                                        Learn More About Us
-                                    </Link>
-                                    <Link to="/doctors" className="btn btn-outline">
-                                        Meet Our Team
-                                    </Link>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div
-                        className="row mt-5 pt-4 certifications-row"
-                        data-aos="fade-up"
-                        data-aos-delay="600"
-                    >
-                        <div className="col-12 text-center mb-4">
-                            <h4 className="certification-title">Our Accreditations</h4>
-                        </div>
-                        <div className="col-12">
-                            <div className="certifications">
-                                <div
-                                    className="certification-item"
-                                    data-aos="zoom-in"
-                                    data-aos-delay="700"
-                                >
-                                    <img
-                                        src="/assets/img/clients/clients-1.webp"
-                                        alt="Certification"
-                                    />
-                                </div>
-                                <div
-                                    className="certification-item"
-                                    data-aos="zoom-in"
-                                    data-aos-delay="800"
-                                >
-                                    <img
-                                        src="/assets/img/clients/clients-2.webp"
-                                        alt="Certification"
-                                    />
-                                </div>
-                                <div
-                                    className="certification-item"
-                                    data-aos="zoom-in"
-                                    data-aos-delay="900"
-                                >
-                                    <img
-                                        src="/assets/img/clients/clients-3.webp"
-                                        alt="Certification"
-                                    />
-                                </div>
-                                <div
-                                    className="certification-item"
-                                    data-aos="zoom-in"
-                                    data-aos-delay="1000"
-                                >
-                                    <img
-                                        src="/assets/img/clients/clients-4.webp"
-                                        alt="Certification"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+        <div className="container" data-aos="fade-up" data-aos-delay="100">
+          <div className="row gy-5 align-items-center">
+            <div
+              className="col-lg-6"
+              data-aos="fade-right"
+              data-aos-delay="200"
+            >
+              <div className="about-image">
+                <img
+                  src="/assets/img/health/facilities-1.webp"
+                  alt="Modern Healthcare Facility"
+                  className="img-fluid rounded-3 mb-4"
+                />
+                <div className="experience-badge">
+                  <span className="years">25+</span>
+                  <span className="text">Years of Excellence</span>
                 </div>
-            </section>
-        </>
-    );
+              </div>
+            </div>
+
+            <div className="col-lg-6" data-aos="fade-left" data-aos-delay="300">
+              <div className="about-content">
+                <h2>Redefining Healthcare Through Innovation & Care</h2>
+                <p className="lead">
+                  We started with a simple belief: that quality healthcare should be accessible, empathetic, and technologically superior. Over the past two decades, we have evolved from a small clinic into a multi-specialty healthcare institution.
+                </p>
+                <p>
+                  Our commitment remains the same: putting patients first. With over 150 expert doctors and cutting-edge medical technology, we provide comprehensive care across multiple specialties. From routine checkups to complex surgeries, your health is our highest priority.
+                </p>
+
+                <div className="row g-4 mt-4">
+                  <div
+                    className="col-md-6"
+                    data-aos="fade-up"
+                    data-aos-delay="400"
+                  >
+                    <div className="feature-item">
+                      <div className="icon">
+                        <i className="bi bi-heart-pulse"></i>
+                      </div>
+                      <h4>Patient-Centric Care</h4>
+                      <p>
+                        Everything we do revolves around the well-being and comfort of our patients, ensuring personalized medical attention.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div
+                    className="col-md-6"
+                    data-aos="fade-up"
+                    data-aos-delay="500"
+                  >
+                    <div className="feature-item">
+                      <div className="icon">
+                        <i className="bi bi-award"></i>
+                      </div>
+                      <h4>Medical Excellence</h4>
+                      <p>
+                        Our world-class specialists are committed to continuous learning and implementing the latest breakthroughs in medical science.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="cta-wrapper mt-4">
+                  <Link to="/about" className="btn btn-primary">
+                    Learn More About Us
+                  </Link>
+                  <Link to="/doctors" className="btn btn-outline">
+                    Meet Our Team
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div
+            className="row mt-5 pt-4 certifications-row"
+            data-aos="fade-up"
+            data-aos-delay="600"
+          >
+            <div className="col-12 text-center mb-4">
+              <h4 className="certification-title">Our Accreditations</h4>
+            </div>
+            <div className="col-12">
+              <div className="certifications">
+                <div
+                  className="certification-item"
+                  data-aos="zoom-in"
+                  data-aos-delay="700"
+                >
+                  <img
+                    src="/assets/img/clients/clients-1.webp"
+                    alt="Certification"
+                  />
+                </div>
+                <div
+                  className="certification-item"
+                  data-aos="zoom-in"
+                  data-aos-delay="800"
+                >
+                  <img
+                    src="/assets/img/clients/clients-2.webp"
+                    alt="Certification"
+                  />
+                </div>
+                <div
+                  className="certification-item"
+                  data-aos="zoom-in"
+                  data-aos-delay="900"
+                >
+                  <img
+                    src="/assets/img/clients/clients-3.webp"
+                    alt="Certification"
+                  />
+                </div>
+                <div
+                  className="certification-item"
+                  data-aos="zoom-in"
+                  data-aos-delay="1000"
+                >
+                  <img
+                    src="/assets/img/clients/clients-4.webp"
+                    alt="Certification"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </>
+  );
 };
 
 export default AboutSection;

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import AOS from 'aos'
 import PageHero from '../components/PageHero'
 import { profileAPI } from '../services/api'
@@ -11,6 +12,7 @@ import MyHomeCareRequests from '../components/MyHomeCareRequests'
 import MySubscriptions from '../components/MySubscriptions'
 
 const Profile = () => {
+  const location = useLocation()
   const { showToast } = useToast()
   const [activeTab, setActiveTab] = useState('personal')
   const [user, setUser] = useState<any>(null)
@@ -51,6 +53,19 @@ const Profile = () => {
     profile_image: null as File | null
   })
 
+  const tabs = [
+    { id: 'personal', label: 'Personal Information', icon: 'bi-person' },
+    { id: 'account', label: 'Account Settings', icon: 'bi-gear' },
+    { id: 'security', label: 'Security', icon: 'bi-shield-lock' },
+    { id: 'notifications', label: 'Notifications', icon: 'bi-bell' },
+    { id: 'appointments', label: 'My Appointments', icon: 'bi-calendar-check' },
+    { id: 'subscriptions', label: 'My Subscriptions', icon: 'bi-card-checklist' },
+    { id: 'home-care', label: 'Home Care Requests', icon: 'bi-house-heart' },
+    { id: 'medical', label: 'Medical Records', icon: 'bi-file-medical' },
+    { id: 'bills', label: 'Bills & Payments', icon: 'bi-receipt' },
+    { id: 'testimonials', label: 'Reviews & Feedback', icon: 'bi-star' }
+  ]
+
   useEffect(() => {
     AOS.init({
       duration: 600,
@@ -68,6 +83,14 @@ const Profile = () => {
 
     fetchProfile()
   }, [])
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search)
+    const tab = params.get('tab')
+    if (tab && tabs.some(t => t.id === tab)) {
+      setActiveTab(tab)
+    }
+  }, [location.search])
 
   const fetchProfile = async () => {
     try {
@@ -231,19 +254,6 @@ const Profile = () => {
       setIsEmailLoading(false)
     }
   }
-
-  const tabs = [
-    { id: 'personal', label: 'Personal Information', icon: 'bi-person' },
-    { id: 'account', label: 'Account Settings', icon: 'bi-gear' },
-    { id: 'security', label: 'Security', icon: 'bi-shield-lock' },
-    { id: 'notifications', label: 'Notifications', icon: 'bi-bell' },
-    { id: 'appointments', label: 'My Appointments', icon: 'bi-calendar-check' },
-    { id: 'subscriptions', label: 'My Subscriptions', icon: 'bi-card-checklist' },
-    { id: 'home-care', label: 'Home Care Requests', icon: 'bi-house-heart' },
-    { id: 'medical', label: 'Medical Records', icon: 'bi-file-medical' },
-    { id: 'bills', label: 'Bills & Payments', icon: 'bi-receipt' },
-    { id: 'testimonials', label: 'Reviews & Feedback', icon: 'bi-star' }
-  ]
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -1014,10 +1024,6 @@ const Profile = () => {
         }
 
         @media (max-width: 768px) {
-          .profile-page {
-            padding-top: 100px;
-          }
-
           .profile-sidebar {
             padding: 1.5rem;
           }
