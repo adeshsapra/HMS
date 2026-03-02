@@ -147,11 +147,41 @@ const Terms = () => {
         }
 
         @media (max-width: 768px) {
+            .legal-container {
+                padding: 40px 0;
+            }
             .legal-card {
                 padding: 30px 20px;
+                border-radius: 16px;
             }
             .legal-title {
                 font-size: 1.4rem;
+                gap: 10px;
+            }
+            .legal-title i {
+                font-size: 1.2rem;
+            }
+            .legal-text {
+                font-size: 0.95rem;
+            }
+            .terms-grid {
+                grid-template-columns: 1fr;
+            }
+            .important-note {
+                padding: 20px;
+            }
+            .important-note h5 {
+                font-size: 1.1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .section-badge {
+                font-size: 0.75rem;
+                padding: 4px 12px;
+            }
+            .term-box {
+                padding: 20px;
             }
         }
       `}</style>
