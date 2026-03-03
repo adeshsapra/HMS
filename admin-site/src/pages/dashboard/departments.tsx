@@ -3,6 +3,7 @@ import { DataTable, FormModal, ViewModal, DeleteConfirmModal, Column, FormField,
 import { Button } from "@material-tailwind/react";
 import { BuildingOfficeIcon } from "@heroicons/react/24/outline";
 import { apiService } from "@/services/api";
+import { useToast } from "@/context/ToastContext";
 
 // Get default page size from settings or use 10 as default
 const DEFAULT_PAGE_SIZE = parseInt(localStorage.getItem('settings_page_size') || '10', 10);
@@ -24,6 +25,7 @@ interface Department {
 }
 
 export default function Departments(): JSX.Element {
+  const { showToast } = useToast();
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
   const [openModal, setOpenModal] = useState<boolean>(false);
@@ -45,12 +47,12 @@ export default function Departments(): JSX.Element {
     try {
       setLoading(true);
       const response = await apiService.getDepartments(page, pageSize, filters);
-      if (response.success && response.data) {
+      if ((response.success || response.status) && response.data) {
         setDepartments(response.data || []);
         setTotalPages(response.meta?.last_page || 1);
       }
     } catch (error: any) {
-      alert(error.message || "Failed to fetch departments");
+      showToast(error.message || "Failed to fetch departments", "error");
     } finally {
       setLoading(false);
     }
@@ -105,22 +107,86 @@ export default function Departments(): JSX.Element {
   ];
 
   const viewFields: ViewField[] = [
+    { key: "id", label: "ID" },
     { key: "name", label: "Department Name" },
     { key: "subtitle", label: "Subtitle" },
-    { key: "description", label: "Description", fullWidth: true },
+    { key: "description", label: "Description", type: "longtext", fullWidth: true },
     { key: "head_of_department", label: "Department Head" },
     { key: "category", label: "Category" },
-    { key: "icon", label: "Icon" },
-    { key: "image", label: "Image" },
+    {
+      key: "icon",
+      label: "Icon",
+      render: (value: any) => (
+        value ? (
+          <div className="flex items-center gap-2">
+            <i className={`bi ${value} text-lg text-blue-600`} />
+            <span>{value}</span>
+          </div>
+        ) : '-'
+      ),
+    },
+    {
+      key: "image",
+      label: "Image",
+      fullWidth: true,
+      render: (value: any) => (
+        value ? (
+          <img
+            src={typeof value === 'string' && value.startsWith('http')
+              ? value
+              : `${(import.meta as any).env?.VITE_API_BASE_URL?.replace(/\/api\/?$/, '') || 'http://localhost:8000'}/${String(value).replace(/^\//, '')}`
+            }
+            alt="Department"
+            className="max-h-40 rounded-lg border border-blue-gray-100 object-cover"
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).style.display = 'none';
+            }}
+          />
+        ) : '-'
+      ),
+    },
+    {
+      key: "features",
+      label: "Features",
+      fullWidth: true,
+      render: (value: any) => {
+        const parsed = typeof value === 'string'
+          ? (() => {
+            try { return JSON.parse(value); } catch { return []; }
+          })()
+          : value;
+        return parsed && Array.isArray(parsed) && parsed.length > 0 ? (
+          <ul className="list-disc list-inside text-sm">
+            {parsed.map((item: string, idx: number) => <li key={idx}>{item}</li>)}
+          </ul>
+        ) : '-';
+      }
+    },
+    {
+      key: "technologies",
+      label: "Technologies",
+      fullWidth: true,
+      render: (value: any) => {
+        const parsed = typeof value === 'string'
+          ? (() => {
+            try { return JSON.parse(value); } catch { return []; }
+          })()
+          : value;
+        return parsed && Array.isArray(parsed) && parsed.length > 0 ? (
+          <ul className="list-disc list-inside text-sm">
+            {parsed.map((item: string, idx: number) => <li key={idx}>{item}</li>)}
+          </ul>
+        ) : '-';
+      }
+    },
     {
       key: "is_active",
       label: "Status",
-      render: (value: any) => (
-        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${value ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-          {value ? 'Active' : 'Inactive'}
-        </span>
-      ),
+      type: "status",
+      render: (value: any) => value ? "Active" : "Inactive",
     },
+    { key: "created_at", label: "Created At", type: "datetime" },
+    { key: "updated_at", label: "Updated At", type: "datetime" },
   ];
 
   const formFields: FormField[] = [
@@ -232,20 +298,31 @@ export default function Departments(): JSX.Element {
   const confirmDelete = async (): Promise<void> => {
     if (selectedDepartment) {
       try {
-        await apiService.deleteDepartment(selectedDepartment.id);
-        alert("Department deleted successfully!");
+        const response = await apiService.deleteDepartment(selectedDepartment.id);
+        showToast(response.message || "Department deleted successfully!", "success");
         fetchDepartments();
         setOpenDeleteModal(false);
         setSelectedDepartment(null);
       } catch (error: any) {
-        alert(error.message || "Failed to delete department");
+        showToast(error.message || "Failed to delete department", "error");
       }
     }
   };
 
-  const handleView = (department: Department): void => {
-    setSelectedDepartment(department);
-    setOpenViewModal(true);
+  const handleView = async (department: Department): Promise<void> => {
+    try {
+      setLoading(true);
+      const response = await apiService.getDepartment(department.id);
+      const fullDepartment = ((response as any).data && !(response as any).data.data)
+        ? (response as any).data
+        : (response as any).data?.data || department;
+      setSelectedDepartment(fullDepartment);
+      setOpenViewModal(true);
+    } catch (error: any) {
+      showToast(error.message || "Failed to load department details", "error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async (data: Record<string, any>) => {
@@ -283,17 +360,17 @@ export default function Departments(): JSX.Element {
       }
 
       if (selectedDepartment) {
-        await apiService.updateDepartment(selectedDepartment.id, formData);
-        alert("Department updated successfully!");
+        const response = await apiService.updateDepartment(selectedDepartment.id, formData);
+        showToast(response.message || "Department updated successfully!", "success");
       } else {
-        await apiService.createDepartment(formData);
-        alert("Department created successfully!");
+        const response = await apiService.createDepartment(formData);
+        showToast(response.message || "Department created successfully!", "success");
       }
       fetchDepartments();
       setOpenModal(false);
       setSelectedDepartment(null);
     } catch (error: any) {
-      alert(error.message || "Failed to save department");
+      showToast(error.message || "Failed to save department", "error");
     }
   };
 

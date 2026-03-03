@@ -333,7 +333,10 @@ const Profile = () => {
             <div className="section-header">
               <div className="d-flex justify-content-between align-items-start">
                 <div>
-                  <h3>Personal Information</h3>
+                  <h3 className="d-flex align-items-center gap-2">
+                    <i className="bi bi-person"></i>
+                    Personal Information
+                  </h3>
                   <p>Update your personal details and contact information</p>
                 </div>
                 <button
@@ -622,7 +625,10 @@ const Profile = () => {
         return (
           <div className="profile-section">
             <div className="section-header">
-              <h3>Account Settings</h3>
+              <h3 className="d-flex align-items-center gap-2">
+                <i className="bi bi-gear"></i>
+                Account Settings
+              </h3>
               <p>Manage your account password and email settings</p>
             </div>
 
@@ -1019,14 +1025,16 @@ const Profile = () => {
 
         .profile-section .section-header {
           margin-bottom: 2rem;
-          padding-bottom: 1rem;
-          border-bottom: 1px solid color-mix(in srgb, var(--default-color), transparent 90%);
+          padding-bottom: 1.5rem;
+          border-bottom: 1px solid color-mix(in srgb, var(--default-color), transparent 92%);
         }
 
         .profile-section .section-header h3 {
-          font-size: 1.75rem;
+          font-size: 1.5rem;
           color: var(--heading-color);
           margin-bottom: 0.5rem;
+          font-weight: 700;
+          letter-spacing: -0.5px;
         }
 
         .profile-section .section-header p {

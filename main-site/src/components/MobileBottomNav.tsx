@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useNotifications } from '../context/NotificationContext'
 
 type NavItem = {
   id: string
@@ -53,6 +54,7 @@ const guestNavItems: NavItem[] = [
 
 const MobileBottomNav = () => {
   const { isAuthenticated, isLoading } = useAuth()
+  const { unreadCount } = useNotifications()
   const location = useLocation()
   const navigate = useNavigate()
   const navRef = useRef<HTMLElement | null>(null)
@@ -70,6 +72,8 @@ const MobileBottomNav = () => {
     const index = navItems.findIndex((item) => item.id === activeId)
     return index >= 0 ? index : 0
   }, [activeId, navItems])
+  const unread = Number(unreadCount) || 0
+  const unreadLabel = unread > 99 ? '99+' : String(unread)
 
   useEffect(() => {
     const getBrightness = (color: string) => {
@@ -173,6 +177,11 @@ const MobileBottomNav = () => {
             >
               <span className="mobile-bottom-nav-icon-wrap">
                 <i className={`bi ${item.icon}`}></i>
+                {item.id === 'notifications' && unread > 0 && (
+                  <span className="mobile-bottom-nav-badge" aria-label={`${unread} unread notifications`}>
+                    {unreadLabel}
+                  </span>
+                )}
               </span>
               <span className="mobile-bottom-nav-label">{item.label}</span>
             </button>
@@ -282,6 +291,26 @@ const MobileBottomNav = () => {
           font-size: 1.1rem;
           transform: translateY(0);
           transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+          position: relative;
+        }
+
+        .mobile-bottom-nav-badge {
+          position: absolute;
+          top: -4px;
+          right: -8px;
+          min-width: 16px;
+          height: 16px;
+          border-radius: 999px;
+          background: #ef4444;
+          color: #ffffff;
+          font-size: 0.56rem;
+          line-height: 1;
+          font-weight: 700;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0 4px;
+          box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.95);
         }
 
         .mobile-bottom-nav-item.active .mobile-bottom-nav-icon-wrap {

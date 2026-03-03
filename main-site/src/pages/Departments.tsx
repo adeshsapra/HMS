@@ -18,6 +18,7 @@ interface Department {
 }
 
 const Departments = () => {
+  const FALLBACK_DEPARTMENT_IMAGE = '/assets/img/health/cardiology-3.webp'
   const [departments, setDepartments] = useState<Department[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -66,7 +67,7 @@ const Departments = () => {
   }
 
   const getImageUrl = (path: string) => {
-    if (!path) return 'https://via.placeholder.com/400x220?text=Department';
+    if (!path) return FALLBACK_DEPARTMENT_IMAGE;
     if (path.startsWith('http')) return path;
     const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
     const rootUrl = baseUrl.replace(/\/api\/?$/, '');
@@ -479,7 +480,9 @@ const Departments = () => {
                               alt={dept.name}
                               loading="lazy"
                               onError={(e) => {
-                                (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x220?text=Department'
+                                const img = e.currentTarget as HTMLImageElement
+                                img.onerror = null
+                                img.src = FALLBACK_DEPARTMENT_IMAGE
                               }}
                             />
                           </div>

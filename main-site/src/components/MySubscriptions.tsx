@@ -448,7 +448,10 @@ const MySubscriptions = () => {
 
             <div className="subs-header">
                 <div className="subs-title">
-                    <h3>My Subscriptions</h3>
+                    <h3 className="d-flex align-items-center gap-2">
+                        <i className="bi bi-card-checklist"></i>
+                        My Subscriptions
+                    </h3>
                     <p>Manage your active health plans and view history</p>
                 </div>
                 <button className="buy-more-btn" onClick={handleBuyMore}>

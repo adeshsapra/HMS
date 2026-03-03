@@ -59,6 +59,9 @@ const MyMedicalRecords = ({ focusRecordId }: MyMedicalRecordsProps) => {
     start_date: "",
     end_date: "",
   });
+  const [openFilter, setOpenFilter] = useState<null | "category" | "status">(null);
+  const categoryFilterRef = useRef<HTMLDivElement | null>(null);
+  const statusFilterRef = useRef<HTMLDivElement | null>(null);
 
   // Modal states
   const [viewModalOpen, setViewModalOpen] = useState(false);
@@ -72,6 +75,22 @@ const MyMedicalRecords = ({ focusRecordId }: MyMedicalRecordsProps) => {
     type: string;
     recordId?: number;
   } | null>(null);
+  const medicalCategoryOptions = [
+    { value: "", label: "All Categories" },
+    { value: "lab", label: "Lab Reports" },
+    { value: "xray", label: "X-Ray" },
+    { value: "scan", label: "Scan" },
+    { value: "other", label: "Other" },
+  ];
+  const medicalStatusOptions = [
+    { value: "", label: "All Status" },
+    { value: "uploaded", label: "Uploaded" },
+    { value: "verified", label: "Verified" },
+  ];
+  const selectedCategoryLabel =
+    medicalCategoryOptions.find((option) => option.value === recordFilters.category)?.label || "All Categories";
+  const selectedStatusLabel =
+    medicalStatusOptions.find((option) => option.value === recordFilters.status)?.label || "All Status";
 
   // Helper function to format date
   const formatDate = (dateString: string | null) => {
@@ -357,6 +376,22 @@ const MyMedicalRecords = ({ focusRecordId }: MyMedicalRecordsProps) => {
     openFocusedRecord();
   }, [focusRecordId, records, recordsLoading, recordFilters]);
 
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      const target = event.target as Node;
+      const inCategory = categoryFilterRef.current?.contains(target);
+      const inStatus = statusFilterRef.current?.contains(target);
+      if (!inCategory && !inStatus) {
+        setOpenFilter(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, []);
+
   return (
     <div className="profile-medical-record-container">
       <style>{`
@@ -389,11 +424,13 @@ const MyMedicalRecords = ({ focusRecordId }: MyMedicalRecordsProps) => {
                 }
 
                 .profile-medical-record-section-header h3 {
-                    font-size: 1.85rem;
+                    font-size: 1.5rem;
                     color: var(--pmr-heading-color);
                     margin-bottom: 0.5rem;
                     font-weight: 700;
                     letter-spacing: -0.5px;
+                    font-family: var(--heading-font);
+                    line-height: 1.2;
                 }
 
                 .profile-medical-record-section-header p {
@@ -409,29 +446,138 @@ const MyMedicalRecords = ({ focusRecordId }: MyMedicalRecordsProps) => {
                     flex-wrap: wrap;
                 }
 
-                .profile-medical-record-filters .form-control {
-                    min-width: 160px;
-                    border-radius: 8px;
-                    border: 1px solid #e0e0e0;
-                    padding: 0.4rem 0.8rem;
+                .profile-medical-record-filter-dropdown {
+                    position: relative;
+                    min-width: 180px;
+                }
+
+                .profile-medical-record-filter-select {
+                    appearance: none;
+                    -webkit-appearance: none;
+                    -moz-appearance: none;
+                    width: 100%;
+                    border-radius: 999px;
+                    border: 1px solid color-mix(in srgb, var(--pmr-default-color), transparent 80%);
+                    padding: 0.65rem 2.2rem 0.65rem 0.95rem;
+                    font-size: 0.92rem;
+                    font-weight: 500;
+                    background-color: #fff;
+                    color: var(--pmr-heading-color);
+                    cursor: pointer;
+                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+                    text-align: left;
+                    position: relative;
                 }
                 
-                .profile-medical-record-filters .form-control:focus {
+                .profile-medical-record-filter-select:focus {
+                    outline: none;
                     border-color: var(--pmr-accent-color);
                     box-shadow: 0 0 0 4px color-mix(in srgb, var(--pmr-accent-color), transparent 90%);
                 }
 
-                .profile-medical-record-btn-refresh {
+                .profile-medical-record-filter-select .filter-chevron {
+                    position: absolute;
+                    right: 0.9rem;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    font-size: 0.8rem;
                     color: var(--pmr-accent-color);
-                    border-color: var(--pmr-accent-color);
-                    border-radius: 8px;
-                    padding: 0.4rem 1rem;
-                    transition: all 0.3s;
+                    transition: transform 0.25s ease;
                 }
 
-                .profile-medical-record-btn-refresh:hover {
-                    background-color: var(--pmr-accent-color);
-                    color: #fff;
+                .profile-medical-record-filter-select.open .filter-chevron {
+                    transform: translateY(-50%) rotate(180deg);
+                }
+
+                .profile-medical-record-filter-menu {
+                    position: absolute;
+                    top: calc(100% + 0.45rem);
+                    left: 0;
+                    width: 100%;
+                    background: #fff;
+                    border: 1px solid color-mix(in srgb, var(--pmr-default-color), transparent 85%);
+                    border-radius: 14px;
+                    box-shadow: 0 14px 32px rgba(7, 47, 60, 0.14);
+                    padding: 0.35rem;
+                    margin: 0;
+                    list-style: none;
+                    z-index: 1200;
+                    animation: pmrDropdownIn 0.16s ease-out;
+                }
+
+                .profile-medical-record-filter-option {
+                    width: 100%;
+                    border: none;
+                    background: transparent;
+                    text-align: left;
+                    border-radius: 10px;
+                    padding: 0.55rem 0.7rem;
+                    font-size: 0.9rem;
+                    color: var(--pmr-heading-color);
+                    font-weight: 500;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    transition: all 0.2s ease;
+                }
+
+                .profile-medical-record-filter-option:hover {
+                    background: color-mix(in srgb, var(--pmr-accent-color), transparent 92%);
+                    color: var(--pmr-accent-color);
+                }
+
+                .profile-medical-record-filter-option.active {
+                    background: color-mix(in srgb, var(--pmr-accent-color), transparent 88%);
+                    color: var(--pmr-accent-color);
+                    font-weight: 600;
+                }
+
+                @keyframes pmrDropdownIn {
+                    from {
+                        opacity: 0;
+                        transform: translateY(-6px) scale(0.98);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0) scale(1);
+                    }
+                }
+
+                .profile-medical-record-btn-refresh {
+                    background: var(--pmr-accent-color);
+                    color: var(--pmr-contrast-color);
+                    border: none;
+                    padding: 0.75rem 1.5rem;
+                    border-radius: 50px;
+                    font-weight: 600;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    transition: all 0.3s ease;
+                    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                    cursor: pointer;
+                    font-family: var(--heading-font);
+                }
+
+                .profile-medical-record-btn-refresh:hover:not(:disabled) {
+                    background: color-mix(in srgb, var(--pmr-accent-color), transparent 15%);
+                    transform: translateY(-2px);
+                    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.15);
+                    color: var(--pmr-contrast-color);
+                }
+
+                .profile-medical-record-btn-refresh:disabled {
+                    opacity: 0.7;
+                    cursor: not-allowed;
+                }
+
+                .profile-medical-record-spin {
+                    animation: pmrSpin 1s linear infinite;
+                }
+
+                @keyframes pmrSpin {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
                 }
 
                 /* --- Record Cards --- */
@@ -841,48 +987,86 @@ const MyMedicalRecords = ({ focusRecordId }: MyMedicalRecordsProps) => {
         <div className="profile-medical-record-section-header">
           <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div>
-              <h3>My Medical Records</h3>
+              <h3 className="d-flex align-items-center gap-2">
+                <i className="bi bi-file-medical"></i>
+                My Medical Records
+              </h3>
               <p className="mb-0">
                 View and download your medical reports and test results
               </p>
             </div>
             <div className="profile-medical-record-filters">
-              <select
-                className="form-control"
-                value={recordFilters.category}
-                onChange={(e) =>
-                  setRecordFilters((prev) => ({
-                    ...prev,
-                    category: e.target.value,
-                  }))
-                }
-              >
-                <option value="">All Categories</option>
-                <option value="lab">Lab Reports</option>
-                <option value="xray">X-Ray</option>
-                <option value="scan">Scan</option>
-                <option value="other">Other</option>
-              </select>
-              <select
-                className="form-control"
-                value={recordFilters.status}
-                onChange={(e) =>
-                  setRecordFilters((prev) => ({
-                    ...prev,
-                    status: e.target.value,
-                  }))
-                }
-              >
-                <option value="">All Status</option>
-                <option value="uploaded">Uploaded</option>
-                <option value="verified">Verified</option>
-              </select>
+              <div className="profile-medical-record-filter-dropdown" ref={categoryFilterRef}>
+                <button
+                  type="button"
+                  className={`profile-medical-record-filter-select ${openFilter === "category" ? "open" : ""}`}
+                  onClick={() => setOpenFilter((prev) => (prev === "category" ? null : "category"))}
+                >
+                  {selectedCategoryLabel}
+                  <i className="bi bi-chevron-down filter-chevron"></i>
+                </button>
+                {openFilter === "category" && (
+                  <ul className="profile-medical-record-filter-menu">
+                    {medicalCategoryOptions.map((option) => (
+                      <li key={option.value || "all-category"}>
+                        <button
+                          type="button"
+                          className={`profile-medical-record-filter-option ${recordFilters.category === option.value ? "active" : ""}`}
+                          onClick={() => {
+                            setRecordFilters((prev) => ({
+                              ...prev,
+                              category: option.value,
+                            }));
+                            setOpenFilter(null);
+                          }}
+                        >
+                          <span>{option.label}</span>
+                          {recordFilters.category === option.value && <i className="bi bi-check2"></i>}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+              <div className="profile-medical-record-filter-dropdown" ref={statusFilterRef}>
+                <button
+                  type="button"
+                  className={`profile-medical-record-filter-select ${openFilter === "status" ? "open" : ""}`}
+                  onClick={() => setOpenFilter((prev) => (prev === "status" ? null : "status"))}
+                >
+                  {selectedStatusLabel}
+                  <i className="bi bi-chevron-down filter-chevron"></i>
+                </button>
+                {openFilter === "status" && (
+                  <ul className="profile-medical-record-filter-menu">
+                    {medicalStatusOptions.map((option) => (
+                      <li key={option.value || "all-status"}>
+                        <button
+                          type="button"
+                          className={`profile-medical-record-filter-option ${recordFilters.status === option.value ? "active" : ""}`}
+                          onClick={() => {
+                            setRecordFilters((prev) => ({
+                              ...prev,
+                              status: option.value,
+                            }));
+                            setOpenFilter(null);
+                          }}
+                        >
+                          <span>{option.label}</span>
+                          {recordFilters.status === option.value && <i className="bi bi-check2"></i>}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
               <button
-                className="btn btn-outline-primary profile-medical-record-btn-refresh"
+                className="profile-medical-record-btn-refresh"
                 onClick={() => fetchMedicalRecords(1)}
+                disabled={recordsLoading}
               >
-                <i className="bi bi-arrow-clockwise me-1"></i>
-                Refresh
+                <i className={`bi ${recordsLoading ? "bi-arrow-repeat profile-medical-record-spin" : "bi-arrow-clockwise"}`}></i>
+                {recordsLoading ? "Refreshing..." : "Refresh"}
               </button>
             </div>
           </div>

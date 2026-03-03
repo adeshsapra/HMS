@@ -16,6 +16,8 @@ import { useNavigate } from "react-router-dom";
 export function NotificationMenu() {
     const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
     const navigate = useNavigate();
+    const unread = Number(unreadCount) || 0;
+    const unreadLabel = unread > 99 ? "99+" : String(unread);
 
     const handleNotificationClick = (notification: any) => {
         if (!notification.read_at) {
@@ -27,11 +29,18 @@ export function NotificationMenu() {
     return (
         <Menu>
             <MenuHandler>
-                <IconButton variant="text" color="blue-gray" className="relative overflow-visible">
-                    {unreadCount > 0 && (
-                        <span className="absolute right-2 top-2 z-10 h-2.5 w-2.5 rounded-full bg-red-500 border-2 border-white shadow-sm" />
+                <IconButton
+                    variant="text"
+                    color="blue-gray"
+                    className="relative overflow-visible"
+                    aria-label={`Notifications${unread > 0 ? ` (${unread} unread)` : ""}`}
+                >
+                    {unread > 0 && (
+                        <span className="absolute -right-0.5 -top-0.5 z-20 grid h-4 min-w-[16px] place-items-center rounded-full bg-red-500 px-1 text-[9px] font-bold leading-none text-white border border-white shadow-sm">
+                            {unreadLabel}
+                        </span>
                     )}
-                    <BellIcon className="h-5 w-5 text-blue-gray-500" />
+                    <BellIcon className="h-5 w-5 text-blue-gray-600" />
                 </IconButton>
             </MenuHandler>
             <MenuList className="w-80 max-h-[28rem] overflow-y-auto border-0 p-2 shadow-2xl shadow-blue-gray-500/20">
@@ -40,13 +49,13 @@ export function NotificationMenu() {
                         <Typography variant="h6" color="blue-gray">
                             Notifications
                         </Typography>
-                        {unreadCount > 0 && (
+                        {unread > 0 && (
                             <span className="grid h-5 min-w-[20px] place-items-center rounded-full bg-red-100 px-1.5 text-[10px] font-bold text-red-600">
-                                {unreadCount}
+                                {unreadLabel}
                             </span>
                         )}
                     </div>
-                    {unreadCount > 0 && (
+                    {unread > 0 && (
                         <Typography
                             variant="small"
                             color="blue"

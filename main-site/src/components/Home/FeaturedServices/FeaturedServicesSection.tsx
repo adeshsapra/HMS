@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import type { Variants } from "framer-motion";
 import SectionHeading from "../SectionHeading";
 import { serviceAPI } from "../../../services/api";
+import ContentLoader from "../../ContentLoader";
 
 interface ServiceFeature {
   id: number;
@@ -13,14 +14,34 @@ interface ServiceFeature {
   features: string[];
 }
 
-const FeaturedServicesSection = () => {
+interface FeaturedServicesSectionProps {
+  servicesData?: ServiceFeature[];
+  loadingServices?: boolean;
+  errorMessage?: string | null;
+}
+
+const FeaturedServicesSection = ({
+  servicesData,
+  loadingServices,
+  errorMessage,
+}: FeaturedServicesSectionProps) => {
   const [services, setServices] = useState<ServiceFeature[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const hasExternalState =
+    Array.isArray(servicesData) ||
+    typeof loadingServices === "boolean" ||
+    errorMessage !== undefined;
+
+  const visibleServices = servicesData ?? services;
+  const visibleLoading = loadingServices ?? loading;
+  const visibleError = errorMessage ?? error;
 
   useEffect(() => {
-    fetchFeaturedServices();
-  }, []);
+    if (!hasExternalState) {
+      fetchFeaturedServices();
+    }
+  }, [hasExternalState]);
 
   const fetchFeaturedServices = async () => {
     try {
@@ -261,21 +282,6 @@ const FeaturedServicesSection = () => {
           color: #fff;
         }
 
-        /* --- LOADER --- */
-        .loader-wrap {
-          display: flex;
-          justify-content: center;
-          padding: 60px;
-        }
-        .spin-loader {
-          width: 45px;
-          height: 45px;
-          border: 4px solid #f3f3f3;
-          border-top: 4px solid #049EBB;
-          border-radius: 50%;
-          animation: spin 1s linear infinite;
-        }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
       `}</style>
 
       <section id="featured-services" className="featured-services">
@@ -284,17 +290,11 @@ const FeaturedServicesSection = () => {
         </SectionHeading>
 
         <div className="container">
-          {loading ? (
-            <div className="loader-wrap">
-              <div className="spin-loader"></div>
-            </div>
-          ) : error ? (
-            <div className="text-center py-5">
-              <h4 className="text-danger">{error}</h4>
-            </div>
-          ) : services.length > 0 ? (
+          {visibleLoading ? (
+            <ContentLoader message="Synchronizing Featured Services..." height="280px" />
+          ) : visibleServices.length > 0 ? (
             <div className="row gy-4">
-              {services.map((service, idx) => (
+              {visibleServices.map((service, idx) => (
                 <div key={service.id} className="col-lg-6">
                   <motion.div
                     custom={idx}
@@ -311,19 +311,21 @@ const FeaturedServicesSection = () => {
                         <div className="icon-box">
                           <i className={`fas ${service.icon || "fa-stethoscope"}`}></i>
                         </div>
-                        <h3 className="service-title">{service.name}</h3>
+                        <h3 className="service-title">{service.name || "Healthcare Service"}</h3>
                       </div>
 
                       {/* 2. Content Area (Desc + Features) */}
                       <div className="card-body-area">
                         <p className="service-desc">
-                          {service.description.length > 130
-                            ? service.description.substring(0, 130) + "..."
-                            : service.description}
+                          {(() => {
+                            const desc = service.description || "";
+                            if (!desc) return "Specialized healthcare support designed for your needs.";
+                            return desc.length > 130 ? `${desc.substring(0, 130)}...` : desc;
+                          })()}
                         </p>
 
                         {/* COMPACT Feature Pills */}
-                        {service.features && service.features.length > 0 && (
+                        {Array.isArray(service.features) && service.features.length > 0 && (
                           <ul className="feature-list">
                             {service.features.slice(0, 4).map((feature, fIdx) => (
                               <li key={fIdx} className="feature-pill">
@@ -355,7 +357,11 @@ const FeaturedServicesSection = () => {
             </div>
           ) : (
             <div className="text-center py-5">
-              <p className="text-muted">No featured services found.</p>
+              <p className="text-muted">
+                {visibleError
+                  ? "Featured services are currently unavailable. Please check again shortly."
+                  : "Featured services are being updated. Please check again shortly."}
+              </p>
             </div>
           )}
         </div>

@@ -115,6 +115,33 @@ export function ViewModal({
     if (value === null || value === undefined || value === "")
       return <span className="text-gray-400 italic text-sm">N/A</span>;
 
+    if (Array.isArray(value)) {
+      if (value.length === 0) {
+        return <span className="text-gray-400 italic text-sm">N/A</span>;
+      }
+      return (
+        <div className="flex flex-wrap gap-2">
+          {value.map((item, idx) => (
+            <Chip
+              key={`${field.key}-${idx}`}
+              variant="outlined"
+              color="blue-gray"
+              value={typeof item === "string" || typeof item === "number" ? String(item) : JSON.stringify(item)}
+              className="rounded-md px-2 py-1 text-[11px] font-medium normal-case"
+            />
+          ))}
+        </div>
+      );
+    }
+
+    if (typeof value === "object") {
+      return (
+        <pre className="whitespace-pre-wrap break-all rounded-md bg-blue-gray-50 p-3 text-xs text-blue-gray-800">
+          {JSON.stringify(value, null, 2)}
+        </pre>
+      );
+    }
+
     switch (field.type) {
       case "status":
         return <StatusBadge status={value} />;
@@ -135,12 +162,18 @@ export function ViewModal({
           </Typography>
         );
       case "date":
+        if (isNaN(new Date(value).getTime())) {
+          return <Typography className="text-sm font-medium text-blue-gray-800">{String(value)}</Typography>;
+        }
         return (
           <Typography className="text-sm font-medium text-blue-gray-800">
             {new Date(value).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
           </Typography>
         );
       case "datetime":
+        if (isNaN(new Date(value).getTime())) {
+          return <Typography className="text-sm font-medium text-blue-gray-800">{String(value)}</Typography>;
+        }
         return (
           <Typography className="text-sm font-medium text-blue-gray-800">
             {new Date(value).toLocaleString("en-US", {
@@ -232,7 +265,7 @@ export function ViewModal({
                 </Typography>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {dataFields.filter(f => f.type !== 'avatar' && !f.key.includes('name')).map((field) => {
+                  {dataFields.filter(f => f.type !== 'avatar').map((field) => {
                     const value = data[field.key];
                     const Icon = getFieldIcon(field);
                     const isLongText = field.type === "longtext" || field.fullWidth;

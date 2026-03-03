@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import "./HomeCare.css";
 import { homeCareAPI } from "../../services/api";
 import PageHero from "../../components/PageHero";
+import ContentLoader from "../../components/ContentLoader";
 
 interface HomeCareService {
   id: number;
@@ -258,9 +259,7 @@ const HomeCareLanding = () => {
           ) : (
             <div className="text-center py-5 border rounded-4 bg-light">
               {loading ? (
-                <div className="spinner-border text-primary" role="status">
-                  <span className="visually-hidden">Loading...</span>
-                </div>
+                <ContentLoader message="Synchronizing Home Care Services..." height="260px" />
               ) : (
                 <>
                   <i className="bi bi-search display-1 text-muted mb-3 d-block"></i>
@@ -550,9 +549,7 @@ const HomeCareLanding = () => {
             ) : (
               <div className="text-center py-5">
                 {loading ? (
-                  <div className="spinner-border text-primary" role="status">
-                    <span className="visually-hidden">Loading...</span>
-                  </div>
+                  <ContentLoader message="Connecting Home Care Professionals..." height="260px" />
                 ) : (
                   <>
                     <i className="bi bi-person-x display-1 text-muted mb-3 d-block"></i>

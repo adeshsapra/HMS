@@ -6,6 +6,7 @@ import {
   departmentAPI,
   doctorAPI,
   homeCareAPI,
+  serviceAPI,
   testimonialAPI,
 } from "../services/api";
 import DepartmentSection from "../components/Home/Departments/DepartmentSection";
@@ -32,6 +33,13 @@ interface HealthPackage {
   featured: boolean;
 }
 
+interface FeaturedService {
+  id: number;
+  name: string;
+  description: string;
+  icon: string;
+  features: string[];
+}
 
 
 const Home = () => {
@@ -50,8 +58,12 @@ const Home = () => {
   // Departments State
   const [departments, setDepartments] = useState<any[]>([]);
   const [loadingDepartments, setLoadingDepartments] = useState(true);
+  const [featuredServices, setFeaturedServices] = useState<FeaturedService[]>([]);
+  const [loadingFeaturedServices, setLoadingFeaturedServices] = useState(true);
+  const [featuredServicesError, setFeaturedServicesError] = useState<string | null>(null);
 
   useEffect(() => {
+    (window as any).__homeCriticalReady = false;
     AOS.init({
       duration: 600,
       easing: "ease-in-out",
@@ -109,34 +121,86 @@ const Home = () => {
   };
 
   const fetchDoctorsAndDepartments = async () => {
-    try {
-      setLoadingDoctors(true);
-      setLoadingDepartments(true);
+    setLoadingDoctors(true);
+    setLoadingDepartments(true);
+    setLoadingFeaturedServices(true);
+    setFeaturedServicesError(null);
 
-      // Fetch both in parallel for better performance
-      const [doctorsResponse, departmentsResponse] = await Promise.all([
-        doctorAPI.getAll(1, 10), // Limit to 10 doctors for homepage
-        departmentAPI.getAll(1, 6), // Limit to 6 departments for homepage
-      ]);
+    const [doctorsResult, departmentsResult, featuredResult] = await Promise.allSettled([
+      doctorAPI.getAll(1, 10),
+      departmentAPI.getAll(1, 6),
+      serviceAPI.getFeatured(),
+    ]);
 
-      // Process doctors
-      if (doctorsResponse.data.success) {
+    if (doctorsResult.status === "fulfilled") {
+      const doctorsResponse = doctorsResult.value as any;
+      if ((doctorsResponse.data?.success || doctorsResponse.data?.status) && doctorsResponse.data?.data) {
         const doctorsData = doctorsResponse.data.data.data || doctorsResponse.data.data;
         setDoctors(doctorsData);
+      } else {
+        setDoctors([]);
       }
+    } else {
+      console.error("Error fetching doctors:", doctorsResult.reason);
+      setDoctors([]);
+    }
 
-      // Process departments
-      if (departmentsResponse.data.success) {
+    if (departmentsResult.status === "fulfilled") {
+      const departmentsResponse = departmentsResult.value as any;
+      if ((departmentsResponse.data?.success || departmentsResponse.data?.status) && departmentsResponse.data?.data) {
         const deptData = departmentsResponse.data.data.data || departmentsResponse.data.data;
         setDepartments(deptData.slice(0, 6));
+      } else {
+        setDepartments([]);
       }
-    } catch (error) {
-      console.error("Error fetching doctors and departments:", error);
-    } finally {
-      setLoadingDoctors(false);
-      setLoadingDepartments(false);
+    } else {
+      console.error("Error fetching departments:", departmentsResult.reason);
+      setDepartments([]);
     }
+
+    if (featuredResult.status === "fulfilled") {
+      const featuredResponse = featuredResult.value as any;
+      let featuredData: any[] = [];
+      if (featuredResponse.data && featuredResponse.data.data) {
+        featuredData = featuredResponse.data.data;
+      } else if (featuredResponse.data && Array.isArray(featuredResponse.data)) {
+        featuredData = featuredResponse.data;
+      }
+
+      const parsedFeatured = featuredData.map((service: any) => ({
+        ...service,
+        features: (() => {
+          if (Array.isArray(service.features)) return service.features;
+          if (typeof service.features === "string") {
+            try {
+              const parsed = JSON.parse(service.features);
+              return Array.isArray(parsed) ? parsed : [];
+            } catch {
+              return [];
+            }
+          }
+          return [];
+        })(),
+      }));
+      setFeaturedServices(parsedFeatured);
+    } else {
+      console.error("Error fetching featured services:", featuredResult.reason);
+      setFeaturedServices([]);
+      setFeaturedServicesError(null);
+    }
+
+    setLoadingDoctors(false);
+    setLoadingDepartments(false);
+    setLoadingFeaturedServices(false);
   };
+
+  useEffect(() => {
+    const isCriticalHomeDataReady = !loadingDoctors && !loadingDepartments && !loadingFeaturedServices;
+    if (isCriticalHomeDataReady) {
+      (window as any).__homeCriticalReady = true;
+      window.dispatchEvent(new Event("home-critical-ready"));
+    }
+  }, [loadingDoctors, loadingDepartments, loadingFeaturedServices]);
 
 
   return (
@@ -309,7 +373,11 @@ const Home = () => {
       </section>
 
       {/* Featured Services Section */}
-      <FeaturedServicesSection />
+      <FeaturedServicesSection
+        servicesData={featuredServices}
+        loadingServices={loadingFeaturedServices}
+        errorMessage={null}
+      />
 
       <FindDoctorSection doctors={doctors} loadingDoctors={loadingDoctors} />
 

@@ -6,11 +6,27 @@ const MyTestimonials = () => {
     const { showToast } = useToast()
     const [message, setMessage] = useState('')
     const [rating, setRating] = useState(5)
+    const [hoveredRating, setHoveredRating] = useState(0)
+    const [activeStar, setActiveStar] = useState(0)
     const [role, setRole] = useState('')
     const [submitting, setSubmitting] = useState(false)
+    const displayRating = hoveredRating || rating
+
+    const ratingFeedback: Record<number, { emoji: string; label: string }> = {
+        0: { emoji: '🤔', label: 'Select a rating' },
+        1: { emoji: '😟', label: 'Very Poor' },
+        2: { emoji: '😕', label: 'Poor' },
+        3: { emoji: '🙂', label: 'Average' },
+        4: { emoji: '😊', label: 'Good' },
+        5: { emoji: '😍', label: 'Excellent' }
+    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+        if (rating === 0) {
+            showToast('Please select a star rating', 'error')
+            return
+        }
         if (!message.trim()) {
             showToast('Please enter a message', 'error')
             return
@@ -38,17 +54,35 @@ const MyTestimonials = () => {
         }
     }
 
+    const handleStarClick = (star: number) => {
+        const nextRating = rating === star ? 0 : star
+        setRating(nextRating)
+        setActiveStar(star)
+        setTimeout(() => setActiveStar(0), 240)
+    }
+
     const renderStars = () => {
         return (
-            <div className="d-flex gap-2 mb-3">
+            <div className="mb-3">
+                <div className="testimonial-rating-feedback">
+                    <span className="emoji" aria-hidden="true">{ratingFeedback[displayRating].emoji}</span>
+                    <span className="label">{ratingFeedback[displayRating].label}</span>
+                </div>
+                <div className="d-flex gap-2">
                 {[1, 2, 3, 4, 5].map((star) => (
-                    <i
+                    <button
                         key={star}
-                        className={`bi ${star <= rating ? 'bi-star-fill' : 'bi-star'} fs-3`}
-                        style={{ color: star <= rating ? '#ffc107' : '#e4e5e9', cursor: 'pointer' }}
-                        onClick={() => setRating(star)}
-                    ></i>
+                        type="button"
+                        className={`testimonial-star-btn ${star <= displayRating ? 'is-filled' : ''} ${activeStar === star ? 'is-active' : ''}`}
+                        onMouseEnter={() => setHoveredRating(star)}
+                        onMouseLeave={() => setHoveredRating(0)}
+                        onClick={() => handleStarClick(star)}
+                        aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
+                    >
+                        <i className={`bi ${star <= displayRating ? 'bi-star-fill' : 'bi-star'} fs-3`}></i>
+                    </button>
                 ))}
+                </div>
             </div>
         )
     }
@@ -78,10 +112,76 @@ const MyTestimonials = () => {
                     border-color: #049ebb;
                     box-shadow: 0 0 0 0.2rem rgba(4, 158, 187, 0.15);
                 }
+                .testimonial-submit-btn {
+                    background-color: #049ebb;
+                    border-color: #049ebb;
+                    color: #fff;
+                }
+                .testimonial-submit-btn:hover:not(:disabled),
+                .testimonial-submit-btn:focus:not(:disabled) {
+                    background-color: #038aa4;
+                    border-color: #038aa4;
+                    color: #fff;
+                }
+                .testimonial-rating-feedback {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    background: color-mix(in srgb, #049ebb, transparent 92%);
+                    border: 1px solid color-mix(in srgb, #049ebb, transparent 80%);
+                    border-radius: 999px;
+                    padding: 0.3rem 0.8rem;
+                    margin-bottom: 0.8rem;
+                    animation: ratingFade 240ms ease;
+                }
+                .testimonial-rating-feedback .emoji {
+                    font-size: 1.15rem;
+                    line-height: 1;
+                }
+                .testimonial-rating-feedback .label {
+                    font-size: 0.85rem;
+                    font-weight: 600;
+                    color: #18444c;
+                }
+                .testimonial-star-btn {
+                    border: none;
+                    background: transparent;
+                    padding: 0;
+                    line-height: 1;
+                    color: #e4e5e9;
+                    cursor: pointer;
+                    transform: scale(1);
+                    transition: transform 180ms ease, color 220ms ease, filter 220ms ease;
+                }
+                .testimonial-star-btn i {
+                    transition: transform 180ms ease;
+                }
+                .testimonial-star-btn:hover {
+                    transform: translateY(-2px) scale(1.04);
+                    filter: drop-shadow(0 4px 8px rgba(255, 193, 7, 0.24));
+                }
+                .testimonial-star-btn.is-filled {
+                    color: #ffc107;
+                }
+                .testimonial-star-btn.is-active i {
+                    animation: starPop 240ms ease;
+                }
+                @keyframes starPop {
+                    0% { transform: scale(0.8) rotate(-12deg); }
+                    60% { transform: scale(1.2) rotate(6deg); }
+                    100% { transform: scale(1) rotate(0deg); }
+                }
+                @keyframes ratingFade {
+                    from { opacity: 0; transform: translateY(4px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
             `}</style>
 
             <div className="section-header mb-4">
-                <h3>Share Your Experience</h3>
+                <h3 className="d-flex align-items-center gap-2">
+                    <i className="bi bi-star"></i>
+                    Share Your Experience
+                </h3>
                 <p className="text-muted">We value your feedback. Let us know how we're doing!</p>
             </div>
 
@@ -123,7 +223,7 @@ const MyTestimonials = () => {
                             <div className="mt-4">
                                 <button
                                     type="submit"
-                                    className="btn btn-primary px-5 py-2 fw-bold"
+                                    className="btn testimonial-submit-btn px-5 py-2 fw-bold"
                                     disabled={submitting}
                                     style={{ borderRadius: '10px' }}
                                 >

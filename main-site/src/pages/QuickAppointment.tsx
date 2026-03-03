@@ -215,7 +215,6 @@ const QuickAppointment = () => {
                     border-radius: 20px;
                     padding: 25px;
                     margin-bottom: 25px;
-                    margin-top: 0.25rem;
                     transition: all 0.3s ease;
                 }
                 .qa-time-picker-wrapper.has-error {
@@ -235,6 +234,14 @@ const QuickAppointment = () => {
                 .qa-time-grid {
                     display: grid;
                     grid-template-columns: repeat(4, 1fr);
+                    gap: 8px;
+                }
+                .qa-minute-grid {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+                .qa-period-group {
+                    display: flex;
+                    flex-direction: column;
                     gap: 8px;
                 }
                 .qa-time-btn {
@@ -337,187 +344,81 @@ const QuickAppointment = () => {
                     font-size: 1.1rem;
                 }
                 @media (max-width: 991px) {
+                    .quickappointment-info {
+                        padding-right: 0 !important;
+                        margin-top: 0.5rem;
+                    }
+                    .quickappointment-form-wrapper {
+                        padding: 1.75rem !important;
+                        border-radius: 16px !important;
+                    }
+                    .info-items .info-item {
+                        margin-bottom: 1rem !important;
+                    }
+                    .process-icon {
+                        width: 62px;
+                        height: 62px;
+                        font-size: 1.5rem;
+                    }
+                    .process-item h5 {
+                        font-size: 1rem;
+                    }
+                    .process-item p {
+                        padding: 0 0.5rem !important;
+                    }
                     .process-line {
                         display: none;
                     }
                 }
-
-                /* --- Page-level responsive --- */
-                .quickappointment-page {
-                    overflow-x: hidden;
-                    max-width: 100vw;
-                }
-                .quickappointment-page .container {
-                    max-width: 100%;
-                    padding-left: 1rem;
-                    padding-right: 1rem;
-                }
-                .quickappointment-page .quickappointment-form-wrapper {
-                    max-width: 100%;
-                    overflow-x: hidden;
-                    box-sizing: border-box;
-                }
-                .quickappointment-page .quickappointment-form {
-                    max-width: 100%;
-                    overflow-x: hidden;
-                }
-                .quickappointment-page .quickappointment-form .row {
-                    max-width: 100%;
-                }
-                .quickappointment-page .quickappointment-form [class*="col-"] {
-                    max-width: 100%;
-                    box-sizing: border-box;
-                }
-                .quickappointment-page .form-control,
-                .quickappointment-page .form-select,
-                .quickappointment-page .quickappointment-form input,
-                .quickappointment-page .quickappointment-form select,
-                .quickappointment-page .quickappointment-form textarea {
-                    width: 100% !important;
-                    max-width: 100% !important;
-                    box-sizing: border-box !important;
-                }
-                .quickappointment-page .qa-time-picker-wrapper {
-                    max-width: 100%;
-                    box-sizing: border-box;
-                }
-                .quickappointment-page .qa-time-grid {
-                    max-width: 100%;
-                    min-width: 0;
-                }
-
-                @media (max-width: 991px) {
-                    .quickappointment-page .quickappointment-info {
-                        padding-right: 0 !important;
-                        margin-bottom: 2rem;
+                @media (max-width: 767px) {
+                    .quickappointment-form-wrapper {
+                        padding: 1.1rem !important;
+                        border-radius: 14px !important;
                     }
-                    .quickappointment-page .quickappointment-info h3 {
+                    .qa-time-picker-wrapper {
+                        padding: 16px;
+                        border-radius: 14px;
+                    }
+                    .qa-time-display {
                         font-size: 1.35rem;
-                    }
-                    .quickappointment-page .quickappointment-form-wrapper {
-                        padding: 1.5rem !important;
-                    }
-                }
-
-                @media (max-width: 768px) {
-                    .quickappointment-page .quickappointment-info h3 {
-                        font-size: 1.25rem;
-                    }
-                    .quickappointment-page .quickappointment-info .mb-5 {
-                        margin-bottom: 1.5rem !important;
-                    }
-                    .quickappointment-page .info-item {
-                        flex-direction: row;
-                    }
-                    .quickappointment-page .emergency-contact {
-                        padding: 1rem 1.25rem !important;
-                        margin-top: 1.5rem !important;
-                    }
-                    .quickappointment-page .quickappointment-form-wrapper {
-                        padding: 1.25rem 1rem !important;
-                        border-radius: 1rem !important;
-                    }
-                    .quickappointment-page .qa-time-picker-wrapper {
-                        padding: 18px 16px;
-                        margin-bottom: 20px;
-                        margin-top: 1.25rem;
-                        border-radius: 16px;
-                    }
-                    .quickappointment-page .qa-time-display {
-                        font-size: 1.5rem;
-                        margin-bottom: 16px;
+                        margin-bottom: 14px;
                         padding: 8px;
                     }
-                    .quickappointment-page .qa-time-grid {
-                        grid-template-columns: repeat(4, 1fr);
+                    .qa-time-grid {
+                        grid-template-columns: repeat(3, 1fr);
                         gap: 6px;
                     }
-                    .quickappointment-page .qa-time-btn {
-                        padding: 6px 0;
+                    .qa-minute-grid {
+                        grid-template-columns: repeat(2, 1fr);
+                    }
+                    .qa-time-btn {
+                        min-height: 38px;
                         font-size: 0.8rem;
+                        padding: 6px 0;
                     }
-                    .quickappointment-page .process-item h5 {
-                        font-size: 1rem;
+                    .qa-period-group {
+                        flex-direction: row;
                     }
-                    .quickappointment-page .process-item p {
-                        font-size: 0.85rem;
-                        padding-left: 0.5rem !important;
-                        padding-right: 0.5rem !important;
+                    .qa-period-group .qa-time-btn {
+                        width: 100%;
                     }
-                    .quickappointment-page .process-icon {
-                        width: 56px;
-                        height: 56px;
-                        font-size: 1.5rem;
-                    }
-                    .quickappointment-page .process-number {
-                        width: 24px;
-                        height: 24px;
-                        font-size: 0.75rem;
-                        right: calc(50% - 36px);
-                    }
-                }
-
-                @media (max-width: 576px) {
-                    .quickappointment-page #quickappointmnet,
-                    .quickappointment-page .quickappointmnet {
-                        padding-top: 1.5rem !important;
-                        padding-bottom: 1.5rem !important;
-                    }
-                    .quickappointment-page .container {
-                        padding-left: 0.75rem;
-                        padding-right: 0.75rem;
-                    }
-                    .quickappointment-page .quickappointment-info h3 {
-                        font-size: 1.15rem;
-                    }
-                    .quickappointment-page .quickappointment-form-wrapper {
-                        padding: 1rem 0.75rem !important;
-                        border-radius: 0.75rem !important;
-                    }
-                    .quickappointment-page .form-control,
-                    .quickappointment-page .form-select {
-                        font-size: 0.95rem;
-                    }
-                    .quickappointment-page .qa-time-picker-wrapper {
-                        padding: 14px 12px;
-                        margin-bottom: 18px;
-                        margin-top: 1.5rem;
-                        border-radius: 12px;
-                        max-width: 100%;
-                    }
-                    .quickappointment-page .qa-time-display {
+                    .quickappointment-info h3 {
                         font-size: 1.35rem;
-                        margin-bottom: 12px;
+                        margin-bottom: 0.85rem !important;
                     }
-                    .quickappointment-page .qa-time-grid {
-                        grid-template-columns: repeat(3, 1fr);
-                        gap: 5px;
+                    .quickappointment-info p {
+                        margin-bottom: 1.25rem !important;
                     }
-                    .quickappointment-page .qa-time-btn {
-                        padding: 5px 0;
-                        font-size: 0.75rem;
+                    .emergency-contact {
+                        margin-top: 1.5rem !important;
+                        padding: 1rem !important;
                     }
-                    .quickappointment-page .btn-quickappointment {
-                        padding: 0.75rem 1rem !important;
-                        font-size: 0.95rem;
+                    .process-steps {
+                        padding-top: 2.5rem !important;
+                        padding-bottom: 2.5rem !important;
                     }
-                    .quickappointment-page .process-steps {
-                        padding-top: 2rem !important;
-                        padding-bottom: 2rem !important;
-                    }
-                    .quickappointment-page .section-header h2 {
-                        font-size: 1.35rem;
-                    }
-                    .quickappointment-page .process-icon {
-                        width: 50px;
-                        height: 50px;
-                        font-size: 1.25rem;
-                    }
-                    .quickappointment-page .process-number {
-                        width: 22px;
-                        height: 22px;
-                        font-size: 0.7rem;
-                        right: calc(50% - 32px);
+                    .section-header h2 {
+                        font-size: 1.45rem;
                     }
                 }
                 `}
@@ -531,10 +432,10 @@ const QuickAppointment = () => {
         ]}
       />
 
-      <section id="quickappointmnet" className="quickappointmnet section py-5 overflow-hidden">
-        <div className="container container-qa" data-aos="fade-up">
+      <section id="quickappointmnet" className="quickappointmnet section py-5">
+        <div className="container" data-aos="fade-up">
           <div className="row gy-5">
-            <div className="col-lg-5">
+            <div className="col-lg-5 order-1">
               <div className="quickappointment-info pe-lg-5">
                 <h3 className="fw-bold mb-4" style={{ color: '#18444c' }}>Seamless Online Booking</h3>
                 <p className="mb-5 text-muted leading-relaxed">Experience hassle-free healthcare scheduling. Fill out the form, select your specialist, and get confirmed instantly.</p>
@@ -564,7 +465,7 @@ const QuickAppointment = () => {
               </div>
             </div>
 
-            <div className="col-lg-7">
+            <div className="col-lg-7 order-2">
               <div className="quickappointment-form-wrapper shadow-lg p-4 p-md-5 rounded-4 bg-white">
                 <form onSubmit={handleSubmit} className="quickappointment-form">
                   <div className="row gy-4">
@@ -704,7 +605,7 @@ const QuickAppointment = () => {
                           </div>
                           <div className="col-md-4">
                             <span className="small fw-bold text-muted d-block mb-2">Minute</span>
-                            <div className="qa-time-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
+                            <div className="qa-time-grid qa-minute-grid">
                               {minutesList.map(m => (
                                 <button
                                   key={m}
@@ -719,7 +620,7 @@ const QuickAppointment = () => {
                           </div>
                           <div className="col-md-2">
                             <span className="small fw-bold text-muted d-block mb-2">Period</span>
-                            <div className="d-flex flex-column gap-2">
+                            <div className="qa-period-group">
                               {periods.map(p => (
                                 <button
                                   key={p}

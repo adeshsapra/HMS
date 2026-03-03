@@ -48,6 +48,8 @@ const MyAppointments = ({ onNavigateToTestimonials, focusAppointmentId }: MyAppo
         start_date: '',
         end_date: ''
     })
+    const [statusFilterOpen, setStatusFilterOpen] = useState(false)
+    const statusFilterRef = useRef<HTMLDivElement | null>(null)
 
     // Modal states
     const [viewModalOpen, setViewModalOpen] = useState(false)
@@ -64,6 +66,15 @@ const MyAppointments = ({ onNavigateToTestimonials, focusAppointmentId }: MyAppo
     // Time picker data
     const hoursList = Array.from({ length: 12 }, (_, i) => (i + 1).toString().padStart(2, '0'))
     const minutesList = ['00', '15', '30', '45']
+    const appointmentStatusOptions = [
+        { value: '', label: 'All Status' },
+        { value: 'pending', label: 'Pending' },
+        { value: 'confirmed', label: 'Confirmed' },
+        { value: 'completed', label: 'Completed' },
+        { value: 'cancelled', label: 'Cancelled' }
+    ]
+    const selectedAppointmentStatusLabel =
+        appointmentStatusOptions.find((option) => option.value === appointmentFilters.status)?.label || 'All Status'
 
     // Helper function to format appointment date
     const formatAppointmentDate = (dateString: string) => {
@@ -285,6 +296,19 @@ const MyAppointments = ({ onNavigateToTestimonials, focusAppointmentId }: MyAppo
         openFocusedAppointment()
     }, [focusAppointmentId, appointments, appointmentsLoading])
 
+    useEffect(() => {
+        const handleOutsideClick = (event: MouseEvent) => {
+            if (statusFilterRef.current && !statusFilterRef.current.contains(event.target as Node)) {
+                setStatusFilterOpen(false)
+            }
+        }
+
+        document.addEventListener('mousedown', handleOutsideClick)
+        return () => {
+            document.removeEventListener('mousedown', handleOutsideClick)
+        }
+    }, [])
+
     return (
         <div className="profile-appointment-container">
             <style>{`
@@ -317,11 +341,13 @@ const MyAppointments = ({ onNavigateToTestimonials, focusAppointmentId }: MyAppo
                 }
 
                 .profile-appointment-section-header h3 {
-                    font-size: 1.85rem;
+                    font-size: 1.5rem;
                     color: var(--pa-heading-color);
                     margin-bottom: 0.5rem;
                     font-weight: 700;
                     letter-spacing: -0.5px;
+                    font-family: var(--heading-font);
+                    line-height: 1.2;
                 }
 
                 .profile-appointment-section-header p {
@@ -334,31 +360,141 @@ const MyAppointments = ({ onNavigateToTestimonials, focusAppointmentId }: MyAppo
                     display: flex;
                     align-items: center;
                     gap: 1rem;
+                    flex-wrap: wrap;
                 }
 
-                .profile-appointment-filters .form-control {
-                    min-width: 160px;
-                    border-radius: 8px;
-                    border: 1px solid #e0e0e0;
-                    padding: 0.4rem 0.8rem;
+                .profile-appointment-filter-dropdown {
+                    position: relative;
+                    min-width: 170px;
+                }
+
+                .profile-appointment-filter-select {
+                    appearance: none;
+                    -webkit-appearance: none;
+                    -moz-appearance: none;
+                    width: 100%;
+                    border-radius: 999px;
+                    border: 1px solid color-mix(in srgb, var(--pa-default-color), transparent 80%);
+                    padding: 0.65rem 2.2rem 0.65rem 0.95rem;
+                    font-size: 0.92rem;
+                    font-weight: 500;
+                    background-color: #fff;
+                    color: var(--pa-heading-color);
+                    cursor: pointer;
+                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+                    text-align: left;
+                    position: relative;
                 }
                 
-                .profile-appointment-filters .form-control:focus {
+                .profile-appointment-filter-select:focus {
+                    outline: none;
                     border-color: var(--pa-accent-color);
                     box-shadow: 0 0 0 4px color-mix(in srgb, var(--pa-accent-color), transparent 90%);
                 }
 
-                .profile-appointment-btn-refresh {
+                .profile-appointment-filter-select .filter-chevron {
+                    position: absolute;
+                    right: 0.9rem;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    font-size: 0.8rem;
                     color: var(--pa-accent-color);
-                    border-color: var(--pa-accent-color);
-                    border-radius: 8px;
-                    padding: 0.4rem 1rem;
-                    transition: all 0.3s;
+                    transition: transform 0.25s ease;
                 }
 
-                .profile-appointment-btn-refresh:hover {
-                    background-color: var(--pa-accent-color);
-                    color: #fff;
+                .profile-appointment-filter-select.open .filter-chevron {
+                    transform: translateY(-50%) rotate(180deg);
+                }
+
+                .profile-appointment-filter-menu {
+                    position: absolute;
+                    top: calc(100% + 0.45rem);
+                    left: 0;
+                    width: 100%;
+                    background: #fff;
+                    border: 1px solid color-mix(in srgb, var(--pa-default-color), transparent 85%);
+                    border-radius: 14px;
+                    box-shadow: 0 14px 32px rgba(7, 47, 60, 0.14);
+                    padding: 0.35rem;
+                    margin: 0;
+                    list-style: none;
+                    z-index: 1200;
+                    animation: paDropdownIn 0.16s ease-out;
+                }
+
+                .profile-appointment-filter-option {
+                    width: 100%;
+                    border: none;
+                    background: transparent;
+                    text-align: left;
+                    border-radius: 10px;
+                    padding: 0.55rem 0.7rem;
+                    font-size: 0.9rem;
+                    color: var(--pa-heading-color);
+                    font-weight: 500;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    transition: all 0.2s ease;
+                }
+
+                .profile-appointment-filter-option:hover {
+                    background: color-mix(in srgb, var(--pa-accent-color), transparent 92%);
+                    color: var(--pa-accent-color);
+                }
+
+                .profile-appointment-filter-option.active {
+                    background: color-mix(in srgb, var(--pa-accent-color), transparent 88%);
+                    color: var(--pa-accent-color);
+                    font-weight: 600;
+                }
+
+                @keyframes paDropdownIn {
+                    from {
+                        opacity: 0;
+                        transform: translateY(-6px) scale(0.98);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0) scale(1);
+                    }
+                }
+
+                .profile-appointment-btn-refresh {
+                    background: var(--pa-accent-color);
+                    color: var(--pa-contrast-color);
+                    border: none;
+                    padding: 0.75rem 1.5rem;
+                    border-radius: 50px;
+                    font-weight: 600;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    transition: all 0.3s ease;
+                    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                    cursor: pointer;
+                    font-family: var(--heading-font);
+                }
+
+                .profile-appointment-btn-refresh:hover:not(:disabled) {
+                    background: color-mix(in srgb, var(--pa-accent-color), transparent 15%);
+                    transform: translateY(-2px);
+                    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.15);
+                    color: var(--pa-contrast-color);
+                }
+
+                .profile-appointment-btn-refresh:disabled {
+                    opacity: 0.7;
+                    cursor: not-allowed;
+                }
+
+                .profile-appointment-spin {
+                    animation: paSpin 1s linear infinite;
+                }
+
+                @keyframes paSpin {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
                 }
 
                 /* --- Appointment Cards --- */
@@ -776,27 +912,49 @@ const MyAppointments = ({ onNavigateToTestimonials, focusAppointmentId }: MyAppo
                 <div className="profile-appointment-section-header">
                     <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
                         <div>
-                            <h3>My Appointments</h3>
+                            <h3 className="d-flex align-items-center gap-2">
+                                <i className="bi bi-calendar-check"></i>
+                                My Appointments
+                            </h3>
                             <p className="mb-0">View and manage your appointment history</p>
                         </div>
                         <div className="profile-appointment-filters">
-                            <select
-                                className="form-control"
-                                value={appointmentFilters.status}
-                                onChange={(e) => setAppointmentFilters(prev => ({ ...prev, status: e.target.value }))}
-                            >
-                                <option value="">All Status</option>
-                                <option value="pending">Pending</option>
-                                <option value="confirmed">Confirmed</option>
-                                <option value="completed">Completed</option>
-                                <option value="cancelled">Cancelled</option>
-                            </select>
+                            <div className="profile-appointment-filter-dropdown" ref={statusFilterRef}>
+                                <button
+                                    type="button"
+                                    className={`profile-appointment-filter-select ${statusFilterOpen ? 'open' : ''}`}
+                                    onClick={() => setStatusFilterOpen((prev) => !prev)}
+                                >
+                                    {selectedAppointmentStatusLabel}
+                                    <i className="bi bi-chevron-down filter-chevron"></i>
+                                </button>
+                                {statusFilterOpen && (
+                                    <ul className="profile-appointment-filter-menu">
+                                        {appointmentStatusOptions.map((option) => (
+                                            <li key={option.value || 'all'}>
+                                                <button
+                                                    type="button"
+                                                    className={`profile-appointment-filter-option ${appointmentFilters.status === option.value ? 'active' : ''}`}
+                                                    onClick={() => {
+                                                        setAppointmentFilters((prev) => ({ ...prev, status: option.value }))
+                                                        setStatusFilterOpen(false)
+                                                    }}
+                                                >
+                                                    <span>{option.label}</span>
+                                                    {appointmentFilters.status === option.value && <i className="bi bi-check2"></i>}
+                                                </button>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </div>
                             <button
-                                className="btn btn-outline-primary profile-appointment-btn-refresh"
+                                className="profile-appointment-btn-refresh"
                                 onClick={() => fetchAppointments()}
+                                disabled={appointmentsLoading}
                             >
-                                <i className="bi bi-arrow-clockwise me-1"></i>
-                                Refresh
+                                <i className={`bi ${appointmentsLoading ? 'bi-arrow-repeat profile-appointment-spin' : 'bi-arrow-clockwise'}`}></i>
+                                {appointmentsLoading ? 'Refreshing...' : 'Refresh'}
                             </button>
                         </div>
                     </div>
