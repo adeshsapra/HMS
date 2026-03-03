@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ApiService } from '../services/api';
 import { useToast } from '../context/ToastContext';
+import ProfileTabLoader from './ProfileTabLoader';
 
 interface BillItem {
     id: number;
@@ -34,16 +35,50 @@ interface Payment {
     payment_date: string | null;
 }
 
-const MyBills = () => {
+interface MyBillsProps {
+    focusBillId?: number | null;
+}
+
+const MyBills = ({ focusBillId }: MyBillsProps) => {
     const [bills, setBills] = useState<Bill[]>([]);
     const [loading, setLoading] = useState(true);
     const [expandedBillId, setExpandedBillId] = useState<number | null>(null);
     const { showToast } = useToast();
     const navigate = useNavigate();
+    const focusedBillRef = useRef<number | null>(null);
 
     useEffect(() => {
         fetchBills();
     }, []);
+
+    useEffect(() => {
+        const openFocusedBill = async () => {
+            if (!focusBillId || loading || focusedBillRef.current === focusBillId) {
+                return;
+            }
+
+            const existingBill = bills.find((bill) => bill.id === focusBillId);
+            if (existingBill) {
+                setExpandedBillId(focusBillId);
+                focusedBillRef.current = focusBillId;
+                return;
+            }
+
+            try {
+                const response = await ApiService.getBillById(focusBillId);
+                if (response.data?.success && response.data?.data) {
+                    const focusedBill = response.data.data as Bill;
+                    setBills((prev) => [focusedBill, ...prev]);
+                    setExpandedBillId(focusedBill.id);
+                    focusedBillRef.current = focusedBill.id;
+                }
+            } catch (error) {
+                console.error('Error loading focused bill:', error);
+            }
+        };
+
+        openFocusedBill();
+    }, [focusBillId, bills, loading]);
 
     const fetchBills = async () => {
         try {
@@ -147,7 +182,7 @@ const MyBills = () => {
                 }
 
                 .ledger-title h2 {
-                    font-size: 1.75rem;
+                    font-size: 1.5rem;
                     color: var(--heading-color);
                     font-weight: 800;
                     margin: 0;
@@ -161,24 +196,40 @@ const MyBills = () => {
                 }
 
                 .action-icon-btn {
-                    background: transparent;
-                    border: 1px solid #cbd5e1;
-                    border-radius: 8px;
-                    padding: 0.5rem;
-                    color: #64748b;
+                    background: var(--accent-color);
+                    color: var(--contrast-color);
+                    border: none;
+                    padding: 0.75rem 1.5rem;
+                    border-radius: 50px;
+                    font-weight: 600;
                     cursor: pointer;
-                    transition: all 0.2s ease;
+                    transition: all 0.3s ease;
                     display: flex;
                     align-items: center;
                     gap: 0.5rem;
-                    font-weight: 500;
-                    font-size: 0.875rem;
+                    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                    font-family: var(--heading-font);
                 }
 
-                .action-icon-btn:hover {
-                    background: #f1f5f9;
-                    color: var(--heading-color);
-                    border-color: #94a3b8;
+                .action-icon-btn:hover:not(:disabled) {
+                    background: color-mix(in srgb, var(--accent-color), transparent 15%);
+                    transform: translateY(-2px);
+                    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.15);
+                    color: var(--contrast-color);
+                }
+
+                .action-icon-btn:disabled {
+                    opacity: 0.7;
+                    cursor: not-allowed;
+                }
+
+                .ledger-refresh-spin {
+                    animation: ledgerSpin 1s linear infinite;
+                }
+
+                @keyframes ledgerSpin {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
                 }
 
                 /* List Container */
@@ -434,19 +485,21 @@ const MyBills = () => {
 
             <div className="ledger-header">
                 <div className="ledger-title">
-                    <h2>Bills & Payments</h2>
+                    <h2 className="d-flex align-items-center gap-2">
+                        <i className="bi bi-receipt"></i>
+                        Bills & Payments
+                    </h2>
                     <p>Track your invoices and payment history</p>
                 </div>
-                <button onClick={fetchBills} className="action-icon-btn">
-                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                    Refresh List
+                <button onClick={fetchBills} className="action-icon-btn" disabled={loading}>
+                    <i className={`bi ${loading ? 'bi-arrow-repeat ledger-refresh-spin' : 'bi-arrow-clockwise'}`}></i>
+                    {loading ? 'Refreshing...' : 'Refresh'}
                 </button>
             </div>
 
             {loading ? (
                 <div className="center-state">
-                    <div className="spinner"></div>
-                    <p>Retrieving records...</p>
+                    <ProfileTabLoader message="Retrieving records..." />
                 </div>
             ) : bills.length === 0 ? (
                 <div className="center-state">

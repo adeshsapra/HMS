@@ -3,6 +3,7 @@ import { DataTable, FormModal, ViewModal, DeleteConfirmModal, Column, FormField,
 import { Button } from "@material-tailwind/react";
 import { BriefcaseIcon } from "@heroicons/react/24/outline";
 import { apiService } from "@/services/api";
+import { useToast } from "@/context/ToastContext";
 
 // Get default page size from settings or use 10 as default
 const DEFAULT_PAGE_SIZE = parseInt(localStorage.getItem('settings_page_size') || '10', 10);
@@ -33,6 +34,7 @@ interface Department {
 }
 
 export default function Services(): JSX.Element {
+  const { showToast } = useToast();
   const [services, setServices] = useState<Service[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,12 +58,12 @@ export default function Services(): JSX.Element {
     try {
       setLoading(true);
       const response = await apiService.getServices(page, pageSize, filters);
-      if (response.success && response.data) {
+      if ((response.success || response.status) && response.data) {
         setServices(response.data || []);
         setTotalPages(response.meta?.last_page || 1);
       }
     } catch (error: any) {
-      alert(error.message || "Failed to fetch services");
+      showToast(error.message || "Failed to fetch services", "error");
     } finally {
       setLoading(false);
     }
@@ -70,11 +72,12 @@ export default function Services(): JSX.Element {
   const fetchDepartments = async () => {
     try {
       const response = await apiService.getDepartments(1, 100); // Get first 100 departments for dropdown
-      if (response.success && response.data) {
+      if ((response.success || response.status) && response.data) {
         setDepartments(response.data || []);
       }
     } catch (error: any) {
       console.error("Failed to fetch departments:", error);
+      showToast(error.message || "Failed to fetch departments", "error");
     }
   };
 
@@ -149,6 +152,7 @@ export default function Services(): JSX.Element {
   ];
 
   const viewFields: ViewField[] = [
+    { key: "id", label: "ID" },
     { key: "name", label: "Service Name" },
     {
       key: "department",
@@ -156,25 +160,45 @@ export default function Services(): JSX.Element {
       render: (value: any) => value?.name || 'Not assigned'
     },
     { key: "category", label: "Category" },
-    { key: "description", label: "Description", fullWidth: true },
+    { key: "description", label: "Description", type: "longtext", fullWidth: true },
     { key: "price", label: "Price", type: "currency" },
     {
       key: "duration",
       label: "Duration",
       render: (value: any) => value ? `${value} minutes` : '-'
     },
-    { key: "icon", label: "Icon" },
+    {
+      key: "icon",
+      label: "Icon",
+      render: (value: any) => (
+        value ? (
+          <div className="flex items-center gap-2">
+            <i className={`bi ${value} text-lg text-blue-600`} />
+            <span>{value}</span>
+          </div>
+        ) : '-'
+      )
+    },
     {
       key: "features",
       label: "Features",
       render: (value: any) => (
-        value && Array.isArray(value) ? (
+        (() => {
+          const parsed = typeof value === 'string' ? (() => {
+            try {
+              return JSON.parse(value);
+            } catch {
+              return [];
+            }
+          })() : value;
+          return parsed && Array.isArray(parsed) ? (
           <ul className="list-disc list-inside text-sm">
-            {value.map((feature: string, idx: number) => (
+              {parsed.map((feature: string, idx: number) => (
               <li key={idx}>{feature}</li>
             ))}
           </ul>
-        ) : '-'
+          ) : '-';
+        })()
       )
     },
     {
@@ -189,12 +213,11 @@ export default function Services(): JSX.Element {
     {
       key: "is_active",
       label: "Status",
-      render: (value: any) => (
-        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${value ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-          {value ? 'Active' : 'Inactive'}
-        </span>
-      ),
+      type: "status",
+      render: (value: any) => value ? "Active" : "Inactive",
     },
+    { key: "created_at", label: "Created At", type: "datetime" },
+    { key: "updated_at", label: "Updated At", type: "datetime" },
   ];
 
   const formFields: FormField[] = [
@@ -311,20 +334,31 @@ export default function Services(): JSX.Element {
   const confirmDelete = async (): Promise<void> => {
     if (selectedService) {
       try {
-        await apiService.deleteService(selectedService.id);
-        alert("Service deleted successfully!");
+        const response = await apiService.deleteService(selectedService.id);
+        showToast(response.message || "Service deleted successfully!", "success");
         fetchServices();
         setOpenDeleteModal(false);
         setSelectedService(null);
       } catch (error: any) {
-        alert(error.message || "Failed to delete service");
+        showToast(error.message || "Failed to delete service", "error");
       }
     }
   };
 
-  const handleView = (service: Service): void => {
-    setSelectedService(service);
-    setOpenViewModal(true);
+  const handleView = async (service: Service): Promise<void> => {
+    try {
+      setLoading(true);
+      const response = await apiService.getService(service.id);
+      const fullService = ((response as any).data && !(response as any).data.data)
+        ? (response as any).data
+        : (response as any).data?.data || service;
+      setSelectedService(fullService);
+      setOpenViewModal(true);
+    } catch (error: any) {
+      showToast(error.message || "Failed to load service details", "error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async (data: Record<string, any>) => {
@@ -354,17 +388,17 @@ export default function Services(): JSX.Element {
       }
 
       if (selectedService) {
-        await apiService.updateService(selectedService.id, data);
-        alert("Service updated successfully!");
+        const response = await apiService.updateService(selectedService.id, data);
+        showToast(response.message || "Service updated successfully!", "success");
       } else {
-        await apiService.createService(data);
-        alert("Service created successfully!");
+        const response = await apiService.createService(data);
+        showToast(response.message || "Service created successfully!", "success");
       }
       fetchServices();
       setOpenModal(false);
       setSelectedService(null);
     } catch (error: any) {
-      alert(error.message || "Failed to save service");
+      showToast(error.message || "Failed to save service", "error");
     }
   };
 

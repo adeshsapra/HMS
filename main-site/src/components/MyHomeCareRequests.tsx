@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { patientProfileAPI } from '../services/api';
 import { useToast } from '../context/ToastContext';
+import ProfileTabLoader from './ProfileTabLoader';
 
 interface HomeCareRequest {
     id: number;
@@ -126,32 +127,93 @@ const MyHomeCareRequests = () => {
         );
     };
 
-    if (loading) {
-        return (
-            <div className="d-flex justify-content-center align-items-center min-vh-50 py-5">
-                <div className="spinner-border text-primary" role="status">
-                    <span className="visually-hidden">Loading...</span>
-                </div>
-            </div>
-        );
-    }
-
     return (
-        <div className="my-appointments-section container-fluid py-4" style={{ '--bs-primary': '#0299BE', '--bs-primary-rgb': '2, 153, 190' } as React.CSSProperties}>
-            <div className="d-flex align-items-end justify-content-between mb-5">
-                <div>
-                    <h2 className="fw-bold text-dark mb-2 d-flex align-items-center gap-2">
-                        <i className="bi bi-house-heart text-primary"></i>
-                        My Home Care
-                    </h2>
-                    <p className="text-muted mb-0 fs-5 fw-light">Manage your health visits and payments effortlessly.</p>
+        <div className="my-appointments-section subscriptions-container container-fluid py-4" style={{ '--bs-primary': '#0299BE', '--bs-primary-rgb': '2, 153, 190' } as React.CSSProperties}>
+            <style>{`
+                .subscriptions-container {
+                    width: 100%;
+                    font-family: var(--default-font);
+                    color: var(--default-color);
+                }
+
+                .subs-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 2rem;
+                    border-bottom: 1px solid color-mix(in srgb, var(--default-color), transparent 90%);
+                    padding-bottom: 1.5rem;
+                }
+
+                .subs-title h3 {
+                    font-size: 1.5rem;
+                    font-weight: 700;
+                    color: var(--heading-color);
+                    margin: 0;
+                    font-family: var(--heading-font);
+                }
+
+                .subs-title p {
+                    color: color-mix(in srgb, var(--default-color), transparent 40%);
+                    margin: 0.25rem 0 0 0;
+                    font-size: 0.95rem;
+                }
+
+                .buy-more-btn {
+                    background: var(--accent-color);
+                    color: var(--contrast-color);
+                    border: none;
+                    padding: 0.75rem 1.5rem;
+                    border-radius: 50px;
+                    font-weight: 600;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    transition: all 0.3s ease;
+                    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                    cursor: pointer;
+                    font-family: var(--heading-font);
+                }
+
+                .buy-more-btn:hover:not(:disabled) {
+                    background: color-mix(in srgb, var(--accent-color), transparent 15%);
+                    transform: translateY(-2px);
+                    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.15);
+                    color: var(--contrast-color);
+                }
+
+                .buy-more-btn:disabled {
+                    opacity: 0.7;
+                    cursor: not-allowed;
+                }
+
+                .spin {
+                    animation: homecare-spin 1s linear infinite;
+                }
+
+                @keyframes homecare-spin {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
+                }
+            `}</style>
+
+            <div className="subs-header">
+                <div className="subs-title">
+                    <h3 className="d-flex align-items-center gap-2">
+                        <i className="bi bi-house-heart"></i>
+                        My Home Care Requests
+                    </h3>
+                    <p>Manage your health visits and payments effortlessly.</p>
                 </div>
-                <button className="btn btn-outline-primary rounded-pill px-4 d-none d-md-block" onClick={() => window.location.reload()}>
-                    <i className="bi bi-arrow-clockwise me-2"></i>Refresh
+                <button className="buy-more-btn" onClick={fetchRequests} disabled={loading}>
+                    <i className={`bi ${loading ? 'bi-arrow-repeat' : 'bi-arrow-clockwise'} ${loading ? 'spin' : ''}`}></i>
+                    {loading ? 'Refreshing...' : 'Refresh'}
                 </button>
             </div>
 
-            {requests.length === 0 ? (
+            {loading ? (
+                <ProfileTabLoader message="Loading your home care requests..." />
+            ) : requests.length === 0 ? (
                 <div className="text-center py-5 bg-white rounded-5 shadow-lg position-relative overflow-hidden">
                     <div className="position-absolute top-0 start-0 w-100 h-100 bg-primary opacity-0" style={{ pointerEvents: 'none', background: 'radial-gradient(circle at 50% 50%, rgba(2, 153, 190, 0.05) 0%, transparent 70%)' }}></div>
                     <div className="mb-4">
@@ -172,20 +234,18 @@ const MyHomeCareRequests = () => {
                             <div className="card border-0 shadow-lg rounded-4 overflow-hidden bg-white group-hover-parent transition-all" style={{ transform: 'translateZ(0)' }}>
                                 <div className="card-body p-0">
                                     <div className="d-md-flex">
-                                        {/* Status Sidebar - Always use theme color */}
                                         <div className="p-1 d-none d-md-block bg-primary" style={{ width: '6px' }}></div>
 
                                         <div className="flex-grow-1 p-4">
-                                            {/* Header Row */}
                                             <div className="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
                                                 <div>
                                                     <div className="d-flex align-items-center gap-2 mb-2">
                                                         {getStatusBadge(request.status)}
                                                         <span className="text-muted small fw-medium">#{request.id}</span>
                                                     </div>
-                                                    <h3 className="fw-bold text-dark mb-1">
+                                                    <h5 className="fw-bold text-dark mb-1">
                                                         {getServiceNames(request.services_requested)[0]}
-                                                    </h3>
+                                                    </h5>
                                                     {getServiceNames(request.services_requested).length > 1 && (
                                                         <span className="text-muted small">
                                                             + {getServiceNames(request.services_requested).slice(1).join(', ')}
@@ -268,7 +328,7 @@ const MyHomeCareRequests = () => {
                                                         <div className="bg-light rounded-4 px-4 py-3 border border-light shadow-sm">
                                                             <div className="small text-muted fw-bold text-uppercase mb-2 text-center" style={{ fontSize: '0.65rem', letterSpacing: '0.5px' }}>Total Amount</div>
                                                             <div className="text-center">
-                                                                <div className="h3 fw-bolder text-dark mb-2">${parseFloat(request.bill.total_amount.toString()).toFixed(2)}</div>
+                                                                <div className="h5 fw-bolder text-dark mb-2">${parseFloat(request.bill.total_amount.toString()).toFixed(2)}</div>
                                                                 <div className={`badge px-3 py-2 ${request.bill.status === 'paid' ? 'bg-primary' : 'bg-danger'} bg-opacity-10 border ${request.bill.status === 'paid' ? 'border-primary text-primary' : 'border-danger text-danger'}`}>
                                                                     {request.bill.status === 'finalized' ? 'Unpaid' : request.bill.status.replace('_', ' ').toUpperCase()}
                                                                 </div>

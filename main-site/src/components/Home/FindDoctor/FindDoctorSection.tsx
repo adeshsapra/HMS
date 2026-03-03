@@ -31,8 +31,26 @@ const FindDoctorSection = ({ doctors, loadingDoctors }: FindDoctorSectionProps) 
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedSpecialty, setSelectedSpecialty] = useState("");
 
+    const isActiveDoctor = useCallback((doc: any) => {
+        const status = String(doc?.status ?? "").toLowerCase().trim();
+        const isActiveField = doc?.is_active;
+
+        if (status) {
+            return status === "active" || status === "1" || status === "true";
+        }
+
+        if (typeof isActiveField === "boolean") return isActiveField;
+        if (typeof isActiveField === "number") return isActiveField === 1;
+        if (typeof isActiveField === "string") {
+            const normalized = isActiveField.toLowerCase().trim();
+            return normalized === "1" || normalized === "true" || normalized === "active";
+        }
+
+        return true;
+    }, []);
+
     const filteredDoctors = useMemo(() => {
-        let filtered = doctors;
+        let filtered = doctors.filter(isActiveDoctor);
         if (searchQuery) {
             const query = searchQuery.toLowerCase();
             filtered = filtered.filter(doc =>
@@ -44,13 +62,28 @@ const FindDoctorSection = ({ doctors, loadingDoctors }: FindDoctorSectionProps) 
             filtered = filtered.filter(doc => doc.specialization?.toLowerCase() === selectedSpecialty.toLowerCase());
         }
         return filtered.slice(0, 6);
-    }, [searchQuery, selectedSpecialty, doctors]);
+    }, [searchQuery, selectedSpecialty, doctors, isActiveDoctor]);
 
-    const getFullImageUrl = useCallback((path: string | null) => {
-        if (!path) return "/assets/img/person/person-m-12.webp";
+    const getDoctorFallbackImage = useCallback((firstName?: string, lastName?: string) => {
+        const name = `${firstName || ""} ${lastName || ""}`.trim() || "Doctor";
+        return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0D8ABC&color=fff&size=512&margin=20`;
+    }, []);
+
+    const getFullImageUrl = useCallback((path: string | null, firstName?: string, lastName?: string) => {
+        if (!path) return getDoctorFallbackImage(firstName, lastName);
         if (path.startsWith("http")) return path;
         const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace("/api", "") || "http://localhost:8000";
         return `${baseUrl}/storage/${path}`;
+    }, [getDoctorFallbackImage]);
+
+    const getAverageRating = useCallback((doc: any) => {
+        const rating = Number(doc?.average_rating);
+        return Number.isFinite(rating) ? rating.toFixed(1) : "0.0";
+    }, []);
+
+    const getTotalReviews = useCallback((doc: any) => {
+        const total = Number(doc?.total_reviews);
+        return Number.isFinite(total) ? total : 0;
     }, []);
 
     return (
@@ -118,9 +151,11 @@ const FindDoctorSection = ({ doctors, loadingDoctors }: FindDoctorSectionProps) 
                                                 transition={springTransition as any}
                                             >
                                                 <img
-                                                    src={getFullImageUrl(doc.profile_picture)}
+                                                    src={getFullImageUrl(doc.profile_picture, doc.first_name, doc.last_name)}
                                                     alt={doc.first_name}
-                                                    onError={(e) => (e.currentTarget.src = '/assets/img/health/staff-3.webp')}
+                                                    onError={(e) => {
+                                                        e.currentTarget.src = getDoctorFallbackImage(doc.first_name, doc.last_name);
+                                                    }}
                                                 />
                                             </motion.div>
                                             <div className="kinetic-badge">
@@ -132,21 +167,26 @@ const FindDoctorSection = ({ doctors, loadingDoctors }: FindDoctorSectionProps) 
                                         <div className="kinetic-body">
                                             <div className="d-flex justify-content-between">
                                                 <span className="kinetic-tag">{doc.specialization}</span>
-                                                <span className="kinetic-rating"><i className="bi bi-star-fill"></i> 4.9</span>
+                                                <span className="kinetic-rating">
+                                                    <i className="bi bi-star-fill"></i> {getAverageRating(doc)} ({getTotalReviews(doc)})
+                                                </span>
                                             </div>
                                             <h3 className="kinetic-name">Dr. {doc.first_name} {doc.last_name}</h3>
 
                                             <motion.div
-                                                className="kinetic-hidden-info"
+                                                className="kinetic-info"
                                                 variants={{
-                                                    initial: { height: 0, opacity: 0 },
-                                                    hover: { height: 'auto', opacity: 1 }
+                                                    initial: { maxHeight: 0, opacity: 0, marginTop: 0 },
+                                                    hover: { maxHeight: 120, opacity: 1, marginTop: 8 }
                                                 }}
+                                                transition={{ duration: 0.25, ease: "easeOut" }}
                                             >
-                                                <p className="kinetic-bio">Top-tier specialist with {doc.experience_years}+ years of clinical innovation.</p>
-                                                <div className="kinetic-mini-stats">
-                                                    <span><b>120+</b> Reviews</span>
-                                                    <span><b>98%</b> Success</span>
+                                                <p className="kinetic-bio">
+                                                    {doc.bio || "Experienced specialist dedicated to providing high quality patient care."}
+                                                </p>
+                                                <div className="kinetic-exp">
+                                                    <i className="bi bi-award-fill"></i>
+                                                    <span>{doc.experience_years} yr exp</span>
                                                 </div>
                                             </motion.div>
 
@@ -155,7 +195,7 @@ const FindDoctorSection = ({ doctors, loadingDoctors }: FindDoctorSectionProps) 
                                                 <Link to={`/doctor-profile/${doc.id}`} className="kinetic-btn-outline" title="View Profile">
                                                     <i className="bi bi-person-lines-fill"></i>
                                                 </Link>
-                                                <Link to={`/doctors/${doc.id}`} className="kinetic-btn-primary">
+                                                <Link to={`/doctors/${doc.id}`} state={{ doctor: doc }} className="kinetic-btn-primary">
                                                     Book Appointment
                                                 </Link>
                                             </div>
@@ -291,6 +331,49 @@ const FindDoctorSection = ({ doctors, loadingDoctors }: FindDoctorSectionProps) 
                     font-weight: 800;
                     margin: 10px 0;
                     color: var(--heading-color);
+                }
+
+                .kinetic-rating {
+                    color: var(--heading-color);
+                    font-weight: 700;
+                    font-size: 0.92rem;
+                    white-space: nowrap;
+                }
+
+                .kinetic-rating i {
+                    color: #ffc107;
+                }
+
+                .kinetic-info {
+                    overflow: hidden;
+                }
+
+                .kinetic-bio {
+                    margin: 0;
+                    color: #64748b;
+                    font-size: 0.92rem;
+                    line-height: 1.45;
+                    display: -webkit-box;
+                    -webkit-box-orient: vertical;
+                    -webkit-line-clamp: 2;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+
+                .kinetic-exp {
+                    margin-top: 8px;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    color: #475569;
+                    font-size: 0.86rem;
+                    font-weight: 700;
+                    line-height: 1;
+                }
+
+                .kinetic-exp i {
+                    color: var(--accent-color);
+                    font-size: 0.8rem;
                 }
 
                 .kinetic-footer {

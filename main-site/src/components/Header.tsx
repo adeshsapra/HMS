@@ -126,7 +126,7 @@ const Header = () => {
   };
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
+    const handleClickOutside = (event: MouseEvent) => {
       const target = event.target;
       const navmenu = document.getElementById("navmenu");
       const toggle = document.querySelector(".mobile-nav-toggle");
@@ -135,6 +135,7 @@ const Header = () => {
         isMobileNavActive &&
         navmenu &&
         toggle &&
+        target instanceof Node &&
         !navmenu.contains(target) &&
         !toggle.contains(target)
       ) {

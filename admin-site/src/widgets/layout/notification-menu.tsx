@@ -75,13 +75,13 @@ export function NotificationMenu() {
                         <Typography variant="h6" color="blue-gray">
                             Notifications
                         </Typography>
-                        {unreadCount > 0 && (
+                        {unread > 0 && (
                             <span className="grid h-5 min-w-[20px] place-items-center rounded-full bg-red-100 px-1.5 text-[10px] font-bold text-red-600">
-                                {unreadCount}
+                                {unreadLabel}
                             </span>
                         )}
                     </div>
-                    {unreadCount > 0 && (
+                    {unread > 0 && (
                         <Typography
                             variant="small"
                             color="blue"

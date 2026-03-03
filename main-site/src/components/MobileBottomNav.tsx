@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
+import { useNotifications } from '../context/NotificationContext'
 
 type NavItem = {
   id: string
@@ -9,7 +11,7 @@ type NavItem = {
   isActive: (pathname: string, search: string) => boolean
 }
 
-const navItems: NavItem[] = [
+const loggedInNavItems: NavItem[] = [
   {
     id: 'notifications',
     label: 'Notification',
@@ -33,20 +35,45 @@ const navItems: NavItem[] = [
   }
 ]
 
+const guestNavItems: NavItem[] = [
+  {
+    id: 'appointments',
+    label: 'Appointment',
+    icon: 'bi-calendar2-check',
+    path: '/quickappointment',
+    isActive: (pathname) => pathname.startsWith('/quickappointment') || pathname.startsWith('/appointment')
+  },
+  {
+    id: 'sign-in',
+    label: 'Sign In',
+    icon: 'bi-box-arrow-in-right',
+    path: '/sign-in',
+    isActive: (pathname) => pathname.startsWith('/sign-in')
+  }
+]
+
 const MobileBottomNav = () => {
+  const { isAuthenticated, isLoading } = useAuth()
+  const { unreadCount } = useNotifications()
   const location = useLocation()
   const navigate = useNavigate()
   const navRef = useRef<HTMLElement | null>(null)
   const [isDarkUnderlay, setIsDarkUnderlay] = useState(false)
+  const navItems = useMemo(
+    () => (isAuthenticated ? loggedInNavItems : guestNavItems),
+    [isAuthenticated]
+  )
 
   const activeId = useMemo(() => {
     const active = navItems.find((item) => item.isActive(location.pathname, location.search))
     return active?.id ?? ''
-  }, [location.pathname, location.search])
+  }, [location.pathname, location.search, navItems])
   const activeIndex = useMemo(() => {
     const index = navItems.findIndex((item) => item.id === activeId)
     return index >= 0 ? index : 0
-  }, [activeId])
+  }, [activeId, navItems])
+  const unread = Number(unreadCount) || 0
+  const unreadLabel = unread > 99 ? '99+' : String(unread)
 
   useEffect(() => {
     const getBrightness = (color: string) => {
@@ -121,13 +148,20 @@ const MobileBottomNav = () => {
     }
   }, [location.pathname, location.search])
 
+  if (isLoading) return null
+
   return (
     <>
       <nav
         ref={navRef}
         className={`mobile-bottom-nav ${isDarkUnderlay ? 'dark-underlay' : ''}`}
         aria-label="Mobile quick navigation"
-        style={{ '--active-index': activeIndex } as CSSProperties}
+        style={
+          {
+            '--active-index': activeIndex,
+            '--item-count': navItems.length
+          } as CSSProperties
+        }
       >
         <span className="mobile-bottom-nav-active-pill" aria-hidden="true"></span>
         {navItems.map((item) => {
@@ -143,6 +177,11 @@ const MobileBottomNav = () => {
             >
               <span className="mobile-bottom-nav-icon-wrap">
                 <i className={`bi ${item.icon}`}></i>
+                {item.id === 'notifications' && unread > 0 && (
+                  <span className="mobile-bottom-nav-badge" aria-label={`${unread} unread notifications`}>
+                    {unreadLabel}
+                  </span>
+                )}
               </span>
               <span className="mobile-bottom-nav-label">{item.label}</span>
             </button>
@@ -152,7 +191,6 @@ const MobileBottomNav = () => {
 
       <style>{`
         .mobile-bottom-nav {
-          --item-count: 3;
           position: fixed;
           left: 0;
           right: 0;
@@ -253,6 +291,26 @@ const MobileBottomNav = () => {
           font-size: 1.1rem;
           transform: translateY(0);
           transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+          position: relative;
+        }
+
+        .mobile-bottom-nav-badge {
+          position: absolute;
+          top: -4px;
+          right: -8px;
+          min-width: 16px;
+          height: 16px;
+          border-radius: 999px;
+          background: #ef4444;
+          color: #ffffff;
+          font-size: 0.56rem;
+          line-height: 1;
+          font-weight: 700;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0 4px;
+          box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.95);
         }
 
         .mobile-bottom-nav-item.active .mobile-bottom-nav-icon-wrap {

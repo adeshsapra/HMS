@@ -46,6 +46,7 @@ interface Doctor {
 
 const DepartmentDetails = () => {
   const { id } = useParams<{ id: string }>()
+  const FALLBACK_DEPARTMENT_IMAGE = '/assets/img/health/cardiology-3.webp'
   const [department, setDepartment] = useState<Department | null>(null)
   const [services, setServices] = useState<Service[]>([])
   const [doctors, setDoctors] = useState<Doctor[]>([])
@@ -123,15 +124,37 @@ const DepartmentDetails = () => {
     }
   }
 
-  const DEFAULT_DOCTOR_IMAGE =
-    "https://ui-avatars.com/api/?name=Doctor&background=0D8ABC&color=fff&size=256";
-
-
-  const getImageUrl = (path: string | null) => {
-    if (!path) return DEFAULT_DOCTOR_IMAGE;
-    if (path.startsWith('http')) return path;
-    return `http://localhost:8000/storage/${path}`;
+  const getDoctorFallbackImage = (firstName?: string, lastName?: string) => {
+    const name = `${firstName || ''} ${lastName || ''}`.trim() || 'Doctor';
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0D8ABC&color=fff&size=512&margin=20`;
   };
+
+  const getImageCandidates = (path: string | null) => {
+    if (!path) return [FALLBACK_DEPARTMENT_IMAGE]
+    if (path.startsWith('http')) return [path]
+
+    const cleanPath = path.replace(/\\/g, '/').replace(/^\/+/, '')
+    const baseUrl = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api').replace(/\/api\/?$/, '')
+
+    const candidates: string[] = []
+
+    if (cleanPath.startsWith('departments/')) {
+      candidates.push(`${baseUrl}/storage/${cleanPath}`)
+      candidates.push(`${baseUrl}/${cleanPath}`)
+    } else if (cleanPath.startsWith('storage/') || cleanPath.startsWith('images/')) {
+      candidates.push(`${baseUrl}/${cleanPath}`)
+    } else if (!cleanPath.includes('/')) {
+      candidates.push(`/assets/img/health/${cleanPath}`)
+      candidates.push(`${baseUrl}/storage/departments/${cleanPath}`)
+      candidates.push(`${baseUrl}/images/departments/${cleanPath}`)
+    } else {
+      candidates.push(`${baseUrl}/${cleanPath}`)
+    }
+
+    return [...new Set(candidates)]
+  }
+
+  const getImageUrl = (path: string | null) => getImageCandidates(path)[0]
 
   if (loading) {
     return (
@@ -420,8 +443,21 @@ const DepartmentDetails = () => {
                     src={getImageUrl(department.image)}
                     alt={department.name}
                     className="w-100 h-100 object-fit-cover"
+                    data-try-index="0"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
+                      const img = e.currentTarget as HTMLImageElement
+                      const candidates = getImageCandidates(department.image)
+                      const currentIndex = Number(img.dataset.tryIndex || '0')
+                      const nextIndex = currentIndex + 1
+
+                      if (nextIndex < candidates.length) {
+                        img.dataset.tryIndex = String(nextIndex)
+                        img.src = candidates[nextIndex]
+                        return
+                      }
+
+                      img.onerror = null
+                      img.src = FALLBACK_DEPARTMENT_IMAGE
                     }}
                   />
                   <div className="position-absolute bottom-0 start-0 w-100 p-4" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.7), transparent)' }}>
@@ -550,18 +586,14 @@ const DepartmentDetails = () => {
                   {doctors.map((doctor) => (
                     <div key={doctor.id} className="specialist-card" data-aos="fade-up">
                       <div className="specialist-img">
-                        {doctor.profile_picture ? (
-                          <img
-                            src={getImageUrl(doctor.profile_picture)}
-                            alt={`${doctor.first_name} ${doctor.last_name}`}
-                            className="w-100 h-100 object-fit-cover rounded-circle"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = 'https://via.placeholder.com/80x80?text=Doctor'
-                            }}
-                          />
-                        ) : (
-                          <i className="bi bi-person-circle"></i>
-                        )}
+                        <img
+                          src={doctor.profile_picture ? getImageUrl(doctor.profile_picture) : getDoctorFallbackImage(doctor.first_name, doctor.last_name)}
+                          alt={`${doctor.first_name} ${doctor.last_name}`}
+                          className="w-100 h-100 object-fit-cover rounded-circle"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = getDoctorFallbackImage(doctor.first_name, doctor.last_name)
+                          }}
+                        />
                       </div>
                       <div className="specialist-info">
                         <h5>{doctor.first_name} {doctor.last_name}</h5>

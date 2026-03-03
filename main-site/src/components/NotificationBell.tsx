@@ -5,6 +5,8 @@ import { useNavigate } from 'react-router-dom';
 const NotificationBell = () => {
     const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
     const navigate = useNavigate();
+    const unread = Number(unreadCount) || 0;
+    const unreadLabel = unread > 99 ? '99+' : String(unread);
 
     return (
         <div className="dropdown me-2 me-lg-3">
@@ -16,16 +18,19 @@ const NotificationBell = () => {
                 aria-expanded="false"
             >
                 <i className="bi bi-bell fs-5"></i>
-                {unreadCount > 0 && (
-                    <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style={{ fontSize: '0.6rem', padding: '0.25em 0.4em' }}>
-                        {unreadCount > 9 ? '9+' : unreadCount}
+                {unread > 0 && (
+                    <span
+                        className="position-absolute top-0 start-100 translate-middle rounded-pill bg-danger d-inline-flex align-items-center justify-content-center text-white fw-bold"
+                        style={{ fontSize: '0.58rem', lineHeight: 1, minWidth: '16px', height: '16px', padding: '0 4px' }}
+                    >
+                        {unreadLabel}
                     </span>
                 )}
             </button>
             <ul className="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 mt-3 p-0 pb-2 overflow-hidden" aria-labelledby="notificationDropdown" style={{ width: '320px', maxHeight: '420px', zIndex: 1050 }}>
                 <li className="p-3 border-bottom d-flex justify-content-between align-items-center bg-light">
                     <h6 className="m-0 fw-bold" style={{ color: '#012970' }}>Notifications</h6>
-                    {unreadCount > 0 && (
+                    {unread > 0 && (
                         <button
                             className="btn btn-link btn-sm p-0 text-decoration-none fw-semibold"
                             style={{ fontSize: '0.75rem', color: '#049EBB' }}

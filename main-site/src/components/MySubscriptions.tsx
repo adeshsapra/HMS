@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { subscriptionAPI } from '../services/api';
 import { useToast } from '../context/ToastContext';
+import ProfileTabLoader from './ProfileTabLoader';
 
 interface Subscription {
     id: number;
@@ -447,7 +448,10 @@ const MySubscriptions = () => {
 
             <div className="subs-header">
                 <div className="subs-title">
-                    <h3>My Subscriptions</h3>
+                    <h3 className="d-flex align-items-center gap-2">
+                        <i className="bi bi-card-checklist"></i>
+                        My Subscriptions
+                    </h3>
                     <p>Manage your active health plans and view history</p>
                 </div>
                 <button className="buy-more-btn" onClick={handleBuyMore}>
@@ -457,11 +461,7 @@ const MySubscriptions = () => {
             </div>
 
             {loading ? (
-                <div className="text-center py-5">
-                    <div className="spinner-border text-primary" role="status">
-                        <span className="visually-hidden">Loading...</span>
-                    </div>
-                </div>
+                <ProfileTabLoader message="Loading your subscriptions..." />
             ) : subscriptions.length > 0 ? (
                 <div className="subs-grid">
                     {subscriptions.map(sub => (

@@ -35,6 +35,8 @@ interface Doctor {
   phone: string;
   email: string;
   gender: string;
+  average_rating?: number | string | null;
+  total_reviews?: number | string | null;
 }
 
 const Doctors = () => {
@@ -76,10 +78,13 @@ const Doctors = () => {
       mirror: false
     });
     fetchDepartments();
-    fetchDoctors();
   }, [])
 
-  const fetchDoctors = async () => {
+  useEffect(() => {
+    fetchDoctors(currentPage);
+  }, [currentPage]);
+
+  const fetchDoctors = async (page = currentPage) => {
     try {
       setLoading(true);
       const filters = {
@@ -87,7 +92,7 @@ const Doctors = () => {
         department: departmentFilter,
         experience: experienceFilter > 0 ? experienceFilter : undefined
       };
-      const response = await doctorAPI.getAll(currentPage, perPage, filters);
+      const response = await doctorAPI.getAll(page, perPage, filters);
       if (response.data.success && response.data.data) {
         if (response.data.meta) {
           setDoctors(response.data.data);
@@ -95,10 +100,18 @@ const Doctors = () => {
           setTotalRecords(response.data.meta.total || 0);
           setFrom(response.data.meta.from || 0);
           setTo(response.data.meta.to || 0);
+        } else if (typeof response.data.last_page !== 'undefined') {
+          setDoctors(response.data.data);
+          setTotalPages(response.data.last_page || 1);
+          setTotalRecords(response.data.total || 0);
+          setFrom(response.data.from || 0);
+          setTo(response.data.to || 0);
         } else {
           setDoctors(response.data.data);
           setTotalRecords(response.data.data.length);
           setTotalPages(1);
+          setFrom(response.data.data.length > 0 ? 1 : 0);
+          setTo(response.data.data.length || 0);
         }
       }
     } catch (error) {
@@ -118,23 +131,41 @@ const Doctors = () => {
   };
 
   const handleApplyFilter = () => {
-    setCurrentPage(1);
-    fetchDoctors();
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    } else {
+      fetchDoctors(1);
+    }
   };
 
   const handleClearFilter = () => {
     setSearchTerm("");
     setDepartmentFilter("");
     setExperienceFilter(0);
-    setCurrentPage(1);
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    } else {
+      fetchDoctors(1);
+    }
   };
 
-  // ADDED margin=20 and size=512 so the default image is never cut off
-  const DEFAULT_DOCTOR_IMAGE =
-    "https://ui-avatars.com/api/?name=Doctor&background=0D8ABC&color=fff&size=512&margin=20";
+  const getAverageRating = (doctor: Doctor) => {
+    const value = Number(doctor.average_rating);
+    return Number.isFinite(value) ? value.toFixed(1) : '0.0';
+  };
 
-  const getImageUrl = (path: string | null) => {
-    if (!path) return DEFAULT_DOCTOR_IMAGE;
+  const getTotalReviews = (doctor: Doctor) => {
+    const value = Number(doctor.total_reviews);
+    return Number.isFinite(value) ? value : 0;
+  };
+
+  const getFallbackDoctorImage = (firstName?: string, lastName?: string) => {
+    const name = `${firstName || ''} ${lastName || ''}`.trim() || 'Doctor';
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0D8ABC&color=fff&size=512&margin=20`;
+  };
+
+  const getImageUrl = (path: string | null, firstName?: string, lastName?: string) => {
+    if (!path) return getFallbackDoctorImage(firstName, lastName);
     if (path.startsWith('http')) return path;
     return `http://localhost:8000/storage/${path}`;
   };
@@ -416,17 +447,55 @@ const Doctors = () => {
         }
 
         .doctor-experience {
-          margin-bottom: 15px;
-          display: flex;
-          align-items: center;
-          gap: 6px;
           color: #64748b;
-          font-size: 0.85rem;
-          font-weight: 500;
         }
 
         .doctor-experience i {
           color: #0d8abc;
+        }
+
+        .doctor-rating {
+          color: #475569;
+        }
+
+        .doctor-rating i {
+          color: #f59e0b;
+        }
+
+        .doctor-rating-score {
+          font-weight: 700;
+          color: #1e293b;
+        }
+
+        .doctor-rating-count {
+          color: #64748b;
+        }
+
+        .doctor-meta-row {
+          margin-bottom: 14px;
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) auto;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .doctor-meta-item {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 0.85rem;
+          line-height: 1;
+          white-space: nowrap;
+          font-weight: 600;
+        }
+
+        .doctor-meta-item i {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 1;
+          font-size: 0.82rem;
+          margin-top: 1px;
         }
 
         .doctor-actions {
@@ -460,6 +529,19 @@ const Doctors = () => {
           .doctor-image { height: 250px; }
           .doctor-content { padding: 16px; }
           .doctor-actions { gap: 8px; }
+          .doctor-meta-row {
+            gap: 8px;
+          }
+          .doctor-experience,
+          .doctor-rating {
+            font-size: 0.8rem;
+          }
+          .doctor-meta-item {
+            font-size: 0.8rem;
+          }
+          .doctor-meta-row {
+            grid-template-columns: minmax(0, 1fr) auto;
+          }
           .doctor-btn-profile, .doctor-btn-appointment {
              padding: 10px 8px; 
              font-size: 0.8rem;
@@ -561,12 +643,12 @@ const Doctors = () => {
                     <div className="doctor-card">
                       <div className="doctor-image">
                         <img
-                          src={getImageUrl(doctor.profile_picture)}
+                          src={getImageUrl(doctor.profile_picture, doctor.first_name, doctor.last_name)}
                           alt={`${doctor.first_name} ${doctor.last_name}`}
                           className="img-fluid"
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
-                            target.src = DEFAULT_DOCTOR_IMAGE;
+                            target.src = getFallbackDoctorImage(doctor.first_name, doctor.last_name);
                           }}
                         />
                       </div>
@@ -586,9 +668,16 @@ const Doctors = () => {
                           {doctor.bio || 'Experienced specialist dedicated to providing top-quality healthcare and medical treatments for all patients.'}
                         </p>
 
-                        <div className="doctor-experience">
-                          <i className="bi bi-award-fill"></i>
-                          <span>{doctor.experience_years} Years Experience</span>
+                        <div className="doctor-meta-row">
+                          <div className="doctor-experience doctor-meta-item">
+                            <i className="bi bi-award-fill"></i>
+                            <span>{doctor.experience_years} yr exp</span>
+                          </div>
+                          <div className="doctor-rating doctor-meta-item">
+                            <i className="bi bi-star-fill"></i>
+                            <span className="doctor-rating-score">{getAverageRating(doctor)}</span>
+                            <span className="doctor-rating-count">({getTotalReviews(doctor)})</span>
+                          </div>
                         </div>
 
                         <div className="doctor-actions">

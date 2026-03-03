@@ -18,6 +18,7 @@ interface Department {
 }
 
 const Departments = () => {
+  const FALLBACK_DEPARTMENT_IMAGE = '/assets/img/health/cardiology-3.webp'
   const [departments, setDepartments] = useState<Department[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -65,13 +66,32 @@ const Departments = () => {
     }
   }
 
-  const getImageUrl = (path: string) => {
-    if (!path) return 'https://via.placeholder.com/400x220?text=Department';
-    if (path.startsWith('http')) return path;
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
-    const rootUrl = baseUrl.replace(/\/api\/?$/, '');
-    return `${rootUrl}/${path.replace(/^\//, '')}`;
+  const getImageCandidates = (path: string) => {
+    if (!path) return [FALLBACK_DEPARTMENT_IMAGE]
+    if (path.startsWith('http')) return [path]
+
+    const cleanPath = path.replace(/\\/g, '/').replace(/^\/+/, '')
+    const baseUrl = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api').replace(/\/api\/?$/, '')
+
+    const candidates: string[] = []
+
+    if (cleanPath.startsWith('departments/')) {
+      candidates.push(`${baseUrl}/storage/${cleanPath}`)
+      candidates.push(`${baseUrl}/${cleanPath}`)
+    } else if (cleanPath.startsWith('storage/') || cleanPath.startsWith('images/')) {
+      candidates.push(`${baseUrl}/${cleanPath}`)
+    } else if (!cleanPath.includes('/')) {
+      candidates.push(`/assets/img/health/${cleanPath}`)
+      candidates.push(`${baseUrl}/storage/departments/${cleanPath}`)
+      candidates.push(`${baseUrl}/images/departments/${cleanPath}`)
+    } else {
+      candidates.push(`${baseUrl}/${cleanPath}`)
+    }
+
+    return [...new Set(candidates)]
   }
+
+  const getImageUrl = (path: string) => getImageCandidates(path)[0]
 
   const categories = ['All', ...Array.from(new Set(departments.map(d => d.category).filter(Boolean))) as string[]]
 
@@ -478,8 +498,21 @@ const Departments = () => {
                               src={getImageUrl(dept.image || '')}
                               alt={dept.name}
                               loading="lazy"
+                              data-try-index="0"
                               onError={(e) => {
-                                (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x220?text=Department'
+                                const img = e.currentTarget as HTMLImageElement
+                                const candidates = getImageCandidates(dept.image || '')
+                                const currentIndex = Number(img.dataset.tryIndex || '0')
+                                const nextIndex = currentIndex + 1
+
+                                if (nextIndex < candidates.length) {
+                                  img.dataset.tryIndex = String(nextIndex)
+                                  img.src = candidates[nextIndex]
+                                  return
+                                }
+
+                                img.onerror = null
+                                img.src = FALLBACK_DEPARTMENT_IMAGE
                               }}
                             />
                           </div>

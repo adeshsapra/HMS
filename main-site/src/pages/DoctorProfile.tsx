@@ -105,7 +105,7 @@ const DoctorProfile = () => {
             if (response.data.success) {
                 showToast('Review submitted successfully! It will be visible once approved.', 'success');
                 setReviewForm({ rating: 5, title: '', review: '' });
-                // Optional: Refetch to show message about pending review or just let it be
+                if (id) fetchDoctorProfile(id);
             }
         } catch (error: any) {
             console.error("Failed to submit review", error);
@@ -116,8 +116,13 @@ const DoctorProfile = () => {
         }
     };
 
-    const getImageUrl = (path: string | null) => {
-        if (!path) return `https://ui-avatars.com/api/?name=${doctor?.first_name || 'Doctor'}+${doctor?.last_name || ''}&background=0D8ABC&color=fff&size=512`;
+    const getFallbackDoctorImage = (firstName?: string, lastName?: string) => {
+        const name = `${firstName || ''} ${lastName || ''}`.trim() || 'Doctor';
+        return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0D8ABC&color=fff&size=512&margin=20`;
+    };
+
+    const getImageUrl = (path: string | null, firstName?: string, lastName?: string) => {
+        if (!path) return getFallbackDoctorImage(firstName, lastName);
         if (path.startsWith('http')) return path;
         const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:8000';
         return `${baseUrl}/storage/${path}`;
@@ -132,6 +137,22 @@ const DoctorProfile = () => {
         } catch (e) {
             return list;
         }
+    };
+
+    const getAverageRatingText = (value?: number | null) => {
+        const rating = Number(value);
+        return Number.isFinite(rating) ? rating.toFixed(1) : '0.0';
+    };
+
+    const getTotalReviewsCount = (value?: number | null) => {
+        const count = Number(value);
+        return Number.isFinite(count) ? count : 0;
+    };
+
+    const getFilledStars = (value?: number | null) => {
+        const rating = Number(value);
+        if (!Number.isFinite(rating)) return 0;
+        return Math.max(0, Math.min(5, Math.round(rating)));
     };
 
     return (
@@ -499,6 +520,29 @@ const DoctorProfile = () => {
                 .rc-title { font-weight: 800; font-size: 1rem; color: var(--hospital-dark); margin-bottom: 6px; }
                 .rc-body { color: #64748b; line-height: 1.6; font-size: 0.95rem; }
 
+                .doctor-rating-stars {
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                    margin-top: 0.35rem;
+                }
+
+                .doctor-rating-stars i {
+                    color: #e2e8f0;
+                    font-size: 0.95rem;
+                }
+
+                .doctor-rating-stars i.filled {
+                    color: #ffc107;
+                }
+
+                .doctor-rating-stars .reviews-text {
+                    margin-left: 6px;
+                    font-size: 0.75rem;
+                    font-weight: 700;
+                    color: #64748b;
+                }
+
                 .profile-loading-screen {
                     min-height: 60vh;
                     display: flex;
@@ -827,9 +871,9 @@ const DoctorProfile = () => {
                                 <div className="profile-header-strip">
                                     <div className="doc-image-wrapper">
                                         <img
-                                            src={getImageUrl(doctor.profile_picture)}
+                                            src={getImageUrl(doctor.profile_picture, doctor.first_name, doctor.last_name)}
                                             alt={doctor.first_name}
-                                            onError={(e) => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${doctor.first_name}+${doctor.last_name}&background=0D8ABC&color=fff&size=512` }}
+                                            onError={(e) => { (e.target as HTMLImageElement).src = getFallbackDoctorImage(doctor.first_name, doctor.last_name) }}
                                         />
                                     </div>
                                     <div className="doc-primary-details">
@@ -844,12 +888,23 @@ const DoctorProfile = () => {
                                                 <span className="stat-l-premium">Years Experience</span>
                                             </div>
                                             <div className="stat-item-premium">
-                                                <span className="stat-v-premium">{doctor.average_rating || '4.8'}</span>
+                                                <span className="stat-v-premium">{getAverageRatingText(doctor.average_rating)}</span>
                                                 <span className="stat-l-premium">Rating</span>
+                                                <div className="doctor-rating-stars">
+                                                    {[0, 1, 2, 3, 4].map((index) => (
+                                                        <i
+                                                            key={index}
+                                                            className={`bi bi-star-fill ${index < getFilledStars(doctor.average_rating) ? 'filled' : ''}`}
+                                                        ></i>
+                                                    ))}
+                                                </div>
                                             </div>
                                             <div className="stat-item-premium">
-                                                <span className="stat-v-premium">{doctor.completed_appointments || 0}</span>
-                                                <span className="stat-l-premium">Success Stories</span>
+                                                <span className="stat-v-premium">{getTotalReviewsCount(doctor.total_reviews)}</span>
+                                                <span className="stat-l-premium">Total Reviews</span>
+                                                <div className="doctor-rating-stars">
+                                                    <span className="reviews-text">({getTotalReviewsCount(doctor.total_reviews)} reviews)</span>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -884,7 +939,7 @@ const DoctorProfile = () => {
                                     </section>
 
                                     <section className="section-container">
-                                        <h2 className="p-section-title">Clinical Qualifications</h2>
+                                        <h2 className="p-section-title">Qualifications</h2>
                                         <div className="p-text-content">
                                             <ul className="list-unstyled row">
                                                 {doctor.qualification.split(',').map((q, idx) => (
