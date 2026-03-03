@@ -446,7 +446,7 @@ const DepartmentDetails = () => {
                     data-try-index="0"
                     onError={(e) => {
                       const img = e.currentTarget as HTMLImageElement
-                      const candidates = getImageCandidates(department.image)
+                      const candidates = getImageCandidates(department.image ?? null)
                       const currentIndex = Number(img.dataset.tryIndex || '0')
                       const nextIndex = currentIndex + 1
 
