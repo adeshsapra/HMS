@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { DataTable, ViewModal, DeleteConfirmModal, Column, ViewField, FormModal, FormField, AdvancedFilter, FilterConfig } from "@/components";
 import { Avatar, Typography, Button } from "@material-tailwind/react";
 import { UserPlusIcon } from "@heroicons/react/24/outline";
@@ -72,11 +73,27 @@ export default function Doctors(): JSX.Element {
   const [totalRecords, setTotalRecords] = useState(0);
   const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
   const perPage = 10;
+  const location = useLocation();
 
+  // Initialize filters from URL
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const keyword = params.get('keyword') || '';
+    if (activeFilters.keyword !== keyword) {
+      setActiveFilters(prev => ({ ...prev, keyword }));
+      setCurrentPage(1);
+    }
+  }, [location.search]);
+
+  // Main fetching effect
   useEffect(() => {
     loadDoctors(currentPage, activeFilters);
+  }, [currentPage, activeFilters]);
+
+  // Initial data
+  useEffect(() => {
     loadDepartments();
-  }, [currentPage]);
+  }, []);
 
   const loadDoctors = async (page: number = currentPage, filters: Record<string, any> = activeFilters) => {
     try {
@@ -675,12 +692,10 @@ export default function Doctors(): JSX.Element {
           onApplyFilters: (filters) => {
             setActiveFilters(filters);
             setCurrentPage(1);
-            loadDoctors(1, filters);
           },
           onResetFilters: () => {
             setActiveFilters({});
             setCurrentPage(1);
-            loadDoctors(1, {});
           },
           initialValues: activeFilters
         }}

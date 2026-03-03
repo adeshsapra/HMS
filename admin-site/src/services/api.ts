@@ -1,7 +1,8 @@
 const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
 interface ApiResponse<T> {
-    status: boolean;
+    success: boolean;
+    status?: boolean;
     message?: string;
     data?: T;
     [key: string]: any;
@@ -106,7 +107,7 @@ class ApiService {
                 email,
                 password,
             });
-            if (response.status && response.token) {
+            if ((response.success || response.status) && response.token) {
                 localStorage.setItem('auth_token', response.token);
                 localStorage.setItem('user', JSON.stringify(response.user));
                 return response;
@@ -1007,7 +1008,7 @@ class ApiService {
             try {
                 const j = JSON.parse(text);
                 msg = j.message || msg;
-            } catch (_) {}
+            } catch (_) { }
             throw new Error(msg);
         }
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
     Card,
     CardBody,
@@ -89,6 +90,7 @@ const Billing = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
     const [statusFilter, setStatusFilter] = useState('all');
+    const location = useLocation();
 
     const tabs = [
         { label: "All Bills", value: "all" },
@@ -98,9 +100,20 @@ const Billing = () => {
         { label: "Paid", value: "paid" },
     ];
 
+    // Initialize filters from URL
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const keyword = params.get('keyword') || '';
+        if (activeFilters.keyword !== keyword) {
+            setActiveFilters(prev => ({ ...prev, keyword }));
+            setCurrentPage(1);
+        }
+    }, [location.search]);
+
+    // Main fetching effect
     useEffect(() => {
         fetchBills(currentPage, activeFilters);
-    }, [currentPage, statusFilter]);
+    }, [currentPage, activeFilters, statusFilter]);
 
     const fetchBills = async (page = 1, currentFilters = activeFilters) => {
         try {
@@ -408,11 +421,11 @@ const Billing = () => {
                                 ],
                                 onApplyFilters: (filters) => {
                                     setActiveFilters(filters);
-                                    fetchBills(1, filters);
+                                    setCurrentPage(1);
                                 },
                                 onResetFilters: () => {
                                     setActiveFilters({});
-                                    fetchBills(1, {});
+                                    setCurrentPage(1);
                                 },
                                 initialValues: activeFilters
                             }}
@@ -436,14 +449,13 @@ const Billing = () => {
                 </CardBody>
             </Card>
 
-            {/* Bill Details Modal */}
             <Dialog
                 open={showDetailsModal}
                 handler={() => setShowDetailsModal(false)}
                 size="xl" // Increased size for split view
                 className="overflow-hidden bg-gray-50"
             >
-                {selectedBill && (
+                {selectedBill ? (
                     <>
                         {/* 1. Modal Header: Clean, Status-focused */}
                         <div className="flex items-center justify-between px-6 py-4 bg-white border-b border-gray-200">
@@ -683,83 +695,84 @@ const Billing = () => {
                             </div>
                         </DialogBody>
                     </>
-                )}
+                ) : <div className="hidden" />}
             </Dialog>
 
-            {/* Payment Collection Modal */}
             <Dialog
                 open={showPaymentModal}
                 handler={() => setShowPaymentModal(false)}
                 size="md"
             >
-                <DialogHeader>Collect Cash Payment</DialogHeader>
-                <DialogBody divider>
-                    {selectedBill && (
-                        <div className="space-y-4">
-                            <div className="bg-blue-50 p-4 rounded">
-                                <p className="text-sm">
-                                    <strong>Bill:</strong> {selectedBill.bill_number}
-                                </p>
-                                <p className="text-sm">
-                                    <strong>Patient:</strong> {selectedBill.patient.first_name}{' '}
-                                    {selectedBill.patient.last_name}
-                                </p>
-                                <p className="text-sm">
-                                    <strong>Due Amount:</strong>{' '}
-                                    <span className="text-red-600 font-semibold">
-                                        {formatCurrency(selectedBill.due_amount)}
-                                    </span>
-                                </p>
-                            </div>
+                {selectedBill ? (
+                    <>
+                        <DialogHeader>Collect Cash Payment</DialogHeader>
+                        <DialogBody divider>
+                            <div className="space-y-4">
+                                <div className="bg-blue-50 p-4 rounded">
+                                    <p className="text-sm">
+                                        <strong>Bill:</strong> {selectedBill.bill_number}
+                                    </p>
+                                    <p className="text-sm">
+                                        <strong>Patient:</strong> {selectedBill.patient.first_name}{' '}
+                                        {selectedBill.patient.last_name}
+                                    </p>
+                                    <p className="text-sm">
+                                        <strong>Due Amount:</strong>{' '}
+                                        <span className="text-red-600 font-semibold">
+                                            {formatCurrency(selectedBill.due_amount)}
+                                        </span>
+                                    </p>
+                                </div>
 
-                            <div>
-                                <Input
-                                    type="number"
-                                    label="Payment Amount"
-                                    value={paymentAmount}
-                                    onChange={(e) => setPaymentAmount(e.target.value)}
-                                    step="0.01"
-                                    max={selectedBill.due_amount}
-                                    crossOrigin={undefined}
-                                />
-                            </div>
+                                <div>
+                                    <Input
+                                        type="number"
+                                        label="Payment Amount"
+                                        value={paymentAmount}
+                                        onChange={(e) => setPaymentAmount(e.target.value)}
+                                        step="0.01"
+                                        max={selectedBill.due_amount}
+                                        crossOrigin={undefined}
+                                    />
+                                </div>
 
-                            <div>
-                                <Input
-                                    label="Notes (Optional)"
-                                    value={paymentNotes}
-                                    onChange={(e) => setPaymentNotes(e.target.value)}
-                                    crossOrigin={undefined}
-                                />
-                            </div>
+                                <div>
+                                    <Input
+                                        label="Notes (Optional)"
+                                        value={paymentNotes}
+                                        onChange={(e) => setPaymentNotes(e.target.value)}
+                                        crossOrigin={undefined}
+                                    />
+                                </div>
 
-                            <div className="bg-yellow-50 border border-yellow-200 p-3 rounded">
-                                <Typography variant="small" className="text-yellow-800">
-                                    <strong>Note:</strong> Cash payments are immediately marked as
-                                    completed and a receipt will be generated.
-                                </Typography>
+                                <div className="bg-yellow-50 border border-yellow-200 p-3 rounded">
+                                    <Typography variant="small" className="text-yellow-800">
+                                        <strong>Note:</strong> Cash payments are immediately marked as
+                                        completed and a receipt will be generated.
+                                    </Typography>
+                                </div>
                             </div>
-                        </div>
-                    )}
-                </DialogBody>
-                <DialogFooter>
-                    <Button
-                        variant="text"
-                        color="gray"
-                        onClick={() => setShowPaymentModal(false)}
-                        className="mr-2"
-                        disabled={processingPayment}
-                    >
-                        Cancel
-                    </Button>
-                    <Button
-                        color="green"
-                        onClick={handleSubmitPayment}
-                        disabled={processingPayment}
-                    >
-                        {processingPayment ? 'Processing...' : 'Collect Payment'}
-                    </Button>
-                </DialogFooter>
+                        </DialogBody>
+                        <DialogFooter>
+                            <Button
+                                variant="text"
+                                color="gray"
+                                onClick={() => setShowPaymentModal(false)}
+                                className="mr-2"
+                                disabled={processingPayment}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                color="green"
+                                onClick={handleSubmitPayment}
+                                disabled={processingPayment}
+                            >
+                                {processingPayment ? 'Processing...' : 'Collect Payment'}
+                            </Button>
+                        </DialogFooter>
+                    </>
+                ) : <div className="hidden" />}
             </Dialog>
         </div>
     );

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Card,
   CardHeader,
@@ -84,10 +85,63 @@ export function DataTable({
 }: DataTableProps): JSX.Element {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [filteredData, setFilteredData] = useState<Record<string, any>[]>(data);
+  const [highlightedRowId, setHighlightedRowId] = useState<string | number | null>(null);
+
+  const location = useLocation();
+  const navigate = useNavigate();
+  const rowRefs = useRef<Record<string | number, HTMLTableRowElement | null>>({});
+  const hasScrolled = useRef<boolean>(false);
 
   useEffect(() => {
     setFilteredData(data);
   }, [data]);
+
+  // Handle row highlighting and scrolling based on URL parameter
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const viewId = params.get('view');
+
+    if (viewId && filteredData.length > 0) {
+      // Find the row and highlight it
+      const rowToHighlight = filteredData.find(row => String(row.id) === viewId);
+
+      if (rowToHighlight) {
+        setHighlightedRowId(rowToHighlight.id);
+
+        // Brief delay to ensure table is rendered, then scroll to it
+        setTimeout(() => {
+          const rowElement = rowRefs.current[rowToHighlight.id];
+          if (rowElement && !hasScrolled.current) {
+            rowElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            hasScrolled.current = true;
+          }
+        }, 100);
+
+        // Clear only the 'view' param from URL after a bit so it doesn't re-trigger
+        // but keep 'keyword' for filtering. Delay it slightly more than highlight.
+        const urlTimeout = setTimeout(() => {
+          const nextParams = new URLSearchParams(location.search);
+          if (nextParams.has('view')) {
+            nextParams.delete('view');
+            navigate({ search: nextParams.toString() }, { replace: true });
+          }
+        }, 4000);
+
+        // Remove the highlight indicator
+        const highlightTimeout = setTimeout(() => {
+          setHighlightedRowId(null);
+        }, 3600); // 1.2s * 3 blinks = 3.6s
+
+        return () => {
+          clearTimeout(highlightTimeout);
+          clearTimeout(urlTimeout);
+        };
+      }
+    } else if (!viewId) {
+      hasScrolled.current = false;
+      setHighlightedRowId(null);
+    }
+  }, [location.search, filteredData, navigate]);
 
   const handleSearch = (value: string): void => {
     setSearchTerm(value);
@@ -144,288 +198,339 @@ export function DataTable({
   };
 
   return (
-    <Card className="border border-blue-gray-100 shadow-lg">
-      <CardHeader
-        variant="gradient"
-        color="blue"
-        className="mb-0 p-6 flex items-center justify-between"
-      >
-        <Typography variant="h6" color="white" className="font-bold">
-          {title}
-        </Typography>
-        <div className="flex items-center gap-2">
-          {exportable && (
-            <Tooltip content="Export to CSV">
+    <>
+      <style>{`
+        @keyframes row-pulse {
+          0% { 
+            background-color: transparent;
+            box-shadow: inset 0 0 0 0 rgba(2, 153, 190, 0);
+            transform: scale(1);
+          }
+          15% {
+            background-color: rgba(2, 153, 190, 0.08);
+            box-shadow: inset 6px 0 0 0 #0299BE, 0 0 25px rgba(2, 153, 190, 0.1);
+            transform: scale(1.005);
+          }
+          50% { 
+            background-color: rgba(2, 153, 190, 0.12);
+            box-shadow: inset 6px 0 0 0 #0299BE, 0 0 35px rgba(2, 153, 190, 0.15);
+            transform: scale(1.008);
+          }
+          85% {
+            background-color: rgba(2, 153, 190, 0.08);
+            box-shadow: inset 6px 0 0 0 #0299BE, 0 0 25px rgba(2, 153, 190, 0.1);
+            transform: scale(1.005);
+          }
+          100% { 
+            background-color: transparent;
+            box-shadow: inset 0 0 0 0 rgba(2, 153, 190, 0);
+            transform: scale(1);
+          }
+        }
+
+        .highlight-row {
+          animation: row-pulse 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) 3 forwards;
+          position: relative;
+          z-index: 20;
+          border-radius: 8px;
+          overflow: hidden;
+        }
+
+        .highlight-row td {
+          border-bottom-color: rgba(2, 153, 190, 0.2) !important;
+          color: #0299BE !important;
+          transition: all 0.3s ease;
+        }
+
+        .highlight-row td p {
+          color: #0286a6 !important;
+          font-weight: 600 !important;
+        }
+      `}</style>
+      <Card className="border border-blue-gray-100 shadow-lg">
+        <CardHeader
+          variant="gradient"
+          color="blue"
+          className="mb-0 p-6 flex items-center justify-between"
+        >
+          <Typography variant="h6" color="white" className="font-bold">
+            {title}
+          </Typography>
+          <div className="flex items-center gap-2">
+            {exportable && (
+              <Tooltip content="Export to CSV">
+                <Button
+                  variant="text"
+                  color="white"
+                  size="sm"
+                  onClick={handleExport}
+                  className="flex items-center gap-1 capitalize font-semibold hover:bg-white/20"
+                >
+                  <ArrowDownTrayIcon className="h-4 w-4" />
+                  Export
+                </Button>
+              </Tooltip>
+            )}
+            {onAdd && (
               <Button
-                variant="text"
+                variant="filled"
                 color="white"
                 size="sm"
-                onClick={handleExport}
-                className="flex items-center gap-1 capitalize font-semibold hover:bg-white/20"
+                onClick={onAdd}
+                className="capitalize font-semibold shadow-md hover:shadow-lg transition-all"
               >
-                <ArrowDownTrayIcon className="h-4 w-4" />
-                Export
-              </Button>
-            </Tooltip>
-          )}
-          {onAdd && (
-            <Button
-              variant="filled"
-              color="white"
-              size="sm"
-              onClick={onAdd}
-              className="capitalize font-semibold shadow-md hover:shadow-lg transition-all"
-            >
-              {addButtonLabel}
-            </Button>
-          )}
-        </div>
-      </CardHeader>
-      <CardBody className="overflow-x-scroll px-0 pt-0 pb-2">
-        {(searchable || filterable) && (
-          <div className="px-6 py-4 bg-blue-gray-50/50 flex items-center gap-4 border-b border-blue-gray-100">
-            {searchable && (
-              <div className="flex-1">
-                <Input
-                  type="text"
-                  placeholder={searchPlaceholder}
-                  value={searchTerm}
-                  onChange={(e) => handleSearch(e.target.value)}
-                  icon={<MagnifyingGlassIcon className="h-5 w-5" />}
-                  className="!border-blue-gray-200 focus:!border-blue-500 !bg-white rounded-lg"
-                  labelProps={{
-                    className: "before:content-none after:content-none",
-                  }}
-                  containerProps={{
-                    className: "!min-w-0",
-                  }}
-                  crossOrigin={undefined}
-                />
-              </div>
-            )}
-            {filterable && (
-              <Button
-                variant="outlined"
-                size="sm"
-                className="flex items-center gap-2 border-blue-gray-300 font-semibold"
-              >
-                <FunnelIcon className="h-4 w-4" />
-                Filters
+                {addButtonLabel}
               </Button>
             )}
           </div>
-        )}
-        {advancedFilter && (
-          <div className="px-6 py-4 bg-white border-b border-blue-gray-100">
-            {advancedFilter}
-          </div>
-        )}
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[640px] table-auto">
-            <thead>
-              <tr className="bg-blue-gray-50/50">
-                {columns.map((col) => (
-                  <th
-                    key={col.key}
-                    className="border-b border-blue-gray-100 py-4 px-6 text-left"
-                  >
-                    <Typography
-                      variant="small"
-                      className="text-[11px] font-bold uppercase text-blue-gray-600 tracking-wider"
-                    >
-                      {col.label}
-                    </Typography>
-                  </th>
-                ))}
-                {(onEdit || onDelete || onView || customActions) && (
-                  <th className="border-b border-blue-gray-100 py-4 px-6 text-left bg-blue-gray-50/50">
-                    <Typography
-                      variant="small"
-                      className="text-[11px] font-bold uppercase text-blue-gray-600 tracking-wider"
-                    >
-                      Actions
-                    </Typography>
-                  </th>
-                )}
-              </tr>
-            </thead>
-            <tbody>
-              {filteredData.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={columns.length + (onEdit || onDelete || onView || customActions ? 1 : 0)}
-                    className="py-12 text-center"
-                  >
-                    <div className="flex flex-col items-center justify-center">
-                      <MagnifyingGlassIcon className="h-12 w-12 text-blue-gray-300 mb-2" />
-                      <Typography variant="small" className="text-blue-gray-500 font-medium">
-                        No data found
-                      </Typography>
-                      {searchTerm && (
-                        <Typography variant="small" className="text-blue-gray-400 mt-1">
-                          Try adjusting your search terms
-                        </Typography>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                filteredData.map((row, rowIndex) => (
-                  <tr
-                    key={rowIndex}
-                    className="hover:bg-blue-gray-50/30 transition-colors"
-                  >
-                    {columns.map((col) => (
-                      <td
-                        key={col.key}
-                        className={`py-4 px-6 ${rowIndex === filteredData.length - 1
-                          ? ""
-                          : "border-b border-blue-gray-100"
-                          }`}
-                      >
-                        {col.render ? (
-                          col.render(row[col.key], row)
-                        ) : col.type === "status" ? (
-                          <Chip
-                            variant="gradient"
-                            color={getStatusColor(row[col.key]) as any}
-                            value={row[col.key]}
-                            className="py-1 px-3 text-[11px] font-semibold w-fit capitalize shadow-sm"
-                          />
-                        ) : col.type === "badge" ? (
-                          <Chip
-                            variant="gradient"
-                            color={(col.color || "blue") as any}
-                            value={row[col.key]}
-                            className="py-1 px-3 text-[11px] font-semibold w-fit shadow-sm"
-                          />
-                        ) : (
-                          <Typography className="text-sm font-medium text-blue-gray-700">
-                            {row[col.key] || "-"}
-                          </Typography>
-                        )}
-                      </td>
-                    ))}
-                    {(onEdit || onDelete || onView || customActions) && (
-                      <td
-                        className={`py-4 px-6 ${rowIndex === filteredData.length - 1
-                          ? ""
-                          : "border-b border-blue-gray-100"
-                          }`}
-                      >
-                        <Menu placement="left-start">
-                          <MenuHandler>
-                            <IconButton
-                              variant="text"
-                              color="blue-gray"
-                              size="sm"
-                              className="rounded-full"
-                            >
-                              <EllipsisVerticalIcon className="h-5 w-5" />
-                            </IconButton>
-                          </MenuHandler>
-                          <MenuList className="min-w-[150px] shadow-lg">
-                            {onView && (
-                              <MenuItem
-                                onClick={() => onView(row)}
-                                className="flex items-center gap-3 py-2"
-                              >
-                                <EyeIcon className="h-4 w-4" />
-                                <Typography variant="small" className="font-medium">
-                                  View
-                                </Typography>
-                              </MenuItem>
-                            )}
-                            {onEdit && (
-                              <MenuItem
-                                onClick={() => onEdit(row)}
-                                className="flex items-center gap-3 py-2"
-                              >
-                                <PencilIcon className="h-4 w-4" />
-                                <Typography variant="small" className="font-medium">
-                                  Edit
-                                </Typography>
-                              </MenuItem>
-                            )}
-                            {onDelete && (
-                              <MenuItem
-                                onClick={() => onDelete(row)}
-                                className="flex items-center gap-3 py-2 text-red-500 focus:text-red-500 focus:bg-red-50"
-                              >
-                                <TrashIcon className="h-4 w-4" />
-                                <Typography variant="small" className="font-medium">
-                                  Delete
-                                </Typography>
-                              </MenuItem>
-                            )}
-                            {customActions && customActions(row).map((action, index) => (
-                              <MenuItem
-                                key={index}
-                                onClick={action.onClick}
-                                className={`flex items-center gap-3 py-2 ${action.color ? `text-${action.color}-500 focus:text-${action.color}-500 focus:bg-${action.color}-50` : ''}`}
-                              >
-                                {action.icon}
-                                <Typography variant="small" className="font-medium">
-                                  {action.label}
-                                </Typography>
-                              </MenuItem>
-                            ))}
-                          </MenuList>
-                        </Menu>
-                      </td>
-                    )}
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-        {(pagination || filteredData.length > 0) && (
-          <div className="px-6 py-4 border-t border-blue-gray-100 bg-blue-gray-50/30">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-              <Typography variant="small" className="text-blue-gray-600 font-medium">
-                {pagination ? (
-                  <>
-                    Showing <strong>{((pagination.currentPage - 1) * (pagination.perPage || 10)) + 1}</strong> to{" "}
-                    <strong>{Math.min(pagination.currentPage * (pagination.perPage || 10), pagination.totalItems || 0)}</strong> of{" "}
-                    <strong>{pagination.totalItems || 0}</strong> entries
-                  </>
-                ) : (
-                  <>
-                    Showing <strong>{filteredData.length}</strong> of{" "}
-                    <strong>{data.length}</strong> entries
-                  </>
-                )}
-              </Typography>
-
-              {pagination ? (
-                <Pagination
-                  currentPage={pagination.currentPage}
-                  totalPages={pagination.totalPages}
-                  onPageChange={pagination.onPageChange}
-                />
-              ) : (
-                searchTerm && (
-                  <Button
-                    variant="text"
-                    size="sm"
-                    onClick={() => {
-                      setSearchTerm("");
-                      setFilteredData(data);
+        </CardHeader>
+        <CardBody className="overflow-x-scroll px-0 pt-0 pb-2">
+          {(searchable || filterable) && (
+            <div className="px-6 py-4 bg-blue-gray-50/50 flex items-center gap-4 border-b border-blue-gray-100">
+              {searchable && (
+                <div className="flex-1">
+                  <Input
+                    type="text"
+                    placeholder={searchPlaceholder}
+                    value={searchTerm}
+                    onChange={(e) => handleSearch(e.target.value)}
+                    icon={<MagnifyingGlassIcon className="h-5 w-5" />}
+                    className="!border-blue-gray-200 focus:!border-blue-500 !bg-white rounded-lg"
+                    labelProps={{
+                      className: "before:content-none after:content-none",
                     }}
-                    className="text-blue-600 font-semibold"
-                  >
-                    Clear search
-                  </Button>
-                )
+                    containerProps={{
+                      className: "!min-w-0",
+                    }}
+                    crossOrigin={undefined}
+                  />
+                </div>
+              )}
+              {filterable && (
+                <Button
+                  variant="outlined"
+                  size="sm"
+                  className="flex items-center gap-2 border-blue-gray-300 font-semibold"
+                >
+                  <FunnelIcon className="h-4 w-4" />
+                  Filters
+                </Button>
               )}
             </div>
+          )}
+          {advancedFilter && (
+            <div className="px-6 py-4 bg-white border-b border-blue-gray-100">
+              {advancedFilter}
+            </div>
+          )}
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[640px] table-auto">
+              <thead>
+                <tr className="bg-blue-gray-50/50">
+                  {columns.map((col) => (
+                    <th
+                      key={col.key}
+                      className="border-b border-blue-gray-100 py-4 px-6 text-left"
+                    >
+                      <Typography
+                        variant="small"
+                        className="text-[11px] font-bold uppercase text-blue-gray-600 tracking-wider"
+                      >
+                        {col.label}
+                      </Typography>
+                    </th>
+                  ))}
+                  {(onEdit || onDelete || onView || customActions) && (
+                    <th className="border-b border-blue-gray-100 py-4 px-6 text-left bg-blue-gray-50/50">
+                      <Typography
+                        variant="small"
+                        className="text-[11px] font-bold uppercase text-blue-gray-600 tracking-wider"
+                      >
+                        Actions
+                      </Typography>
+                    </th>
+                  )}
+                </tr>
+              </thead>
+              <tbody>
+                {filteredData.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={columns.length + (onEdit || onDelete || onView || customActions ? 1 : 0)}
+                      className="py-12 text-center"
+                    >
+                      <div className="flex flex-col items-center justify-center">
+                        <MagnifyingGlassIcon className="h-12 w-12 text-blue-gray-300 mb-2" />
+                        <Typography variant="small" className="text-blue-gray-500 font-medium">
+                          No data found
+                        </Typography>
+                        {searchTerm && (
+                          <Typography variant="small" className="text-blue-gray-400 mt-1">
+                            Try adjusting your search terms
+                          </Typography>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredData.map((row, rowIndex) => (
+                    <tr
+                      key={row.id || rowIndex}
+                      ref={(el) => (rowRefs.current[row.id] = el)}
+                      className={`hover:bg-blue-gray-50/30 transition-colors ${highlightedRowId === row.id ? 'highlight-row' : ''
+                        }`}
+                    >
+                      {columns.map((col) => (
+                        <td
+                          key={col.key}
+                          className={`py-4 px-6 ${rowIndex === filteredData.length - 1
+                            ? ""
+                            : "border-b border-blue-gray-100"
+                            }`}
+                        >
+                          {col.render ? (
+                            col.render(row[col.key], row)
+                          ) : col.type === "status" ? (
+                            <Chip
+                              variant="gradient"
+                              color={getStatusColor(row[col.key]) as any}
+                              value={row[col.key]}
+                              className="py-1 px-3 text-[11px] font-semibold w-fit capitalize shadow-sm"
+                            />
+                          ) : col.type === "badge" ? (
+                            <Chip
+                              variant="gradient"
+                              color={(col.color || "blue") as any}
+                              value={row[col.key]}
+                              className="py-1 px-3 text-[11px] font-semibold w-fit shadow-sm"
+                            />
+                          ) : (
+                            <Typography className="text-sm font-medium text-blue-gray-700">
+                              {row[col.key] || "-"}
+                            </Typography>
+                          )}
+                        </td>
+                      ))}
+                      {(onEdit || onDelete || onView || customActions) && (
+                        <td
+                          className={`py-4 px-6 ${rowIndex === filteredData.length - 1
+                            ? ""
+                            : "border-b border-blue-gray-100"
+                            }`}
+                        >
+                          <Menu placement="left-start" offset={5}>
+                            <MenuHandler>
+                              <IconButton
+                                variant="text"
+                                color="blue-gray"
+                                size="sm"
+                                className="rounded-full"
+                              >
+                                <EllipsisVerticalIcon className="h-5 w-5" />
+                              </IconButton>
+                            </MenuHandler>
+                            <MenuList className="min-w-[150px] shadow-lg">
+                              {onView && (
+                                <MenuItem
+                                  onClick={() => onView(row)}
+                                  className="flex items-center gap-3 py-2"
+                                >
+                                  <EyeIcon className="h-4 w-4" />
+                                  <Typography variant="small" className="font-medium">
+                                    View
+                                  </Typography>
+                                </MenuItem>
+                              )}
+                              {onEdit && (
+                                <MenuItem
+                                  onClick={() => onEdit(row)}
+                                  className="flex items-center gap-3 py-2"
+                                >
+                                  <PencilIcon className="h-4 w-4" />
+                                  <Typography variant="small" className="font-medium">
+                                    Edit
+                                  </Typography>
+                                </MenuItem>
+                              )}
+                              {onDelete && (
+                                <MenuItem
+                                  onClick={() => onDelete(row)}
+                                  className="flex items-center gap-3 py-2 text-red-500 focus:text-red-500 focus:bg-red-50"
+                                >
+                                  <TrashIcon className="h-4 w-4" />
+                                  <Typography variant="small" className="font-medium">
+                                    Delete
+                                  </Typography>
+                                </MenuItem>
+                              )}
+                              {customActions && customActions(row).map((action, index) => (
+                                <MenuItem
+                                  key={index}
+                                  onClick={action.onClick}
+                                  className={`flex items-center gap-3 py-2 ${action.color ? `text-${action.color}-500 focus:text-${action.color}-500 focus:bg-${action.color}-50` : ''}`}
+                                >
+                                  {action.icon}
+                                  <Typography variant="small" className="font-medium">
+                                    {action.label}
+                                  </Typography>
+                                </MenuItem>
+                              ))}
+                            </MenuList>
+                          </Menu>
+                        </td>
+                      )}
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
-        )}
-      </CardBody>
-    </Card>
+          {(pagination || filteredData.length > 0) && (
+            <div className="px-6 py-4 border-t border-blue-gray-100 bg-blue-gray-50/30">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                <Typography variant="small" className="text-blue-gray-600 font-medium">
+                  {pagination ? (
+                    <>
+                      Showing <strong>{((pagination.currentPage - 1) * (pagination.perPage || 10)) + 1}</strong> to{" "}
+                      <strong>{Math.min(pagination.currentPage * (pagination.perPage || 10), pagination.totalItems || 0)}</strong> of{" "}
+                      <strong>{pagination.totalItems || 0}</strong> entries
+                    </>
+                  ) : (
+                    <>
+                      Showing <strong>{filteredData.length}</strong> of{" "}
+                      <strong>{data.length}</strong> entries
+                    </>
+                  )}
+                </Typography>
+
+                {pagination ? (
+                  <Pagination
+                    currentPage={pagination.currentPage}
+                    totalPages={pagination.totalPages}
+                    onPageChange={pagination.onPageChange}
+                  />
+                ) : (
+                  searchTerm && (
+                    <Button
+                      variant="text"
+                      size="sm"
+                      onClick={() => {
+                        setSearchTerm("");
+                        setFilteredData(data);
+                      }}
+                      className="text-blue-600 font-semibold"
+                    >
+                      Clear search
+                    </Button>
+                  )
+                )}
+              </div>
+            </div>
+          )}
+        </CardBody>
+      </Card>
+    </>
   );
 }
 
 export default DataTable;
-
