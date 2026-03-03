@@ -26,6 +26,30 @@ interface Department {
 
 export default function Departments(): JSX.Element {
   const { showToast } = useToast();
+  const backendBaseUrl = ((import.meta as any).env?.VITE_API_BASE_URL?.replace(/\/api\/?$/, '') || 'http://localhost:8000');
+
+  const getDepartmentImageCandidates = (value: string): string[] => {
+    if (!value) return [];
+    if (value.startsWith('http')) return [value];
+
+    const cleanPath = String(value).replace(/\\/g, '/').replace(/^\/+/, '');
+    const candidates: string[] = [];
+
+    if (cleanPath.startsWith('departments/')) {
+      candidates.push(`${backendBaseUrl}/storage/${cleanPath}`);
+      candidates.push(`${backendBaseUrl}/${cleanPath}`);
+    } else if (cleanPath.startsWith('storage/') || cleanPath.startsWith('images/')) {
+      candidates.push(`${backendBaseUrl}/${cleanPath}`);
+    } else {
+      candidates.push(`${backendBaseUrl}/${cleanPath}`);
+      candidates.push(`${backendBaseUrl}/storage/${cleanPath}`);
+      candidates.push(`${backendBaseUrl}/storage/departments/${cleanPath}`);
+      candidates.push(`${backendBaseUrl}/images/departments/${cleanPath}`);
+    }
+
+    return [...new Set(candidates)];
+  };
+
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
   const [openModal, setOpenModal] = useState<boolean>(false);
@@ -132,14 +156,23 @@ export default function Departments(): JSX.Element {
       render: (value: any) => (
         value ? (
           <img
-            src={typeof value === 'string' && value.startsWith('http')
-              ? value
-              : `${(import.meta as any).env?.VITE_API_BASE_URL?.replace(/\/api\/?$/, '') || 'http://localhost:8000'}/${String(value).replace(/^\//, '')}`
-            }
+            src={getDepartmentImageCandidates(String(value))[0]}
             alt="Department"
             className="max-h-40 rounded-lg border border-blue-gray-100 object-cover"
+            data-try-index="0"
             onError={(e) => {
-              (e.currentTarget as HTMLImageElement).style.display = 'none';
+              const img = e.currentTarget as HTMLImageElement;
+              const candidates = getDepartmentImageCandidates(String(value));
+              const currentIndex = Number(img.dataset.tryIndex || '0');
+              const nextIndex = currentIndex + 1;
+
+              if (nextIndex < candidates.length) {
+                img.dataset.tryIndex = String(nextIndex);
+                img.src = candidates[nextIndex];
+                return;
+              }
+
+              img.style.display = 'none';
             }}
           />
         ) : '-'

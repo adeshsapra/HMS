@@ -63,12 +63,33 @@ const DepartmentSection: React.FC<DepartmentSectionProps> = ({
         ["0px", `-${scrollRange > 0 ? scrollRange : 0}px`]
     );
 
-    const getDepartmentImageUrl = useCallback((imageName: string | null) => {
-        if (!imageName) return "/assets/img/health/cardiology-3.webp";
-        if (imageName.startsWith("http")) return imageName;
-        const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace("/api", "") || "http://localhost:8000";
-        return `${baseUrl}/storage/departments/${imageName}`;
+    const getDepartmentImageCandidates = useCallback((imageName: string | null): string[] => {
+        if (!imageName) return ["/assets/img/health/cardiology-3.webp"];
+        if (imageName.startsWith("http")) return [imageName];
+
+        const cleanPath = imageName.replace(/\\/g, "/").replace(/^\/+/, "");
+        const baseUrl = (import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api").replace(/\/api\/?$/, "");
+        const candidates: string[] = [];
+
+        if (cleanPath.startsWith("departments/")) {
+            candidates.push(`${baseUrl}/storage/${cleanPath}`);
+            candidates.push(`${baseUrl}/${cleanPath}`);
+        } else if (cleanPath.startsWith("storage/") || cleanPath.startsWith("images/")) {
+            candidates.push(`${baseUrl}/${cleanPath}`);
+        } else if (!cleanPath.includes("/")) {
+            candidates.push(`/assets/img/health/${cleanPath}`);
+            candidates.push(`${baseUrl}/storage/departments/${cleanPath}`);
+            candidates.push(`${baseUrl}/images/departments/${cleanPath}`);
+        } else {
+            candidates.push(`${baseUrl}/${cleanPath}`);
+        }
+
+        return [...new Set(candidates)];
     }, []);
+
+    const getDepartmentImageUrl = useCallback((imageName: string | null) => {
+        return getDepartmentImageCandidates(imageName)[0];
+    }, [getDepartmentImageCandidates]);
 
     return (
         <>
@@ -392,8 +413,21 @@ const DepartmentSection: React.FC<DepartmentSectionProps> = ({
                                                     alt={`${dept.name}`}
                                                     whileHover={{ scale: 1.1 }}
                                                     transition={{ duration: 0.5 }}
+                                                    data-try-index="0"
                                                     onError={(e) => {
-                                                        (e.target as HTMLImageElement).src = '/assets/img/health/cardiology-3.webp';
+                                                        const img = e.currentTarget as HTMLImageElement;
+                                                        const candidates = getDepartmentImageCandidates(dept.image);
+                                                        const currentIndex = Number(img.dataset.tryIndex || "0");
+                                                        const nextIndex = currentIndex + 1;
+
+                                                        if (nextIndex < candidates.length) {
+                                                            img.dataset.tryIndex = String(nextIndex);
+                                                            img.src = candidates[nextIndex];
+                                                            return;
+                                                        }
+
+                                                        img.onerror = null;
+                                                        img.src = "/assets/img/health/cardiology-3.webp";
                                                     }}
                                                 />
                                             </div>
