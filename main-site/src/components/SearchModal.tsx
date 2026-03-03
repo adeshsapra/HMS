@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { searchableModules, type SearchableModule } from '../data/searchableModules';
+import { departmentAPI, doctorAPI, serviceAPI, homeCareAPI } from '../services/api';
 
 interface SearchModalProps {
   isOpen: boolean;
@@ -11,7 +12,9 @@ interface SearchModalProps {
 
 const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<SearchableModule[]>([]);
+  const [moduleResults, setModuleResults] = useState<SearchableModule[]>([]);
+  const [dynamicResults, setDynamicResults] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
   const [recentSearches, setRecentSearches] = useState<SearchableModule[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const { user } = useAuth();
@@ -28,7 +31,6 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
           .filter(mod => parsed.includes(mod.id))
           .filter(mod => !mod.roles || (user && mod.roles.includes(user.role_id)));
 
-        // Match the order of storage if possible, otherwise just current filter
         const orderedRecent = parsed
           .map(id => filteredRecent.find(m => m.id === id))
           .filter(Boolean) as SearchableModule[];
@@ -37,32 +39,105 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
       }
 
       setSelectedIndex(0);
-      // Focus input
       setTimeout(() => inputRef.current?.focus(), 100);
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
       setQuery('');
+      setModuleResults([]);
+      setDynamicResults([]);
       setSelectedIndex(0);
     }
     return () => { document.body.style.overflow = ''; };
   }, [isOpen, user]);
 
-  // Handle search logic
+  // Async multi-module search with debounce
   useEffect(() => {
-    if (query.trim().length > 0) {
-      const filtered = searchableModules.filter(mod => {
-        const matchesQuery = mod.title.toLowerCase().includes(query.toLowerCase()) ||
-          mod.description.toLowerCase().includes(query.toLowerCase());
-        const hasAccess = !mod.roles || (user && mod.roles.includes(user.role_id));
-        return matchesQuery && hasAccess;
-      });
-      setResults(filtered);
-      setSelectedIndex(0);
-    } else {
-      setResults([]);
-      setSelectedIndex(0);
-    }
+    const fetchResults = async () => {
+      if (query.trim().length === 0) {
+        setModuleResults([]);
+        setDynamicResults([]);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        // Fast local module filter
+        const filteredModules = searchableModules.filter(mod => {
+          const matchesQuery = mod.title.toLowerCase().includes(query.toLowerCase()) ||
+            mod.description.toLowerCase().includes(query.toLowerCase());
+          const hasAccess = !mod.roles || (user && mod.roles.includes(user.role_id));
+          return matchesQuery && hasAccess;
+        });
+        setModuleResults(filteredModules);
+
+        // Fetch from Public APIs
+        const [deptRes, docRes, serviceRes, homeCareRes] = await Promise.all([
+          departmentAPI.getAll(1, 5, { keyword: query.trim() }),
+          doctorAPI.getAll(1, 5, { search: query.trim() }),
+          serviceAPI.getAll(1, 5, { keyword: query.trim() }),
+          homeCareAPI.getServices()
+        ]);
+
+        const combinedDynamics: any[] = [];
+
+        if (deptRes.data?.success) {
+          deptRes.data.data.forEach((d: any) => combinedDynamics.push({
+            id: d.id,
+            title: d.name,
+            description: d.description || 'Department',
+            path: `/department-details/${d.id}`,
+            type: 'Department',
+            icon: 'bi-building'
+          }));
+        }
+
+        if (docRes.data?.success) {
+          docRes.data.data.forEach((d: any) => combinedDynamics.push({
+            id: d.id,
+            title: `Dr. ${d.first_name} ${d.last_name}`,
+            description: d.specialization || 'Doctor',
+            path: `/doctor-profile/${d.id}`,
+            type: 'Doctor',
+            icon: 'bi-person-badge'
+          }));
+        }
+
+        if (serviceRes.data?.success) {
+          serviceRes.data.data.forEach((s: any) => combinedDynamics.push({
+            id: s.id,
+            title: s.name,
+            description: s.description || 'Hospital Service',
+            path: `/service-details/${s.id}`,
+            type: 'Service',
+            icon: 'bi-clipboard2-pulse'
+          }));
+        }
+
+        if (homeCareRes.data?.success) {
+          homeCareRes.data.data
+            .filter((s: any) => s.title.toLowerCase().includes(query.toLowerCase()))
+            .forEach((s: any) => combinedDynamics.push({
+              id: s.id,
+              title: s.title,
+              description: s.category || 'Home Care Service',
+              path: `/home-care`, // Deep linking to specific home care service may need more context
+              type: 'Home Care',
+              icon: 'bi-house-heart'
+            }));
+        }
+
+        setDynamicResults(combinedDynamics);
+        setSelectedIndex(0);
+      } catch (err) {
+        console.error("Main search failed:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const timeout = setTimeout(fetchResults, 300);
+    return () => clearTimeout(timeout);
   }, [query, user]);
 
   // Keyboard navigation
@@ -70,7 +145,8 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isOpen) return;
 
-      const items = query.trim().length === 0 ? recentSearches : results;
+      const allResults = [...moduleResults, ...dynamicResults];
+      const items = query.trim().length === 0 ? recentSearches : allResults;
       if (items.length === 0) return;
 
       if (e.key === 'ArrowDown') {
@@ -89,21 +165,20 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, query, results, recentSearches, selectedIndex]);
+  }, [isOpen, query, moduleResults, dynamicResults, recentSearches, selectedIndex]);
 
   const clearRecentSearches = () => {
     localStorage.removeItem(`recent_searches_${user?.id || 'guest'}`);
     setRecentSearches([]);
   };
 
-  const handleSelect = (module: SearchableModule) => {
-    // Save to recent searches
-    const stored = localStorage.getItem(`recent_searches_${user?.id || 'guest'}`);
-    let recentIds: string[] = stored ? JSON.parse(stored) : [];
-
-    // Remove if already exists and add to front
-    recentIds = [module.id, ...recentIds.filter(id => id !== module.id)].slice(0, 5);
-    localStorage.setItem(`recent_searches_${user?.id || 'guest'}`, JSON.stringify(recentIds));
+  const handleSelect = (module: any) => {
+    if (module.id && !module.type) {
+      const stored = localStorage.getItem(`recent_searches_${user?.id || 'guest'}`);
+      let recentIds: string[] = stored ? JSON.parse(stored) : [];
+      recentIds = [module.id, ...recentIds.filter(id => id !== module.id)].slice(0, 5);
+      localStorage.setItem(`recent_searches_${user?.id || 'guest'}`, JSON.stringify(recentIds));
+    }
 
     navigate(module.path);
     onClose();
@@ -176,17 +251,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
                               e.stopPropagation();
                               clearRecentSearches();
                             }}
-                            style={{
-                              background: 'transparent',
-                              border: '1px solid #e2e8f0',
-                              color: '#94a3b8',
-                              fontSize: '10px',
-                              fontWeight: 700,
-                              textTransform: 'uppercase',
-                              padding: '4px 8px',
-                              borderRadius: '6px',
-                              cursor: 'pointer'
-                            }}
+                            className="clear-recent-btn"
                           >
                             Clear All
                           </button>
@@ -213,8 +278,8 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
                       </div>
                     )}
 
-                    <div className="search-section">
-                      <h3 className="section-title">Quick Links</h3>
+                    <div className="search-section" style={{ marginTop: '20px' }}>
+                      <h3 className="section-title px-1">Quick Links</h3>
                       <div className="quick-links-grid">
                         {searchableModules.slice(0, 4).map(mod => (
                           <div
@@ -231,32 +296,73 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
                   </div>
                 ) : (
                   <div className="search-results">
-                    {results.length > 0 ? (
-                      <div className="search-section">
-                        <h3 className="section-title">Search Results ({results.length})</h3>
-                        <div className="results-list">
-                          {results.map((mod, index) => (
-                            <div
-                              key={mod.id}
-                              className={`search-item ${selectedIndex === index ? 'active' : ''}`}
-                              onClick={() => handleSelect(mod)}
-                              onMouseEnter={() => setSelectedIndex(index)}
-                            >
-                              <div className="item-icon result-icon">
-                                <i className={`bi ${mod.icon}`}></i>
-                              </div>
-                              <div className="item-info">
-                                <span className="item-title">{mod.title}</span>
-                                <span className="item-desc">{mod.description}</span>
-                              </div>
-                              <div className="item-action">
-                                <span className="badge-jump">Jump to</span>
-                              </div>
-                            </div>
-                          ))}
+                    {loading && (moduleResults.length === 0 && dynamicResults.length === 0) ? (
+                      <div className="py-20 text-center">
+                        <div className="spinner-border text-primary" role="status">
+                          <span className="visually-hidden">Loading...</span>
                         </div>
+                        <p className="mt-3 text-muted">Finding modules and experts...</p>
                       </div>
-                    ) : (
+                    ) : (moduleResults.length > 0 || dynamicResults.length > 0) ? (
+                      <div className="space-y-6">
+                        {moduleResults.length > 0 && (
+                          <div className="search-section mb-4">
+                            <h3 className="section-title mb-2 px-1">Modules</h3>
+                            <div className="results-list">
+                              {moduleResults.map((mod, index) => (
+                                <div
+                                  key={mod.id}
+                                  className={`search-item ${selectedIndex === index ? 'active' : ''}`}
+                                  onClick={() => handleSelect(mod)}
+                                  onMouseEnter={() => setSelectedIndex(index)}
+                                >
+                                  <div className="item-icon result-icon">
+                                    <i className={`bi ${mod.icon}`}></i>
+                                  </div>
+                                  <div className="item-info">
+                                    <span className="item-title">{mod.title}</span>
+                                    <span className="item-desc">{mod.description}</span>
+                                  </div>
+                                  <div className="item-action">
+                                    <span className="badge-jump">Explore</span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {dynamicResults.length > 0 && (
+                          <div className="search-section mt-4">
+                            <h3 className="section-title mb-2 px-1">Detailed Findings</h3>
+                            <div className="results-list">
+                              {dynamicResults.map((item, index) => (
+                                <div
+                                  key={item.id + item.type}
+                                  className={`search-item ${selectedIndex === (index + moduleResults.length) ? 'active' : ''}`}
+                                  onClick={() => handleSelect(item)}
+                                  onMouseEnter={() => setSelectedIndex(index + moduleResults.length)}
+                                >
+                                  <div className="item-icon result-icon">
+                                    <i className={`bi ${item.icon}`}></i>
+                                  </div>
+                                  <div className="item-info">
+                                    <div className="flex items-center gap-2">
+                                      <span className="item-title">{item.title}</span>
+                                      <span className="badge-type">{item.type}</span>
+                                    </div>
+                                    <span className="item-desc">{item.description}</span>
+                                  </div>
+                                  <div className="item-action">
+                                    <span className="badge-jump">View Details</span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : !loading && (
                       <div className="no-results">
                         <i className="bi bi-search-heart"></i>
                         <p>No matches found for "<span>{query}</span>"</p>
@@ -485,12 +591,31 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
           font-weight: 600;
         }
 
+        .badge-type {
+          font-size: 10px;
+          background: #e2e8f0;
+          color: #475569;
+          padding: 2px 6px;
+          border-radius: 4px;
+          font-weight: 700;
+          text-transform: uppercase;
+        }
+
+        .space-y-6 > * + * {
+          margin-top: 1.5rem;
+        }
+
+        .results-list {
+          display: flex;
+          flex-direction: column;
+        }
+
         /* Quick Links */
         .quick-links-grid {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
           gap: 12px;
-          padding: 0 12px 12px;
+          padding: 12px;
         }
 
         .quick-link-card {

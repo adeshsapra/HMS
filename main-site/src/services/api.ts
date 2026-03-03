@@ -41,20 +41,22 @@ api.interceptors.response.use(
 
 // API Helper Methods for Main Site (Public endpoints)
 export const departmentAPI = {
-    getAll: (page?: number, perPage?: number) => {
+    getAll: (page?: number, perPage?: number, filters?: { keyword?: string }) => {
         const params = new URLSearchParams();
         if (page) params.append('page', page.toString());
         if (perPage) params.append('per_page', perPage.toString());
+        if (filters?.keyword) params.append('keyword', filters.keyword);
         return api.get(`/public/departments${params.toString() ? '?' + params.toString() : ''}`);
     },
     getById: (id: number) => api.get(`/public/departments/${id}`),
 };
 
 export const serviceAPI = {
-    getAll: (page?: number, perPage?: number) => {
+    getAll: (page?: number, perPage?: number, filters?: { keyword?: string }) => {
         const params = new URLSearchParams();
         if (page) params.append('page', page.toString());
         if (perPage) params.append('per_page', perPage.toString());
+        if (filters?.keyword) params.append('keyword', filters.keyword);
         return api.get(`/public/services${params.toString() ? '?' + params.toString() : ''}`);
     },
     getById: (id: number) => api.get(`/public/services/${id}`),

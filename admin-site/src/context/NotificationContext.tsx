@@ -280,6 +280,8 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
     }, []);
 
     // WebSocket connection setup
+    const userKey = user ? JSON.stringify({ id: user.id, email: user.email }) : null;
+
     useEffect(() => {
         if (!user) return;
 
@@ -391,11 +393,12 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
             isCleanupCalled = true;
             if (reconnectTimeout) clearTimeout(reconnectTimeout);
             if (echoRef.current) {
+                console.log('🔌 Disconnecting Echo...');
                 echoRef.current.disconnect();
                 echoRef.current = null;
             }
         };
-    }, [user, playNotificationSound, showBrowserNotification, fetchNotifications]);
+    }, [userKey, playNotificationSound, showBrowserNotification, fetchNotifications]);
 
     return (
         <NotificationContext.Provider value={{
