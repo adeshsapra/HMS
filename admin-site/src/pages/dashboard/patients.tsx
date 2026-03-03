@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { DataTable, FormModal, ViewModal, DeleteConfirmModal, Column, FormField, ViewField, AdvancedFilter, FilterConfig } from "@/components";
 import { Pagination } from "@/components/Pagination";
 import { Avatar, Typography, Button } from "@material-tailwind/react";
@@ -52,6 +53,19 @@ export default function Patients(): JSX.Element {
   });
   const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
   const { showToast } = useToast();
+  const location = useLocation();
+
+  // Initialize filters from URL
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const keyword = params.get('keyword') || '';
+    // If keyword is removed from URL, ensure it's cleared from activeFilters
+    if (activeFilters.keyword !== keyword) {
+      setActiveFilters(prev => ({ ...prev, keyword }));
+      setCurrentPage(1);
+    }
+  }, [location.search]);
+
 
   // Fetch patients from API
   const fetchPatients = async (page: number = 1, currentFilters = activeFilters) => {
@@ -83,9 +97,10 @@ export default function Patients(): JSX.Element {
     }
   };
 
+  // Main data fetching effect
   useEffect(() => {
     fetchPatients(currentPage, activeFilters);
-  }, [currentPage]);
+  }, [currentPage, activeFilters]);
 
   // Handle page change
   const handlePageChange = (page: number) => {
@@ -413,13 +428,12 @@ export default function Patients(): JSX.Element {
             }
           ],
           onApplyFilters: (filters) => {
-            const newFilters = { ...activeFilters, ...filters };
-            setActiveFilters(newFilters);
-            fetchPatients(1, newFilters);
+            setActiveFilters(filters);
+            setCurrentPage(1);
           },
           onResetFilters: () => {
             setActiveFilters({});
-            fetchPatients(1, {});
+            setCurrentPage(1);
           },
           initialValues: activeFilters
         }}

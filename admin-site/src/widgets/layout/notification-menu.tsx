@@ -16,8 +16,17 @@ import { useNavigate } from "react-router-dom";
 export function NotificationMenu() {
     const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
     const navigate = useNavigate();
-    const unread = Number(unreadCount) || 0;
-    const unreadLabel = unread > 99 ? "99+" : String(unread);
+    const [shouldShake, setShouldShake] = React.useState(false);
+    const prevCount = React.useRef(unreadCount);
+
+    React.useEffect(() => {
+        if (unreadCount > prevCount.current) {
+            setShouldShake(true);
+            const timer = setTimeout(() => setShouldShake(false), 800);
+            return () => clearTimeout(timer);
+        }
+        prevCount.current = unreadCount;
+    }, [unreadCount]);
 
     const handleNotificationClick = (notification: any) => {
         if (!notification.read_at) {
@@ -29,20 +38,37 @@ export function NotificationMenu() {
     return (
         <Menu>
             <MenuHandler>
-                <IconButton
-                    variant="text"
-                    color="blue-gray"
-                    className="relative overflow-visible"
-                    aria-label={`Notifications${unread > 0 ? ` (${unread} unread)` : ""}`}
-                >
-                    {unread > 0 && (
-                        <span className="absolute -right-0.5 -top-0.5 z-20 grid h-4 min-w-[16px] place-items-center rounded-full bg-red-500 px-1 text-[9px] font-bold leading-none text-white border border-white shadow-sm">
-                            {unreadLabel}
-                        </span>
-                    )}
-                    <BellIcon className="h-5 w-5 text-blue-gray-600" />
+                <IconButton variant="text" color="blue-gray" className="relative overflow-visible group">
+                    <div className="relative">
+                        {/* The Bell Icon - Shake applied freely on hover and when unreadCount increases */}
+                        <BellIcon className={`h-5 w-5 text-blue-gray-900 transition-all duration-300 z-10 relative bell-shake-icon ${shouldShake ? 'animate-bell-shake' : ''}`} />
+
+                        {/* Numeric Badge - Smaller and more 'Cornered' */}
+                        {unreadCount > 0 && (
+                            <div className="absolute -top-1.5 -right-1.5 flex h-[14px] w-[14px] items-center justify-center rounded-full bg-blue-gray-900 border border-white shadow-sm z-20">
+                                <span className="text-[9px] font-black text-white leading-none">
+                                    {unreadCount}
+                                </span>
+                            </div>
+                        )}
+                    </div>
                 </IconButton>
             </MenuHandler>
+            <style>{`
+                @keyframes bell-shake {
+                    0%, 100% { transform: rotate(0deg); }
+                    15% { transform: rotate(20deg); }
+                    30% { transform: rotate(-20deg); }
+                    45% { transform: rotate(15deg); }
+                    60% { transform: rotate(-15deg); }
+                    75% { transform: rotate(10deg); }
+                }
+                .group:hover .bell-shake-icon, 
+                .animate-bell-shake {
+                    animation: bell-shake 0.8s ease-in-out both;
+                    transform-origin: top center;
+                }
+            `}</style>
             <MenuList className="w-80 max-h-[28rem] overflow-y-auto border-0 p-2 shadow-2xl shadow-blue-gray-500/20">
                 <div className="mb-4 flex items-center justify-between p-2 border-b border-blue-gray-50 pb-3">
                     <div className="flex items-center gap-2">

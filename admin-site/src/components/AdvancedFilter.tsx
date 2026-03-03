@@ -69,12 +69,24 @@ export const AdvancedFilter: React.FC<AdvancedFilterProps> = ({
         return hasValue(value);
     }).length;
 
-    // Sync with initialValues
+    const lastAppliedFilters = useRef<string>(JSON.stringify(config.initialValues || {}));
+    const onApplyRef = useRef(config.onApplyFilters);
+
+    // Sync callback ref to keep it stable
+    useEffect(() => {
+        onApplyRef.current = config.onApplyFilters;
+    }, [config.onApplyFilters]);
+
+    // Sync with initialValues only when they actually change from the parent
     useEffect(() => {
         if (config.initialValues) {
-            setFilters(prev => ({ ...prev, ...config.initialValues }));
+            const initialStr = JSON.stringify(config.initialValues);
+            if (initialStr !== lastAppliedFilters.current) {
+                setFilters(config.initialValues);
+                lastAppliedFilters.current = initialStr;
+            }
         }
-    }, [config.initialValues]);
+    }, [JSON.stringify(config.initialValues)]);
 
     // Close dropdown on outside click
     useEffect(() => {
@@ -102,12 +114,41 @@ export const AdvancedFilter: React.FC<AdvancedFilterProps> = ({
         return () => document.removeEventListener('keydown', handleKeyDown);
     }, []);
 
-    const handleFilterChange = useCallback((fieldName: string, value: any) => {
-        setFilters(prev => ({ ...prev, [fieldName]: value }));
+    const handleFilterChange = useCallback((fieldName: string, value: any, immediate = false) => {
+        setFilters(prev => {
+            const next = { ...prev, [fieldName]: value };
+
+            if (immediate) {
+                // For immediate changes (dropdowns, clear buttons)
+                // We call the parent immediately with the updated state
+                onApplyRef.current(next);
+                lastAppliedFilters.current = JSON.stringify(next);
+            }
+
+            return next;
+        });
     }, []);
 
+
+    // Automatic filter application with debounce
+    useEffect(() => {
+        const filtersStr = JSON.stringify(filters);
+
+        // Don't apply if filters match what we last applied
+        // This stops loops and prevents double-applying immediate changes
+        if (filtersStr === lastAppliedFilters.current) return;
+
+        const timer = setTimeout(() => {
+            onApplyRef.current(filters);
+            lastAppliedFilters.current = filtersStr;
+        }, 1000); // 1000ms debounce
+
+        return () => clearTimeout(timer);
+    }, [filters]);
+
     const handleApply = () => {
-        config.onApplyFilters(filters);
+        onApplyRef.current(filters);
+        lastAppliedFilters.current = JSON.stringify(filters);
         setActiveDropdown(null);
         setShowMoreFilters(false);
     };
@@ -125,6 +166,8 @@ export const AdvancedFilter: React.FC<AdvancedFilterProps> = ({
             }
         });
         setFilters(resetFilters);
+        lastAppliedFilters.current = JSON.stringify(resetFilters);
+        onApplyRef.current(resetFilters);
         setShowMoreFilters(false);
         setActiveDropdown(null);
         config.onResetFilters();
@@ -193,7 +236,7 @@ export const AdvancedFilter: React.FC<AdvancedFilterProps> = ({
                                     <button
                                         key={String(option.value)}
                                         onClick={() => {
-                                            handleFilterChange(field.name, option.value);
+                                            handleFilterChange(field.name, option.value, true);
                                             setActiveDropdown(null);
                                         }}
                                         className={`
@@ -235,7 +278,7 @@ export const AdvancedFilter: React.FC<AdvancedFilterProps> = ({
                 />
                 {value && (
                     <button
-                        onClick={() => handleFilterChange(field.name, '')}
+                        onClick={() => handleFilterChange(field.name, '', true)}
                         className="p-1 hover:bg-gray-100 rounded-full transition-colors text-gray-400 opacity-0 group-hover:opacity-100"
                     >
                         <XMarkIcon className="w-3 h-3" />
@@ -327,8 +370,8 @@ export const AdvancedFilter: React.FC<AdvancedFilterProps> = ({
                                 <div className="flex gap-2 pt-2">
                                     <button
                                         onClick={() => {
-                                            handleFilterChange(startKey, '');
-                                            if (endKey) handleFilterChange(endKey, '');
+                                            handleFilterChange(startKey, '', true);
+                                            if (endKey) handleFilterChange(endKey, '', true);
                                         }}
                                         className="flex-1 h-9 rounded-lg text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors"
                                     >
@@ -411,15 +454,19 @@ export const AdvancedFilter: React.FC<AdvancedFilterProps> = ({
                                             handleApply();
                                         }
                                     }}
+                                    onBlur={() => {
+                                        const val = filters[searchField.name];
+                                        if (val && JSON.stringify(filters) !== lastAppliedFilters.current) {
+                                            handleApply();
+                                        }
+                                    }}
                                     className="w-full h-10 pl-9 pr-20 rounded-lg bg-gray-50 border-0 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0299BE]/20 focus:bg-white transition-all duration-300"
                                 />
                                 <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
                                     {filters[searchField.name] && (
                                         <button
                                             onClick={() => {
-                                                handleFilterChange(searchField.name, '');
-                                                const newFilters = { ...filters, [searchField.name]: '' };
-                                                config.onApplyFilters(newFilters);
+                                                handleFilterChange(searchField.name, '', true);
                                             }}
                                             className="p-1 hover:bg-gray-200 rounded-full transition-colors text-gray-400 mr-1"
                                         >
@@ -525,7 +572,7 @@ export const AdvancedFilter: React.FC<AdvancedFilterProps> = ({
                                                                         const newValues = isSelected
                                                                             ? selectedValues.filter((v: any) => v !== option.value)
                                                                             : [...selectedValues, option.value];
-                                                                        handleFilterChange(field.label, newValues);
+                                                                        handleFilterChange(field.name, newValues, true);
                                                                     }}
                                                                     className={`
                                                                         px-3 py-1 rounded-full text-xs font-medium transition-all

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { useLocation } from "react-router-dom";
 import { DataTable, FormModal, ViewModal, DeleteConfirmModal, Column, FormField, ViewField, AppointmentCalendar, PrescriptionModal, AdvancedFilter, FilterConfig } from "@/components";
 import { ActionItem } from "@/components/DataTable";
 import { Button } from "@material-tailwind/react";
@@ -162,22 +163,34 @@ export default function Appointments(): JSX.Element {
         }
     };
 
-    useEffect(() => {
-        fetchAppointments(pagination.currentPage);
-        fetchDropdownData();
-    }, []);
+    const location = useLocation();
 
+    // Initialize filters from URL on mount
     useEffect(() => {
-        // Refetch appointments when view mode changes
+        const params = new URLSearchParams(location.search);
+        const keyword = params.get('keyword') || '';
+        if (activeFilters.keyword !== keyword) {
+            setActiveFilters(prev => ({ ...prev, keyword }));
+            setPagination(prev => ({ ...prev, currentPage: 1 }));
+        }
+    }, [location.search]);
+
+    // Data fetching effect - Single source of truth
+    useEffect(() => {
         if (viewMode === "list") {
             fetchAppointments(pagination.currentPage, activeFilters);
         } else {
             fetchAppointments(1);
         }
-    }, [viewMode]);
+    }, [pagination.currentPage, activeFilters, viewMode]);
+
+    // Cleanup and dropdown data
+    useEffect(() => {
+        fetchDropdownData();
+    }, []);
 
     const handlePageChange = (page: number) => {
-        fetchAppointments(page, activeFilters);
+        setPagination(prev => ({ ...prev, currentPage: page }));
     };
 
     const columns: Column[] = [
@@ -718,7 +731,10 @@ export default function Appointments(): JSX.Element {
                     <Button
                         variant={viewMode === "list" ? "filled" : "outlined"}
                         color={viewMode === "list" ? "blue" : "blue-gray"}
-                        onClick={() => setViewMode("list")}
+                        onClick={() => {
+                            setViewMode("list");
+                            setPagination(prev => ({ ...prev, currentPage: 1 }));
+                        }}
                         className="capitalize font-semibold shadow-md"
                     >
                         List View
@@ -726,7 +742,10 @@ export default function Appointments(): JSX.Element {
                     <Button
                         variant={viewMode === "calendar" ? "filled" : "outlined"}
                         color={viewMode === "calendar" ? "blue" : "blue-gray"}
-                        onClick={() => setViewMode("calendar")}
+                        onClick={() => {
+                            setViewMode("calendar");
+                            setPagination(prev => ({ ...prev, currentPage: 1 }));
+                        }}
                         className="flex items-center gap-2 capitalize font-semibold shadow-md"
                     >
                         <CalendarDaysIcon className="h-5 w-5" />
@@ -792,14 +811,12 @@ export default function Appointments(): JSX.Element {
                                 }
                             ],
                             onApplyFilters: (filters) => {
-                                // Merge with existing status filter if needed, but quick filters are removed
-                                const newFilters = { ...activeFilters, ...filters };
-                                setActiveFilters(newFilters);
-                                fetchAppointments(1, newFilters);
+                                setActiveFilters(filters);
+                                setPagination(prev => ({ ...prev, currentPage: 1 }));
                             },
                             onResetFilters: () => {
                                 setActiveFilters({});
-                                fetchAppointments(1, {});
+                                setPagination(prev => ({ ...prev, currentPage: 1 }));
                             },
                             initialValues: activeFilters
                         }}
