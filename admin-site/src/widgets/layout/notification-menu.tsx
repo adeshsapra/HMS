@@ -18,6 +18,8 @@ export function NotificationMenu() {
     const navigate = useNavigate();
     const [shouldShake, setShouldShake] = React.useState(false);
     const prevCount = React.useRef(unreadCount);
+    const unread = unreadCount;
+    const unreadLabel = unread > 99 ? "99+" : unread.toString();
 
     React.useEffect(() => {
         if (unreadCount > prevCount.current) {
@@ -43,11 +45,11 @@ export function NotificationMenu() {
                         {/* The Bell Icon - Shake applied freely on hover and when unreadCount increases */}
                         <BellIcon className={`h-5 w-5 text-blue-gray-900 transition-all duration-300 z-10 relative bell-shake-icon ${shouldShake ? 'animate-bell-shake' : ''}`} />
 
-                        {/* Numeric Badge - Smaller and more 'Cornered' */}
+                        {/* Numeric Badge */}
                         {unreadCount > 0 && (
-                            <div className="absolute -top-1.5 -right-1.5 flex h-[14px] w-[14px] items-center justify-center rounded-full bg-blue-gray-900 border border-white shadow-sm z-20">
-                                <span className="text-[9px] font-black text-white leading-none">
-                                    {unreadCount}
+                            <div className="absolute -top-2 -right-2 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-600 border-2 border-white shadow-md z-20 px-1">
+                                <span className="text-[10px] font-black text-white leading-none">
+                                    {unreadLabel}
                                 </span>
                             </div>
                         )}

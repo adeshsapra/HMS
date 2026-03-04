@@ -280,6 +280,10 @@ export const faqAPI = {
     getAll: () => api.get('/public/faqs'),
 };
 
+export const emergencyAPI = {
+    getInfo: () => api.get('/public/emergency-info'),
+};
+
 export const galleryAPI = {
     getGalleries: (params?: { page?: number; category_id?: number | string; per_page?: number; keyword?: string }) => {
         const queryParams = new URLSearchParams();

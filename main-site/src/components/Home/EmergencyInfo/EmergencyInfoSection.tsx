@@ -1,505 +1,443 @@
 import SectionHeading from "../SectionHeading";
 
-const EmergencyInfoSection = () => {
-    return (
-        <>
-            <style>{`
-        /* Emergency Info Section Styles */
+interface EmergencyContact {
+  id?: number;
+  icon: string;
+  title: string;
+  phone: string;
+  meta?: string;
+  badge?: string;
+  badge_type: "blue" | "green";
+  urgent: boolean;
+}
+
+interface EmergencyTip {
+  id?: number;
+  tip: string;
+}
+
+interface EmergencyInfoData {
+  is_active?: boolean;
+  section_heading: string;
+  section_description?: string;
+  banner_title: string;
+  banner_description?: string;
+  banner_button_label: string;
+  banner_button_phone: string;
+  tips_title: string;
+  contacts: EmergencyContact[];
+  tips: EmergencyTip[];
+}
+
+interface EmergencyInfoSectionProps {
+  emergencyInfo?: EmergencyInfoData | null;
+}
+
+const fallbackData: EmergencyInfoData = {
+  is_active: true,
+  section_heading: "Emergency Info",
+  section_description: "Know when and how to get the right care - fast.",
+  banner_title: "Life-Threatening Emergency?",
+  banner_description: "Call 911 immediately or go to your nearest emergency room. Don't wait.",
+  banner_button_label: "Call 911",
+  banner_button_phone: "911",
+  tips_title: "When to Seek Emergency Care",
+  contacts: [
+    {
+      icon: "bi-hospital",
+      title: "Emergency Room",
+      phone: "+1 (555) 123-4567",
+      meta: "1245 Healthcare Blvd, CA",
+      badge: "Open 24/7",
+      badge_type: "green",
+      urgent: true,
+    },
+    {
+      icon: "bi-clock-history",
+      title: "Urgent Care",
+      phone: "+1 (555) 987-6543",
+      meta: "892 Wellness Ave, CA",
+      badge: "7 AM - 10 PM",
+      badge_type: "blue",
+      urgent: false,
+    },
+    {
+      icon: "bi-headset",
+      title: "Nurse Helpline",
+      phone: "+1 (555) 456-7890",
+      meta: "24/7 medical advice & guidance",
+      badge: "Available 24/7",
+      badge_type: "green",
+      urgent: false,
+    },
+    {
+      icon: "bi-heart-pulse",
+      title: "Poison Control",
+      phone: "1-800-222-1222",
+      meta: "National poison control hotline",
+      badge: "Available 24/7",
+      badge_type: "green",
+      urgent: false,
+    },
+  ],
+  tips: [
+    { tip: "Chest pain or difficulty breathing" },
+    { tip: "Severe allergic reactions" },
+    { tip: "Major trauma or injuries" },
+    { tip: "Signs of stroke or heart attack" },
+    { tip: "Severe burns or bleeding" },
+    { tip: "Loss of consciousness" },
+    { tip: "Severe abdominal pain" },
+    { tip: "High fever with confusion" },
+  ],
+};
+
+const EmergencyInfoSection = ({ emergencyInfo }: EmergencyInfoSectionProps) => {
+  const data = emergencyInfo || fallbackData;
+  if (data.is_active === false) return null;
+
+  return (
+    <>
+      <style>{`
         .emergency-info {
-          background-color: #ffffff;
+          background: #f9fbfc;
+          font-family: var(--default-font);
         }
 
-        .emergency-info .emergency-alert {
-          background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-          border-radius: 16px;
-          padding: 32px;
+        /* ── HERO BANNER ── */
+        .ei-banner {
+          background: linear-gradient(110deg, #c0192a 0%, #dc3545 55%, #e8566a 100%);
+          border-radius: 20px;
+          padding: 28px 36px;
           display: flex;
           align-items: center;
-          justify-content: space-between;
-          gap: 24px;
-          box-shadow: 0 8px 30px rgba(220, 53, 69, 0.25);
+          gap: 20px;
+          box-shadow: 0 12px 40px rgba(220, 53, 69, 0.28);
+          position: relative;
+          overflow: hidden;
         }
 
-        .emergency-info .alert-icon {
-          width: 70px;
-          height: 70px;
+        .ei-banner::before {
+          content: '';
+          position: absolute;
+          right: -30px;
+          top: -30px;
+          width: 160px;
+          height: 160px;
           border-radius: 50%;
-          background: rgba(255, 255, 255, 0.2);
+          background: rgba(255,255,255,0.07);
+        }
+
+        .ei-banner::after {
+          content: '';
+          position: absolute;
+          right: 60px;
+          bottom: -50px;
+          width: 120px;
+          height: 120px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.05);
+        }
+
+        .ei-banner-pulse {
+          width: 56px;
+          height: 56px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.18);
           display: flex;
           align-items: center;
           justify-content: center;
           flex-shrink: 0;
+          position: relative;
+          animation: pulse-ring 2s ease-out infinite;
         }
 
-        .emergency-info .alert-icon i {
-          font-size: 32px;
-          color: #ffffff;
+        @keyframes pulse-ring {
+          0%   { box-shadow: 0 0 0 0 rgba(255,255,255,0.4); }
+          70%  { box-shadow: 0 0 0 14px rgba(255,255,255,0); }
+          100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); }
         }
 
-        .emergency-info .alert-content {
-          flex: 1;
-        }
-
-        .emergency-info .alert-content h3 {
+        .ei-banner-pulse i {
           font-size: 24px;
-          font-weight: 700;
-          color: #ffffff;
-          margin-bottom: 8px;
+          color: #fff;
         }
 
-        .emergency-info .alert-content p {
-          font-size: 15px;
-          color: rgba(255, 255, 255, 0.9);
+        .ei-banner-text { flex: 1; }
+
+        .ei-banner-text h3 {
+          font-family: var(--heading-font);
+          font-size: 20px;
+          font-weight: 800;
+          color: #fff;
+          margin: 0 0 4px;
+          letter-spacing: -0.3px;
+        }
+
+        .ei-banner-text p {
+          font-size: 13.5px;
+          color: rgba(255,255,255,0.88);
           margin: 0;
-          line-height: 1.6;
+          line-height: 1.5;
         }
 
-        .emergency-info .alert-action {
+        .ei-banner-cta {
           flex-shrink: 0;
-        }
-
-        .emergency-info .btn-emergency {
           display: inline-flex;
           align-items: center;
-          gap: 10px;
-          padding: 14px 32px;
-          background: #ffffff;
+          gap: 8px;
+          padding: 12px 26px;
+          background: #fff;
           color: #dc3545;
-          font-size: 16px;
+          font-family: var(--heading-font);
+          font-size: 14px;
           font-weight: 700;
-          border-radius: 8px;
+          border-radius: 10px;
           text-decoration: none;
-          transition: all 0.3s ease;
+          letter-spacing: 0.3px;
+          transition: transform 0.25s ease, box-shadow 0.25s ease;
+          white-space: nowrap;
+          position: relative;
+          z-index: 1;
         }
 
-        .emergency-info .btn-emergency:hover {
+        .ei-banner-cta:hover {
           transform: translateY(-2px);
-          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-        }
-
-        .emergency-contacts {
-          margin-top: 40px;
-        }
-
-        .emergency-info .contact-card {
-          background: #ffffff;
-          border-radius: 16px;
-          padding: 24px;
-          height: 100%;
-          display: flex;
-          flex-direction: column;
-          transition: all 0.3s ease;
-          border: 1px solid #eee;
-        }
-
-        .emergency-info .contact-card.urgent {
-          border-color: #dc3545;
-          background: linear-gradient(135deg, rgba(220, 53, 69, 0.03) 0%, rgba(220, 53, 69, 0.01) 100%);
-        }
-
-        .emergency-info .contact-card:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
-        }
-
-        .emergency-info .card-icon {
-          width: 50px;
-          height: 50px;
-          border-radius: 12px;
-          background: linear-gradient(135deg, rgba(4, 158, 187, 0.1) 0%, rgba(4, 158, 187, 0.05) 100%);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin-bottom: 16px;
-        }
-
-        .emergency-info .card-icon i {
-          font-size: 22px;
-          color: #049EBB;
-        }
-
-        .emergency-info .contact-card.urgent .card-icon {
-          background: linear-gradient(135deg, rgba(220, 53, 69, 0.1) 0%, rgba(220, 53, 69, 0.05) 100%);
-        }
-
-        .emergency-info .contact-card.urgent .card-icon i {
+          box-shadow: 0 8px 20px rgba(0,0,0,0.2);
           color: #dc3545;
         }
 
-        .emergency-info .card-content h4 {
-          font-size: 18px;
-          font-weight: 600;
-          color: #1a1a1a;
-          margin-bottom: 12px;
+        /* ── TWO-COLUMN GRID ── */
+        .ei-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+          margin-top: 20px;
         }
 
-        .emergency-info .contact-info {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          font-size: 15px;
-          color: #555;
-          margin-bottom: 8px;
-        }
-
-        .emergency-info .contact-info i {
-          color: #049EBB;
-        }
-
-        .emergency-info .address {
-          display: flex;
-          align-items: flex-start;
-          gap: 8px;
-          font-size: 14px;
-          color: #666;
-          margin-bottom: 8px;
-        }
-
-        .emergency-info .address i {
-          color: #049EBB;
-          margin-top: 3px;
-        }
-
-        .emergency-info .description {
-          font-size: 14px;
-          color: #666;
-          margin-bottom: 8px;
-        }
-
-        .emergency-info .hours {
-          font-size: 13px;
-          color: #049EBB;
-          font-weight: 500;
-        }
-
-        .emergency-info .card-action {
-          margin-top: auto;
-          padding-top: 16px;
-        }
-
-        .emergency-info .btn-contact {
-          display: inline-block;
-          width: 100%;
-          padding: 10px 20px;
-          background: transparent;
-          color: #1a1a1a;
-          font-size: 14px;
-          font-weight: 600;
-          border: 2px solid #e0e0e0;
-          border-radius: 8px;
-          text-align: center;
-          text-decoration: none;
-          transition: all 0.3s ease;
-        }
-
-        .emergency-info .btn-contact:hover {
-          background: #049EBB;
-          border-color: #049EBB;
-          color: #ffffff;
-        }
-
-        .quick-actions {
-          margin-top: 40px;
-          padding: 24px;
-          background: #f8fbfd;
+        .ei-card {
+          background: #fff;
+          border: 1px solid #ebebeb;
           border-radius: 16px;
-        }
-
-        .quick-actions h4 {
-          font-size: 18px;
-          font-weight: 600;
-          color: #1a1a1a;
-          margin-bottom: 20px;
-          text-align: center;
-        }
-
-        .quick-actions .action-link {
+          padding: 20px;
           display: flex;
-          flex-direction: column;
+          gap: 14px;
+          align-items: flex-start;
+          transition: box-shadow 0.25s ease, transform 0.25s ease, border-color 0.25s ease;
+        }
+
+        .ei-card:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+          border-color: #049EBB;
+        }
+
+        .ei-card.urgent { border-color: rgba(220,53,69,0.35); }
+        .ei-card.urgent:hover { border-color: #dc3545; }
+
+        .ei-card-icon {
+          width: 42px;
+          height: 42px;
+          border-radius: 10px;
+          background: rgba(4,158,187,0.1);
+          display: flex;
           align-items: center;
           justify-content: center;
-          padding: 20px;
-          background: #ffffff;
-          border-radius: 12px;
-          text-decoration: none;
-          transition: all 0.3s ease;
-          border: 1px solid #eee;
+          flex-shrink: 0;
         }
 
-        .quick-actions .action-link:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 8px 25px rgba(4, 158, 187, 0.15);
-          border-color: #049EBB;
+        .ei-card.urgent .ei-card-icon { background: rgba(220,53,69,0.1); }
+
+        .ei-card-icon i { font-size: 18px; color: #049EBB; }
+        .ei-card.urgent .ei-card-icon i { color: #dc3545; }
+
+        .ei-card-body { flex: 1; min-width: 0; }
+
+        .ei-card-body h4 {
+          font-family: var(--heading-font);
+          font-size: 15px;
+          font-weight: 700;
+          color: #151515;
+          margin: 0 0 6px;
         }
 
-        .quick-actions .action-link i {
-          font-size: 24px;
-          color: #049EBB;
-          margin-bottom: 8px;
-        }
-
-        .quick-actions .action-link span {
+        .ei-card-phone {
+          display: flex;
+          align-items: center;
+          gap: 6px;
           font-size: 14px;
-          font-weight: 500;
-          color: #1a1a1a;
-          text-align: center;
-        }
-
-        .emergency-tips {
-          margin-top: 40px;
-          padding: 24px;
-          background: linear-gradient(135deg, #f8fbfd 0%, #f0f7fa 100%);
-          border-radius: 16px;
-        }
-
-        .emergency-tips h4 {
-          font-size: 18px;
           font-weight: 600;
-          color: #1a1a1a;
-          margin-bottom: 20px;
+          color: #049EBB;
+          text-decoration: none;
+          margin-bottom: 4px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
-        .emergency-list {
+        .ei-card.urgent .ei-card-phone { color: #dc3545; }
+
+        .ei-card-phone i { font-size: 13px; flex-shrink: 0; }
+
+        .ei-card-meta {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          font-size: 12px;
+          color: #888;
+        }
+
+        .ei-card-meta i { font-size: 11px; color: #aaa; }
+
+        .ei-badge {
+          display: inline-block;
+          font-size: 10.5px;
+          font-weight: 600;
+          padding: 2px 8px;
+          border-radius: 20px;
+          margin-top: 6px;
+          letter-spacing: 0.2px;
+        }
+
+        .ei-badge-green { background: #e6f9f0; color: #1a9d5f; }
+        .ei-badge-blue  { background: #e6f5f8; color: #049EBB; }
+
+        /* ── BOTTOM ROW ── */
+        .ei-bottom {
+          margin-top: 16px;
+        }
+
+        /* When to seek care */
+        .ei-tips {
+          background: linear-gradient(135deg, #edf8fb 0%, #f4fafc 100%);
+          border: 1px solid rgba(4,158,187,0.15);
+          border-radius: 16px;
+          padding: 28px 30px;
+          width: 100%;
+          min-height: 210px;
+        }
+
+        .ei-tips-title {
+          font-family: var(--heading-font);
+          font-size: 20px;
+          font-weight: 700;
+          color: #151515;
+          margin: 0 0 18px;
+          text-transform: uppercase;
+          letter-spacing: 0.4px;
+        }
+
+        .ei-tips-list {
           list-style: none;
           padding: 0;
           margin: 0;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px 26px;
         }
 
-        .emergency-list li {
+        .ei-tips-list li {
           display: flex;
           align-items: flex-start;
-          gap: 10px;
-          font-size: 14px;
-          color: #555;
-          margin-bottom: 12px;
-        }
-
-        .emergency-list li i {
-          color: #049EBB;
+          gap: 9px;
           font-size: 16px;
-          margin-top: 2px;
+          font-weight: 500;
+          color: #2f2f2f;
+          line-height: 1.5;
         }
 
-        @media (max-width: 992px) {
-          .emergency-info .emergency-alert {
-            flex-direction: column;
-            text-align: center;
-          }
-
-          .emergency-info .alert-action {
-            width: 100%;
-          }
-
-          .emergency-info .btn-emergency {
-            width: 100%;
-            justify-content: center;
-          }
+        .ei-tips-list li i {
+          color: #049EBB;
+          font-size: 14px;
+          margin-top: 4px;
+          flex-shrink: 0;
         }
 
-        @media (max-width: 576px) {
-          .emergency-info .emergency-alert {
-            padding: 24px;
-          }
-
-          .emergency-info .alert-icon {
-            width: 56px;
-            height: 56px;
-          }
-
-          .emergency-info .alert-icon i {
-            font-size: 24px;
-          }
-
-          .emergency-info .alert-content h3 {
-            font-size: 20px;
-          }
+        /* ── RESPONSIVE ── */
+        @media (max-width: 768px) {
+          .ei-banner { flex-direction: column; text-align: center; padding: 22px; }
+          .ei-banner-cta { width: 100%; justify-content: center; }
+          .ei-grid { grid-template-columns: 1fr; }
+          .ei-tips { padding: 22px; min-height: 0; }
+          .ei-tips-title { font-size: 17px; margin-bottom: 14px; }
+          .ei-tips-list { grid-template-columns: 1fr; }
+          .ei-tips-list li { font-size: 14px; }
         }
       `}</style>
 
-            {/* Emergency Info Section */}
-            <section id="emergency-info" className="emergency-info section">
-                <SectionHeading desc="Necessitatibus eius consequatur ex aliquid fuga eum quidem sint consectetur velit">
-                    Emergency <span className="text-gradient">Info</span>
-                </SectionHeading>
+      <section id="emergency-info" className="emergency-info section">
+        <SectionHeading desc={data.section_description || ""}>
+          {data.section_heading}
+        </SectionHeading>
 
-                <div className="container" data-aos="fade-up" data-aos-delay="100">
-                    <div className="row">
-                        <div className="col-lg-8 col-md-10 mx-auto">
-                            <div
-                                className="emergency-alert"
-                                data-aos="zoom-in"
-                                data-aos-delay="100"
-                            >
-                                <div className="alert-icon">
-                                    <i className="bi bi-exclamation-triangle-fill"></i>
-                                </div>
-                                <div className="alert-content">
-                                    <h3>Medical Emergency?</h3>
-                                    <p>
-                                        If you are experiencing a life-threatening emergency, call
-                                        911 immediately or go to your nearest emergency room.
-                                    </p>
-                                </div>
-                                <div className="alert-action">
-                                    <a href="tel:911" className="btn btn-emergency">
-                                        <i className="bi bi-telephone-fill"></i>
-                                        Call 911
-                                    </a>
-                                </div>
-                            </div>
+        <div className="container" data-aos="fade-up" data-aos-delay="100">
+          <div className="row">
+            <div className="col-lg-9 col-md-11 mx-auto">
 
-                            <div
-                                className="row emergency-contacts"
-                                data-aos="fade-up"
-                                data-aos-delay="200"
-                            >
-                                {[
-                                    {
-                                        icon: "bi-hospital",
-                                        title: "Emergency Room",
-                                        phone: "+1 (555) 123-4567",
-                                        address: "1245 Healthcare Blvd, Medical City, CA 90210",
-                                        hours: "Open 24/7",
-                                        urgent: true,
-                                    },
-                                    {
-                                        icon: "bi-clock",
-                                        title: "Urgent Care",
-                                        phone: "+1 (555) 987-6543",
-                                        address: "892 Wellness Ave, Health District, CA 90211",
-                                        hours: "Mon-Sun: 7:00 AM - 10:00 PM",
-                                    },
-                                    {
-                                        icon: "bi-headset",
-                                        title: "Nurse Helpline",
-                                        phone: "+1 (555) 456-7890",
-                                        desc: "24/7 medical advice and guidance",
-                                        hours: "Available 24/7",
-                                    },
-                                    {
-                                        icon: "bi-heart-pulse",
-                                        title: "Poison Control",
-                                        phone: "1-800-222-1222",
-                                        desc: "National poison control hotline",
-                                        hours: "Available 24/7",
-                                    },
-                                ].map((contact, idx) => (
-                                    <div key={idx} className="col-md-6 mb-4">
-                                        <div
-                                            className={`contact-card ${contact.urgent ? "urgent" : ""
-                                                }`}
-                                        >
-                                            <div className="card-icon">
-                                                <i className={contact.icon}></i>
-                                            </div>
-                                            <div className="card-content">
-                                                <h4>{contact.title}</h4>
-                                                <p className="contact-info">
-                                                    <i className="bi bi-telephone"></i>
-                                                    <span>{contact.phone}</span>
-                                                </p>
-                                                {contact.address && (
-                                                    <p className="address">
-                                                        <i className="bi bi-geo-alt"></i>
-                                                        {contact.address}
-                                                    </p>
-                                                )}
-                                                {contact.desc && (
-                                                    <p className="description">{contact.desc}</p>
-                                                )}
-                                                <p className="hours">{contact.hours}</p>
-                                            </div>
-                                            <div className="card-action">
-                                                <a
-                                                    href={`tel:${contact.phone.replace(/\D/g, "")}`}
-                                                    className="btn btn-contact"
-                                                >
-                                                    Call Now
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-
-                            <div
-                                className="quick-actions"
-                                data-aos="fade-up"
-                                data-aos-delay="300"
-                            >
-                                <h4>Quick Actions</h4>
-                                <div className="row">
-                                    {[
-                                        { icon: "bi-geo-alt-fill", text: "Get Directions" },
-                                        { icon: "bi-calendar-check", text: "Book Appointment" },
-                                        { icon: "bi-person-badge", text: "Find a Doctor" },
-                                        { icon: "bi-chat-dots", text: "Live Chat" },
-                                    ].map((action, idx) => (
-                                        <div key={idx} className="col-sm-6 col-lg-3">
-                                            <a href="#" className="action-link">
-                                                <i className={action.icon}></i>
-                                                <span>{action.text}</span>
-                                            </a>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div
-                                className="emergency-tips"
-                                data-aos="fade-up"
-                                data-aos-delay="400"
-                            >
-                                <h4>When to Seek Emergency Care</h4>
-                                <div className="row">
-                                    <div className="col-md-6">
-                                        <ul className="emergency-list">
-                                            <li>
-                                                <i className="bi bi-check-circle"></i> Chest pain or
-                                                difficulty breathing
-                                            </li>
-                                            <li>
-                                                <i className="bi bi-check-circle"></i> Severe allergic
-                                                reactions
-                                            </li>
-                                            <li>
-                                                <i className="bi bi-check-circle"></i> Major trauma or
-                                                injuries
-                                            </li>
-                                            <li>
-                                                <i className="bi bi-check-circle"></i> Signs of stroke
-                                                or heart attack
-                                            </li>
-                                        </ul>
-                                    </div>
-                                    <div className="col-md-6">
-                                        <ul className="emergency-list">
-                                            <li>
-                                                <i className="bi bi-check-circle"></i> Severe burns or
-                                                bleeding
-                                            </li>
-                                            <li>
-                                                <i className="bi bi-check-circle"></i> Loss of
-                                                consciousness
-                                            </li>
-                                            <li>
-                                                <i className="bi bi-check-circle"></i> Severe abdominal
-                                                pain
-                                            </li>
-                                            <li>
-                                                <i className="bi bi-check-circle"></i> High fever with
-                                                confusion
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+              {/* ── Banner ── */}
+              <div className="ei-banner" data-aos="zoom-in" data-aos-delay="100">
+                <div className="ei-banner-pulse">
+                  <i className="bi bi-exclamation-triangle-fill"></i>
                 </div>
-            </section>
-        </>
-    );
+                <div className="ei-banner-text">
+                  <h3>{data.banner_title}</h3>
+                  <p>{data.banner_description}</p>
+                </div>
+                <a href={`tel:${(data.banner_button_phone || "").replace(/\D/g, "")}`} className="ei-banner-cta">
+                  <i className="bi bi-telephone-fill"></i>
+                  {data.banner_button_label}
+                </a>
+              </div>
+
+              {/* ── Contact Cards Grid ── */}
+              <div className="ei-grid" data-aos="fade-up" data-aos-delay="200">
+                {data.contacts.map((c, i) => (
+                  <div key={i} className={`ei-card ${c.urgent ? "urgent" : ""}`}>
+                    <div className="ei-card-icon">
+                      <i className={`bi ${c.icon}`}></i>
+                    </div>
+                    <div className="ei-card-body">
+                      <h4>{c.title}</h4>
+                      <a
+                        href={`tel:${c.phone.replace(/\D/g, "")}`}
+                        className="ei-card-phone"
+                      >
+                        <i className="bi bi-telephone-fill"></i>
+                        {c.phone}
+                      </a>
+                      <p className="ei-card-meta">
+                        <i className={`bi ${c.urgent ? "bi-geo-alt" : "bi-info-circle"}`}></i>
+                        {c.meta}
+                      </p>
+                      <span className={`ei-badge ei-badge-${c.badge_type}`}>{c.badge}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* ── Bottom Row ── */}
+              <div className="ei-bottom" data-aos="fade-up" data-aos-delay="300">
+                {/* When to seek care */}
+                <div className="ei-tips">
+                  <p className="ei-tips-title">{data.tips_title}</p>
+                  <ul className="ei-tips-list">
+                    {data.tips.map((tip, i) => (
+                      <li key={i}>
+                        <i className="bi bi-check-circle-fill"></i>
+                        {tip.tip}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </section>
+    </>
+  );
 };
 
 export default EmergencyInfoSection;
