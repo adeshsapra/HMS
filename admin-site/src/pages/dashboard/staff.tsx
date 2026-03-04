@@ -557,7 +557,7 @@ export default function Staff(): JSX.Element {
   const prepareInitialData = (staffMember: StaffMember | null): Record<string, any> => {
     if (!staffMember) return {};
 
-    const initialData = {
+    const initialData: Record<string, any> = {
       ...staffMember,
       email: staffMember.user?.email || staffMember.email || '',
       phone: staffMember.user?.phone || staffMember.phone || '',
@@ -574,8 +574,8 @@ export default function Staff(): JSX.Element {
     // Convert date strings to YYYY-MM-DD format for input fields
     const dateFields = ['date_of_birth', 'joining_date', 'probation_end_date', 'contract_end_date'];
     dateFields.forEach(field => {
-      if (initialData[field as keyof typeof initialData]) {
-        initialData[field as keyof typeof initialData] = (initialData[field as keyof typeof initialData] as string).split('T')[0];
+      if (initialData[field]) {
+        initialData[field] = (initialData[field] as string).split('T')[0];
       }
     });
 
