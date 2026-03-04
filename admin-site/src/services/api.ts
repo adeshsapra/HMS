@@ -1414,6 +1414,60 @@ class ApiService {
         return this.delete<any>(`/admin/faq-categories/${id}`);
     }
 
+    // Emergency Info methods
+    async getEmergencyInfo() {
+        return this.get<any>('/admin/emergency-info');
+    }
+
+    async updateEmergencySection(data: {
+        section_heading: string;
+        section_description?: string;
+        banner_title: string;
+        banner_description?: string;
+        banner_button_label: string;
+        banner_button_phone: string;
+        tips_title: string;
+        is_active?: boolean;
+    }) {
+        return this.put<any>('/admin/emergency-info/section', data);
+    }
+
+    async createEmergencyContact(data: {
+        icon?: string;
+        title: string;
+        phone: string;
+        meta?: string;
+        badge?: string;
+        badge_type: 'blue' | 'green';
+        urgent?: boolean;
+        is_active?: boolean;
+        sort_order?: number;
+    }) {
+        return this.post<any>('/admin/emergency-info/contacts', data);
+    }
+
+    async updateEmergencyContact(id: number, data: {
+        icon?: string;
+        title: string;
+        phone: string;
+        meta?: string;
+        badge?: string;
+        badge_type: 'blue' | 'green';
+        urgent?: boolean;
+        is_active?: boolean;
+        sort_order?: number;
+    }) {
+        return this.put<any>(`/admin/emergency-info/contacts/${id}`, data);
+    }
+
+    async deleteEmergencyContact(id: number) {
+        return this.delete<any>(`/admin/emergency-info/contacts/${id}`);
+    }
+
+    async updateEmergencyTips(tips: Array<{ tip: string; is_active?: boolean }>) {
+        return this.put<any>('/admin/emergency-info/tips', { tips });
+    }
+
     // Gallery methods
     async getGalleries(params?: { page?: number; category_id?: number | string; status?: string; keyword?: string; per_page?: number }) {
         let endpoint = '/admin/gallery?';

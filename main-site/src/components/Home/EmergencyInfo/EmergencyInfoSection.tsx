@@ -1,6 +1,101 @@
 import SectionHeading from "../SectionHeading";
 
-const EmergencyInfoSection = () => {
+interface EmergencyContact {
+  id?: number;
+  icon: string;
+  title: string;
+  phone: string;
+  meta?: string;
+  badge?: string;
+  badge_type: "blue" | "green";
+  urgent: boolean;
+}
+
+interface EmergencyTip {
+  id?: number;
+  tip: string;
+}
+
+interface EmergencyInfoData {
+  is_active?: boolean;
+  section_heading: string;
+  section_description?: string;
+  banner_title: string;
+  banner_description?: string;
+  banner_button_label: string;
+  banner_button_phone: string;
+  tips_title: string;
+  contacts: EmergencyContact[];
+  tips: EmergencyTip[];
+}
+
+interface EmergencyInfoSectionProps {
+  emergencyInfo?: EmergencyInfoData | null;
+}
+
+const fallbackData: EmergencyInfoData = {
+  is_active: true,
+  section_heading: "Emergency Info",
+  section_description: "Know when and how to get the right care - fast.",
+  banner_title: "Life-Threatening Emergency?",
+  banner_description: "Call 911 immediately or go to your nearest emergency room. Don't wait.",
+  banner_button_label: "Call 911",
+  banner_button_phone: "911",
+  tips_title: "When to Seek Emergency Care",
+  contacts: [
+    {
+      icon: "bi-hospital",
+      title: "Emergency Room",
+      phone: "+1 (555) 123-4567",
+      meta: "1245 Healthcare Blvd, CA",
+      badge: "Open 24/7",
+      badge_type: "green",
+      urgent: true,
+    },
+    {
+      icon: "bi-clock-history",
+      title: "Urgent Care",
+      phone: "+1 (555) 987-6543",
+      meta: "892 Wellness Ave, CA",
+      badge: "7 AM - 10 PM",
+      badge_type: "blue",
+      urgent: false,
+    },
+    {
+      icon: "bi-headset",
+      title: "Nurse Helpline",
+      phone: "+1 (555) 456-7890",
+      meta: "24/7 medical advice & guidance",
+      badge: "Available 24/7",
+      badge_type: "green",
+      urgent: false,
+    },
+    {
+      icon: "bi-heart-pulse",
+      title: "Poison Control",
+      phone: "1-800-222-1222",
+      meta: "National poison control hotline",
+      badge: "Available 24/7",
+      badge_type: "green",
+      urgent: false,
+    },
+  ],
+  tips: [
+    { tip: "Chest pain or difficulty breathing" },
+    { tip: "Severe allergic reactions" },
+    { tip: "Major trauma or injuries" },
+    { tip: "Signs of stroke or heart attack" },
+    { tip: "Severe burns or bleeding" },
+    { tip: "Loss of consciousness" },
+    { tip: "Severe abdominal pain" },
+    { tip: "High fever with confusion" },
+  ],
+};
+
+const EmergencyInfoSection = ({ emergencyInfo }: EmergencyInfoSectionProps) => {
+  const data = emergencyInfo || fallbackData;
+  if (data.is_active === false) return null;
+
   return (
     <>
       <style>{`
@@ -271,8 +366,8 @@ const EmergencyInfoSection = () => {
       `}</style>
 
       <section id="emergency-info" className="emergency-info section">
-        <SectionHeading desc="Know when and how to get the right care — fast.">
-          Emergency <span className="text-gradient">Info</span>
+        <SectionHeading desc={data.section_description || ""}>
+          {data.section_heading}
         </SectionHeading>
 
         <div className="container" data-aos="fade-up" data-aos-delay="100">
@@ -285,52 +380,18 @@ const EmergencyInfoSection = () => {
                   <i className="bi bi-exclamation-triangle-fill"></i>
                 </div>
                 <div className="ei-banner-text">
-                  <h3>Life-Threatening Emergency?</h3>
-                  <p>Call 911 immediately or go to your nearest emergency room. Don't wait.</p>
+                  <h3>{data.banner_title}</h3>
+                  <p>{data.banner_description}</p>
                 </div>
-                <a href="tel:911" className="ei-banner-cta">
+                <a href={`tel:${(data.banner_button_phone || "").replace(/\D/g, "")}`} className="ei-banner-cta">
                   <i className="bi bi-telephone-fill"></i>
-                  Call 911
+                  {data.banner_button_label}
                 </a>
               </div>
 
               {/* ── Contact Cards Grid ── */}
               <div className="ei-grid" data-aos="fade-up" data-aos-delay="200">
-                {[
-                  {
-                    icon: "bi-hospital",
-                    title: "Emergency Room",
-                    phone: "+1 (555) 123-4567",
-                    meta: "1245 Healthcare Blvd, CA",
-                    badge: "Open 24/7",
-                    badgeType: "green",
-                    urgent: true,
-                  },
-                  {
-                    icon: "bi-clock-history",
-                    title: "Urgent Care",
-                    phone: "+1 (555) 987-6543",
-                    meta: "892 Wellness Ave, CA",
-                    badge: "7 AM – 10 PM",
-                    badgeType: "blue",
-                  },
-                  {
-                    icon: "bi-headset",
-                    title: "Nurse Helpline",
-                    phone: "+1 (555) 456-7890",
-                    meta: "24/7 medical advice & guidance",
-                    badge: "Available 24/7",
-                    badgeType: "green",
-                  },
-                  {
-                    icon: "bi-heart-pulse",
-                    title: "Poison Control",
-                    phone: "1-800-222-1222",
-                    meta: "National poison control hotline",
-                    badge: "Available 24/7",
-                    badgeType: "green",
-                  },
-                ].map((c, i) => (
+                {data.contacts.map((c, i) => (
                   <div key={i} className={`ei-card ${c.urgent ? "urgent" : ""}`}>
                     <div className="ei-card-icon">
                       <i className={`bi ${c.icon}`}></i>
@@ -348,7 +409,7 @@ const EmergencyInfoSection = () => {
                         <i className={`bi ${c.urgent ? "bi-geo-alt" : "bi-info-circle"}`}></i>
                         {c.meta}
                       </p>
-                      <span className={`ei-badge ei-badge-${c.badgeType}`}>{c.badge}</span>
+                      <span className={`ei-badge ei-badge-${c.badge_type}`}>{c.badge}</span>
                     </div>
                   </div>
                 ))}
@@ -358,21 +419,12 @@ const EmergencyInfoSection = () => {
               <div className="ei-bottom" data-aos="fade-up" data-aos-delay="300">
                 {/* When to seek care */}
                 <div className="ei-tips">
-                  <p className="ei-tips-title">When to Seek Emergency Care</p>
+                  <p className="ei-tips-title">{data.tips_title}</p>
                   <ul className="ei-tips-list">
-                    {[
-                      "Chest pain or difficulty breathing",
-                      "Severe allergic reactions",
-                      "Major trauma or injuries",
-                      "Signs of stroke or heart attack",
-                      "Severe burns or bleeding",
-                      "Loss of consciousness",
-                      "Severe abdominal pain",
-                      "High fever with confusion",
-                    ].map((tip, i) => (
+                    {data.tips.map((tip, i) => (
                       <li key={i}>
                         <i className="bi bi-check-circle-fill"></i>
-                        {tip}
+                        {tip.tip}
                       </li>
                     ))}
                   </ul>

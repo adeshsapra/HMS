@@ -5,6 +5,7 @@ import axios from "axios";
 import {
   departmentAPI,
   doctorAPI,
+  emergencyAPI,
   homeCareAPI,
   serviceAPI,
   testimonialAPI,
@@ -41,6 +42,35 @@ interface FeaturedService {
   features: string[];
 }
 
+interface EmergencyContact {
+  id: number;
+  icon: string;
+  title: string;
+  phone: string;
+  meta?: string;
+  badge?: string;
+  badge_type: "blue" | "green";
+  urgent: boolean;
+}
+
+interface EmergencyTip {
+  id: number;
+  tip: string;
+}
+
+interface EmergencyInfo {
+  is_active?: boolean;
+  section_heading: string;
+  section_description?: string;
+  banner_title: string;
+  banner_description?: string;
+  banner_button_label: string;
+  banner_button_phone: string;
+  tips_title: string;
+  contacts: EmergencyContact[];
+  tips: EmergencyTip[];
+}
+
 
 const Home = () => {
   const [healthPackages, setHealthPackages] = useState<HealthPackage[]>([]);
@@ -61,6 +91,7 @@ const Home = () => {
   const [featuredServices, setFeaturedServices] = useState<FeaturedService[]>([]);
   const [loadingFeaturedServices, setLoadingFeaturedServices] = useState(true);
   const [featuredServicesError, setFeaturedServicesError] = useState<string | null>(null);
+  const [emergencyInfo, setEmergencyInfo] = useState<EmergencyInfo | null>(null);
 
   useEffect(() => {
     (window as any).__homeCriticalReady = false;
@@ -74,6 +105,7 @@ const Home = () => {
     fetchHomeCareData();
     fetchTestimonials();
     fetchDoctorsAndDepartments(); // Combined fetch for better performance
+    fetchEmergencyInfo();
   }, []);
 
 
@@ -192,6 +224,18 @@ const Home = () => {
     setLoadingDoctors(false);
     setLoadingDepartments(false);
     setLoadingFeaturedServices(false);
+  };
+
+  const fetchEmergencyInfo = async () => {
+    try {
+      const response = await emergencyAPI.getInfo();
+      if (response.data?.success && response.data?.data) {
+        setEmergencyInfo(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching emergency info:", error);
+      setEmergencyInfo(null);
+    }
   };
 
   useEffect(() => {
@@ -390,7 +434,7 @@ const Home = () => {
 
       <AboutSection />
 
-      <EmergencyInfoSection />
+      <EmergencyInfoSection emergencyInfo={emergencyInfo} />
 
       <HospitalAtHomeSection
         homeCareServices={homeCareServices}
