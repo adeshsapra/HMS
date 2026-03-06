@@ -34,6 +34,18 @@ export function NotificationDetails(): JSX.Element {
     const [notification, setNotification] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
+    const resolveActionUrl = (actionUrl?: string, category?: string): string => {
+        if (actionUrl) {
+            if (actionUrl.startsWith('/dashboard/doctors/')) return '/dashboard/doctors';
+            if (actionUrl.startsWith('/dashboard/staff/')) return '/dashboard/staff';
+            return actionUrl;
+        }
+
+        if (category === 'doctor') return '/dashboard/doctors';
+        if (category === 'staff') return '/dashboard/staff';
+        return '/dashboard/notifications';
+    };
+
     useEffect(() => {
         let isMounted = true;
 
@@ -178,7 +190,7 @@ export function NotificationDetails(): JSX.Element {
                         {notification.data?.message}
                     </Typography>
 
-                    {notification.data?.action_url && (
+                    {(notification.data?.action_url || notification.data?.category) && (
                         <div className="flex flex-col gap-4 bg-blue-50/30 p-6 rounded-2xl border border-blue-100/50">
                             <Typography variant="h6" color="blue" className="flex items-center gap-2">
                                 <InformationCircleIcon className="h-5 w-5" />
@@ -191,7 +203,7 @@ export function NotificationDetails(): JSX.Element {
                                 variant="gradient"
                                 color="blue"
                                 className="flex items-center justify-center gap-2 self-start mt-2"
-                                onClick={() => navigate(notification.data.action_url)}
+                                onClick={() => navigate(resolveActionUrl(notification.data?.action_url, notification.data?.category))}
                             >
                                 Go to Record
                                 <ArrowTopRightOnSquareIcon className="h-4 w-4" />

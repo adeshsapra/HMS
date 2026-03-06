@@ -74,6 +74,8 @@ export default function Appointments(): JSX.Element {
                 // Add filters to params
                 if (currentFilters.status) params.status = currentFilters.status;
                 if (currentFilters.consultation_status) params.consultation_status = currentFilters.consultation_status;
+                if (currentFilters.lab_status) params.lab_status = currentFilters.lab_status;
+                if (currentFilters.service_id) params.service_id = currentFilters.service_id;
                 if (currentFilters.doctor_id) params.doctor_id = currentFilters.doctor_id;
                 if (currentFilters.department_id) params.department_id = currentFilters.department_id;
                 if (currentFilters.date_range_start) params.date_range_start = currentFilters.date_range_start;
@@ -928,9 +930,61 @@ export default function Appointments(): JSX.Element {
                                     placeholder: 'Search by ID, patient name, phone, email, doctor, department...'
                                 },
                                 {
+                                    name: 'status',
+                                    label: 'Status',
+                                    type: 'select',
+                                    options: [
+                                        { label: 'All Status', value: '' },
+                                        { label: 'Pending', value: 'pending' },
+                                        { label: 'Confirmed', value: 'confirmed' },
+                                        { label: 'Completed', value: 'completed' },
+                                        { label: 'Cancelled', value: 'cancelled' }
+                                    ]
+                                },
+                                ...(!isDoctor ? [
+                                    {
+                                        name: 'doctor_id',
+                                        label: 'Filter by Doctor',
+                                        type: 'select' as const,
+                                        options: [
+                                            { label: 'All Doctors', value: '' },
+                                            ...doctors.map(d => ({
+                                                label: `${d.first_name || ''} ${d.last_name || ''}`.trim() || d.name || 'Unknown',
+                                                value: d.id
+                                            }))
+                                        ]
+                                    },
+                                    {
+                                        name: 'department_id',
+                                        label: 'Filter by Department',
+                                        type: 'select' as const,
+                                        options: [
+                                            { label: 'All Departments', value: '' },
+                                            ...departments.map(dept => ({
+                                                label: dept.name,
+                                                value: dept.id
+                                            }))
+                                        ]
+                                    }
+                                ] : []),
+                                {
+                                    name: 'service_id',
+                                    label: 'Select Service',
+                                    type: 'select',
+                                    placement: 'more',
+                                    options: [
+                                        { label: 'All Services', value: '' },
+                                        ...services.map((s: any) => ({
+                                            label: s.name,
+                                            value: s.id
+                                        }))
+                                    ]
+                                },
+                                {
                                     name: 'consultation_status',
                                     label: 'Consultation Status',
                                     type: 'select',
+                                    placement: 'more',
                                     options: [
                                         { label: 'All', value: '' },
                                         { label: 'Pending', value: 'pending' },
@@ -938,27 +992,16 @@ export default function Appointments(): JSX.Element {
                                     ]
                                 },
                                 {
-                                    name: 'doctor_id',
-                                    label: 'Filter by Doctor',
+                                    name: 'lab_status',
+                                    label: 'Lab Status',
                                     type: 'select',
+                                    placement: 'more',
                                     options: [
-                                        { label: 'All Doctors', value: '' },
-                                        ...doctors.map(d => ({
-                                            label: `${d.first_name || ''} ${d.last_name || ''}`.trim() || d.name || 'Unknown',
-                                            value: d.id
-                                        }))
-                                    ]
-                                },
-                                {
-                                    name: 'department_id',
-                                    label: 'Filter by Department',
-                                    type: 'select',
-                                    options: [
-                                        { label: 'All Departments', value: '' },
-                                        ...departments.map(dept => ({
-                                            label: dept.name,
-                                            value: dept.id
-                                        }))
+                                        { label: 'All', value: '' },
+                                        { label: 'Not Required', value: 'not_required' },
+                                        { label: 'Pending', value: 'pending' },
+                                        { label: 'Completed', value: 'completed' },
+                                        { label: 'Reviewed', value: 'reviewed' }
                                     ]
                                 },
                                 {

@@ -17,6 +17,7 @@ export interface FilterField {
     options?: Array<{ label: string; value: string | number }>;
     placeholder?: string;
     defaultValue?: any;
+    placement?: 'inline' | 'more';
 }
 
 export interface FilterConfig {
@@ -57,8 +58,11 @@ export const AdvancedFilter: React.FC<AdvancedFilterProps> = ({
     const inputFields = config.fields.filter(f => (f.type === 'text' || f.type === 'number') && f !== searchField);
 
     // Show select filters inline, rest managed by More toggle
-    const inlineFilters = selectFields.slice(0, 6);
-    const moreFilters = [...selectFields.slice(6), ...inputFields];
+    const forcedMoreSelectFields = selectFields.filter(f => f.placement === 'more');
+    const defaultInlineSelectFields = selectFields.filter(f => f.placement !== 'more');
+    const inlineFilters = defaultInlineSelectFields.slice(0, 6);
+    const overflowSelectFields = defaultInlineSelectFields.slice(6);
+    const moreFilters = [...forcedMoreSelectFields, ...overflowSelectFields, ...inputFields];
 
     // Count active filters (excluding keyword)
     const activeFiltersCount = Object.entries(filters).filter(([key, value]) => {
@@ -228,7 +232,7 @@ export const AdvancedFilter: React.FC<AdvancedFilterProps> = ({
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -4 }}
                             transition={{ duration: 0.15 }}
-                            className="absolute top-full left-0 mt-1 min-w-[220px] max-h-[300px] overflow-auto bg-white rounded-lg shadow-xl border border-gray-100 py-1 z-50"
+                            className="absolute top-full left-0 mt-1 min-w-[220px] max-h-[300px] overflow-auto bg-white rounded-lg shadow-xl border border-gray-100 py-1 z-[120]"
                         >
                             {field.options?.map(option => {
                                 const isSelected = String(value) === String(option.value);
@@ -344,7 +348,7 @@ export const AdvancedFilter: React.FC<AdvancedFilterProps> = ({
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -4 }}
                             transition={{ duration: 0.15 }}
-                            className="absolute top-full right-0 mt-1 w-[280px] bg-white rounded-lg shadow-xl border border-gray-100 p-4 z-50"
+                            className="absolute top-full right-0 mt-1 w-[280px] bg-white rounded-lg shadow-xl border border-gray-100 p-4 z-[120]"
                         >
                             <div className="space-y-3">
                                 <div>
@@ -434,7 +438,7 @@ export const AdvancedFilter: React.FC<AdvancedFilterProps> = ({
     };
 
     return (
-        <div ref={containerRef} className="space-y-3 mb-8">
+        <div ref={containerRef} className="space-y-3 mb-8 relative z-[60]">
             {/* Main Filter Bar */}
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
                 <div className="p-3">
@@ -542,7 +546,7 @@ export const AdvancedFilter: React.FC<AdvancedFilterProps> = ({
                             animate={{ height: 'auto', opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
                             transition={{ duration: 0.2 }}
-                            className="overflow-hidden"
+                            className="overflow-visible"
                         >
                             <div className="px-3 pb-3 pt-0">
                                 <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
