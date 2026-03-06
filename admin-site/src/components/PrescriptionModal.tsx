@@ -180,17 +180,16 @@ export function PrescriptionModal({
         try {
             setLoading(true);
 
-            // Get the correct patient ID from appointment
-            const patientId = appointment?.user_id || appointment?.patient_id;
-
-            if (!patientId) {
-                showToast("Patient information is missing from the appointment. Please refresh and try again.", "error");
-                return;
-            }
+            const patientId =
+                appointment?.user_id ||
+                appointment?.user?.id ||
+                appointment?.patient?.user_id ||
+                appointment?.patient_id ||
+                null;
 
             const payload = {
                 appointment_id: appointment.id,
-                patient_id: patientId, // Use user_id from appointment
+                patient_id: patientId,
                 doctor_id: appointment.doctor_id,
                 diagnosis: diagnosis.trim(),
                 advice: advice.trim(),

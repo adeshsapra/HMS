@@ -532,7 +532,17 @@ export default function Appointments(): JSX.Element {
             placeholder: "Select a registered patient",
             options: patients.map((p) => {
                 const name = p.name || (p.first_name ? `${p.first_name} ${p.last_name}` : p.user?.name) || "Unknown Patient";
-                return { value: (p.user_id || p.id).toString(), label: name };
+                return { value: name, label: name };
+            }),
+        },
+        {
+            name: "doctor_id",
+            label: "Doctor",
+            type: "select",
+            required: true,
+            options: doctors.map((d) => {
+                const name = (d.first_name && d.last_name) ? `${d.first_name} ${d.last_name}` : (d.name || d.user?.name || "Unknown Doctor");
+                return { value: d.id.toString(), label: name };
             }),
         },
         {
@@ -773,21 +783,16 @@ export default function Appointments(): JSX.Element {
 
     const handleSubmit = async (data: Record<string, any>): Promise<void> => {
         try {
-            // Resolve patient name from ID for the backend
-            const selectedPatient = patients.find(p => String(p.user_id || p.id) === String(data.patient_id));
-            const patientName = selectedPatient ? (selectedPatient.name || `${selectedPatient.first_name || ''} ${selectedPatient.last_name || ''}`.trim()) : (data.patient_name || "Unknown Patient");
-
             const payload: Record<string, any> = {
-                user_id: data.patient_id,
-                patient_name: patientName,
+                patient_name: data.patientName,
                 doctor_id: data.doctor_id,
                 service_id: data.service_id || null,
                 appointment_date: data.date,
                 appointment_time: data.time,
-                reason: data.reason || '',
+                reason: data.reason,
+                status: data.status,
                 patient_phone: data.phone,
                 patient_email: data.email,
-                status: data.status,
             };
 
             let response;
@@ -858,15 +863,14 @@ export default function Appointments(): JSX.Element {
 
         return {
             ...appointment,
-            patient_id: userId?.toString(),
-            doctor_id: (appointment.doctor_id || appointment.original?.doctor_id)?.toString(),
-            department_id: (appointment.original?.doctor?.department_id || appointment.original?.department_id)?.toString(),
-            service_id: (appointment.service_id || appointment.original?.service_id || appointment.original?.service?.id)?.toString() || "",
-            date: appointment.date || appointment.appointment_date,
-            time: appointment.time || appointment.appointment_time,
-            phone: appointment.phone || appointment.patient_phone || appointment.original?.patient_phone,
-            email: appointment.email || appointment.patient_email || appointment.original?.patient_email,
-            reason: appointment.reason || appointment.original?.reason || ""
+            patientName: appointment.patientName,
+            doctor_id: appointment.original?.doctor_id?.toString(),
+            department_id: appointment.original?.doctor?.department_id?.toString() || appointment.original?.department_id?.toString(),
+            service_id: appointment.original?.service_id?.toString() || appointment.original?.service?.id?.toString() || "",
+            date: appointment.date,
+            time: appointment.time,
+            phone: appointment.phone,
+            email: appointment.email,
         };
     };
 

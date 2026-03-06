@@ -4,6 +4,7 @@ import { Button } from "@material-tailwind/react";
 import { BriefcaseIcon } from "@heroicons/react/24/outline";
 import { apiService } from "@/services/api";
 import { useToast } from "@/context/ToastContext";
+import { useAuth } from "@/context/AuthContext";
 
 // Get default page size from settings or use 10 as default
 const DEFAULT_PAGE_SIZE = parseInt(localStorage.getItem('settings_page_size') || '10', 10);
@@ -34,6 +35,7 @@ interface Department {
 }
 
 export default function Services(): JSX.Element {
+  const { hasPermission } = useAuth();
   const { showToast } = useToast();
   const [services, setServices] = useState<Service[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -312,11 +314,19 @@ export default function Services(): JSX.Element {
   ];
 
   const handleAdd = (): void => {
+    if (!hasPermission("create-services")) {
+      showToast("You don't have permission to create services", "error");
+      return;
+    }
     setSelectedService(null);
     setOpenModal(true);
   };
 
   const handleEdit = (service: Service): void => {
+    if (!hasPermission("edit-services")) {
+      showToast("You don't have permission to edit services", "error");
+      return;
+    }
     // Convert arrays to comma-separated strings for editing
     const editData = {
       ...service,
@@ -327,6 +337,10 @@ export default function Services(): JSX.Element {
   };
 
   const handleDelete = (service: Service): void => {
+    if (!hasPermission("delete-services")) {
+      showToast("You don't have permission to delete services", "error");
+      return;
+    }
     setSelectedService(service);
     setOpenDeleteModal(true);
   };
@@ -409,15 +423,17 @@ export default function Services(): JSX.Element {
           <h2 className="text-4xl font-bold text-blue-gray-800 mb-2">Services</h2>
           <p className="text-blue-gray-600 text-base">Manage hospital services and offerings</p>
         </div>
-        <Button
-          variant="gradient"
-          color="blue"
-          className="flex items-center gap-2 shadow-lg hover:shadow-xl transition-all"
-          onClick={handleAdd}
-        >
-          <BriefcaseIcon className="h-5 w-5" />
-          Add Service
-        </Button>
+        {hasPermission("create-services") && (
+          <Button
+            variant="gradient"
+            color="blue"
+            className="flex items-center gap-2 shadow-lg hover:shadow-xl transition-all"
+            onClick={handleAdd}
+          >
+            <BriefcaseIcon className="h-5 w-5" />
+            Add Service
+          </Button>
+        )}
       </div>
 
       <AdvancedFilter
@@ -507,9 +523,9 @@ export default function Services(): JSX.Element {
           title="Service Management"
           data={services}
           columns={columns}
-          onAdd={handleAdd}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
+          onAdd={hasPermission("create-services") ? handleAdd : undefined}
+          onEdit={hasPermission("edit-services") ? handleEdit : undefined}
+          onDelete={hasPermission("delete-services") ? handleDelete : undefined}
           onView={handleView}
           searchable={false}
           filterable={false}

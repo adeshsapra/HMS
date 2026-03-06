@@ -37,7 +37,6 @@ import {
   Prescriptions,
   MedicalRecords,
   PatientReports,
-  Bills,
   Medicines,
   HealthPackages,
   HomeCare,
@@ -63,7 +62,6 @@ import Inventory from "@/pages/dashboard/inventory";
 import Pharmacy from "@/pages/dashboard/pharmacy";
 import Laboratory from "@/pages/dashboard/laboratory";
 import Rooms from "@/pages/dashboard/rooms";
-import Schedules from "@/pages/dashboard/schedules";
 import Emergency from "@/pages/dashboard/emergency";
 import NotificationDetails from "@/pages/dashboard/notification-details";
 import { Roles, Permissions, RolePermissions, UserRoles } from "@/pages/dashboard";
@@ -172,13 +170,6 @@ export const routes: Route[] = [
     title: "staff menu",
     layout: "dashboard",
     pages: [
-      {
-        icon: <ListBulletIcon {...icon} />,
-        name: "manage bills",
-        path: "/bills",
-        element: <Bills />,
-        permission: "view-bills",
-      },
       {
         icon: <BeakerIcon {...icon} />,
         name: "medicines",
@@ -321,13 +312,6 @@ export const routes: Route[] = [
         path: "/rooms",
         element: <Rooms />,
         permission: "view-rooms",
-      },
-      {
-        icon: <ClockIcon {...icon} />,
-        name: "schedules",
-        path: "/schedules",
-        element: <Schedules />,
-        permission: "view-schedules",
       },
       {
         icon: <ExclamationTriangleIcon {...icon} />,
