@@ -293,19 +293,36 @@ export default function Pharmacy(): JSX.Element {
           item.dispense_type === 'not_dispensed' ||
           item.dispense_type === 'external_purchase'
         )
-        .map((item) => ({
-          prescription_item_id: item.prescription_item_id,
-          quantity_dispensed: (item.dispense_type === 'not_dispensed' || item.dispense_type === 'external_purchase')
-            ? 0 // Ensure 0 for these types
-            : item.quantity_to_dispense,
-          notes: item.notes || undefined,
-          dispense_type: item.dispense_type,
-          manual_medicine_name: item.manual_medicine_name || undefined,
-          manual_unit: item.manual_unit || undefined,
-          unit_price: item.unit_price ? parseFloat(item.unit_price) : undefined,
-          dispense_remarks: item.dispense_remarks || undefined,
-          alternative_medicine: item.alternative_medicine || undefined,
-        }));
+        .map((item) => {
+          if (item.dispense_type === 'manual_entry') {
+            if (!item.manual_medicine_name) throw new Error(`Missing actual medicine name for "${item.medicine_name}"`);
+            if (!item.manual_unit) throw new Error(`Missing unit for "${item.medicine_name}"`);
+            if (!item.unit_price) throw new Error(`Missing unit price for "${item.medicine_name}"`);
+          }
+          if (item.dispense_type === 'alternative') {
+            if (!item.alternative_medicine) throw new Error(`Missing alternative medicine name for "${item.medicine_name}"`);
+            if (item.availability?.status === 'not_in_catalog' && !item.unit_price) {
+              throw new Error(`Missing unit price for substitute "${item.alternative_medicine}"`);
+            }
+          }
+          if (item.dispense_type === 'stock_override' && !item.unit_price && !item.availability?.selling_price) {
+            throw new Error(`Price required for stock override on "${item.medicine_name}"`);
+          }
+
+          return {
+            prescription_item_id: item.prescription_item_id,
+            quantity_dispensed: (item.dispense_type === 'not_dispensed' || item.dispense_type === 'external_purchase')
+              ? 0
+              : item.quantity_to_dispense,
+            notes: item.notes || undefined,
+            dispense_type: item.dispense_type,
+            manual_medicine_name: item.manual_medicine_name || undefined,
+            manual_unit: item.manual_unit || undefined,
+            unit_price: item.unit_price ? parseFloat(item.unit_price) : undefined,
+            dispense_remarks: item.dispense_remarks || undefined,
+            alternative_medicine: item.alternative_medicine || undefined,
+          };
+        });
 
       if (validItems.length === 0) {
         showToast("Please take action on at least one medicine", "error");
@@ -541,6 +558,11 @@ export default function Pharmacy(): JSX.Element {
       render: (value: any) => value || "-",
     },
     {
+      key: "manufacturer",
+      label: "Manufacturer",
+      render: (value: any) => value || "-",
+    },
+    {
       key: "category",
       label: "Category",
       render: (value: any) => value?.toUpperCase() || "-",
@@ -551,31 +573,33 @@ export default function Pharmacy(): JSX.Element {
       render: (value: any, row: any) => `${value} ${row.unit}`,
     },
     {
-      key: "min_stock_level",
-      label: "Min Level",
-      render: (value: any, row: any) => `${value} ${row.unit}`,
-    },
-    {
       key: "selling_price",
       label: "Selling Price",
       render: (value: any) => `$${parseFloat(value).toFixed(2)}`,
     },
     {
-      key: "status",
-      label: "Status",
-      type: "badge" as const,
-      render: (value: any) => (
-        <Chip
-          value={value?.toUpperCase() || "ACTIVE"}
-          color={value === "active" ? "green" : "gray"}
-          size="sm"
-        />
-      ),
+      key: "expiry_date",
+      label: "Expiry Date",
+      render: (value: any) => {
+        if (!value) return "N/A";
+        const date = new Date(value);
+        const isExpired = date < new Date();
+        return (
+          <span className={isExpired ? "text-red-600 font-bold" : ""}>
+            {date.toLocaleDateString()}
+            {isExpired && " (EXPIRED)"}
+          </span>
+        );
+      },
     },
     {
       key: "stock_status",
       label: "Stock Status",
       render: (value: any, row: any) => {
+        const isExpired = row.expiry_date && new Date(row.expiry_date) < new Date();
+        if (isExpired) {
+          return <Chip value="Expired" color="deep-orange" size="sm" />;
+        }
         if (row.current_stock === 0) {
           return <Chip value="Out of Stock" color="red" size="sm" />;
         } else if (row.is_low_stock) {
@@ -1218,14 +1242,26 @@ export default function Pharmacy(): JSX.Element {
                           <span className="font-semibold">{item.quantity_prescribed} units</span>
                         </div>
                         <div>
-                          <span className="text-blue-gray-600">System Stock: </span>
-                          <span className="font-semibold">
+                          <span className="text-blue-gray-600">Dispensed: </span>
+                          <span className="font-semibold">{item.quantity_dispensed} units</span>
+                        </div>
+                        <div>
+                          <span className="text-blue-gray-600">Remaining: </span>
+                          <span className="font-semibold">{item.remaining} units</span>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-xs mb-4 px-3 py-1 bg-yellow-50/50 rounded border border-yellow-100">
+                        <div>
+                          <span className="text-blue-gray-500 italic">System Catalog Stock: </span>
+                          <span className="font-bold text-blue-gray-700">
                             {item.availability?.current_stock || 0} {item.availability?.unit || "units"}
                           </span>
                         </div>
-                        <div>
-                          <span className="text-blue-gray-600">Max Dispense: </span>
-                          <span className="font-semibold">{item.max_quantity} units</span>
+                        <div className="text-right">
+                          <span className="text-blue-gray-500 italic">Availability: </span>
+                          <span className={`font-bold ${item.availability?.status === 'available' ? 'text-green-600' : 'text-orange-600'}`}>
+                            {item.availability?.status?.replace(/_/g, ' ').toUpperCase() || 'UNKNOWN'}
+                          </span>
                         </div>
                       </div>
 
@@ -1439,7 +1475,7 @@ export default function Pharmacy(): JSX.Element {
                       Total Amount: $
                       {items
                         .reduce((sum, item) => {
-                          if (item.quantity_to_dispense > 0) {
+                          if (item.quantity_to_dispense > 0 && !['not_dispensed', 'external_purchase'].includes(item.dispense_type)) {
                             const price = item.unit_price
                               ? parseFloat(item.unit_price)
                               : parseFloat(item.availability?.selling_price || "0");
