@@ -2,14 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
-import { adminSearchableModules, type AdminSearchableModule } from '../data/searchableModules';
 import { apiService } from '@/services/api';
+import { routes } from '@/routes';
+import { adminSearchableModules } from '@/data/searchableModules';
 import {
     MagnifyingGlassIcon,
     XMarkIcon,
     ClockIcon,
-    ChevronRightIcon,
-    ArrowRightCircleIcon
+    ChevronRightIcon
 } from "@heroicons/react/24/outline";
 
 interface AdminSearchModalProps {
@@ -17,16 +17,81 @@ interface AdminSearchModalProps {
     onClose: () => void;
 }
 
+interface SearchableMenuItem {
+    id: string;
+    title: string;
+    description: string;
+    path: string;
+    permission?: string;
+    icon: string;
+}
+
+const getMenuIconByPath = (path: string): string => {
+    if (path.includes('/appointments')) return 'bi-calendar-event';
+    if (path.includes('/patients')) return 'bi-people';
+    if (path.includes('/prescriptions')) return 'bi-file-earmark-medical';
+    if (path.includes('/patient-reports')) return 'bi-file-earmark-bar-graph';
+    if (path.includes('/doctors')) return 'bi-person-vcard';
+    if (path.includes('/staff')) return 'bi-person-badge';
+    if (path.includes('/departments')) return 'bi-building';
+    if (path.includes('/services')) return 'bi-clipboard2-pulse';
+    if (path.includes('/rooms')) return 'bi-door-open';
+    if (path.includes('/emergency')) return 'bi-exclamation-triangle';
+    if (path.includes('/pharmacy')) return 'bi-capsule';
+    if (path.includes('/laboratory')) return 'bi-eyedropper';
+    if (path.includes('/billing')) return 'bi-cash-coin';
+    if (path.includes('/inventory')) return 'bi-box-seam';
+    if (path.includes('/home-care')) return 'bi-house-heart';
+    if (path.includes('/health-packages')) return 'bi-box2-heart';
+    if (path.includes('/gallery')) return 'bi-images';
+    if (path.includes('/testimonials')) return 'bi-chat-heart';
+    if (path.includes('/faq')) return 'bi-question-diamond';
+    if (path.includes('/contact-inquiries')) return 'bi-envelope-paper';
+    if (path.includes('/email-templates')) return 'bi-envelope-at';
+    if (path.includes('/reports')) return 'bi-graph-up';
+    if (path.includes('/settings')) return 'bi-sliders';
+    if (path.includes('/roles')) return 'bi-shield-lock';
+    if (path.includes('/permissions')) return 'bi-key';
+    if (path.includes('/notifications')) return 'bi-bell';
+    if (path.includes('/profile')) return 'bi-person-circle';
+    return 'bi-grid-1x2';
+};
+
 const AdminSearchModal: React.FC<AdminSearchModalProps> = ({ isOpen, onClose }) => {
     const [query, setQuery] = useState('');
-    const [moduleResults, setModuleResults] = useState<AdminSearchableModule[]>([]);
+    const [moduleResults, setModuleResults] = useState<SearchableMenuItem[]>([]);
     const [dynamicResults, setDynamicResults] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
-    const [recentSearches, setRecentSearches] = useState<AdminSearchableModule[]>([]);
+    const [recentSearches, setRecentSearches] = useState<SearchableMenuItem[]>([]);
     const [selectedIndex, setSelectedIndex] = useState(0);
     const { user, permissions, hasPermission } = useAuth();
     const navigate = useNavigate();
     const inputRef = useRef<HTMLInputElement>(null);
+
+    const searchableModules = React.useMemo<SearchableMenuItem[]>(() => {
+        const routeBasedModules = routes
+            .filter((route) => route.layout !== 'auth')
+            .flatMap(({ title, layout, pages }) =>
+            pages
+                .filter((page) => !page.hidden)
+                .filter((page) => !page.permission || hasPermission(page.permission))
+                .map((page) => ({
+                    id: `${layout}${page.path}`,
+                    title: page.name,
+                    description: title ? `${title} Module` : 'Dashboard Module',
+                    path: `/${layout}${page.path}`,
+                    permission: page.permission,
+                    icon: getMenuIconByPath(page.path),
+                }))
+            );
+
+        if (routeBasedModules.length > 0) {
+            return routeBasedModules;
+        }
+
+        // Fallback: keep module search usable if route-based filtering returns empty temporarily.
+        return adminSearchableModules.filter((mod) => !mod.permission || permissions.includes(mod.permission));
+    }, [hasPermission, permissions]);
 
     // Load recent searches and manage body scroll
     useEffect(() => {
@@ -34,14 +99,11 @@ const AdminSearchModal: React.FC<AdminSearchModalProps> = ({ isOpen, onClose }) 
             const stored = localStorage.getItem(`admin_recent_searches_${user?.id || 'admin'}`);
             if (stored) {
                 const parsed: string[] = JSON.parse(stored);
-                // For now, recent searches only include static modules as they are predictable
-                const filteredRecent = adminSearchableModules
-                    .filter(mod => parsed.includes(mod.id))
-                    .filter(mod => !mod.permission || (permissions && permissions.includes(mod.permission)));
+                const filteredRecent = searchableModules.filter(mod => parsed.includes(mod.id));
 
                 const orderedRecent = parsed
                     .map(id => filteredRecent.find(m => m.id === id))
-                    .filter(Boolean) as AdminSearchableModule[];
+                    .filter(Boolean) as SearchableMenuItem[];
 
                 setRecentSearches(orderedRecent.slice(0, 5));
             }
@@ -55,12 +117,13 @@ const AdminSearchModal: React.FC<AdminSearchModalProps> = ({ isOpen, onClose }) 
             setDynamicResults([]);
         }
         return () => { document.body.style.overflow = ''; };
-    }, [isOpen, user, permissions]);
+    }, [isOpen, searchableModules, user]);
 
     // Async multi-module search with debounce
     useEffect(() => {
         const fetchResults = async () => {
-            if (query.trim().length === 0) {
+            const normalizedQuery = query.trim().toLowerCase();
+            if (normalizedQuery.length === 0) {
                 setModuleResults([]);
                 setDynamicResults([]);
                 return;
@@ -69,11 +132,9 @@ const AdminSearchModal: React.FC<AdminSearchModalProps> = ({ isOpen, onClose }) 
             setLoading(true);
             try {
                 // Perform local module filter first (fast)
-                const filteredModules = adminSearchableModules.filter(mod => {
-                    const matchesQuery = mod.title.toLowerCase().includes(query.toLowerCase()) ||
-                        mod.description.toLowerCase().includes(query.toLowerCase());
-                    const hasAccess = !mod.permission || (permissions && permissions.includes(mod.permission));
-                    return matchesQuery && hasAccess;
+                const filteredModules = searchableModules.filter(mod => {
+                    return mod.title.toLowerCase().includes(normalizedQuery) ||
+                        mod.description.toLowerCase().includes(normalizedQuery);
                 });
                 setModuleResults(filteredModules);
 
@@ -88,9 +149,9 @@ const AdminSearchModal: React.FC<AdminSearchModalProps> = ({ isOpen, onClose }) 
                     })).catch(() => ({ success: false, data: [] })) : Promise.resolve({ success: false, data: [] }),
                     hasPermission('view-patients') ? apiService.getPatients(1, 5, query).catch(() => ({ success: false, data: [] })) : Promise.resolve({ success: false, data: [] }),
                     hasPermission('view-appointments') ? apiService.getAppointments(1, { keyword: query, per_page: 5 }).catch(() => ({ success: false, data: [] })) : Promise.resolve({ success: false, data: [] }),
-                    hasPermission('view-bills') ? apiService.getBills({ keyword: query, per_page: 5 }).catch(() => ({ success: false, data: [] })) : Promise.resolve({ success: false, data: [] }),
+                    (hasPermission('view-billing-finance') || hasPermission('view-bills')) ? apiService.getBills({ keyword: query, per_page: 5 }).catch(() => ({ success: false, data: [] })) : Promise.resolve({ success: false, data: [] }),
                     hasPermission('view-staff') ? apiService.getStaff(1, 5, { keyword: query }).catch(() => ({ success: false, data: [] })) : Promise.resolve({ success: false, data: [] }),
-                    hasPermission('view-medicines') ? apiService.getMedicines({ search: query, per_page: 5 }).catch(() => ({ success: false, data: [] })) : Promise.resolve({ success: false, data: [] })
+                    (hasPermission('view-inventory') || hasPermission('view-medicines')) ? apiService.getMedicines({ search: query, per_page: 5 }).catch(() => ({ success: false, data: [] })) : Promise.resolve({ success: false, data: [] })
                 ];
 
                 const [deptRes, docRes, serviceRes, homeCareRes, patientRes, appointmentRes, billRes, staffRes, medicineRes] = await Promise.all(fetchPromises);
@@ -212,7 +273,7 @@ const AdminSearchModal: React.FC<AdminSearchModalProps> = ({ isOpen, onClose }) 
 
         const timeout = setTimeout(fetchResults, 300);
         return () => clearTimeout(timeout);
-    }, [query, permissions]);
+    }, [hasPermission, query, searchableModules]);
 
     // Keyboard navigation
     useEffect(() => {
@@ -247,7 +308,7 @@ const AdminSearchModal: React.FC<AdminSearchModalProps> = ({ isOpen, onClose }) 
     };
 
     const handleSelect = (module: any) => {
-        // Only save static modules to recent searches for now
+        // Save menu modules to recent searches
         if (module.id && !module.type) {
             const stored = localStorage.getItem(`admin_recent_searches_${user?.id || 'admin'}`);
             let recentIds: string[] = stored ? JSON.parse(stored) : [];
@@ -386,8 +447,7 @@ const AdminSearchModal: React.FC<AdminSearchModalProps> = ({ isOpen, onClose }) 
                                         <div className="px-2">
                                             <h3 className="text-[11px] font-bold text-blue-gray-400 uppercase tracking-widest mb-3">Quick Links</h3>
                                             <div className="grid grid-cols-2 gap-3">
-                                                {adminSearchableModules
-                                                    .filter(mod => !mod.permission || hasPermission(mod.permission))
+                                                {searchableModules
                                                     .slice(0, 4)
                                                     .map(mod => (
                                                         <div

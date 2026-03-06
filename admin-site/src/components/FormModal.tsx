@@ -330,6 +330,13 @@ export function FormModal({
   const [generalError, setGeneralError] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const isEmptyValue = (value: any): boolean => {
+    if (value === null || value === undefined) return true;
+    if (typeof value === "string") return value.trim() === "";
+    if (Array.isArray(value)) return value.length === 0;
+    return false;
+  };
+
   useEffect(() => {
     if (open) {
       setFormData(initialData);
@@ -358,7 +365,7 @@ export function FormModal({
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
     formFields.forEach((field) => {
-      if (field.required && !formData[field.name]) {
+      if (field.required && isEmptyValue(formData[field.name])) {
         newErrors[field.name] = `${field.label} is required`;
       }
       if (field.type === "email" && formData[field.name]) {
@@ -418,7 +425,7 @@ export function FormModal({
   const inputErrorClass = "!border-red-500 focus:!border-red-500 focus:!ring-red-500";
 
   const renderField = (field: FormField): JSX.Element => {
-    const fieldValue = formData[field.name] || "";
+    const fieldValue = formData[field.name] ?? "";
     const hasError = !!(errors[field.name] || field.error);
     const inputClass = `${inputBaseClass} ${hasError ? inputErrorClass : ""}`;
 

@@ -10,7 +10,6 @@ export const routePermissions: Record<string, string> = {
   '/dashboard/medical-records': 'view-medical-records',
   '/dashboard/patient-reports': 'view-patient-reports',
   '/dashboard/billing': 'view-billing-finance',
-  '/dashboard/medicines': 'view-medicines',
   '/dashboard/pharmacy': 'view-pharmacy',
   '/dashboard/laboratory': 'view-laboratory',
   '/dashboard/inventory': 'view-inventory',

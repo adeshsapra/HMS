@@ -52,6 +52,21 @@ export default function Departments(): JSX.Element {
     return [...new Set(candidates)];
   };
 
+  const normalizeCommaSeparated = (value: any): string => {
+    if (!value) return "";
+    if (Array.isArray(value)) return value.join(", ");
+    if (typeof value === "string") {
+      try {
+        const parsed = JSON.parse(value);
+        if (Array.isArray(parsed)) return parsed.join(", ");
+      } catch {
+        // Keep as plain string if it is not JSON
+      }
+      return value;
+    }
+    return "";
+  };
+
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
   const [openModal, setOpenModal] = useState<boolean>(false);
@@ -318,19 +333,36 @@ export default function Departments(): JSX.Element {
     setOpenModal(true);
   };
 
-  const handleEdit = (department: Department): void => {
+  const handleEdit = async (department: Department): Promise<void> => {
     if (!hasPermission("edit-departments")) {
       showToast("You don't have permission to edit departments", "error");
       return;
     }
-    // Convert arrays to comma-separated strings for editing
-    const editData = {
+
+    const baseEditData = {
       ...department,
-      features: department.features ? department.features.join(', ') : '',
-      technologies: department.technologies ? department.technologies.join(', ') : ''
+      features: normalizeCommaSeparated((department as any).features),
+      technologies: normalizeCommaSeparated((department as any).technologies),
     };
-    setSelectedDepartment(editData as any);
+    setSelectedDepartment(baseEditData as any);
     setOpenModal(true);
+
+    try {
+      const response = await apiService.getDepartment(department.id);
+      const fullDepartment = ((response as any).data && !(response as any).data.data)
+        ? (response as any).data
+        : (response as any).data?.data || department;
+
+      const editData = {
+        ...fullDepartment,
+        features: normalizeCommaSeparated(fullDepartment?.features),
+        technologies: normalizeCommaSeparated(fullDepartment?.technologies),
+      };
+
+      setSelectedDepartment(editData as any);
+    } catch (error: any) {
+      showToast(error.message || "Loaded editable data from table row only", "error");
+    }
   };
 
   const handleDelete = (department: Department): void => {
@@ -357,18 +389,17 @@ export default function Departments(): JSX.Element {
   };
 
   const handleView = async (department: Department): Promise<void> => {
+    setSelectedDepartment(department);
+    setOpenViewModal(true);
+
     try {
-      setLoading(true);
       const response = await apiService.getDepartment(department.id);
       const fullDepartment = ((response as any).data && !(response as any).data.data)
         ? (response as any).data
         : (response as any).data?.data || department;
       setSelectedDepartment(fullDepartment);
-      setOpenViewModal(true);
     } catch (error: any) {
-      showToast(error.message || "Failed to load department details", "error");
-    } finally {
-      setLoading(false);
+      showToast(error.message || "Showing row data only", "error");
     }
   };
 

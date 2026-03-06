@@ -156,7 +156,7 @@ export function Sidenav({ brandImg = "/img/logo-ct.png", brandName = "HMS Admin 
                           <Typography
                             variant="small"
                             color={sidenavType === "dark" ? "white" : "blue-gray"}
-                            className="font-black uppercase opacity-75 text-xs tracking-wider"
+                            className="font-black opacity-75 text-xs tracking-wide"
                           >
                             {title}
                           </Typography>
@@ -188,7 +188,7 @@ export function Sidenav({ brandImg = "/img/logo-ct.png", brandName = "HMS Admin 
                                       className={`flex items-center ${sidenavCollapsed
                                         ? "justify-center px-2 py-3 min-w-[48px]"
                                         : "gap-4 px-4"
-                                        } capitalize transition-all rounded-lg ${isActive
+                                        } transition-all rounded-lg ${isActive
                                           ? "shadow-md"
                                           : sidenavType === "dark"
                                             ? "hover:bg-white/5"
@@ -210,7 +210,7 @@ export function Sidenav({ brandImg = "/img/logo-ct.png", brandName = "HMS Admin 
                                       )}
                                     </Button>
                                     {sidenavCollapsed && (
-                                      <div className="absolute left-full ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none shadow-lg">
+                                      <div className="absolute left-full ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none shadow-lg capitalize">
                                         {name}
                                         <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-gray-900"></div>
                                       </div>
@@ -243,7 +243,7 @@ export function Sidenav({ brandImg = "/img/logo-ct.png", brandName = "HMS Admin 
                                   className={`flex items-center ${sidenavCollapsed
                                     ? "justify-center px-2 py-3 min-w-[48px]"
                                     : "gap-4 px-4"
-                                    } capitalize transition-all rounded-lg ${isActive
+                                    } transition-all rounded-lg ${isActive
                                       ? "shadow-md"
                                       : sidenavType === "dark"
                                         ? "hover:bg-white/5"
@@ -258,7 +258,7 @@ export function Sidenav({ brandImg = "/img/logo-ct.png", brandName = "HMS Admin 
                                   {!sidenavCollapsed && (
                                     <Typography
                                       color="inherit"
-                                      className="font-medium capitalize text-sm"
+                                      className="font-medium text-sm"
                                     >
                                       {name}
                                     </Typography>

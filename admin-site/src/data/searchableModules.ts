@@ -73,14 +73,6 @@ export const adminSearchableModules: AdminSearchableModule[] = [
         icon: 'bi-bar-chart'
     },
     {
-        id: 'medicines',
-        title: 'Pharmacy / Medicines',
-        description: 'Manage medicine inventory and dispensing.',
-        path: '/dashboard/medicines',
-        permission: 'view-medicines',
-        icon: 'bi-capsule'
-    },
-    {
         id: 'doctors',
         title: 'Doctor Directory',
         description: 'Manage doctor profiles and specializations.',
