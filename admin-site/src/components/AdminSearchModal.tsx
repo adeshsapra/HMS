@@ -24,7 +24,7 @@ const AdminSearchModal: React.FC<AdminSearchModalProps> = ({ isOpen, onClose }) 
     const [loading, setLoading] = useState(false);
     const [recentSearches, setRecentSearches] = useState<AdminSearchableModule[]>([]);
     const [selectedIndex, setSelectedIndex] = useState(0);
-    const { user, permissions } = useAuth();
+    const { user, permissions, hasPermission } = useAuth();
     const navigate = useNavigate();
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -77,21 +77,23 @@ const AdminSearchModal: React.FC<AdminSearchModalProps> = ({ isOpen, onClose }) 
                 });
                 setModuleResults(filteredModules);
 
-                // Fetch from APIs in parallel
-                const [deptRes, docRes, serviceRes, homeCareRes, patientRes, appointmentRes, billRes, staffRes, medicineRes] = await Promise.all([
-                    apiService.getDepartments(1, 5, { keyword: query }).catch(() => ({ success: false, data: [] })),
-                    apiService.getDoctors(1, 5, { keyword: query }).catch(() => ({ success: false, data: [] })),
-                    apiService.getServices(1, 5, { keyword: query }).catch(() => ({ success: false, data: [] })),
-                    apiService.getHomeCareServices().then(res => ({
+                // Fetch from APIs in parallel, but only if user has permission
+                const fetchPromises = [
+                    hasPermission('view-departments') ? apiService.getDepartments(1, 5, { keyword: query }).catch(() => ({ success: false, data: [] })) : Promise.resolve({ success: false, data: [] }),
+                    hasPermission('view-doctors') ? apiService.getDoctors(1, 5, { keyword: query }).catch(() => ({ success: false, data: [] })) : Promise.resolve({ success: false, data: [] }),
+                    hasPermission('view-services') ? apiService.getServices(1, 5, { keyword: query }).catch(() => ({ success: false, data: [] })) : Promise.resolve({ success: false, data: [] }),
+                    hasPermission('view-services') ? apiService.getHomeCareServices().then(res => ({
                         ...res,
                         data: res.data?.filter((s: any) => s.title.toLowerCase().includes(query.toLowerCase())).slice(0, 5) || []
-                    })).catch(() => ({ success: false, data: [] })),
-                    apiService.getPatients(1, 5, query).catch(() => ({ success: false, data: [] })),
-                    apiService.getAppointments(1, { keyword: query, per_page: 5 }).catch(() => ({ success: false, data: [] })),
-                    apiService.getBills({ keyword: query, per_page: 5 }).catch(() => ({ success: false, data: [] })),
-                    apiService.getStaff(1, 5, { keyword: query }).catch(() => ({ success: false, data: [] })),
-                    apiService.getMedicines({ search: query, per_page: 5 }).catch(() => ({ success: false, data: [] }))
-                ]);
+                    })).catch(() => ({ success: false, data: [] })) : Promise.resolve({ success: false, data: [] }),
+                    hasPermission('view-patients') ? apiService.getPatients(1, 5, query).catch(() => ({ success: false, data: [] })) : Promise.resolve({ success: false, data: [] }),
+                    hasPermission('view-appointments') ? apiService.getAppointments(1, { keyword: query, per_page: 5 }).catch(() => ({ success: false, data: [] })) : Promise.resolve({ success: false, data: [] }),
+                    hasPermission('view-bills') ? apiService.getBills({ keyword: query, per_page: 5 }).catch(() => ({ success: false, data: [] })) : Promise.resolve({ success: false, data: [] }),
+                    hasPermission('view-staff') ? apiService.getStaff(1, 5, { keyword: query }).catch(() => ({ success: false, data: [] })) : Promise.resolve({ success: false, data: [] }),
+                    hasPermission('view-medicines') ? apiService.getMedicines({ search: query, per_page: 5 }).catch(() => ({ success: false, data: [] })) : Promise.resolve({ success: false, data: [] })
+                ];
+
+                const [deptRes, docRes, serviceRes, homeCareRes, patientRes, appointmentRes, billRes, staffRes, medicineRes] = await Promise.all(fetchPromises);
 
                 const combinedDynamics: any[] = [];
 
@@ -305,153 +307,158 @@ const AdminSearchModal: React.FC<AdminSearchModalProps> = ({ isOpen, onClose }) 
     };
 
     return (
-        <AnimatePresence>
-            {isOpen && (
-                <div className="fixed inset-0 z-[10002] flex items-start justify-center pt-[12vh] px-4 sm:px-0">
-                    {/* Backdrop */}
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="absolute inset-0 bg-blue-gray-900/60 backdrop-blur-sm"
-                        onClick={onClose}
-                    />
+        <>
+            <AnimatePresence>
+                {isOpen && (
+                    <div className="fixed inset-0 z-[10002] flex items-start justify-center pt-[12vh] px-4 sm:px-0">
+                        {/* Backdrop */}
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 bg-blue-gray-900/60 backdrop-blur-sm"
+                            onClick={onClose}
+                        />
 
-                    {/* Main Modal */}
-                    <motion.div
-                        initial={{ opacity: 0, y: -20, scale: 0.98 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -20, scale: 0.98 }}
-                        className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-blue-gray-100 overflow-hidden flex flex-col max-h-[75vh]"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        {/* Search Header */}
-                        <div className="flex items-center px-6 py-5 border-b border-blue-gray-50 gap-4 bg-white sticky top-0 z-10">
-                            <div className="relative">
-                                {loading ? (
-                                    <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                                ) : (
-                                    <MagnifyingGlassIcon className="w-6 h-6 text-blue-500 stroke-[2.5]" />
-                                )}
-                            </div>
-                            <input
-                                ref={inputRef}
-                                type="text"
-                                placeholder="Search patients, appointments, medicines, or modules..."
-                                value={query}
-                                onChange={(e) => setQuery(e.target.value)}
-                                className="flex-1 bg-transparent border-none outline-none text-base font-semibold text-blue-gray-900 placeholder:text-blue-gray-300"
-                            />
-                            <div className="flex items-center gap-2">
-                                <kbd className="hidden sm:inline-block px-2 py-1 text-[10px] font-bold bg-blue-gray-50 text-blue-gray-400 border border-blue-gray-100 rounded-md">ESC</kbd>
-                                <button
-                                    onClick={onClose}
-                                    className="p-2 rounded-lg hover:bg-blue-gray-50 text-blue-gray-500 transition-colors"
-                                >
-                                    <XMarkIcon className="w-5 h-5 stroke-[2]" />
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Content Body */}
-                        <div className="flex-1 overflow-y-auto p-4 bg-white custom-scrollbar">
-                            {query.trim().length === 0 ? (
-                                <div className="space-y-6">
-                                    {recentSearches.length > 0 && (
-                                        <div className="px-2">
-                                            <div className="flex justify-between items-center mb-3">
-                                                <h3 className="text-[11px] font-bold text-blue-gray-400 uppercase tracking-widest flex items-center gap-2">
-                                                    <ClockIcon className="w-3.5 h-3.5" />
-                                                    Recent Searches
-                                                </h3>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        clearRecentSearches();
-                                                    }}
-                                                    className="text-[10px] font-bold text-blue-gray-400 hover:text-red-500 uppercase tracking-tighter transition-colors"
-                                                >
-                                                    Clear All
-                                                </button>
-                                            </div>
-                                            <div className="space-y-1">
-                                                {recentSearches.map((mod, index) => renderResultItem(mod, index))}
-                                            </div>
-                                        </div>
+                        {/* Main Modal */}
+                        <motion.div
+                            initial={{ opacity: 0, y: -20, scale: 0.98 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: -20, scale: 0.98 }}
+                            className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-blue-gray-100 overflow-hidden flex flex-col max-h-[75vh]"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            {/* Search Header */}
+                            <div className="flex items-center px-6 py-5 border-b border-blue-gray-50 gap-4 bg-white sticky top-0 z-10">
+                                <div className="relative">
+                                    {loading ? (
+                                        <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                                    ) : (
+                                        <MagnifyingGlassIcon className="w-6 h-6 text-blue-500 stroke-[2.5]" />
                                     )}
+                                </div>
+                                <input
+                                    ref={inputRef}
+                                    type="text"
+                                    placeholder="Search patients, appointments, medicines, or modules..."
+                                    value={query}
+                                    onChange={(e) => setQuery(e.target.value)}
+                                    className="flex-1 bg-transparent border-none outline-none text-base font-semibold text-blue-gray-900 placeholder:text-blue-gray-300"
+                                />
+                                <div className="flex items-center gap-2">
+                                    <kbd className="hidden sm:inline-block px-2 py-1 text-[10px] font-bold bg-blue-gray-50 text-blue-gray-400 border border-blue-gray-100 rounded-md">ESC</kbd>
+                                    <button
+                                        onClick={onClose}
+                                        className="p-2 rounded-lg hover:bg-blue-gray-50 text-blue-gray-500 transition-colors"
+                                    >
+                                        <XMarkIcon className="w-5 h-5 stroke-[2]" />
+                                    </button>
+                                </div>
+                            </div>
 
-                                    <div className="px-2">
-                                        <h3 className="text-[11px] font-bold text-blue-gray-400 uppercase tracking-widest mb-3">Quick Links</h3>
-                                        <div className="grid grid-cols-2 gap-3">
-                                            {adminSearchableModules.slice(0, 4).map(mod => (
-                                                <div
-                                                    key={mod.id}
-                                                    onClick={() => handleSelect(mod)}
-                                                    className="p-4 rounded-xl border border-blue-gray-50 bg-blue-gray-50/30 hover:bg-white hover:border-blue-200 hover:shadow-lg hover:shadow-blue-500/5 transition-all group cursor-pointer"
-                                                >
-                                                    <span className="text-sm font-bold text-blue-gray-800 group-hover:text-blue-600 block">{mod.title}</span>
-                                                    <span className="text-[11px] text-blue-gray-500 font-medium mt-1 line-clamp-1">{mod.description}</span>
+                            {/* Content Body */}
+                            <div className="flex-1 overflow-y-auto p-4 bg-white custom-scrollbar">
+                                {query.trim().length === 0 ? (
+                                    <div className="space-y-6">
+                                        {recentSearches.length > 0 && (
+                                            <div className="px-2">
+                                                <div className="flex justify-between items-center mb-3">
+                                                    <h3 className="text-[11px] font-bold text-blue-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                                        <ClockIcon className="w-3.5 h-3.5" />
+                                                        Recent Searches
+                                                    </h3>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            clearRecentSearches();
+                                                        }}
+                                                        className="text-[10px] font-bold text-blue-gray-400 hover:text-red-500 uppercase tracking-tighter transition-colors"
+                                                    >
+                                                        Clear All
+                                                    </button>
                                                 </div>
-                                            ))}
+                                                <div className="space-y-1">
+                                                    {recentSearches.map((mod, index) => renderResultItem(mod, index))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div className="px-2">
+                                            <h3 className="text-[11px] font-bold text-blue-gray-400 uppercase tracking-widest mb-3">Quick Links</h3>
+                                            <div className="grid grid-cols-2 gap-3">
+                                                {adminSearchableModules
+                                                    .filter(mod => !mod.permission || hasPermission(mod.permission))
+                                                    .slice(0, 4)
+                                                    .map(mod => (
+                                                        <div
+                                                            key={mod.id}
+                                                            onClick={() => handleSelect(mod)}
+                                                            className="p-4 rounded-xl border border-blue-gray-50 bg-blue-gray-50/30 hover:bg-white hover:border-blue-200 hover:shadow-lg hover:shadow-blue-500/5 transition-all group cursor-pointer"
+                                                        >
+                                                            <span className="text-sm font-bold text-blue-gray-800 group-hover:text-blue-600 block">{mod.title}</span>
+                                                            <span className="text-[11px] text-blue-gray-500 font-medium mt-1 line-clamp-1">{mod.description}</span>
+                                                        </div>
+                                                    ))}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ) : (
-                                <div className="px-2">
-                                    {(moduleResults.length > 0 || dynamicResults.length > 0) ? (
-                                        <div className="space-y-6">
-                                            {moduleResults.length > 0 && (
-                                                <div>
-                                                    <h3 className="text-[11px] font-bold text-blue-gray-400 uppercase tracking-widest mb-3 px-1">Modules</h3>
-                                                    <div className="space-y-1">
-                                                        {moduleResults.map((mod, index) => renderResultItem(mod, index))}
+                                ) : (
+                                    <div className="px-2">
+                                        {(moduleResults.length > 0 || dynamicResults.length > 0) ? (
+                                            <div className="space-y-6">
+                                                {moduleResults.length > 0 && (
+                                                    <div>
+                                                        <h3 className="text-[11px] font-bold text-blue-gray-400 uppercase tracking-widest mb-3 px-1">Modules</h3>
+                                                        <div className="space-y-1">
+                                                            {moduleResults.map((mod, index) => renderResultItem(mod, index))}
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            )}
+                                                )}
 
-                                            {dynamicResults.length > 0 && (
-                                                <div>
-                                                    <h3 className="text-[11px] font-bold text-blue-gray-400 uppercase tracking-widest mb-3 px-1">Detailed Findings</h3>
-                                                    <div className="space-y-1">
-                                                        {dynamicResults.map((item, index) => renderResultItem(item, index, moduleResults.length))}
+                                                {dynamicResults.length > 0 && (
+                                                    <div>
+                                                        <h3 className="text-[11px] font-bold text-blue-gray-400 uppercase tracking-widest mb-3 px-1">Detailed Findings</h3>
+                                                        <div className="space-y-1">
+                                                            {dynamicResults.map((item, index) => renderResultItem(item, index, moduleResults.length))}
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    ) : !loading && (
-                                        <div className="py-20 text-center">
-                                            <div className="w-16 h-16 bg-blue-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-blue-gray-100">
-                                                <MagnifyingGlassIcon className="w-8 h-8 text-blue-gray-200" />
+                                                )}
                                             </div>
-                                            <p className="text-blue-gray-900 font-bold text-lg">No Results Found</p>
-                                            <p className="text-blue-gray-400 text-sm mt-1">Try searching for keywords like patients, billing or specific doctors.</p>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </div>
+                                        ) : !loading && (
+                                            <div className="py-20 text-center">
+                                                <div className="w-16 h-16 bg-blue-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-blue-gray-100">
+                                                    <MagnifyingGlassIcon className="w-8 h-8 text-blue-gray-200" />
+                                                </div>
+                                                <p className="text-blue-gray-900 font-bold text-lg">No Results Found</p>
+                                                <p className="text-blue-gray-400 text-sm mt-1">Try searching for keywords like patients, billing or specific doctors.</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
 
-                        {/* Footer */}
-                        <div className="px-6 py-4 bg-blue-gray-50/50 border-t border-blue-gray-100 flex justify-between items-center text-blue-gray-400">
-                            <div className="flex items-center gap-2">
-                                <span className="text-[11px] font-bold uppercase tracking-widest">MediTrust Search</span>
+                            {/* Footer */}
+                            <div className="px-6 py-4 bg-blue-gray-50/50 border-t border-blue-gray-100 flex justify-between items-center text-blue-gray-400">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[11px] font-bold uppercase tracking-widest">MediTrust Search</span>
+                                </div>
+                                <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-tight">
+                                    <span>↑↓ to navigate</span>
+                                    <span className="w-1 h-1 bg-blue-gray-200 rounded-full"></span>
+                                    <span>Enter to select</span>
+                                </div>
                             </div>
-                            <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-tight">
-                                <span>↑↓ to navigate</span>
-                                <span className="w-1 h-1 bg-blue-gray-200 rounded-full"></span>
-                                <span>Enter to select</span>
-                            </div>
-                        </div>
-                    </motion.div>
-                </div>
-            )}
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
             <style>{`
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
       `}</style>
-        </AnimatePresence>
+        </>
     );
 };
 

@@ -245,7 +245,7 @@ export function ViewModal({
                 <div className="text-center md:text-left flex-1">
                   {/* Finds the first text field to use as the Main Name if specific key logic isn't added */}
                   <Typography variant="h4" color="blue-gray" className="font-bold mb-1">
-                    {data[dataFields.find(f => f.key.includes('name'))?.key || dataFields[0].key]}
+                    {data[dataFields.find(f => f.key.includes('name'))?.key || dataFields[0]?.key] || 'N/A'}
                   </Typography>
                   <div className="flex flex-wrap justify-center md:justify-start gap-2">
                     {/* Render Status badge here if exists */}

@@ -26,6 +26,7 @@ export interface FormField {
   accept?: string;
   multiple?: boolean;
   visible?: boolean;
+  disabled?: boolean;
 }
 
 export interface FormModalProps {
@@ -135,6 +136,7 @@ const CustomSelect = ({
   label,
   required,
   error,
+  disabled,
 }: {
   value: string | number | undefined;
   onChange: (value: string) => void;
@@ -143,6 +145,7 @@ const CustomSelect = ({
   label: string;
   required?: boolean;
   error?: boolean;
+  disabled?: boolean;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const selectRef = useRef<HTMLDivElement>(null);
@@ -166,12 +169,14 @@ const CustomSelect = ({
         {required && <span className="text-red-500 ml-1">*</span>}
       </label>
       <div
-        onClick={() => setIsOpen(!isOpen)}
-        className={`w-full px-3 py-2.5 text-sm bg-white border rounded-lg cursor-pointer flex items-center justify-between transition-all ${error
-          ? "border-red-500"
-          : isOpen
-            ? "border-blue-500 ring-1 ring-blue-500"
-            : "border-blue-gray-200 hover:border-blue-gray-400"
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        className={`w-full px-3 py-2.5 text-sm bg-white border rounded-lg flex items-center justify-between transition-all ${disabled
+          ? "border-blue-gray-100 bg-blue-gray-50 cursor-not-allowed opacity-70"
+          : error
+            ? "border-red-500 cursor-pointer"
+            : isOpen
+              ? "border-blue-500 ring-1 ring-blue-500 cursor-pointer"
+              : "border-blue-gray-200 hover:border-blue-gray-400 cursor-pointer"
           }`}
       >
         <span className={selectedOption ? "text-blue-gray-700" : "text-blue-gray-400"}>
@@ -184,11 +189,11 @@ const CustomSelect = ({
           />
         </div>
       </div>
-      {isOpen && (
+      {isOpen && !disabled && (
         <div className="absolute z-50 w-full mt-1 bg-white border border-blue-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-          {options.map((option) => (
+          {options.map((option, index) => (
             <div
-              key={option.value}
+              key={`${option.value}-${index}`}
               onClick={() => {
                 onChange(option.value);
                 setIsOpen(false);
@@ -451,6 +456,7 @@ export function FormModal({
             label={field.label}
             required={field.required}
             error={hasError}
+            disabled={field.disabled}
           />
         );
       case "icon-picker":

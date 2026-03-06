@@ -22,6 +22,7 @@ interface Appointment {
     reason?: string;
     phone?: string;
     email?: string;
+    patient_id?: string | number;
     original?: any;
 }
 
@@ -50,6 +51,7 @@ export default function Appointments(): JSX.Element {
     const [doctors, setDoctors] = useState<any[]>([]);
     const [departments, setDepartments] = useState<any[]>([]);
     const [services, setServices] = useState<any[]>([]);
+    const [selectedDoctorDeptId, setSelectedDoctorDeptId] = useState<string>("");
 
     // Filter State
     const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
@@ -101,6 +103,7 @@ export default function Appointments(): JSX.Element {
                     consultation_status: appt.consultation_status || "pending",
                     lab_status: appt.lab_status || "not_required",
                     reason: appt.reason,
+                    patient_id: appt.user_id || appt.patient_id || appt.original?.user_id || appt.original?.patient_id,
                     phone: appt.patient_phone || appt.user?.phone,
                     email: appt.patient_email || appt.user?.email,
                     original: appt
@@ -183,6 +186,52 @@ export default function Appointments(): JSX.Element {
             fetchAppointments(1);
         }
     }, [pagination.currentPage, activeFilters, viewMode]);
+
+    // Check for "view" parameter to open details modal automatically (from search)
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const viewId = params.get('view');
+
+        if (viewId) {
+            const appt = appointments.find(a => String(a.id) === String(viewId));
+            if (appt) {
+                setSelectedAppointment(appt);
+                setOpenViewModal(true);
+            } else if (!loading && pagination.totalItems > 0) {
+                // If not in current list but we have a viewId, fetch it specifically
+                const fetchSpecific = async () => {
+                    try {
+                        const response = await apiService.getAppointments(1, { appointment_id: viewId });
+                        if (response?.data?.data?.[0]) {
+                            const raw = response.data.data[0];
+                            const mapped = {
+                                id: raw.id,
+                                patientName: raw.patient_name || raw.user?.name || "Unknown",
+                                doctorName: raw.doctor ? `${raw.doctor.first_name} ${raw.doctor.last_name}` : "Unknown",
+                                department: raw.doctor?.department?.name || "General",
+                                serviceName: raw.service?.name ?? null,
+                                date: raw.appointment_date,
+                                time: raw.appointment_time,
+                                status: raw.status || "pending",
+                                consultation_status: raw.consultation_status || "pending",
+                                lab_status: raw.lab_status || "not_required",
+                                reason: raw.reason,
+                                patient_id: raw.patient_id || raw.user_id,
+                                phone: raw.patient_phone || raw.user?.phone,
+                                email: raw.patient_email || raw.user?.email,
+                                original: raw
+                            };
+                            setSelectedAppointment(mapped as Appointment);
+                            setOpenViewModal(true);
+                        }
+                    } catch (err) {
+                        console.error("Failed to fetch specific appointment for viewing", err);
+                    }
+                };
+                fetchSpecific();
+            }
+        }
+    }, [location.search, appointments.length]);
 
     // Cleanup and dropdown data
     useEffect(() => {
@@ -299,7 +348,39 @@ export default function Appointments(): JSX.Element {
         { key: "reason", label: "Reason", fullWidth: true },
         { key: "phone", label: "Contact Phone" },
         { key: "email", label: "Contact Email" },
-        { key: "status", label: "Status", type: "status" },
+        {
+            key: "consultation_status",
+            label: "Consultation Status",
+            render: (value: any) => {
+                const color = value === 'completed' ? 'green' : 'amber';
+                return (
+                    <span className={`px-2 py-1 rounded-full text-xs font-bold uppercase bg-${color}-50 text-${color}-600 border border-${color}-100`}>
+                        {value || 'pending'}
+                    </span>
+                );
+            }
+        },
+        {
+            key: "lab_status",
+            label: "Lab Test Status",
+            render: (value: any) => {
+                let color = 'gray';
+                if (value === 'completed') color = 'green';
+                if (value === 'pending') color = 'amber';
+                if (value === 'reviewed') color = 'blue';
+                return (
+                    <span className={`px-2 py-1 rounded-full text-xs font-bold uppercase bg-${color}-50 text-${color}-600 border border-${color}-100`}>
+                        {value?.replace('_', ' ') || 'not_required'}
+                    </span>
+                );
+            }
+        },
+        { key: "status", label: "Overall Status", type: "status" },
+        {
+            key: "completed_at",
+            label: "Completed At",
+            render: (value: any) => value ? new Date(value).toLocaleString() : <span className="text-gray-400 italic">Not completed yet</span>
+        },
         {
             key: "prescriptionDetails",
             label: "Prescription Details",
@@ -389,25 +470,67 @@ export default function Appointments(): JSX.Element {
         }
     ];
 
+    // Filter services based on selected department
+    const filteredServices = useMemo(() => {
+        if (!selectedDoctorDeptId) return []; // Force department selection first
+        return services.filter((s: any) =>
+            s.is_active !== false &&
+            String(s.department_id) === String(selectedDoctorDeptId)
+        );
+    }, [services, selectedDoctorDeptId]);
+
+    // Filter doctors based on selected department
+    const filteredDoctors = useMemo(() => {
+        if (!selectedDoctorDeptId) return []; // Force department selection first
+        return doctors.filter((d: any) =>
+            String(d.department_id) === String(selectedDoctorDeptId)
+        );
+    }, [doctors, selectedDoctorDeptId]);
+
+
+
+    // Handle cascading form value changes
+    const handleFormValuesChange = (name: string, value: any, setValues: (values: any) => void) => {
+        if (name === 'patient_id') {
+            // When patient is selected, auto-fill phone and email
+            if (!value) {
+                setValues({ phone: '', email: '' });
+                return;
+            }
+            const patient = patients.find(p => String(p.user_id || p.id) === String(value));
+            if (patient) {
+                setValues({
+                    phone: patient.phone || patient.user?.phone || '',
+                    email: patient.email || patient.user?.email || ''
+                });
+            }
+        } else if (name === 'department_id') {
+            // When department changes, filter doctors & services, reset doctor and service
+            setSelectedDoctorDeptId(value);
+            setValues({ doctor_id: '', service_id: '' });
+        } else if (name === 'doctor_id') {
+            // When doctor is picked, ensure department matches and reset service to avoid mismatch
+            const doctor = doctors.find(d => String(d.id) === String(value));
+            if (doctor && doctor.department_id) {
+                const deptId = doctor.department_id.toString();
+                if (String(selectedDoctorDeptId) !== deptId) {
+                    setSelectedDoctorDeptId(deptId);
+                    setValues({ department_id: deptId, service_id: '' });
+                }
+            }
+        }
+    };
+
     const formFields: FormField[] = useMemo(() => [
         {
-            name: "patientName",
+            name: "patient_id",
             label: "Patient",
             type: "select",
             required: true,
+            placeholder: "Select a registered patient",
             options: patients.map((p) => {
                 const name = p.name || (p.first_name ? `${p.first_name} ${p.last_name}` : p.user?.name) || "Unknown Patient";
-                return { value: name, label: name };
-            }),
-        },
-        {
-            name: "doctor_id",
-            label: "Doctor",
-            type: "select",
-            required: true,
-            options: doctors.map((d) => {
-                const name = (d.first_name && d.last_name) ? `${d.first_name} ${d.last_name}` : (d.name || d.user?.name || "Unknown Doctor");
-                return { value: d.id.toString(), label: name };
+                return { value: (p.user_id || p.id).toString(), label: name };
             }),
         },
         {
@@ -415,25 +538,39 @@ export default function Appointments(): JSX.Element {
             label: "Department",
             type: "select",
             required: true,
+            placeholder: "Select Department",
             options: departments.map((dept) => ({
                 value: dept.id.toString(),
                 label: dept.name
             })),
         },
         {
+            name: "doctor_id",
+            label: "Doctor",
+            type: "select",
+            required: true,
+            placeholder: selectedDoctorDeptId ? "Select Doctor" : "Select Department First",
+            options: filteredDoctors.map((d) => {
+                const name = (d.first_name && d.last_name) ? `${d.first_name} ${d.last_name}` : (d.name || d.user?.name || "Unknown Doctor");
+                return { value: d.id.toString(), label: name };
+            }),
+            disabled: !selectedDoctorDeptId
+        },
+        {
             name: "service_id",
             label: "Service",
             type: "select",
             required: false,
+            placeholder: selectedDoctorDeptId ? "Select Service" : "Select Department First",
             options: [
                 { value: "", label: "No service" },
-                ...services
-                    .filter((s: any) => s.is_active !== false)
+                ...filteredServices
                     .map((s: any) => ({
                         value: s.id.toString(),
                         label: `${s.name} — $${Number(s.price).toFixed(2)}${s.duration ? ` (${s.duration} min)` : ""}`
                     }))
             ],
+            disabled: !selectedDoctorDeptId
         },
         {
             name: "date",
@@ -481,7 +618,7 @@ export default function Appointments(): JSX.Element {
                 { value: "cancelled", label: "Cancelled" },
             ],
         },
-    ], [patients, doctors, departments, services]);
+    ], [patients, filteredDoctors, departments, filteredServices, selectedDoctorDeptId]);
 
     const admissionFields: FormField[] = [
         {
@@ -502,11 +639,15 @@ export default function Appointments(): JSX.Element {
 
     const handleAdd = (): void => {
         setSelectedAppointment(null);
+        setSelectedDoctorDeptId("");
         setOpenModal(true);
     };
 
     const handleEdit = (appointment: Record<string, any>): void => {
         setSelectedAppointment(appointment as Appointment);
+        // Pre-set department from the appointment's doctor
+        const deptId = appointment.original?.doctor?.department_id?.toString() || appointment.original?.department_id?.toString() || '';
+        setSelectedDoctorDeptId(deptId);
         setOpenModal(true);
     };
 
@@ -630,17 +771,22 @@ export default function Appointments(): JSX.Element {
 
     const handleSubmit = async (data: Record<string, any>): Promise<void> => {
         try {
+            // Resolve patient name from ID for the backend
+            const selectedPatient = patients.find(p => String(p.user_id || p.id) === String(data.patient_id));
+            const patientName = selectedPatient ? (selectedPatient.name || `${selectedPatient.first_name || ''} ${selectedPatient.last_name || ''}`.trim()) : (data.patient_name || "Unknown Patient");
+
             const payload: Record<string, any> = {
-                patient_name: data.patientName,
+                user_id: data.patient_id,
+                patient_name: patientName,
                 doctor_id: data.doctor_id,
+                service_id: data.service_id || null,
                 appointment_date: data.date,
                 appointment_time: data.time,
-                reason: data.reason,
-                status: data.status,
+                reason: data.reason || '',
                 patient_phone: data.phone,
                 patient_email: data.email,
+                status: data.status,
             };
-            if (data.service_id) payload.service_id = data.service_id;
 
             let response;
             if (selectedAppointment) {
@@ -698,21 +844,32 @@ export default function Appointments(): JSX.Element {
         }
     };
 
-    const prepareInitialData = (appointment: Appointment | null): Record<string, any> => {
+    const prepareInitialData = (appointment: any | null): Record<string, any> => {
         if (!appointment) return { status: 'confirmed', time: '09:00 AM' };
+
+        // Attempt to find the user ID (patient ID in frontend context)
+        let userId = appointment.patient_id || appointment.user_id || appointment.original?.user_id || appointment.original?.patient_id;
+        if (!userId && appointment.patientName) {
+            const found = patients.find(p => (p.name || `${p.first_name} ${p.last_name}`) === appointment.patientName);
+            if (found) userId = found.user_id || found.id;
+        }
 
         return {
             ...appointment,
-            patientName: appointment.patientName,
-            doctor_id: appointment.original?.doctor_id?.toString(),
-            department_id: appointment.original?.doctor?.department_id?.toString() || appointment.original?.department_id?.toString(),
-            service_id: appointment.original?.service_id?.toString() || appointment.original?.service?.id?.toString() || "",
-            date: appointment.date,
-            time: appointment.time,
-            phone: appointment.phone,
-            email: appointment.email,
+            patient_id: userId?.toString(),
+            doctor_id: (appointment.doctor_id || appointment.original?.doctor_id)?.toString(),
+            department_id: (appointment.original?.doctor?.department_id || appointment.original?.department_id)?.toString(),
+            service_id: (appointment.service_id || appointment.original?.service_id || appointment.original?.service?.id)?.toString() || "",
+            date: appointment.date || appointment.appointment_date,
+            time: appointment.time || appointment.appointment_time,
+            phone: appointment.phone || appointment.patient_phone || appointment.original?.patient_phone,
+            email: appointment.email || appointment.patient_email || appointment.original?.patient_email,
+            reason: appointment.reason || appointment.original?.reason || ""
         };
     };
+
+    const initialData = useMemo(() => prepareInitialData(selectedAppointment), [selectedAppointment]);
+    const admissionInitialData = useMemo(() => ({ admission_date: new Date().toISOString().split('T')[0] }), []);
 
     return (
         <div className="mt-12 mb-8">
@@ -857,12 +1014,14 @@ export default function Appointments(): JSX.Element {
                 onClose={() => {
                     setOpenModal(false);
                     setSelectedAppointment(null);
+                    setSelectedDoctorDeptId("");
                 }}
                 title={selectedAppointment ? "Edit Appointment" : "New Appointment"}
                 formFields={formFields}
-                initialData={prepareInitialData(selectedAppointment)}
+                initialData={initialData}
                 onSubmit={handleSubmit}
                 submitLabel={selectedAppointment ? "Update Appointment" : "Create Appointment"}
+                onValuesChange={handleFormValuesChange}
             />
 
             {/* Admission Recommendation Modal */}
@@ -874,7 +1033,7 @@ export default function Appointments(): JSX.Element {
                 }}
                 title="Recommend Admission"
                 formFields={admissionFields}
-                initialData={{ admission_date: new Date().toISOString().split('T')[0] }}
+                initialData={admissionInitialData}
                 onSubmit={handleAdmissionSubmit}
                 submitLabel="Submit Recommendation"
             />
