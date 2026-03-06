@@ -290,7 +290,7 @@ export default function Doctors(): JSX.Element {
         name: "password",
         label: "Password",
         type: "password",
-        required: !selectedDoctor,
+        required: selectedDoctor ? false : true,
         placeholder: "Minimum 8 characters",
         error: formErrors.password
       },
@@ -425,6 +425,7 @@ export default function Doctors(): JSX.Element {
         name: "status",
         label: "Status",
         type: "select",
+        required: selectedDoctor ? false : true,
         placeholder: "Select Status",
         options: [
           { value: "active", label: "Active" },
@@ -487,6 +488,24 @@ export default function Doctors(): JSX.Element {
     // Fields to exclude from form submission
     const excludeFields = ['id', 'doctor_id', 'is_available', 'created_at', 'updated_at', 'remember_token', 'user'];
 
+    // Helper function to convert 12-hour time to 24-hour format
+    const convertTo24Hour = (timeStr: string): string => {
+      if (!timeStr || !timeStr.includes(':')) return '';
+
+      // Already in 24-hour format
+      if (timeStr.includes('AM') || timeStr.includes('PM')) {
+        const [time, period] = timeStr.split(' ');
+        const [hours, minutes] = time.split(':');
+        let hour = parseInt(hours, 10);
+
+        if (period === 'PM' && hour !== 12) hour += 12;
+        if (period === 'AM' && hour === 12) hour = 0;
+
+        return `${hour.toString().padStart(2, '0')}:${minutes}`;
+      }
+      return timeStr;
+    };
+
     Object.keys(data).forEach(key => {
       // Skip excluded fields
       if (excludeFields.includes(key)) return;
@@ -495,9 +514,19 @@ export default function Doctors(): JSX.Element {
       if (data[key] === undefined || data[key] === null) return;
 
       if (key === "profile_picture") {
+        // Debug: log the type and value of profile_picture
+        console.log("Profile picture value:", typeof data[key], data[key] instanceof File ? "File:" + data[key].name : data[key]);
+
+        // Only append the file if it's actually a File object
+        // Don't send string paths - the backend keeps the old one if no new file is uploaded
         if (data[key] instanceof File) {
+          console.log("Appending profile picture file:", data[key].name, "type:", data[key].type);
           formData.append(key, data[key]);
+        } else if (typeof data[key] === 'string') {
+          // If it's a string path, don't append it - this would cause the temp path to be stored
+          console.log("Skipping profile_picture string value:", data[key]);
         }
+        return;
       } else if (key === "working_days" && typeof data[key] === "string") {
         const days = data[key].split(",").map((day: string) => day.trim().toLowerCase()).filter(Boolean);
         days.forEach((day: string) => {
@@ -516,6 +545,18 @@ export default function Doctors(): JSX.Element {
         data[key].forEach((lang: string) => {
           formData.append("languages[]", lang);
         });
+      } else if (key === "working_hours_start") {
+        // Convert 12-hour format to 24-hour format for backend
+        const timeValue = convertTo24Hour(data[key]);
+        if (timeValue) {
+          formData.append(key, timeValue);
+        }
+      } else if (key === "working_hours_end") {
+        // Convert 12-hour format to 24-hour format for backend
+        const timeValue = convertTo24Hour(data[key]);
+        if (timeValue) {
+          formData.append(key, timeValue);
+        }
       } else if (typeof data[key] === "boolean") {
         formData.append(key, data[key] ? "1" : "0");
       } else if (data[key] !== "") {
@@ -523,10 +564,8 @@ export default function Doctors(): JSX.Element {
       }
     });
 
-    // For update, include _method=PUT
-    if (selectedDoctor) {
-      formData.append('_method', 'PUT');
-    }
+    // For update, the _method is already added in apiService.updateDoctor
+    // So we don't add it here to avoid duplicates
 
     return formData;
   };
@@ -589,6 +628,23 @@ export default function Doctors(): JSX.Element {
   const prepareInitialData = (doctor: Doctor | null): Record<string, any> => {
     if (!doctor) return {};
 
+    // Helper function to convert 24-hour time to 12-hour format for TimePicker
+    const convertTo12Hour = (timeStr: string): string => {
+      if (!timeStr || !timeStr.includes(':')) return '';
+
+      // Already in 12-hour format
+      if (timeStr.includes('AM') || timeStr.includes('PM')) return timeStr;
+
+      const [hours, minutes] = timeStr.split(':');
+      let hour = parseInt(hours, 10);
+      const period = hour >= 12 ? 'PM' : 'AM';
+
+      if (hour > 12) hour -= 12;
+      if (hour === 0) hour = 12;
+
+      return `${hour.toString().padStart(2, '0')}:${minutes} ${period}`;
+    };
+
     return {
       ...doctor,
       email: doctor.user?.email || "",
@@ -599,6 +655,11 @@ export default function Doctors(): JSX.Element {
       // Convert date formats for input fields
       date_of_birth: doctor.date_of_birth ? doctor.date_of_birth.split('T')[0] : "",
       joining_date: doctor.joining_date ? doctor.joining_date.split('T')[0] : "",
+      // Convert 24-hour time format to 12-hour format for TimePicker
+      working_hours_start: convertTo12Hour(doctor.working_hours_start || ''),
+      working_hours_end: convertTo12Hour(doctor.working_hours_end || ''),
+      // Ensure status has a default value if not set
+      status: doctor.status || "active",
     };
   };
 

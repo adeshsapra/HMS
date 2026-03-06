@@ -97,6 +97,17 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
         }
     }, []);
 
+    const resolveActionUrl = useCallback((actionUrl?: string, category?: string): string => {
+        if (actionUrl) {
+            if (actionUrl.startsWith('/dashboard/doctors/')) return '/dashboard/doctors';
+            if (actionUrl.startsWith('/dashboard/staff/')) return '/dashboard/staff';
+            return actionUrl;
+        }
+        if (category === 'doctor') return '/dashboard/doctors';
+        if (category === 'staff') return '/dashboard/staff';
+        return '/dashboard/notifications';
+    }, []);
+
     const showBrowserNotification = useCallback((notification: Notification) => {
         if (!browserNotificationEnabled.current || !('Notification' in window)) return;
 
@@ -112,12 +123,10 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
             notif.onclick = () => {
                 window.focus();
                 notif.close();
-                if (notification.data.action_url) {
-                    window.location.href = notification.data.action_url;
-                }
+                window.location.href = resolveActionUrl(notification.data?.action_url, notification.data?.category);
             };
         }
-    }, []);
+    }, [resolveActionUrl]);
 
     const requestBrowserPermission = useCallback(async (): Promise<boolean> => {
         if (!('Notification' in window)) {

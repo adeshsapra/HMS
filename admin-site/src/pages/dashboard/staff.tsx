@@ -76,6 +76,8 @@ export default function Staff(): JSX.Element {
   const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
   const [openTypeModal, setOpenTypeModal] = useState<boolean>(false);
   const [typeFormModal, setTypeFormModal] = useState<boolean>(false);
+  const [openTypeDeleteModal, setOpenTypeDeleteModal] = useState<boolean>(false);
+  const [typeDeleteLoading, setTypeDeleteLoading] = useState<boolean>(false);
   const [selectedType, setSelectedType] = useState<any>(null);
   const [formLoading, setFormLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string[]>>({});
@@ -410,6 +412,28 @@ export default function Staff(): JSX.Element {
   const handleView = (staffMember: StaffMember): void => {
     setSelectedStaff(staffMember);
     setOpenViewModal(true);
+  };
+
+  const handleTypeDeleteRequest = (type: any): void => {
+    setSelectedType(type);
+    setOpenTypeDeleteModal(true);
+  };
+
+  const confirmTypeDelete = async (): Promise<void> => {
+    if (!selectedType?.id) return;
+
+    setTypeDeleteLoading(true);
+    try {
+      await apiService.deleteStaffType(selectedType.id);
+      showToast("Staff type deleted successfully", "success");
+      setOpenTypeDeleteModal(false);
+      setSelectedType(null);
+      loadStaffTypes();
+    } catch (e: any) {
+      showToast(e.message || "Failed to delete staff type", "error");
+    } finally {
+      setTypeDeleteLoading(false);
+    }
   };
 
   const convertTo24Hour = (timeStr: string): string | null => {
@@ -792,17 +816,7 @@ export default function Staff(): JSX.Element {
                         <IconButton variant="text" color="blue" size="sm" onClick={() => { setSelectedType(type); setTypeFormModal(true); }}>
                           <PencilSquareIcon className="h-4 w-4" />
                         </IconButton>
-                        <IconButton variant="text" color="red" size="sm" onClick={async () => {
-                          if (window.confirm("Delete this type?")) {
-                            try {
-                              await apiService.deleteStaffType(type.id);
-                              showToast("Type deleted", "success");
-                              loadStaffTypes();
-                            } catch (e: any) {
-                              showToast(e.message, "error");
-                            }
-                          }
-                        }}>
+                        <IconButton variant="text" color="red" size="sm" onClick={() => handleTypeDeleteRequest(type)}>
                           <TrashIcon className="h-4 w-4" />
                         </IconButton>
                       </td>
@@ -817,7 +831,10 @@ export default function Staff(): JSX.Element {
 
       <FormModal
         open={typeFormModal}
-        onClose={() => setTypeFormModal(false)}
+        onClose={() => {
+          setTypeFormModal(false);
+          setSelectedType(null);
+        }}
         title={selectedType ? "Edit Staff Type" : "Add Staff Type"}
         formFields={[
           { name: "name", label: "Type Name", type: "text", required: true, placeholder: "e.g. Nursing" },
@@ -831,10 +848,24 @@ export default function Staff(): JSX.Element {
             showToast("Staff type saved", "success");
             loadStaffTypes();
             setTypeFormModal(false);
+            setSelectedType(null);
           } catch (e: any) {
             showToast(e.message, "error");
           }
         }}
+      />
+
+      <DeleteConfirmModal
+        open={openTypeDeleteModal}
+        onClose={() => {
+          setOpenTypeDeleteModal(false);
+          setSelectedType(null);
+        }}
+        onConfirm={confirmTypeDelete}
+        loading={typeDeleteLoading}
+        title="Delete Staff Type"
+        message="Are you sure you want to delete this staff type?"
+        itemName={selectedType?.name || ""}
       />
     </div >
   );
