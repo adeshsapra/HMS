@@ -134,7 +134,11 @@ function App() {
 
               {/* Home Care Routes */}
               <Route path="/home-care" element={<HomeCareLanding />} />
-              <Route path="/home-care/booking" element={<BookingWizard />} />
+              <Route path="/home-care/booking" element={
+                <ProtectedRoute>
+                  <BookingWizard />
+                </ProtectedRoute>
+              } />
 
               {/* Health Plan Subscription */}
               <Route path="/health-plans/:id" element={

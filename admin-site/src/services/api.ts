@@ -1810,6 +1810,10 @@ class ApiService {
     async sendEmail(data: { to: string; subject: string; body: string; cc?: string; bcc?: string }) {
         return this.post<any>('/email-templates/send', data);
     }
+
+    async getDashboardOverview(range: string = 'month') {
+        return this.get<any>(`/reports/overview?range=${range}`);
+    }
 }
 
 

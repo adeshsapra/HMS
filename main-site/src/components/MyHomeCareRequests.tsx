@@ -9,9 +9,17 @@ interface HomeCareRequest {
     phone: string;
     address: string;
     preferred_date: string;
-    status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+    time?: string;
+    urgency?: string;
+    status: 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled';
     services_requested: string[] | string | null;
     service_id?: number;
+    service?: {
+        id: number;
+        title: string;
+        price?: string;
+        icon?: string;
+    };
     bill?: {
         id: number;
         bill_number: string;
@@ -64,10 +72,18 @@ const MyHomeCareRequests = () => {
         const statuses: any = {
             'pending': 'bg-warning text-dark',
             'confirmed': 'bg-primary text-white',
+            'in_progress': 'bg-info text-white',
             'completed': 'bg-success text-white',
             'cancelled': 'bg-danger text-white'
         };
-        return <span className={`badge ${statuses[status] || 'bg-secondary'} rounded-pill`}>{status.toUpperCase()}</span>;
+        const labels: any = {
+            'pending': 'PENDING',
+            'confirmed': 'CONFIRMED',
+            'in_progress': 'IN PROGRESS',
+            'completed': 'COMPLETED',
+            'cancelled': 'CANCELLED'
+        };
+        return <span className={`badge ${statuses[status] || 'bg-secondary'} rounded-pill`}>{labels[status] || status.toUpperCase()}</span>;
     };
 
     const CountdownTimer = ({ targetDate }: { targetDate: string }) => {
@@ -244,7 +260,7 @@ const MyHomeCareRequests = () => {
                                                         <span className="text-muted small fw-medium">#{request.id}</span>
                                                     </div>
                                                     <h5 className="fw-bold text-dark mb-1">
-                                                        {getServiceNames(request.services_requested)[0]}
+                                                        {request.service?.title || getServiceNames(request.services_requested)[0]}
                                                     </h5>
                                                     {getServiceNames(request.services_requested).length > 1 && (
                                                         <span className="text-muted small">
@@ -305,8 +321,13 @@ const MyHomeCareRequests = () => {
                                                                     {request.preferred_date ? new Date(request.preferred_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'Pending'}
                                                                 </div>
                                                                 <small className="text-muted">
-                                                                    {request.preferred_date ? new Date(request.preferred_date).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) : '--:--'}
+                                                                    {request.time || (request.preferred_date ? new Date(request.preferred_date).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) : '--:--')}
                                                                 </small>
+                                                                {request.urgency === 'urgent' && (
+                                                                    <span className="badge bg-warning text-dark rounded-pill ms-2" style={{ fontSize: '0.6rem' }}>
+                                                                        <i className="bi bi-lightning-charge-fill me-1"></i>Urgent
+                                                                    </span>
+                                                                )}
                                                             </div>
                                                         </div>
                                                     </div>

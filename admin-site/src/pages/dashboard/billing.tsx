@@ -71,6 +71,7 @@ interface Payment {
     payment_mode: string;
     payment_status: string;
     payment_date: string | null;
+    created_at: string;
     collector?: {
         name: string;
     };
@@ -574,6 +575,7 @@ const Billing = () => {
                                                         <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Reference</th>
                                                         <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
                                                         <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Method</th>
+                                                        <th className="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">Status</th>
                                                         <th className="p-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</th>
                                                     </tr>
                                                 </thead>
@@ -582,16 +584,25 @@ const Billing = () => {
                                                         <tr key={pay.id} className="hover:bg-gray-50/50 transition-colors">
                                                             <td className="p-4">
                                                                 <div className="font-medium text-gray-900 text-sm">{pay.payment_number}</div>
-                                                                <div className="text-xs text-gray-500">Col: {pay.collector?.name}</div>
+                                                                <div className="text-xs text-gray-500">Col: {pay.collector?.name || 'System'}</div>
                                                             </td>
-                                                            <td className="p-4 text-sm text-gray-600">{formatDate(pay.payment_date)}</td>
+                                                            <td className="p-4 text-sm text-gray-600">{formatDate(pay.payment_date || pay.created_at)}</td>
                                                             <td className="p-4">
                                                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 capitalize">
                                                                     {pay.payment_mode}
                                                                 </span>
                                                             </td>
-                                                            <td className="p-4 text-right font-medium text-green-600">
-                                                                + {formatCurrency(pay.amount)}
+                                                            <td className="p-4 text-center">
+                                                                <Chip
+                                                                    size="sm"
+                                                                    variant="ghost"
+                                                                    value={pay.payment_status}
+                                                                    color={pay.payment_status === 'completed' ? 'green' : pay.payment_status === 'pending' ? 'blue' : 'red'}
+                                                                    className="rounded-full px-2"
+                                                                />
+                                                            </td>
+                                                            <td className={`p-4 text-right font-medium ${pay.payment_status === 'completed' ? 'text-green-600' : 'text-gray-400'}`}>
+                                                                {pay.payment_status === 'completed' ? '+' : ''} {formatCurrency(pay.amount)}
                                                             </td>
                                                         </tr>
                                                     ))}

@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import AOS from "aos";
 import "aos/dist/aos.css";
 import { useAuth } from "../context/AuthContext";
 
 const SignIn = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
+
+  const from = location.state?.from?.pathname || "/";
 
   const [formData, setFormData] = useState({
     email: "",
@@ -86,7 +89,7 @@ const SignIn = () => {
 
     try {
       await login(formData.email, formData.password, rememberMe);
-      navigate("/");
+      navigate(from, { replace: true });
     } catch (err: any) {
       const newErrors: typeof errors = {};
 

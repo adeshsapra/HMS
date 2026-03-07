@@ -113,10 +113,18 @@ export const homeCareAPI = {
         email?: string;
         address?: string;
         preferred_date?: string;
+        time?: string;
+        age?: string;
+        gender?: string;
+        relation?: string;
+        emergency_phone?: string;
+        notes?: string;
+        professional_id?: string;
+        urgency?: string;
         services_requested?: number[];
         service_id?: number;
         user_id?: number | string;
-    }) => api.post('/public/home-care/requests', data),
+    }) => api.post('/patient-profile/home-care-requests', data),
 };
 
 export const profileAPI = {
