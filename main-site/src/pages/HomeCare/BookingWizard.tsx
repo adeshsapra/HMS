@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import "./HomeCare.css";
 import { homeCareAPI, ApiService } from "../../services/api";
+import authService from "../../services/authService";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import PageHero from "../../components/PageHero";
 
@@ -28,10 +29,11 @@ const BookingWizard = () => {
 
   const [loading, setLoading] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState("card");
+  const [paymentMethod, setPaymentMethod] = useState("paypal");
   const [bookingReference, setBookingReference] = useState<string>("");
   const [createdBill, setCreatedBill] = useState<any>(null);
   const [paypalClientId, setPaypalClientId] = useState<string | null>(null);
+  const [bookingError, setBookingError] = useState<string | null>(null);
 
   // Data from API
   const [homeCareServices, setHomeCareServices] = useState<any[]>([]);
@@ -96,6 +98,18 @@ const BookingWizard = () => {
     initialized.current = true;
 
     fetchData();
+  }, []);
+
+  useEffect(() => {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      setBookingData((prev) => ({
+        ...prev,
+        patientName: user.name || (user.first_name ? `${user.first_name} ${user.last_name || ""}` : ""),
+        phone: user.phone || "",
+      }));
+    }
   }, []);
 
   const fetchData = async () => {
@@ -166,16 +180,24 @@ const BookingWizard = () => {
 
   const handleConfirmBooking = async () => {
     setLoading(true);
+    setBookingError(null);
     try {
-      const userStr = localStorage.getItem('user');
-      const user = userStr ? JSON.parse(userStr) : {};
+      const user = authService.getUser();
 
       const payload = {
         name: bookingData.patientName,
         phone: bookingData.phone,
         address: bookingData.address,
         preferred_date: bookingData.date,
-        user_id: user.id || undefined,
+        time: bookingData.time,
+        age: bookingData.age || undefined,
+        gender: bookingData.gender || undefined,
+        relation: bookingData.relation || undefined,
+        emergency_phone: bookingData.emergencyPhone || undefined,
+        notes: bookingData.notes || undefined,
+        professional_id: bookingData.professionalId || undefined,
+        urgency: bookingData.urgency,
+        user_id: user?.id || undefined,
         service_id: bookingData.serviceId || undefined
       };
 
@@ -186,7 +208,10 @@ const BookingWizard = () => {
         const ref = `HC-${Math.floor(100000 + Math.random() * 900000)}`;
         setBookingReference(ref);
 
-        if (response.data.bill) {
+        // Check if service is free
+        const serviceAmount = selectedService?.price ? parseFloat(selectedService.price.replace(/[^0-9.]/g, "")) : 0;
+
+        if (response.data.bill && serviceAmount > 0) {
           setCreatedBill(response.data.bill);
           // Fetch PayPal Config
           try {
@@ -198,16 +223,19 @@ const BookingWizard = () => {
             console.error("PayPal config error", e);
           }
         } else {
-          // Confirm immediately if no bill (e.g. price 0)
+          // Free service or no bill - auto-confirm
           setConfirmed(true);
         }
 
         setStep(6);
         window.scrollTo(0, 0);
+      } else {
+        setBookingError(response.data.message || "Failed to submit booking request.");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Booking Error", error);
-      alert("Failed to submit booking request. Please try again.");
+      const errorMsg = error?.response?.data?.message || "Failed to submit booking request. Please try again.";
+      setBookingError(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -569,7 +597,9 @@ const BookingWizard = () => {
       }</span>
                 </div>
                 <div style="text-align: center; margin-top: 15px;">
-                    <span class="status-badge">Paid Successfully</span>
+                    <span class="status-badge" style="background: ${selectedService?.price && parseFloat(selectedService.price.replace(/[^0-9.]/g, "")) > 0 ? "#10b981" : "#0ea5e9"}">
+                        ${selectedService?.price && parseFloat(selectedService.price.replace(/[^0-9.]/g, "")) > 0 ? "Paid Successfully" : "Service Confirmed"}
+                    </span>
                 </div>
             </div>
         </div>
@@ -600,12 +630,43 @@ const BookingWizard = () => {
     URL.revokeObjectURL(url);
   };
 
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const checkUser = () => {
+      const storedUser = authService.getUser();
+      setUser(storedUser);
+    };
+
+    checkUser();
+    // Also listen for storage changes in other tabs
+    window.addEventListener('storage', checkUser);
+    return () => window.removeEventListener('storage', checkUser);
+  }, []);
+
+  // Auto-fill patient info from user profile if available
+  useEffect(() => {
+    if (user && !bookingData.patientName) {
+      setBookingData(prev => ({
+        ...prev,
+        patientName: user.name || (user.first_name ? `${user.first_name} ${user.last_name || ""}` : ""),
+        phone: user.phone || prev.phone,
+        address: user.address || prev.address
+      }));
+    }
+  }, [user]);
+
   const selectedService = homeCareServices.find(
     (s) => s.id === bookingData.serviceId
   );
-  const selectedProfessional = homeCareProfessionals.find(
-    (p) => p.id.toString() === bookingData.professionalId
-  );
+  const selectedProfessional = bookingData.professionalId
+    ? homeCareProfessionals.find(
+      (p) => p.id.toString() === bookingData.professionalId.toString()
+    )
+    : null;
+
+  // Helper to check if service is free
+  const isServiceFree = !selectedService?.price || parseFloat(selectedService.price.replace(/[^0-9.]/g, "")) === 0;
 
   if (confirmed) {
     const bookingRef =
@@ -1406,6 +1467,60 @@ const BookingWizard = () => {
                         </div>
                       </div>
                     </div>
+
+                    {/* Urgency Toggle */}
+                    <div className="p-3 p-md-4 rounded-4 border bg-white shadow-sm animate-fade-in">
+                      <label className="booking-label fw-bold mb-3 d-flex align-items-center">
+                        <i className="bi bi-exclamation-triangle me-2 text-warning"></i>
+                        Visit Urgency
+                      </label>
+                      <div className="row g-2">
+                        <div className="col-6">
+                          <div
+                            className={`p-3 border rounded-3 text-center cursor-pointer transition-all ${bookingData.urgency === "routine"
+                              ? "border-primary bg-light shadow-sm"
+                              : ""
+                              }`}
+                            onClick={() =>
+                              setBookingData({ ...bookingData, urgency: "routine" })
+                            }
+                            style={{
+                              cursor: "pointer",
+                              borderColor: bookingData.urgency === "routine" ? "var(--accent-color)" : "#dee2e6",
+                            }}
+                          >
+                            <i className="bi bi-calendar-check d-block mb-2 fs-4 text-primary"></i>
+                            <h6 className="fw-bold mb-1" style={{ fontSize: "0.9rem" }}>Routine</h6>
+                            <small className="text-muted" style={{ fontSize: "0.75rem" }}>Standard scheduled visit</small>
+                            {bookingData.urgency === "routine" && (
+                              <i className="bi bi-check-circle-fill d-block mt-2 text-primary"></i>
+                            )}
+                          </div>
+                        </div>
+                        <div className="col-6">
+                          <div
+                            className={`p-3 border rounded-3 text-center cursor-pointer transition-all ${bookingData.urgency === "urgent"
+                              ? "border-warning bg-warning bg-opacity-10 shadow-sm"
+                              : ""
+                              }`}
+                            onClick={() =>
+                              setBookingData({ ...bookingData, urgency: "urgent" })
+                            }
+                            style={{
+                              cursor: "pointer",
+                              borderColor: bookingData.urgency === "urgent" ? "#ffc107" : "#dee2e6",
+                            }}
+                          >
+                            <i className="bi bi-lightning-charge-fill d-block mb-2 fs-4 text-warning"></i>
+                            <h6 className="fw-bold mb-1" style={{ fontSize: "0.9rem" }}>Urgent</h6>
+                            <small className="text-muted" style={{ fontSize: "0.75rem" }}>Priority same-day care</small>
+                            {bookingData.urgency === "urgent" && (
+                              <i className="bi bi-check-circle-fill d-block mt-2 text-warning"></i>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 )}
 
@@ -1547,8 +1662,61 @@ const BookingWizard = () => {
                             </div>
                           </div>
                         </div>
+
+                        {/* Urgency Card */}
+                        <div className="col-md-6">
+                          <div className="review-card-item h-100">
+                            <div className="review-card-header">
+                              <i className={`bi ${bookingData.urgency === 'urgent' ? 'bi-lightning-charge-fill' : 'bi-clock'}`}></i>
+                              <span>Urgency</span>
+                            </div>
+                            <div className="review-card-body">
+                              <span className={`badge ${bookingData.urgency === 'urgent' ? 'bg-warning text-dark' : 'bg-primary'} rounded-pill px-3 py-2`}>
+                                {bookingData.urgency === 'urgent' ? '⚡ Urgent' : '📅 Routine'}
+                              </span>
+                              <p className="small text-muted mt-2 mb-0">
+                                {bookingData.urgency === 'urgent' ? 'Priority same-day care requested' : 'Standard scheduled visit'}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Price Summary Card */}
+                        <div className="col-md-6">
+                          <div className="review-card-item h-100">
+                            <div className="review-card-header">
+                              <i className="bi bi-receipt"></i>
+                              <span>Estimated Cost</span>
+                            </div>
+                            <div className="review-card-body">
+                              <h4 className="fw-bold text-primary mb-1">
+                                {selectedService?.price || "Free"}
+                              </h4>
+                              <p className="small text-muted mb-0">
+                                {isServiceFree ? 'No payment required' : 'Payment on next step'}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
+
+                    {/* Error Display */}
+                    {bookingError && (
+                      <div className="alert alert-danger mt-3 d-flex align-items-center gap-2 rounded-3">
+                        <i className="bi bi-exclamation-circle-fill fs-5"></i>
+                        <div className="flex-grow-1">
+                          <strong>Booking Error:</strong> {bookingError}
+                        </div>
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-outline-danger rounded-pill"
+                          onClick={() => setBookingError(null)}
+                        >
+                          Dismiss
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </form>
@@ -1575,8 +1743,6 @@ const BookingWizard = () => {
                       (step === 4 &&
                         (!bookingData.patientName ||
                           !bookingData.address ||
-                          !bookingData.age ||
-                          !bookingData.gender ||
                           !bookingData.phone))
                     }
                   >
@@ -1589,7 +1755,16 @@ const BookingWizard = () => {
                     onClick={handleConfirmBooking}
                     disabled={loading}
                   >
-                    Proceed to Payment
+                    {loading ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                        Processing...
+                      </>
+                    ) : isServiceFree ? (
+                      "Confirm Booking"
+                    ) : (
+                      "Proceed to Payment"
+                    )}
                   </button>
                 )}
               </div>
@@ -1634,9 +1809,9 @@ const BookingWizard = () => {
                         <div className="d-flex justify-content-between align-items-end">
                           <div>
                             <span className="d-block text-muted small mb-1">Total Payable</span>
-                            <h2 className="mb-0 fw-bold text-primary display-6">{selectedService?.price.split(" / ")[0]}</h2>
+                            <h2 className="mb-0 fw-bold text-primary display-6">{selectedService?.price ? selectedService.price.split(" / ")[0] : "Free"}</h2>
                           </div>
-                          <span className="text-muted small mb-2">/ {selectedService?.price.split(" / ")[1]}</span>
+                          <span className="text-muted small mb-2">{selectedService?.price?.includes(" / ") ? "/ " + selectedService.price.split(" / ")[1] : ""}</span>
                         </div>
                       </div>
 
@@ -1680,36 +1855,8 @@ const BookingWizard = () => {
                     </div>
 
                     <div className="row g-2 g-md-3 mb-3 mb-md-4">
-                      {/* Card Option */}
-                      <div className="col-6 col-md-3">
-                        <div
-                          className={`payment-method-chip p-2 p-md-3 rounded-4 border text-center cursor-pointer transition-all h-100 d-flex flex-column justify-content-center align-items-center ${paymentMethod === "card"
-                            ? "active shadow bg-primary border-primary text-white"
-                            : "bg-white hover:bg-light"
-                            }`}
-                          onClick={() => setPaymentMethod("card")}
-                        >
-                          <i className="bi bi-credit-card-2-back fs-4 mb-2"></i>
-                          <span className="fw-bold small lh-1">Cards</span>
-                        </div>
-                      </div>
-
-                      {/* UPI Option */}
-                      <div className="col-6 col-md-3">
-                        <div
-                          className={`payment-method-chip p-2 p-md-3 rounded-4 border text-center cursor-pointer transition-all h-100 d-flex flex-column justify-content-center align-items-center ${paymentMethod === "upi"
-                            ? "active shadow bg-primary border-primary text-white"
-                            : "bg-white hover:bg-light"
-                            }`}
-                          onClick={() => setPaymentMethod("upi")}
-                        >
-                          <i className="bi bi-qr-code fs-4 mb-2"></i>
-                          <span className="fw-bold small lh-1">UPI QR</span>
-                        </div>
-                      </div>
-
                       {/* PayPal Option */}
-                      <div className="col-6 col-md-3">
+                      <div className="col-12 col-md-6 mb-3 mb-md-0">
                         <div
                           className={`payment-method-chip p-2 p-md-3 rounded-4 border text-center cursor-pointer transition-all h-100 d-flex flex-column justify-content-center align-items-center ${paymentMethod === "paypal"
                             ? "active shadow bg-primary border-primary text-white"
@@ -1723,7 +1870,7 @@ const BookingWizard = () => {
                       </div>
 
                       {/* Razorpay Option */}
-                      <div className="col-6 col-md-3">
+                      <div className="col-12 col-md-6">
                         <div
                           className={`payment-method-chip p-2 p-md-3 rounded-4 border text-center cursor-pointer transition-all h-100 d-flex flex-column justify-content-center align-items-center ${paymentMethod === "razorpay"
                             ? "active shadow bg-primary border-primary text-white"
@@ -1822,63 +1969,6 @@ const BookingWizard = () => {
                             <i className="bi bi-info-circle-fill me-2"></i>
                             Please select another payment method for now.
                           </div>
-                        </div>
-                      )}
-
-                      {/* Card Logic (Original UI) */}
-                      {paymentMethod === 'card' && (
-                        <div className="row g-3 animate-fade-in p-2">
-                          <div className="col-12">
-                            <label className="booking-label small fw-bold text-muted mb-2">Cardholder Name</label>
-                            <input type="text" className="booking-input" placeholder="Name as on card" required />
-                          </div>
-                          <div className="col-12">
-                            <label className="booking-label small fw-bold text-muted mb-2">Card Number</label>
-                            <div className="position-relative">
-                              <input type="text" className="booking-input pe-5" placeholder="0000 0000 0000 0000" required />
-                              <i className="bi bi-credit-card position-absolute top-50 end-0 translate-middle-y me-3 text-muted"></i>
-                            </div>
-                          </div>
-                          <div className="col-6">
-                            <label className="booking-label small fw-bold text-muted mb-2">Expiry Date</label>
-                            <input type="text" className="booking-input" placeholder="MM/YY" required />
-                          </div>
-                          <div className="col-6">
-                            <label className="booking-label small fw-bold text-muted mb-2">CVV</label>
-                            <input type="password" className="booking-input" placeholder="***" required />
-                          </div>
-                          <div className="col-12 mt-4">
-                            <button className="btn btn-primary w-100 py-3 rounded-pill fw-bold shadow" onClick={() => {
-                              setLoading(true);
-                              setTimeout(() => { setLoading(false); setConfirmed(true); }, 1500);
-                            }}>
-                              Pay {selectedService?.price} Securely
-                            </button>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* UPI Logic (Original UI) */}
-                      {paymentMethod === 'upi' && (
-                        <div className="text-center animate-fade-in py-3">
-                          <div className="qr-luminous-container p-3 bg-white d-inline-block rounded-4 shadow-lg border border-primary border-opacity-10 mb-4 scale-up">
-                            <img
-                              src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=adeshsapra@okicici&pn=HMS%20Medical%20Services&cu=INR&am=${selectedService?.price ? parseFloat(selectedService.price.replace(/[^0-9.]/g, "")) : 0}`}
-                              alt="Official UPI QR"
-                              style={{ width: 160 }}
-                              className="img-fluid"
-                            />
-                          </div>
-                          <h6 className="fw-bold mb-2">Scan to Pay via UPI</h6>
-                          <p className="small text-muted mb-3 mx-auto" style={{ maxWidth: "280px" }}>
-                            Use GPay, PhonePe, or PayTM. Verification is instant & encrypted.
-                          </p>
-                          <button className="btn btn-outline-primary px-4 rounded-pill fw-bold" onClick={() => {
-                            setLoading(true);
-                            setTimeout(() => { setLoading(false); setConfirmed(true); }, 1500);
-                          }}>
-                            <i className="bi bi-check-circle me-2"></i> I have paid
-                          </button>
                         </div>
                       )}
                     </div>
