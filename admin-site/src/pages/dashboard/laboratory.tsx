@@ -33,6 +33,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { apiService } from "@/services/api";
 import { useToast } from "@/context/ToastContext";
+import { useAuth } from "@/context/AuthContext";
 import { DataTable, AdvancedFilter, Column } from "@/components";
 
 // Types
@@ -75,6 +76,7 @@ interface LabTest {
 }
 
 export default function Laboratory(): JSX.Element {
+  const { user, hasPermission, hasAnyPermission } = useAuth();
   const [activeTab, setActiveTab] = useState("all");
   const [loading, setLoading] = useState(false);
   const [tests, setTests] = useState<LabTest[]>([]);
@@ -85,7 +87,6 @@ export default function Laboratory(): JSX.Element {
     completed: 0,
   });
   const { showToast } = useToast();
-  const [currentUser, setCurrentUser] = useState<any>(null);
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -122,13 +123,6 @@ export default function Laboratory(): JSX.Element {
 
   // Filter State
   const [filters, setFilters] = useState<Record<string, any>>({});
-
-  useEffect(() => {
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-      setCurrentUser(JSON.parse(userStr));
-    }
-  }, []);
 
   useEffect(() => {
     setCurrentPage(1); // Reset to page 1 when tab changes
@@ -222,13 +216,19 @@ export default function Laboratory(): JSX.Element {
     switch (status) {
       case "ordered": return "blue";
       case "sample_collected": return "orange";
+      case "report_uploaded": return "green";
+      case "verified": return "green";
       case "completed": return "green";
       case "cancelled": return "red";
       default: return "gray";
     }
   };
 
-  const isDoctor = currentUser?.role_id === 2 || currentUser?.role?.name === 'doctor' || currentUser?.role === 'doctor'; // Basic check, refine based on actual role structure
+  const currentUser = user;
+  const isDoctor = currentUser?.role_id === 2 || currentUser?.role?.name === 'doctor' || (currentUser as any)?.role === 'doctor';
+  const canManageCatalog = hasAnyPermission(["create-laboratory-tests", "edit-laboratory-tests", "delete-laboratory-tests"]);
+  const canCollectSample = hasAnyPermission(["create-laboratory-tests", "edit-laboratory-tests"]);
+  const canUploadReport = hasAnyPermission(["create-laboratory-tests", "edit-laboratory-tests"]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -320,6 +320,15 @@ export default function Laboratory(): JSX.Element {
   }, [manageTestsModalOpen]);
 
   const handleSaveTest = async () => {
+    if (editingTest && !hasPermission("edit-laboratory-tests")) {
+      showToast("You don't have permission to edit lab tests", "error");
+      return;
+    }
+    if (!editingTest && !hasPermission("create-laboratory-tests")) {
+      showToast("You don't have permission to create lab tests", "error");
+      return;
+    }
+
     if (!testFormData.test_name || !testFormData.price) {
       showToast("Please fill in required fields", "error");
       return;
@@ -341,6 +350,10 @@ export default function Laboratory(): JSX.Element {
   };
 
   const handleDeleteTest = async (id: number) => {
+    if (!hasPermission("delete-laboratory-tests")) {
+      showToast("You don't have permission to delete lab tests", "error");
+      return;
+    }
     if (!window.confirm("Are you sure you want to delete this test?")) return;
     try {
       await apiService.deleteLabCatalogTest(id);
@@ -352,6 +365,15 @@ export default function Laboratory(): JSX.Element {
   };
 
   const openTestForm = (test: any = null) => {
+    if (test && !hasPermission("edit-laboratory-tests")) {
+      showToast("You don't have permission to edit lab tests", "error");
+      return;
+    }
+    if (!test && !hasPermission("create-laboratory-tests")) {
+      showToast("You don't have permission to create lab tests", "error");
+      return;
+    }
+
     if (test) {
       setEditingTest(test);
       setTestFormData({
@@ -382,7 +404,7 @@ export default function Laboratory(): JSX.Element {
             <p className="text-blue-gray-600">Manage lab tests, samples, and reports</p>
           </div>
         </div>
-        {!isDoctor && (
+        {!isDoctor && canManageCatalog && (
           <Button
             className="flex items-center gap-2 bg-blue-500"
             onClick={() => setManageTestsModalOpen(true)}
@@ -502,7 +524,9 @@ export default function Laboratory(): JSX.Element {
               customActions={(row: any) => {
                 const actions = [];
                 const labTest = row as LabTest;
-                if (labTest.status === 'ordered' && !isDoctor) {
+                const normalizedStatus = String(labTest.status || '').toLowerCase();
+
+                if (normalizedStatus === 'ordered' && !isDoctor && canCollectSample) {
                   actions.push({
                     label: "Collect",
                     icon: <BeakerIcon className="h-4 w-4" />,
@@ -513,7 +537,7 @@ export default function Laboratory(): JSX.Element {
                     }
                   });
                 }
-                if (labTest.status === 'sample_collected' && !isDoctor) {
+                if (normalizedStatus === 'sample_collected' && !isDoctor && canUploadReport) {
                   actions.push({
                     label: "Upload",
                     icon: <DocumentArrowUpIcon className="h-4 w-4" />,
@@ -525,7 +549,7 @@ export default function Laboratory(): JSX.Element {
                     }
                   });
                 }
-                if (labTest.status === 'completed' && labTest.report) {
+                if (['report_uploaded', 'verified', 'completed'].includes(normalizedStatus) && labTest.report) {
                   actions.push({
                     label: "View Report",
                     icon: <EyeIcon className="h-4 w-4" />,
@@ -646,9 +670,11 @@ export default function Laboratory(): JSX.Element {
             <Chip value={`${catalogTests.length} Tests`} size="sm" variant="ghost" className="rounded-full" />
           </div>
           <div className="flex gap-2">
-            <Button size="sm" color="blue" className="flex items-center gap-2" onClick={() => openTestForm()}>
-              <PlusIcon className="h-4 w-4" /> Add Test
-            </Button>
+            {hasPermission("create-laboratory-tests") && (
+              <Button size="sm" color="blue" className="flex items-center gap-2" onClick={() => openTestForm()}>
+                <PlusIcon className="h-4 w-4" /> Add Test
+              </Button>
+            )}
             <IconButton variant="text" onClick={() => setManageTestsModalOpen(false)}>
               <XMarkIcon className="h-5 w-5" />
             </IconButton>
@@ -688,12 +714,21 @@ export default function Laboratory(): JSX.Element {
                     </td>
                     <td className="p-4 text-right">
                       <div className="flex justify-end gap-2">
-                        <IconButton size="sm" variant="text" color="blue" onClick={() => openTestForm(test)}>
-                          <PencilIcon className="h-4 w-4" />
-                        </IconButton>
-                        <IconButton size="sm" variant="text" color="red" onClick={() => handleDeleteTest(test.id)}>
-                          <TrashIcon className="h-4 w-4" />
-                        </IconButton>
+                        {hasPermission("edit-laboratory-tests") && (
+                          <IconButton size="sm" variant="text" color="blue" onClick={() => openTestForm(test)}>
+                            <PencilIcon className="h-4 w-4" />
+                          </IconButton>
+                        )}
+                        {hasPermission("delete-laboratory-tests") && (
+                          <IconButton size="sm" variant="text" color="red" onClick={() => handleDeleteTest(test.id)}>
+                            <TrashIcon className="h-4 w-4" />
+                          </IconButton>
+                        )}
+                        {!hasPermission("edit-laboratory-tests") && !hasPermission("delete-laboratory-tests") && (
+                          <Typography variant="small" color="gray" className="text-xs">
+                            No actions
+                          </Typography>
+                        )}
                       </div>
                     </td>
                   </tr>

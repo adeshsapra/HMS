@@ -73,22 +73,6 @@ export const adminSearchableModules: AdminSearchableModule[] = [
         icon: 'bi-bar-chart'
     },
     {
-        id: 'bills',
-        title: 'Billing Management',
-        description: 'Generate and manage patient bills.',
-        path: '/dashboard/bills',
-        permission: 'view-bills',
-        icon: 'bi-receipt'
-    },
-    {
-        id: 'medicines',
-        title: 'Pharmacy / Medicines',
-        description: 'Manage medicine inventory and dispensing.',
-        path: '/dashboard/medicines',
-        permission: 'view-medicines',
-        icon: 'bi-capsule'
-    },
-    {
         id: 'doctors',
         title: 'Doctor Directory',
         description: 'Manage doctor profiles and specializations.',

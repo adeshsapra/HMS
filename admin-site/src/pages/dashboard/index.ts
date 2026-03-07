@@ -19,15 +19,12 @@ export { default as Inventory } from "./inventory";
 export { default as Pharmacy } from "./pharmacy";
 export { default as Laboratory } from "./laboratory";
 export { default as Rooms } from "./rooms";
-export { default as Schedules } from "./schedules";
 export { default as Emergency } from "./emergency";
 
 // New consolidated pages
 export { default as Prescriptions } from "./prescriptions";
 export { default as MedicalRecords } from "./medical-records";
 export { default as PatientReports } from "./patient-reports";
-export { default as Bills } from "./bills";
-export { default as Medicines } from "./medicines";
 export { default as Roles } from "./roles";
 export { default as Permissions } from "./permissions";
 export { default as RolePermissions } from "./role-permissions";
