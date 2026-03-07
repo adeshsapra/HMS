@@ -4,6 +4,7 @@ import { Button } from "@material-tailwind/react";
 import { BriefcaseIcon } from "@heroicons/react/24/outline";
 import { apiService } from "@/services/api";
 import { useToast } from "@/context/ToastContext";
+import { useAuth } from "@/context/AuthContext";
 
 // Get default page size from settings or use 10 as default
 const DEFAULT_PAGE_SIZE = parseInt(localStorage.getItem('settings_page_size') || '10', 10);
@@ -34,6 +35,7 @@ interface Department {
 }
 
 export default function Services(): JSX.Element {
+  const { hasPermission } = useAuth();
   const { showToast } = useToast();
   const [services, setServices] = useState<Service[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -48,6 +50,21 @@ export default function Services(): JSX.Element {
   const [totalPages, setTotalPages] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
+
+  const normalizeCommaSeparated = (value: any): string => {
+    if (!value) return "";
+    if (Array.isArray(value)) return value.join(", ");
+    if (typeof value === "string") {
+      try {
+        const parsed = JSON.parse(value);
+        if (Array.isArray(parsed)) return parsed.join(", ");
+      } catch {
+        // Keep as plain string if it is not JSON
+      }
+      return value;
+    }
+    return "";
+  };
 
   useEffect(() => {
     fetchServices(currentPage, activeFilters);
@@ -312,21 +329,49 @@ export default function Services(): JSX.Element {
   ];
 
   const handleAdd = (): void => {
+    if (!hasPermission("create-services")) {
+      showToast("You don't have permission to create services", "error");
+      return;
+    }
     setSelectedService(null);
     setOpenModal(true);
   };
 
-  const handleEdit = (service: Service): void => {
-    // Convert arrays to comma-separated strings for editing
-    const editData = {
+  const handleEdit = async (service: Service): Promise<void> => {
+    if (!hasPermission("edit-services")) {
+      showToast("You don't have permission to edit services", "error");
+      return;
+    }
+
+    const baseEditData = {
       ...service,
-      features: service.features ? service.features.join(', ') : '',
+      features: normalizeCommaSeparated((service as any).features),
     };
-    setSelectedService(editData as any);
+    setSelectedService(baseEditData as any);
     setOpenModal(true);
+
+    try {
+      const response = await apiService.getService(service.id);
+      const fullService = ((response as any).data && !(response as any).data.data)
+        ? (response as any).data
+        : (response as any).data?.data || service;
+
+      const editData = {
+        ...fullService,
+        features: normalizeCommaSeparated(fullService?.features),
+      };
+
+      setSelectedService(editData as any);
+    } catch (error: any) {
+      showToast(error.message || "Loaded editable data from table row only", "error");
+    }
   };
 
   const handleDelete = (service: Service): void => {
+    if (!hasPermission("delete-services")) {
+      showToast("You don't have permission to delete services", "error");
+      return;
+    }
     setSelectedService(service);
     setOpenDeleteModal(true);
   };
@@ -346,52 +391,53 @@ export default function Services(): JSX.Element {
   };
 
   const handleView = async (service: Service): Promise<void> => {
+    setSelectedService(service);
+    setOpenViewModal(true);
+
     try {
-      setLoading(true);
       const response = await apiService.getService(service.id);
       const fullService = ((response as any).data && !(response as any).data.data)
         ? (response as any).data
         : (response as any).data?.data || service;
       setSelectedService(fullService);
-      setOpenViewModal(true);
     } catch (error: any) {
-      showToast(error.message || "Failed to load service details", "error");
-    } finally {
-      setLoading(false);
+      showToast(error.message || "Showing row data only", "error");
     }
   };
 
   const handleSubmit = async (data: Record<string, any>) => {
     try {
+      const payload: Record<string, any> = { ...data };
+
       // Convert string types to proper types
-      if (data.department_id) {
-        data.department_id = parseInt(data.department_id);
+      if (payload.department_id) {
+        payload.department_id = parseInt(payload.department_id);
       }
-      if (data.is_active === "true" || data.is_active === true) {
-        data.is_active = true;
-      } else if (data.is_active === "false" || data.is_active === false) {
-        data.is_active = false;
+      if (payload.is_active === "true" || payload.is_active === true) {
+        payload.is_active = true;
+      } else if (payload.is_active === "false" || payload.is_active === false) {
+        payload.is_active = false;
       }
 
-      if (data.is_home === "true" || data.is_home === true) {
-        data.is_home = true;
-      } else if (data.is_home === "false" || data.is_home === false) {
-        data.is_home = false;
+      if (payload.is_home === "true" || payload.is_home === true) {
+        payload.is_home = true;
+      } else if (payload.is_home === "false" || payload.is_home === false) {
+        payload.is_home = false;
       }
 
       // Handle features array
-      if (data.features) {
-        const featuresArray = typeof data.features === 'string'
-          ? data.features.split(',').map((f: string) => f.trim()).filter(Boolean)
-          : data.features;
-        data.features = JSON.stringify(featuresArray);
+      if (payload.features) {
+        const featuresArray = typeof payload.features === 'string'
+          ? payload.features.split(',').map((f: string) => f.trim()).filter(Boolean)
+          : payload.features;
+        payload.features = JSON.stringify(featuresArray);
       }
 
       if (selectedService) {
-        const response = await apiService.updateService(selectedService.id, data);
+        const response = await apiService.updateService(selectedService.id, payload);
         showToast(response.message || "Service updated successfully!", "success");
       } else {
-        const response = await apiService.createService(data);
+        const response = await apiService.createService(payload);
         showToast(response.message || "Service created successfully!", "success");
       }
       fetchServices();
@@ -409,15 +455,17 @@ export default function Services(): JSX.Element {
           <h2 className="text-4xl font-bold text-blue-gray-800 mb-2">Services</h2>
           <p className="text-blue-gray-600 text-base">Manage hospital services and offerings</p>
         </div>
-        <Button
-          variant="gradient"
-          color="blue"
-          className="flex items-center gap-2 shadow-lg hover:shadow-xl transition-all"
-          onClick={handleAdd}
-        >
-          <BriefcaseIcon className="h-5 w-5" />
-          Add Service
-        </Button>
+        {hasPermission("create-services") && (
+          <Button
+            variant="gradient"
+            color="blue"
+            className="flex items-center gap-2 shadow-lg hover:shadow-xl transition-all"
+            onClick={handleAdd}
+          >
+            <BriefcaseIcon className="h-5 w-5" />
+            Add Service
+          </Button>
+        )}
       </div>
 
       <AdvancedFilter
@@ -507,9 +555,9 @@ export default function Services(): JSX.Element {
           title="Service Management"
           data={services}
           columns={columns}
-          onAdd={handleAdd}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
+          onAdd={hasPermission("create-services") ? handleAdd : undefined}
+          onEdit={hasPermission("edit-services") ? handleEdit : undefined}
+          onDelete={hasPermission("delete-services") ? handleDelete : undefined}
           onView={handleView}
           searchable={false}
           filterable={false}

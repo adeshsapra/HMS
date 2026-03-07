@@ -432,7 +432,10 @@ export function DataTable({
                             <MenuList className="min-w-[150px] shadow-lg">
                               {onView && (
                                 <MenuItem
-                                  onClick={() => onView(row)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onView(row);
+                                  }}
                                   className="flex items-center gap-3 py-2"
                                 >
                                   <EyeIcon className="h-4 w-4" />
@@ -443,7 +446,10 @@ export function DataTable({
                               )}
                               {onEdit && (
                                 <MenuItem
-                                  onClick={() => onEdit(row)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onEdit(row);
+                                  }}
                                   className="flex items-center gap-3 py-2"
                                 >
                                   <PencilIcon className="h-4 w-4" />
@@ -454,7 +460,10 @@ export function DataTable({
                               )}
                               {onDelete && (
                                 <MenuItem
-                                  onClick={() => onDelete(row)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onDelete(row);
+                                  }}
                                   className="flex items-center gap-3 py-2 text-red-500 focus:text-red-500 focus:bg-red-50"
                                 >
                                   <TrashIcon className="h-4 w-4" />

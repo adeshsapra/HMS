@@ -4,6 +4,7 @@ import { Button } from "@material-tailwind/react";
 import { BuildingOfficeIcon } from "@heroicons/react/24/outline";
 import { apiService } from "@/services/api";
 import { useToast } from "@/context/ToastContext";
+import { useAuth } from "@/context/AuthContext";
 
 // Get default page size from settings or use 10 as default
 const DEFAULT_PAGE_SIZE = parseInt(localStorage.getItem('settings_page_size') || '10', 10);
@@ -25,6 +26,7 @@ interface Department {
 }
 
 export default function Departments(): JSX.Element {
+  const { hasPermission } = useAuth();
   const { showToast } = useToast();
   const backendBaseUrl = ((import.meta as any).env?.VITE_API_BASE_URL?.replace(/\/api\/?$/, '') || 'http://localhost:8000');
 
@@ -48,6 +50,21 @@ export default function Departments(): JSX.Element {
     }
 
     return [...new Set(candidates)];
+  };
+
+  const normalizeCommaSeparated = (value: any): string => {
+    if (!value) return "";
+    if (Array.isArray(value)) return value.join(", ");
+    if (typeof value === "string") {
+      try {
+        const parsed = JSON.parse(value);
+        if (Array.isArray(parsed)) return parsed.join(", ");
+      } catch {
+        // Keep as plain string if it is not JSON
+      }
+      return value;
+    }
+    return "";
   };
 
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -308,22 +325,51 @@ export default function Departments(): JSX.Element {
   ];
 
   const handleAdd = (): void => {
+    if (!hasPermission("create-departments")) {
+      showToast("You don't have permission to create departments", "error");
+      return;
+    }
     setSelectedDepartment(null);
     setOpenModal(true);
   };
 
-  const handleEdit = (department: Department): void => {
-    // Convert arrays to comma-separated strings for editing
-    const editData = {
+  const handleEdit = async (department: Department): Promise<void> => {
+    if (!hasPermission("edit-departments")) {
+      showToast("You don't have permission to edit departments", "error");
+      return;
+    }
+
+    const baseEditData = {
       ...department,
-      features: department.features ? department.features.join(', ') : '',
-      technologies: department.technologies ? department.technologies.join(', ') : ''
+      features: normalizeCommaSeparated((department as any).features),
+      technologies: normalizeCommaSeparated((department as any).technologies),
     };
-    setSelectedDepartment(editData as any);
+    setSelectedDepartment(baseEditData as any);
     setOpenModal(true);
+
+    try {
+      const response = await apiService.getDepartment(department.id);
+      const fullDepartment = ((response as any).data && !(response as any).data.data)
+        ? (response as any).data
+        : (response as any).data?.data || department;
+
+      const editData = {
+        ...fullDepartment,
+        features: normalizeCommaSeparated(fullDepartment?.features),
+        technologies: normalizeCommaSeparated(fullDepartment?.technologies),
+      };
+
+      setSelectedDepartment(editData as any);
+    } catch (error: any) {
+      showToast(error.message || "Loaded editable data from table row only", "error");
+    }
   };
 
   const handleDelete = (department: Department): void => {
+    if (!hasPermission("delete-departments")) {
+      showToast("You don't have permission to delete departments", "error");
+      return;
+    }
     setSelectedDepartment(department);
     setOpenDeleteModal(true);
   };
@@ -343,18 +389,17 @@ export default function Departments(): JSX.Element {
   };
 
   const handleView = async (department: Department): Promise<void> => {
+    setSelectedDepartment(department);
+    setOpenViewModal(true);
+
     try {
-      setLoading(true);
       const response = await apiService.getDepartment(department.id);
       const fullDepartment = ((response as any).data && !(response as any).data.data)
         ? (response as any).data
         : (response as any).data?.data || department;
       setSelectedDepartment(fullDepartment);
-      setOpenViewModal(true);
     } catch (error: any) {
-      showToast(error.message || "Failed to load department details", "error");
-    } finally {
-      setLoading(false);
+      showToast(error.message || "Showing row data only", "error");
     }
   };
 
@@ -414,15 +459,17 @@ export default function Departments(): JSX.Element {
           <h2 className="text-4xl font-bold text-blue-gray-800 mb-2">Departments</h2>
           <p className="text-blue-gray-600 text-base">Manage hospital departments and specialties</p>
         </div>
-        <Button
-          variant="gradient"
-          color="blue"
-          className="flex items-center gap-2 shadow-lg hover:shadow-xl transition-all"
-          onClick={handleAdd}
-        >
-          <BuildingOfficeIcon className="h-5 w-5" />
-          Add Department
-        </Button>
+        {hasPermission("create-departments") && (
+          <Button
+            variant="gradient"
+            color="blue"
+            className="flex items-center gap-2 shadow-lg hover:shadow-xl transition-all"
+            onClick={handleAdd}
+          >
+            <BuildingOfficeIcon className="h-5 w-5" />
+            Add Department
+          </Button>
+        )}
       </div>
 
       <AdvancedFilter
@@ -481,9 +528,9 @@ export default function Departments(): JSX.Element {
           title="Department Management"
           data={departments}
           columns={columns}
-          onAdd={handleAdd}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
+          onAdd={hasPermission("create-departments") ? handleAdd : undefined}
+          onEdit={hasPermission("edit-departments") ? handleEdit : undefined}
+          onDelete={hasPermission("delete-departments") ? handleDelete : undefined}
           onView={handleView}
           searchable={false}
           filterable={false}
