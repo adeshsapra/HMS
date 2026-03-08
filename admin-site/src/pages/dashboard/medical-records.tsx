@@ -210,6 +210,15 @@ export default function MedicalRecords(): JSX.Element {
         { key: "date", label: "Date Uploaded", type: "date" },
     ];
 
+    if (loading && records.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+                <div className="h-16 w-16 rounded-full border-4 border-blue-100 border-t-blue-600 animate-spin" />
+                <p className="text-slate-500 text-sm font-medium">Loading medical records…</p>
+            </div>
+        );
+    }
+
     return (
         <div className="mt-12 mb-8">
             <div className="mb-8 flex items-center justify-between">
