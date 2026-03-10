@@ -480,8 +480,23 @@ export default function Inventory(): JSX.Element {
       return actions;
     };
 
+    const hasStaffProfile = Boolean(user?.staff);
+
     return (
       <CardBody className="p-0">
+        {!hasStaffProfile && (
+          <div className="mx-4 mt-4 p-4 rounded-xl bg-amber-50 border border-amber-200 flex items-start gap-3">
+            <ExclamationTriangleIcon className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+            <div>
+              <Typography variant="small" className="font-semibold text-amber-800">
+                Staff profile required
+              </Typography>
+              <Typography variant="small" className="text-amber-700 mt-1">
+                Your account is not linked to a staff profile. Only users with a staff profile can submit new inventory requests. Contact your administrator to link your account to a staff record.
+              </Typography>
+            </div>
+          </div>
+        )}
         <div className="px-4 py-2 border-b border-blue-gray-50 bg-blue-gray-50/20">
           <AdvancedFilter
             config={{
@@ -501,7 +516,8 @@ export default function Inventory(): JSX.Element {
                     { label: 'Pending', value: 'pending' },
                     { label: 'Approved', value: 'approved' },
                     { label: 'Rejected', value: 'rejected' },
-                    { label: 'Issued', value: 'issued' }
+                    { label: 'Issued', value: 'issued' },
+                    { label: 'Completed', value: 'completed' }
                   ]
                 },
                 { name: 'request_date', label: 'Date', type: 'date' }
@@ -515,7 +531,21 @@ export default function Inventory(): JSX.Element {
           title="Stock Requests"
           data={requests}
           columns={columns}
-          onAdd={() => handleOpenModal("request")}
+          onAdd={hasStaffProfile ? () => handleOpenModal("request") : () => showToast("You need a staff profile to submit inventory requests. Contact your administrator.", "error")}
+          onDelete={async (row) => {
+            if (row.status !== "pending") {
+              showToast("Only pending requests can be deleted.", "error");
+              return;
+            }
+            if (!window.confirm("Delete this pending request?")) return;
+            try {
+              await apiService.deleteInventoryRequest(row.id);
+              showToast("Request deleted", "success");
+              loadData();
+            } catch (e: any) {
+              showToast(e.message || "Failed to delete request", "error");
+            }
+          }}
           onView={(row) => handleOpenViewModal({ ...row, _type: 'request' })}
           customActions={getCustomActions}
           addButtonLabel="New Request"
@@ -535,8 +565,8 @@ export default function Inventory(): JSX.Element {
     const columns: Column[] = [
       { key: "reference_number", label: "Ref #" },
       { key: "issue_date", label: "Date", render: (val: any) => new Date(val).toLocaleDateString() },
-      { key: "request", label: "Department", render: (req: any) => req?.department?.name || "Direct" },
-      { key: "request", label: "Staff", render: (req: any) => req?.staff ? `${req.staff.first_name} ${req.staff.last_name}` : "N/A" },
+      { key: "request_department", label: "Department", render: (_: any, row: any) => row.request?.department?.name || "Direct" },
+      { key: "request_staff", label: "Staff", render: (_: any, row: any) => row.request?.staff ? `${row.request.staff.first_name} ${row.request.staff.last_name}` : "N/A" },
       { key: "notes", label: "Reason/Notes" },
       { key: "items", label: "Items count", render: (its: any[]) => its?.length || 0 },
     ];
@@ -715,7 +745,7 @@ export default function Inventory(): JSX.Element {
           break;
         case "inventory-stock-in":
           columns = [
-            { key: "purchase_number", label: "Order #" },
+            { key: "invoice_number", label: "Order #" },
             {
               key: "vendor", label: "Vendor",
               render: (v: any) => v?.name || "—"
@@ -732,7 +762,7 @@ export default function Inventory(): JSX.Element {
           break;
         case "inventory-stock-out":
           columns = [
-            { key: "issue_number", label: "Issue #" },
+            { key: "reference_number", label: "Issue #" },
             {
               key: "request", label: "To Department",
               render: (req: any) => req?.department?.name || "Direct Issue"
@@ -1259,9 +1289,12 @@ function InventoryDialogs({ open, onClose, type, data, categories, vendors, item
   const [formData, setFormData] = useState<any>({});
 
   useEffect(() => {
-    if (data) setFormData(data);
-    else setFormData({});
-  }, [data, open]);
+    if (data) {
+      const initial = { ...data };
+      if (type === "item" && initial.category && !initial.category_id) initial.category_id = initial.category.id;
+      setFormData(initial);
+    } else setFormData({});
+  }, [data, open, type]);
 
   const handleSubmit = async () => {
     try {

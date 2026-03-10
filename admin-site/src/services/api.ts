@@ -1639,6 +1639,9 @@ class ApiService {
     async updateInventoryRequestStatus(id: number, data: { status: string, remarks?: string }) {
         return this.patch<any>(`/inventory/requests/${id}/status`, data);
     }
+    async deleteInventoryRequest(id: number) {
+        return this.delete<any>(`/inventory/requests/${id}`);
+    }
 
     async getInventoryIssues(params?: any) {
         let endpoint = '/inventory/issues';

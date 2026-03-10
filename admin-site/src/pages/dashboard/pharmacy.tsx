@@ -162,8 +162,9 @@ export default function Pharmacy(): JSX.Element {
         page,
         per_page: DEFAULT_PAGE_SIZE,
       });
-      setPrescriptions(response.data?.data || []);
-      setPrescriptionTotalPages(response.data?.last_page || 1);
+      const resData = response.data?.data;
+      setPrescriptions(Array.isArray(resData) ? resData : resData?.data || []);
+      setPrescriptionTotalPages(resData?.last_page ?? response.data?.last_page ?? 1);
     } catch (error: any) {
       showToast(error.message || "Failed to load prescriptions", "error");
     } finally {
@@ -179,8 +180,9 @@ export default function Pharmacy(): JSX.Element {
         page,
         per_page: DEFAULT_PAGE_SIZE,
       });
-      setMedicines(response.data?.data || []);
-      setMedicineTotalPages(response.data?.last_page || 1);
+      const resData = response.data?.data;
+      setMedicines(Array.isArray(resData) ? resData : resData?.data || []);
+      setMedicineTotalPages(resData?.last_page ?? response.data?.last_page ?? 1);
     } catch (error: any) {
       showToast(error.message || "Failed to load medicines", "error");
     } finally {
@@ -192,7 +194,8 @@ export default function Pharmacy(): JSX.Element {
     try {
       setLoading(true);
       const response = await apiService.getLowStockAlerts({ per_page: 100 });
-      setLowStockAlerts(response.data?.medicines || []);
+      const resData = response.data?.data;
+      setLowStockAlerts(resData?.medicines ?? response.data?.medicines ?? []);
     } catch (error: any) {
       showToast(error.message || "Failed to load low stock alerts", "error");
     } finally {
@@ -208,8 +211,9 @@ export default function Pharmacy(): JSX.Element {
         page,
         per_page: DEFAULT_PAGE_SIZE,
       });
-      setDispensingHistory(response.data?.data || []);
-      setHistoryTotalPages(response.data?.last_page || 1);
+      const resData = response.data?.data;
+      setDispensingHistory(Array.isArray(resData) ? resData : resData?.data || []);
+      setHistoryTotalPages(resData?.last_page ?? response.data?.last_page ?? 1);
     } catch (error: any) {
       showToast(error.message || "Failed to load dispensing history", "error");
     } finally {
@@ -231,7 +235,7 @@ export default function Pharmacy(): JSX.Element {
     try {
       setLoading(true);
       const response = await apiService.getPharmacyPrescriptionDetails(id);
-      setSelectedPrescription(response.data);
+      setSelectedPrescription(response.data?.data ?? response.data);
       setViewPrescriptionModal(true);
     } catch (error: any) {
       showToast(error.message || "Failed to load prescription details", "error");
@@ -244,7 +248,7 @@ export default function Pharmacy(): JSX.Element {
     try {
       setLoading(true);
       const response = await apiService.getPharmacyPrescriptionDetails(prescription.id);
-      const prescriptionData = response.data;
+      const prescriptionData = response.data?.data ?? response.data;
 
       // Initialize dispense items
       const items = prescriptionData.items.map((item: any) => ({
@@ -273,7 +277,6 @@ export default function Pharmacy(): JSX.Element {
       }));
 
       setDispenseData({ prescription: prescriptionData, items });
-      console.log('Dispense modal data:', { prescription: prescriptionData, items });
       setDispenseModal(true);
     } catch (error: any) {
       console.error('Error in handleDispenseClick:', error);
@@ -465,8 +468,9 @@ export default function Pharmacy(): JSX.Element {
   const handleDeleteMedicine = async () => {
     try {
       setLoading(true);
-      await apiService.deleteMedicine(selectedMedicine.id);
-      showToast("Medicine deleted successfully", "success");
+      const response = await apiService.deleteMedicine(selectedMedicine.id);
+      const message = response?.data?.message ?? response?.message ?? "Medicine deleted successfully";
+      showToast(message, "success");
       setDeleteMedicineModal(false);
       loadMedicines();
       loadLowStockAlerts();
