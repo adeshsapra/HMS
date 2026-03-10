@@ -38,6 +38,7 @@ import {
   HomeCare,
   Integrations,
   EmailTemplates,
+  MedicalRecords,
 } from "@/pages/dashboard";
 import { SignIn } from "@/pages/auth";
 
@@ -125,6 +126,13 @@ export const routes: Route[] = [
         path: "/patient-reports",
         element: <PatientReports />,
         permission: "view-patient-reports",
+      },
+      {
+        icon: <ClipboardDocumentListIcon {...icon} />,
+        name: "Medical Records",
+        path: "/medical-records",
+        element: <MedicalRecords />,
+        permission: "view-medical-records",
       },
     ],
   },
