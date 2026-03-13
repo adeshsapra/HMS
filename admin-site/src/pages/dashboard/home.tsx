@@ -122,7 +122,7 @@ const ALL_MODULES: ModuleDef[] = [
   { label: "Departments", desc: "Hospital units", path: "/dashboard/departments", permission: "view-departments", icon: BuildingOfficeIcon, iconBg: "#F0FDF4", iconColor: "#16A34A", accentBorder: "#BBF7D0" },
   { label: "Staff", desc: "Manage team", path: "/dashboard/staff", permission: "view-staff", icon: BriefcaseIcon, iconBg: "#F8FAFC", iconColor: "#475569", accentBorder: "#CBD5E1" },
   { label: "Prescriptions", desc: "Issue & manage", path: "/dashboard/prescriptions", permission: "view-prescriptions", icon: DocumentTextIcon, iconBg: "#F0FDFA", iconColor: "#0D9488", accentBorder: "#99F6E4" },
-  { label: "Medical Records", desc: "Patient history", path: "/dashboard/medical-records", permission: "view-medical-records", icon: ClipboardDocumentListIcon, iconBg: "#FDF4FF", iconColor: "#9333EA", accentBorder: "#E9D5FF" },
+  { label: "Medical Reports", desc: "Upload and view patient test reports", path: "/dashboard/medical-records", permission: "view-medical-records", icon: ClipboardDocumentListIcon, iconBg: "#FDF4FF", iconColor: "#9333EA", accentBorder: "#E9D5FF" },
   { label: "Billing", desc: "Invoices & payments", path: "/dashboard/billing", permission: "view-billing-finance", icon: CurrencyDollarIcon, iconBg: "#FFFBEB", iconColor: "#D97706", accentBorder: "#FDE68A" },
   { label: "Pharmacy", desc: "Drug management", path: "/dashboard/pharmacy", permission: "view-pharmacy", icon: BeakerIcon, iconBg: "#FFF1F2", iconColor: "#E11D48", accentBorder: "#FECDD3" },
   { label: "Laboratory", desc: "Tests & results", path: "/dashboard/laboratory", permission: "view-laboratory", icon: BeakerIcon, iconBg: "#FFF7ED", iconColor: "#EA580C", accentBorder: "#FED7AA" },
@@ -246,7 +246,7 @@ const ADMIN_QUICK_GROUPS: { label: string; color: string; items: { label: string
       { label: "Appointments",   path: "/dashboard/appointments",   icon: CalendarDaysIcon,         iconBg: "#EFF6FF", iconColor: "#2563EB" },
       { label: "Patients",       path: "/dashboard/patients",        icon: UserGroupIcon,             iconBg: "#EDE9FE", iconColor: "#7C3AED" },
       { label: "Prescriptions",  path: "/dashboard/prescriptions",   icon: DocumentTextIcon,          iconBg: "#F0FDFA", iconColor: "#0D9488" },
-      { label: "Medical Records",path: "/dashboard/medical-records", icon: ClipboardDocumentListIcon, iconBg: "#FDF4FF", iconColor: "#9333EA" },
+      { label: "Medical Reports", path: "/dashboard/medical-records", icon: ClipboardDocumentListIcon, iconBg: "#FDF4FF", iconColor: "#9333EA" },
     ],
   },
   {
@@ -885,7 +885,7 @@ function AdminDashboard() {
                 <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12 blur-xl" />
                 <div className="relative z-10">
                   <p className="text-white font-black text-base tracking-tight leading-none mb-1">Recent Patients</p>
-                  <p className="text-indigo-200 text-[9px] font-black uppercase tracking-widest">Medical Records</p>
+                  <p className="text-indigo-200 text-[9px] font-black uppercase tracking-widest">Medical Reports</p>
                 </div>
                 <div className="relative z-10 w-9 h-9 rounded-xl flex items-center justify-center bg-white/10 backdrop-blur-md border border-white/20">
                   <UserGroupIcon className="h-4 w-4 text-white" />

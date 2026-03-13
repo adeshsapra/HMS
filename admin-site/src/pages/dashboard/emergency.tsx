@@ -306,6 +306,7 @@ export default function Emergency(): JSX.Element {
           </div>
           <div className="flex items-center">
             <Switch
+              crossOrigin={undefined}
               label="Section Active"
               checked={section.is_active}
               onChange={(e) => setSection({ ...section, is_active: e.target.checked })}
@@ -466,11 +467,13 @@ export default function Emergency(): JSX.Element {
           />
           <div className="flex items-center gap-6">
             <Switch
+              crossOrigin={undefined}
               label="Urgent"
               checked={contactForm.urgent}
               onChange={(e) => setContactForm({ ...contactForm, urgent: e.target.checked })}
             />
             <Switch
+              crossOrigin={undefined}
               label="Active"
               checked={contactForm.is_active}
               onChange={(e) => setContactForm({ ...contactForm, is_active: e.target.checked })}

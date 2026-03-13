@@ -39,6 +39,8 @@ export interface FormModalProps {
   submitLabel?: string;
   loading?: boolean;
   onValuesChange?: (name: string, value: any, setValues: (values: any) => void) => void;
+  /** Optional node rendered in the header next to the close button (e.g. "Add type" quick action). */
+  headerAction?: React.ReactNode;
 }
 
 const COMMON_ICONS = [
@@ -108,7 +110,7 @@ const IconPicker = ({ value, onChange, label, error }: any) => {
       </div>
 
       {isOpen && (
-        <div className="absolute z-50 w-full mt-2 bg-white border border-blue-gray-200 rounded-lg shadow-xl max-h-60 overflow-y-auto p-3">
+        <div className="absolute z-[10002] w-full mt-2 bg-white border border-blue-gray-200 rounded-lg shadow-xl max-h-60 overflow-y-auto p-3">
           <div className="grid grid-cols-6 gap-2">
             {COMMON_ICONS.map(icon => (
               <div
@@ -190,11 +192,18 @@ const CustomSelect = ({
         </div>
       </div>
       {isOpen && !disabled && (
-        <div className="absolute z-50 w-full mt-1 bg-white border border-blue-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+        <div
+          className="absolute z-[10002] w-full mt-1 bg-white border border-blue-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto"
+          onMouseDown={(e) => e.stopPropagation()}
+        >
           {options.map((option, index) => (
             <div
               key={`${option.value}-${index}`}
-              onClick={() => {
+              role="option"
+              aria-selected={String(value) === String(option.value)}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 onChange(option.value);
                 setIsOpen(false);
               }}
@@ -324,11 +333,13 @@ export function FormModal({
   submitLabel = "Save",
   loading = false,
   onValuesChange,
+  headerAction,
 }: FormModalProps): JSX.Element {
   const [formData, setFormData] = useState<Record<string, any>>(initialData);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [generalError, setGeneralError] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const prevOpenRef = useRef(open);
 
   const isEmptyValue = (value: any): boolean => {
     if (value === null || value === undefined) return true;
@@ -337,9 +348,13 @@ export function FormModal({
     return false;
   };
 
+  // Only reset form when modal transitions from closed to open (not on every parent re-render).
+  // Parent often passes initialData = {} default; that new reference would otherwise wipe the form.
   useEffect(() => {
-    if (open) {
-      setFormData(initialData);
+    const justOpened = open && !prevOpenRef.current;
+    prevOpenRef.current = open;
+    if (justOpened) {
+      setFormData(initialData || {});
       setErrors({});
       setGeneralError("");
     }
@@ -581,20 +596,24 @@ export function FormModal({
       handler={onClose}
       size="lg"
       className="!max-w-4xl"
+      dismiss={{ outsidePress: false }}
     >
       <DialogHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white py-5 px-6 rounded-t-lg shadow-lg">
         <div className="flex items-center justify-between w-full">
           <Typography variant="h5" className="font-bold text-white text-xl">
             {title}
           </Typography>
-          <Button
-            variant="text"
-            color="white"
-            onClick={onClose}
-            className="rounded-full hover:bg-white/20 p-2 transition-all"
-          >
-            <XMarkIcon className="h-5 w-5" />
-          </Button>
+          <div className="flex items-center gap-2">
+            {headerAction}
+            <Button
+              variant="text"
+              color="white"
+              onClick={onClose}
+              className="rounded-full hover:bg-white/20 p-2 transition-all"
+            >
+              <XMarkIcon className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
       </DialogHeader>
       <form onSubmit={handleSubmit}>

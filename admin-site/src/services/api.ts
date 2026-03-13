@@ -722,6 +722,22 @@ class ApiService {
         return this.get<any>(`/medical-reports?page=${page}&per_page=${perPage}`);
     }
 
+    async getMedicalReportCategories(): Promise<ApiResponse<{ id?: number; value: string; label: string; sort_order?: number }[]>> {
+        return this.get<any>('/medical-reports/categories');
+    }
+
+    async createMedicalReportCategory(data: { name: string; label: string; sort_order?: number }): Promise<ApiResponse<any>> {
+        return this.post<any>('/medical-reports/categories', data);
+    }
+
+    async updateMedicalReportCategory(id: number, data: { name?: string; label?: string; sort_order?: number }): Promise<ApiResponse<any>> {
+        return this.put<any>(`/medical-reports/categories/${id}`, data);
+    }
+
+    async deleteMedicalReportCategory(id: number): Promise<ApiResponse<any>> {
+        return this.delete<any>(`/medical-reports/categories/${id}`);
+    }
+
     async createMedicalReport(data: FormData): Promise<ApiResponse<any>> {
         const token = this.getAuthToken();
         const url = `${API_BASE_URL}/medical-reports`;
@@ -750,6 +766,41 @@ class ApiService {
 
     async verifyMedicalReport(id: number, data: any) {
         return this.post<any>(`/medical-reports/${id}/verify`, data);
+    }
+
+    /**
+     * Download medical report file (uses auth, triggers browser download).
+     */
+    async downloadMedicalReport(reportId: number, suggestedFileName?: string): Promise<void> {
+        const token = this.getAuthToken();
+        const url = `${API_BASE_URL}/medical-reports/${reportId}/download`;
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                Accept: 'application/octet-stream, application/pdf, image/*',
+                ...(token && { Authorization: `Bearer ${token}` }),
+            },
+        });
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            throw new Error((err as any).message || `Download failed (${response.status})`);
+        }
+        const blob = await response.blob();
+        const disposition = response.headers.get('Content-Disposition');
+        let fileName = suggestedFileName;
+        if (!fileName && disposition) {
+            const match = /filename="?([^";\n]+)"?/i.exec(disposition);
+            if (match) fileName = match[1].trim();
+        }
+        if (!fileName) fileName = `medical-report-${reportId}`;
+        const objectUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = objectUrl;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(objectUrl);
     }
 
     // Laboratory methods

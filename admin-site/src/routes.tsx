@@ -129,7 +129,7 @@ export const routes: Route[] = [
       },
       {
         icon: <ClipboardDocumentListIcon {...icon} />,
-        name: "Medical Records",
+        name: "Medical Reports",
         path: "/medical-records",
         element: <MedicalRecords />,
         permission: "view-medical-records",
