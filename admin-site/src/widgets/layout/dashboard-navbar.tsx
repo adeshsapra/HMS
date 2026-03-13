@@ -36,6 +36,7 @@ export function DashboardNavbar(): JSX.Element {
   const { fixedNavbar, openSidenav } = controller;
   const { pathname } = useLocation();
   const [layout, page] = pathname.split("/").filter((el) => el !== "");
+  const pageDisplayName = page === "medical-records" ? "Medical Reports" : page.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [isSearchOpen, setIsSearchOpen] = React.useState(false);
@@ -86,11 +87,11 @@ export function DashboardNavbar(): JSX.Element {
               color="blue-gray"
               className="font-normal"
             >
-              {page}
+              {pageDisplayName}
             </Typography>
           </Breadcrumbs>
           <Typography variant="h6" color="blue-gray">
-            {page}
+            {pageDisplayName}
           </Typography>
         </div>
         <div className="flex items-center gap-1">

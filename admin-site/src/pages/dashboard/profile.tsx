@@ -188,6 +188,29 @@ export function Profile(): JSX.Element {
     return timeString;
   };
 
+  // Normalize API values to match form select option values (lowercase, underscores)
+  const normalizeSelectValue = (val: string | undefined, defaultVal = ""): string => {
+    if (val == null || String(val).trim() === "") return defaultVal;
+    return String(val).toLowerCase().trim().replace(/\s+/g, "_");
+  };
+
+  // Use date part only; avoid timezone shift (toISOString can change the day)
+  const toDateInputValue = (d: string | undefined): string => {
+    if (!d) return "";
+    const s = String(d).trim();
+    if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.substring(0, 10);
+    try {
+      const date = new Date(d);
+      if (isNaN(date.getTime())) return "";
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${y}-${m}-${day}`;
+    } catch {
+      return "";
+    }
+  };
+
   const getInitialFormData = () => {
     const roleData = user?.doctor || user?.staff || user?.patient || {};
     return {
@@ -196,8 +219,8 @@ export function Profile(): JSX.Element {
       phone: user?.phone || "",
       first_name: roleData.first_name || "",
       last_name: roleData.last_name || "",
-      gender: roleData.gender || "",
-      date_of_birth: roleData.date_of_birth || roleData.dob || "",
+      gender: normalizeSelectValue(roleData.gender),
+      date_of_birth: toDateInputValue(roleData.date_of_birth || roleData.dob),
       address: roleData.address || "",
       city: roleData.city || "",
       state: roleData.state || "",
@@ -206,31 +229,31 @@ export function Profile(): JSX.Element {
       bio: roleData.bio || "",
       specialization: roleData.specialization || "",
       qualification: roleData.qualification || "",
-      experience_years: roleData.experience_years || "",
+      experience_years: roleData.experience_years ?? "",
       designation: roleData.designation || "",
       age: roleData.age || "",
       blood_group: roleData.blood_group || "",
       emergency_contact_name: roleData.emergency_contact_name || "",
       emergency_contact_phone: roleData.emergency_contact_phone || roleData.emergency_contact || "",
       emergency_contact_relation: roleData.emergency_contact_relation || "",
-      staff_type: roleData.staff_type || "",
+      staff_type: normalizeSelectValue(roleData.staff_type),
       reporting_manager: roleData.reporting_manager || "",
       work_location: roleData.work_location || "",
-      marital_status: roleData.marital_status || "",
-      employment_status: roleData.employment_status || "active",
+      marital_status: normalizeSelectValue(roleData.marital_status),
+      employment_status: normalizeSelectValue(roleData.employment_status, "active"),
       staff_id: roleData.staff_id || "",
-      probation_end_date: roleData.probation_end_date ? new Date(roleData.probation_end_date).toISOString().split('T')[0] : "",
-      contract_end_date: roleData.contract_end_date ? new Date(roleData.contract_end_date).toISOString().split('T')[0] : "",
+      probation_end_date: toDateInputValue(roleData.probation_end_date),
+      contract_end_date: toDateInputValue(roleData.contract_end_date),
       languages: Array.isArray(roleData.languages) ? roleData.languages.join(", ") : (roleData.languages || ""),
       license_number: roleData.license_number || "",
       consultation_fee: roleData.consultation_fee || "",
-      employment_type: roleData.employment_type || "",
-      joining_date: roleData.joining_date ? new Date(roleData.joining_date).toISOString().split('T')[0] : "",
+      employment_type: normalizeSelectValue(roleData.employment_type),
+      joining_date: toDateInputValue(roleData.joining_date),
       employee_id: roleData.employee_id || "",
       badge_number: roleData.badge_number || "",
       shift: roleData.shift || "",
       is_available: roleData.is_available ?? true,
-      working_days: roleData.working_days || [],
+      working_days: Array.isArray(roleData.working_days) ? roleData.working_days : [],
       working_hours_start: roleData.working_hours_start || roleData.work_hours_start || "",
       working_hours_end: roleData.working_hours_end || roleData.work_hours_end || "",
     };
@@ -276,8 +299,13 @@ export function Profile(): JSX.Element {
       setSubmitting(true);
 
       const submitData = new FormData();
+      const numericOptionalKeys = ['experience_years', 'consultation_fee', 'age'];
+      const readOnlyKeys = ['staff_id'];
+
       Object.entries(formData).forEach(([key, value]) => {
         if (value !== null && value !== undefined) {
+          if (readOnlyKeys.includes(key)) return;
+          if (numericOptionalKeys.includes(key) && value === "") return;
           // Optimization: Only send relevant data for SuperAdmin
           if (isSuperAdmin && !['name', 'email', 'phone'].includes(key)) {
             return;
@@ -289,16 +317,21 @@ export function Profile(): JSX.Element {
               submitData.append(`languages[${index}]`, lang);
             });
           } else if (key === 'working_days' && Array.isArray(value)) {
-            value.forEach((day, index) => {
-              submitData.append(`working_days[${index}]`, day);
-            });
+            if (value.length === 0) {
+              submitData.append('working_days_empty', '1');
+            } else {
+              value.forEach((day, index) => {
+                submitData.append(`working_days[${index}]`, day);
+              });
+            }
           } else if (key === 'is_available') {
-            // Convert boolean to 1/0 for Laravel compatibility
             submitData.append(key, value ? '1' : '0');
           } else if (isStaff && key === 'working_hours_start') {
             submitData.append('work_hours_start', value as any);
           } else if (isStaff && key === 'working_hours_end') {
             submitData.append('work_hours_end', value as any);
+          } else if (isPatient && key === 'postal_code') {
+            submitData.append('pincode', value as any);
           } else {
             submitData.append(key, value as any);
           }
