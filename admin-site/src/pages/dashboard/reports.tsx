@@ -38,6 +38,7 @@ import { ReportTable } from "@/components/reports/ReportTable";
 import { ReportExport } from "@/components/reports/ReportExport";
 import { useReportData } from "@/hooks/useReportData";
 import apiService from "@/services/api";
+import { useToast } from "@/context/ToastContext";
 
 // ——— Report Category definitions ———
 const reportCategories = [
@@ -939,6 +940,7 @@ function InventoryReport({ data, subType, onSubTypeChange }: { data: any; subTyp
 // ══════════════════════════════════════════
 
 export default function Reports(): JSX.Element {
+  const { showToast } = useToast();
   const [activeView, setActiveView] = useState<'dashboard' | 'module'>('dashboard');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [currentPeriod, setCurrentPeriod] = useState<'daily' | 'weekly' | 'month' | 'custom'>('month');
@@ -1339,7 +1341,7 @@ export default function Reports(): JSX.Element {
                     variant="text"
                     size="sm"
                     className="rounded-xl flex items-center gap-2 text-[11px] font-bold text-indigo-600 hover:bg-white hover:shadow-sm transition-all px-4"
-                    onClick={() => alert("Report Scheduling Service will be integrated in the next update.")}
+                    onClick={() => showToast("Report Scheduling Service will be integrated in the next update.", "info")}
                   >
                     <CalendarDaysIcon className="h-4 w-4" />
                     Schedule Email
