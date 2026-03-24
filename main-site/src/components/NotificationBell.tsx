@@ -33,7 +33,7 @@ const NotificationBell = () => {
                     {unread > 0 && (
                         <button
                             className="btn btn-link btn-sm p-0 text-decoration-none fw-semibold"
-                            style={{ fontSize: '0.75rem', color: '#049EBB' }}
+                            style={{ fontSize: '0.75rem', color: '#0070C0' }}
                             onClick={(e) => { e.stopPropagation(); markAllAsRead(); }}
                         >
                             Mark all as read
@@ -77,7 +77,7 @@ const NotificationBell = () => {
                 <li className="p-2 text-center border-top">
                     <button
                         className="btn btn-link btn-sm text-decoration-none fw-bold"
-                        style={{ fontSize: '0.75rem', color: '#049EBB' }}
+                        style={{ fontSize: '0.75rem', color: '#0070C0' }}
                         onClick={() => navigate('/notifications')}
                     >
                         See all notifications
@@ -88,7 +88,7 @@ const NotificationBell = () => {
                 .no-caret::after { display: none !important; }
                 .notification-item { cursor: pointer; border-left: 3px solid transparent; }
                 .notification-item:hover { background-color: #f8f9fa !important; }
-                .notification-item.bg-info.bg-opacity-10 { border-left-color: #049EBB; }
+                .notification-item.bg-info.bg-opacity-10 { border-left-color: #0070C0; }
                 .line-clamp-2 {
                     display: -webkit-box;
                     -webkit-line-clamp: 2;

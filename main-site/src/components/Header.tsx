@@ -168,33 +168,9 @@ const Header = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const isActive = (path) => {
+  const isActive = (path: string) => {
     return location.pathname === path ? "active" : "";
   };
-
-  const LogoIcon = () => (
-    <svg className="my-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <g id="bgCarrier" strokeWidth="0"></g>
-      <g id="tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
-      <g id="iconCarrier">
-        <path d="M22 22L2 22" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"></path>
-        <path d="M17 22V6C17 4.11438 17 3.17157 16.4142 2.58579C15.8284 2 14.8856 2 13 2H11C9.11438 2 8.17157 2 7.58579 2.58579C7 3.17157 7 4.11438 7 6V22" stroke="currentColor" strokeWidth="1.5"></path>
-        <path opacity="0.5" d="M21 22V8.5C21 7.09554 21 6.39331 20.6629 5.88886C20.517 5.67048 20.3295 5.48298 20.1111 5.33706C19.6067 5 18.9045 5 17.5 5" stroke="currentColor" strokeWidth="1.5"></path>
-        <path opacity="0.5" d="M3 22V8.5C3 7.09554 3 6.39331 3.33706 5.88886C3.48298 5.67048 3.67048 5.48298 3.88886 5.33706C4.39331 5 5.09554 5 6.5 5" stroke="currentColor" strokeWidth="1.5"></path>
-        <path d="M12 22V19" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"></path>
-        <path opacity="0.5" d="M10 12H14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"></path>
-        <path opacity="0.5" d="M5.5 11H7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"></path>
-        <path opacity="0.5" d="M5.5 14H7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"></path>
-        <path opacity="0.5" d="M17 11H18.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"></path>
-        <path opacity="0.5" d="M17 14H18.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"></path>
-        <path opacity="0.5" d="M5.5 8H7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"></path>
-        <path opacity="0.5" d="M17 8H18.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"></path>
-        <path opacity="0.5" d="M10 15H14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"></path>
-        <path d="M12 9V5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
-        <path d="M14 7L10 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
-      </g>
-    </svg>
-  );
 
   return (
     <header
@@ -204,8 +180,14 @@ const Header = () => {
       <div className="header-container container-fluid container-xl position-relative d-flex align-items-center justify-content-between">
         {/* Logo - Left Side */}
         <Link to="/" className="logo d-flex align-items-center" onClick={closeMobileNav}>
-          <LogoIcon />
-          <h1 className="sitename">MediTrust</h1>
+          <img
+            src="/assets/img/arovis-logo.png"
+            alt="Arovis"
+            className="site-logo-img"
+            width={260}
+            height={52}
+            decoding="async"
+          />
         </Link>
 
         {/* Navigation Menu - Center */}
@@ -402,7 +384,7 @@ const Header = () => {
           color: white;
           border-color: var(--accent-color);
           transform: translateZ(0) translateY(-1px);
-          box-shadow: 0 4px 12px rgba(4, 158, 187, 0.25);
+          box-shadow: 0 4px 12px rgba(0, 112, 192, 0.25);
         }
 
         .header-auth-buttons .btn-signin:hover i,
@@ -421,7 +403,7 @@ const Header = () => {
           text-decoration: none;
           transition: all 0.3s ease;
           white-space: nowrap;
-          box-shadow: 0 1px 3px rgba(4, 158, 187, 0.2);
+          box-shadow: 0 1px 3px rgba(0, 112, 192, 0.2);
           margin: 0;
           will-change: transform;
           transform: translateZ(0);
@@ -430,7 +412,7 @@ const Header = () => {
         .header-auth-buttons .btn-getstarted:hover {
           background: color-mix(in srgb, var(--accent-color) 90%, black 10%);
           transform: translateZ(0) translateY(-1px);
-          box-shadow: 0 4px 12px rgba(4, 158, 187, 0.3);
+          box-shadow: 0 4px 12px rgba(0, 112, 192, 0.3);
           color: white;
         }
 
@@ -484,7 +466,7 @@ const Header = () => {
             width: 40px;
             height: 40px;
             border-radius: 8px;
-            background: rgba(4, 158, 187, 0.1);
+            background: rgba(0, 112, 192, 0.1);
             transition: all 0.3s ease;
             position: relative; 
             z-index: 9999;      
@@ -492,7 +474,7 @@ const Header = () => {
           }
 
           .mobile-nav-toggle:hover {
-            background: rgba(4, 158, 187, 0.2);
+            background: rgba(0, 112, 192, 0.2);
           }
 
           .header.scrolled.dark-underlay .mobile-nav-toggle {
@@ -618,7 +600,7 @@ const Header = () => {
           background: #ffffff;
           border-color: var(--accent-color);
           color: var(--accent-color);
-          box-shadow: 0 4px 10px rgba(4, 158, 187, 0.15);
+          box-shadow: 0 4px 10px rgba(0, 112, 192, 0.15);
           transform: translateY(-1px);
         }
 
@@ -713,8 +695,8 @@ const Header = () => {
 
         /* Search Trigger Button */
         .btn-search-trigger {
-          background: rgba(4, 158, 187, 0.05);
-          border: 1px solid rgba(4, 158, 187, 0.1);
+          background: rgba(0, 112, 192, 0.05);
+          border: 1px solid rgba(0, 112, 192, 0.1);
           color: var(--default-color);
           height: 42px;
           padding: 0 16px;
@@ -729,7 +711,7 @@ const Header = () => {
         .btn-search-trigger:hover {
           background: white;
           border-color: var(--accent-color);
-          box-shadow: 0 4px 12px rgba(4, 158, 187, 0.15);
+          box-shadow: 0 4px 12px rgba(0, 112, 192, 0.15);
           color: var(--accent-color);
         }
 

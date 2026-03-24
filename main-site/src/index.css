@@ -1,10 +1,10 @@
 /* Global Theme Variables */
 :root {
-  --accent-color: #0299BE;
-  --bs-primary: #0299BE;
-  --bs-primary-rgb: 2, 153, 190;
+  --accent-color: #0070C0;
+  --bs-primary: #0070C0;
+  --bs-primary-rgb: 0, 112, 192;
   /* Override Bootstrap Primary */
-  --bs-blue: #0299BE;
+  --bs-blue: #0070C0;
 }
 
 /* Base styles - will be overridden by main.css */
@@ -74,7 +74,7 @@ section a,
 
 .review-card-premium:hover {
   transform: translateY(-10px);
-  box-shadow: 0 30px 60px -12px rgba(4, 158, 187, 0.12), 0 18px 36px -18px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 30px 60px -12px rgba(0, 112, 192, 0.12), 0 18px 36px -18px rgba(0, 0, 0, 0.1);
   border-color: var(--accent-color);
 }
 
@@ -165,7 +165,7 @@ section a,
   height: 100%;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 40px rgba(4, 158, 187, 0.3);
+  box-shadow: 0 20px 40px rgba(0, 112, 192, 0.3);
 }
 
 .trust-summary-card h3,

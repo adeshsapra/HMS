@@ -13,7 +13,7 @@ interface ReportChartProps {
     noCard?: boolean;
 }
 
-const defaultColors = ['#3b82f6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#6366f1'];
+const defaultColors = ['#3b82f6', '#00D2FF', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#6366f1'];
 
 export function ReportChart({
     type,

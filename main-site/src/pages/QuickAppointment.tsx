@@ -224,7 +224,7 @@ const QuickAppointment = () => {
                     text-align: center;
                     font-size: 1.8rem;
                     font-weight: 800;
-                    color: #049ebb;
+                    color: #0070C0;
                     margin-bottom: 20px;
                     background: #fff;
                     padding: 10px;
@@ -255,13 +255,13 @@ const QuickAppointment = () => {
                     color: #444;
                 }
                 .qa-time-btn:hover {
-                    border-color: #049ebb;
+                    border-color: #0070C0;
                     background: #f0fbfc;
                 }
                 .qa-time-btn.active {
-                    background: #049ebb;
+                    background: #0070C0;
                     color: #fff;
-                    border-color: #049ebb;
+                    border-color: #0070C0;
                 }
                 .form-control.is-invalid, .form-select.is-invalid {
                     border-color: #dc3545 !important;
@@ -301,17 +301,17 @@ const QuickAppointment = () => {
                     align-items: center;
                     justify-content: center;
                     font-size: 1.8rem;
-                    color: #049ebb;
+                    color: #0070C0;
                     z-index: 2;
                     box-shadow: 0 10px 20px rgba(0,0,0,0.05);
                     transition: all 0.3s ease;
                 }
                 .process-item:hover .process-icon {
-                    background: #049ebb;
+                    background: #0070C0;
                     color: #fff;
-                    border-color: #049ebb;
+                    border-color: #0070C0;
                     transform: translateY(-5px);
-                    box-shadow: 0 15px 30px rgba(4, 158, 187, 0.2);
+                    box-shadow: 0 15px 30px rgba(0, 112, 192, 0.2);
                 }
                 .process-number {
                     position: absolute;
@@ -319,7 +319,7 @@ const QuickAppointment = () => {
                     right: calc(50% - 40px);
                     width: 28px;
                     height: 28px;
-                    background: #049ebb;
+                    background: #0070C0;
                     color: #fff;
                     border-radius: 50%;
                     display: flex;
@@ -340,7 +340,7 @@ const QuickAppointment = () => {
                     z-index: 1;
                 }
                 .process-item h5 {
-                    color: #18444c;
+                    color: #002D5A;
                     font-size: 1.1rem;
                 }
                 @media (max-width: 991px) {
@@ -437,7 +437,7 @@ const QuickAppointment = () => {
           <div className="row gy-5">
             <div className="col-lg-5 order-1">
               <div className="quickappointment-info pe-lg-5">
-                <h3 className="fw-bold mb-4" style={{ color: '#18444c' }}>Seamless Online Booking</h3>
+                <h3 className="fw-bold mb-4" style={{ color: '#002D5A' }}>Seamless Online Booking</h3>
                 <p className="mb-5 text-muted leading-relaxed">Experience hassle-free healthcare scheduling. Fill out the form, select your specialist, and get confirmed instantly.</p>
 
                 <div className="info-items">
@@ -448,7 +448,7 @@ const QuickAppointment = () => {
                   ].map((item, idx) => (
                     <div key={idx} className="info-item d-flex align-items-start mb-4">
                       <div className="icon-wrapper me-3 bg-light rounded-circle p-3 shadow-sm">
-                        <i className={`bi ${item.icon}`} style={{ color: '#049ebb', fontSize: '1.2rem' }}></i>
+                        <i className={`bi ${item.icon}`} style={{ color: '#0070C0', fontSize: '1.2rem' }}></i>
                       </div>
                       <div>
                         <h6 className="fw-bold mb-1">{item.title}</h6>
@@ -653,7 +653,7 @@ const QuickAppointment = () => {
                         type="submit"
                         className="btn btn-quickappointment w-100 py-3 fw-bold shadow-sm"
                         disabled={loading}
-                        style={{ background: '#049ebb', border: 'none', color: '#fff' }}
+                        style={{ background: '#0070C0', border: 'none', color: '#fff' }}
                       >
                         {loading ? (
                           <><span className="spinner-border spinner-border-sm me-2"></span>Processing...</>
@@ -673,7 +673,7 @@ const QuickAppointment = () => {
       <div className="process-steps py-5">
         <div className="container" data-aos="fade-up">
           <div className="section-header text-center mb-5">
-            <h2 className="fw-bold" style={{ color: '#18444c' }}>How It Works</h2>
+            <h2 className="fw-bold" style={{ color: '#002D5A' }}>How It Works</h2>
             <p className="text-muted">Simple steps to get your health back on track</p>
           </div>
           <div className="process-wrapper">

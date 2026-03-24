@@ -398,8 +398,8 @@ const MyMedicalRecords = ({ focusRecordId }: MyMedicalRecordsProps) => {
                 .profile-medical-record-container {
                     --pmr-bg-color: #ffffff;
                     --pmr-default-color: #2c3031;
-                    --pmr-heading-color: #18444c;
-                    --pmr-accent-color: #049ebb;
+                    --pmr-heading-color: #002D5A;
+                    --pmr-accent-color: #0070C0;
                     --pmr-surface-color: #ffffff;
                     --pmr-contrast-color: #ffffff;
                     

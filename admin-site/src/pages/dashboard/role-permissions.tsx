@@ -33,8 +33,8 @@ const CustomCheckbox = ({ checked, onChange, label }: { checked: boolean; onChan
     <div className="relative flex items-center justify-center p-1 rounded-full">
       <div
         className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all duration-200 ${checked
-          ? "bg-[#0e7490] border-[#0e7490]"
-          : "bg-white border-blue-gray-200 group-hover:border-[#0e7490]"
+          ? "bg-arovis-blue border-arovis-blue"
+          : "bg-white border-blue-gray-200 group-hover:border-arovis-blue"
           }`}
       >
         {checked && (

@@ -112,7 +112,7 @@ const Services = () => {
           color: var(--heading-color);
           margin-bottom: 20px;
           padding-bottom: 15px;
-          border-bottom: 2px solid rgba(4, 158, 187, 0.1);
+          border-bottom: 2px solid rgba(0, 112, 192, 0.1);
           display: flex;
           justify-content: space-between;
           align-items: center;
@@ -134,7 +134,7 @@ const Services = () => {
 
         .search-box input:focus {
           border-color: var(--accent-color);
-          box-shadow: 0 0 0 4px rgba(4, 158, 187, 0.1);
+          box-shadow: 0 0 0 4px rgba(0, 112, 192, 0.1);
           outline: none;
         }
 
@@ -172,7 +172,7 @@ const Services = () => {
         }
 
         .category-btn:hover {
-          background-color: rgba(4, 158, 187, 0.05);
+          background-color: rgba(0, 112, 192, 0.05);
           color: var(--accent-color);
           padding-left: 20px;
         }
@@ -180,7 +180,7 @@ const Services = () => {
         .category-btn.active {
           background-color: var(--accent-color);
           color: #fff;
-          box-shadow: 0 4px 10px rgba(4, 158, 187, 0.3);
+          box-shadow: 0 4px 10px rgba(0, 112, 192, 0.3);
         }
 
         /* --- Service Card Styles --- */
@@ -226,7 +226,7 @@ const Services = () => {
 
         .service-card:hover {
           transform: translateY(-8px);
-          box-shadow: 0 15px 30px rgba(4, 158, 187, 0.15);
+          box-shadow: 0 15px 30px rgba(0, 112, 192, 0.15);
           border-color: var(--accent-color);
         }
 
@@ -241,7 +241,7 @@ const Services = () => {
           border-radius: 12px;
           font-size: 2rem;
           margin-bottom: 20px;
-          box-shadow: 0 5px 20px rgba(4, 158, 187, 0.3);
+          box-shadow: 0 5px 20px rgba(0, 112, 192, 0.3);
           transition: all 0.3s;
         }
 
@@ -274,7 +274,7 @@ const Services = () => {
         }
 
         .badge-category {
-          background: rgba(4, 158, 187, 0.1);
+          background: rgba(0, 112, 192, 0.1);
           color: var(--accent-color);
         }
 

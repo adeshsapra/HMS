@@ -121,22 +121,22 @@ const ALL_MODULES: ModuleDef[] = [
   { label: "Doctors", desc: "Medical staff", path: "/dashboard/doctors", permission: "view-doctors", icon: UsersIcon, iconBg: "#ECFDF5", iconColor: "#059669", accentBorder: "#A7F3D0" },
   { label: "Departments", desc: "Hospital units", path: "/dashboard/departments", permission: "view-departments", icon: BuildingOfficeIcon, iconBg: "#F0FDF4", iconColor: "#16A34A", accentBorder: "#BBF7D0" },
   { label: "Staff", desc: "Manage team", path: "/dashboard/staff", permission: "view-staff", icon: BriefcaseIcon, iconBg: "#F8FAFC", iconColor: "#475569", accentBorder: "#CBD5E1" },
-  { label: "Prescriptions", desc: "Issue & manage", path: "/dashboard/prescriptions", permission: "view-prescriptions", icon: DocumentTextIcon, iconBg: "#F0FDFA", iconColor: "#0D9488", accentBorder: "#99F6E4" },
+  { label: "Prescriptions", desc: "Issue & manage", path: "/dashboard/prescriptions", permission: "view-prescriptions", icon: DocumentTextIcon, iconBg: "#E8F4FC", iconColor: "#0070C0", accentBorder: "#B3E0FF" },
   { label: "Medical Reports", desc: "Upload and view patient test reports", path: "/dashboard/medical-records", permission: "view-medical-records", icon: ClipboardDocumentListIcon, iconBg: "#FDF4FF", iconColor: "#9333EA", accentBorder: "#E9D5FF" },
   { label: "Billing", desc: "Invoices & payments", path: "/dashboard/billing", permission: "view-billing-finance", icon: CurrencyDollarIcon, iconBg: "#FFFBEB", iconColor: "#D97706", accentBorder: "#FDE68A" },
   { label: "Pharmacy", desc: "Drug management", path: "/dashboard/pharmacy", permission: "view-pharmacy", icon: BeakerIcon, iconBg: "#FFF1F2", iconColor: "#E11D48", accentBorder: "#FECDD3" },
   { label: "Laboratory", desc: "Tests & results", path: "/dashboard/laboratory", permission: "view-laboratory", icon: BeakerIcon, iconBg: "#FFF7ED", iconColor: "#EA580C", accentBorder: "#FED7AA" },
   { label: "Inventory", desc: "Stock management", path: "/dashboard/inventory", permission: "view-inventory", icon: CubeIcon, iconBg: "#F0FDF4", iconColor: "#15803D", accentBorder: "#86EFAC" },
-  { label: "Rooms", desc: "Room allocation", path: "/dashboard/rooms", permission: "view-rooms", icon: HomeIcon, iconBg: "#ECFEFF", iconColor: "#0891B2", accentBorder: "#A5F3FC" },
+  { label: "Rooms", desc: "Room allocation", path: "/dashboard/rooms", permission: "view-rooms", icon: HomeIcon, iconBg: "#E8F4FC", iconColor: "#0070C0", accentBorder: "#B3E0FF" },
   { label: "Emergency", desc: "Emergency services", path: "/dashboard/emergency", permission: "view-emergency", icon: HeartIcon, iconBg: "#FEF2F2", iconColor: "#DC2626", accentBorder: "#FECACA" },
-  { label: "Reports", desc: "Analytics", path: "/dashboard/reports", permission: "view-reports", icon: ChartBarIcon, iconBg: "#EFF6FF", iconColor: "#1D4ED8", accentBorder: "#BFDBFE" },
+  { label: "Reports", desc: "Analytics", path: "/dashboard/reports", permission: "view-reports", icon: ChartBarIcon, iconBg: "#E8F4FC", iconColor: "#0070C0", accentBorder: "#B3E0FF" },
   { label: "Settings", desc: "System config", path: "/dashboard/settings", permission: "view-settings", icon: CogIcon, iconBg: "#F8FAFC", iconColor: "#64748B", accentBorder: "#E2E8F0" },
   { label: "Roles", desc: "Manage roles", path: "/dashboard/roles", permission: "view-roles", icon: KeyIcon, iconBg: "#FDF4FF", iconColor: "#A21CAF", accentBorder: "#F0ABFC" },
   { label: "Home Care", desc: "Home care services", path: "/dashboard/home-care", permission: "view-home-care", icon: HomeModernIcon, iconBg: "#F0FDFA", iconColor: "#0F766E", accentBorder: "#99F6E4" },
   { label: "Services", desc: "Hospital services", path: "/dashboard/services", permission: "view-services", icon: ServerStackIcon, iconBg: "#FFF7ED", iconColor: "#C2410C", accentBorder: "#FED7AA" },
-  { label: "Patient Reports", desc: "Detailed reports", path: "/dashboard/patient-reports", permission: "view-patient-reports", icon: ChartBarIcon, iconBg: "#EFF6FF", iconColor: "#2563EB", accentBorder: "#BFDBFE" },
+  { label: "Patient Reports", desc: "Detailed reports", path: "/dashboard/patient-reports", permission: "view-patient-reports", icon: ChartBarIcon, iconBg: "#E8F4FC", iconColor: "#0070C0", accentBorder: "#B3E0FF" },
   { label: "Gallery", desc: "Media gallery", path: "/dashboard/gallery", permission: "view-gallery", icon: PhotoIcon, iconBg: "#FEFCE8", iconColor: "#CA8A04", accentBorder: "#FEF08A" },
-  { label: "Contact", desc: "Inquiries & feedback", path: "/dashboard/contact-inquiries", permission: "view-contact-inquiries", icon: PhoneIcon, iconBg: "#F0F9FF", iconColor: "#0369A1", accentBorder: "#BAE6FD" },
+  { label: "Contact", desc: "Inquiries & feedback", path: "/dashboard/contact-inquiries", permission: "view-contact-inquiries", icon: PhoneIcon, iconBg: "#E8F4FC", iconColor: "#0070C0", accentBorder: "#B3E0FF" },
 ];
 
 const ModuleCard = ({ mod }: { mod: ModuleDef }) => (
@@ -182,7 +182,7 @@ const STATUS_COLORS: Record<string, { text: string; bg: string; dot: string }> =
   confirmed:  { text: "#16a34a", bg: "#f0fdf4", dot: "#22c55e" },
   pending:    { text: "#d97706", bg: "#fffbeb", dot: "#fbbf24" },
   cancelled:  { text: "#dc2626", bg: "#fef2f2", dot: "#f87171" },
-  completed:  { text: "#0891b2", bg: "#ecfeff", dot: "#22d3ee" },
+  completed:  { text: "#0070C0", bg: "#e8f4fc", dot: "#00D2FF" },
 };
 
 const AptRow = ({ apt, showDoctor = true, idx = 0 }: { apt: any; showDoctor?: boolean; idx?: number }) => {
@@ -245,18 +245,18 @@ const ADMIN_QUICK_GROUPS: { label: string; color: string; items: { label: string
     items: [
       { label: "Appointments",   path: "/dashboard/appointments",   icon: CalendarDaysIcon,         iconBg: "#EFF6FF", iconColor: "#2563EB" },
       { label: "Patients",       path: "/dashboard/patients",        icon: UserGroupIcon,             iconBg: "#EDE9FE", iconColor: "#7C3AED" },
-      { label: "Prescriptions",  path: "/dashboard/prescriptions",   icon: DocumentTextIcon,          iconBg: "#F0FDFA", iconColor: "#0D9488" },
+      { label: "Prescriptions",  path: "/dashboard/prescriptions",   icon: DocumentTextIcon,          iconBg: "#E8F4FC", iconColor: "#0070C0" },
       { label: "Medical Reports", path: "/dashboard/medical-records", icon: ClipboardDocumentListIcon, iconBg: "#FDF4FF", iconColor: "#9333EA" },
     ],
   },
   {
     label: "Hospital Management",
-    color: "#0891b2",
+    color: "#0070C0",
     items: [
       { label: "Doctors",      path: "/dashboard/doctors",      icon: UsersIcon,          iconBg: "#ECFDF5", iconColor: "#059669" },
       { label: "Staff",        path: "/dashboard/staff",         icon: BriefcaseIcon,      iconBg: "#F8FAFC", iconColor: "#475569" },
       { label: "Departments",  path: "/dashboard/departments",   icon: BuildingOfficeIcon, iconBg: "#F0FDF4", iconColor: "#16A34A" },
-      { label: "Rooms",        path: "/dashboard/rooms",         icon: HomeIcon,           iconBg: "#ECFEFF", iconColor: "#0891B2" },
+      { label: "Rooms",        path: "/dashboard/rooms",         icon: HomeIcon,           iconBg: "#E8F4FC", iconColor: "#0070C0" },
     ],
   },
   {
@@ -273,7 +273,7 @@ const ADMIN_QUICK_GROUPS: { label: string; color: string; items: { label: string
     label: "System & Reports",
     color: "#7c3aed",
     items: [
-      { label: "Reports",   path: "/dashboard/reports",   icon: ChartBarIcon,   iconBg: "#EFF6FF", iconColor: "#1D4ED8" },
+      { label: "Reports",   path: "/dashboard/reports",   icon: ChartBarIcon,   iconBg: "#E8F4FC", iconColor: "#0070C0" },
       { label: "Settings",  path: "/dashboard/settings",  icon: CogIcon,        iconBg: "#F8FAFC", iconColor: "#64748B" },
       { label: "Roles",     path: "/dashboard/roles",     icon: KeyIcon,        iconBg: "#FDF4FF", iconColor: "#A21CAF" },
       { label: "Emergency", path: "/dashboard/emergency", icon: HeartIcon,      iconBg: "#FEF2F2", iconColor: "#DC2626" },
@@ -427,7 +427,7 @@ function AdminDashboard() {
       {/* ── Primary KPIs (8 cards, 4 per row) ── */}
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard label={`${revenueRange} Revenue`} value={fmtCurrency(kpis.revenue?.value || 0)}
-          icon={CurrencyDollarIcon} from="#0ea5e9" to="#2563eb" glow="rgba(37,99,235,0.25)"
+          icon={CurrencyDollarIcon} from="#0070C0" to="#002D5A" glow="rgba(0,112,192,0.25)"
           badge={`${(kpis.revenue?.trend ?? 0) >= 0 ? "↑" : "↓"} ${Math.abs(kpis.revenue?.trend || 0)}%`} />
         <KpiCard label={`${revenueRange} Patients`} value={fmtNum(kpis.patients?.value || 0)}
           icon={UserGroupIcon} from="#a855f7" to="#7c3aed" glow="rgba(168,85,247,0.25)" 
@@ -440,7 +440,7 @@ function AdminDashboard() {
 
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard label="Confirmed Appts" value={apptConfirmed}
-          icon={CheckCircleIcon} from="#0891b2" to="#0e7490" glow="rgba(8,145,178,0.25)" badge="Ready" />
+          icon={CheckCircleIcon} from="#0070C0" to="#002D5A" glow="rgba(0,112,192,0.25)" badge="Ready" />
         <KpiCard label="Pending Appts" value={apptPending}
           icon={ClockIcon} from="#e11d48" to="#be123c" glow="rgba(225,29,72,0.25)" badge="Action" />
         <KpiCard label="Total Staff" value={counts.staff?.total || 0}
@@ -557,7 +557,7 @@ function AdminDashboard() {
                 ]}
                 options={{
                   chart: { toolbar: { show: false } },
-                  colors: ["#6366f1", "#10b981", "#f59e0b", "#0891b2"],
+                  colors: ["#6366f1", "#10b981", "#f59e0b", "#0070C0"],
                   labels: ["Beds", "Doctors", "Staff", "Pharmacy"],
                   plotOptions: {
                     radialBar: {
@@ -1084,9 +1084,9 @@ function DoctorDashboard() {
 
       {/* KPIs */}
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <KpiCard label="Today's Patients" value={appointments.length} icon={CalendarDaysIcon} from="#0f766e" to="#0d9488" glow="rgba(20,184,166,0.25)" badge="Today" />
+        <KpiCard label="Today's Patients" value={appointments.length} icon={CalendarDaysIcon} from="#0070C0" to="#002D5A" glow="rgba(0,112,192,0.25)" badge="Today" />
         <KpiCard label="Pending" value={pending} icon={ClockIcon} from="#d97706" to="#b45309" glow="rgba(217,119,6,0.25)" badge="Awaiting" />
-        <KpiCard label="Confirmed" value={confirmed} icon={CheckCircleIcon} from="#2563eb" to="#1d4ed8" glow="rgba(37,99,235,0.25)" badge="Ready" />
+        <KpiCard label="Confirmed" value={confirmed} icon={CheckCircleIcon} from="#0070C0" to="#002D5A" glow="rgba(0,112,192,0.25)" badge="Ready" />
         <KpiCard label={permissions.includes("view-prescriptions") ? "Prescriptions" : "Completed"} value={permissions.includes("view-prescriptions") ? prescriptions.length : completed}
           icon={permissions.includes("view-prescriptions") ? DocumentTextIcon : CheckCircleIcon}
           from="#7c3aed" to="#6d28d9" glow="rgba(124,58,237,0.25)" badge="Recent" />
@@ -1118,7 +1118,7 @@ function DoctorDashboard() {
                   options={{
                     chart: { toolbar: { show: false } },
                     labels: ["Confirmed", "Pending", "Completed", "Cancelled"],
-                    colors: ["#2563eb", "#f59e0b", "#10b981", "#ef4444"],
+                    colors: ["#0070C0", "#f59e0b", "#10b981", "#ef4444"],
                     legend: { position: "bottom", fontSize: "11px", fontWeight: 700, fontFamily: "inherit", labels: { colors: "#475569" } },
                     plotOptions: { pie: { donut: { size: "70%", labels: {
                       show: true,
@@ -1232,7 +1232,7 @@ function DoctorDashboard() {
 
           {/* Quick Actions Panel */}
           <motion.div variants={fadeUp}>
-             <Glass className="h-[350px] flex flex-col p-5 bg-gradient-to-br from-emerald-50 to-teal-50/50">
+             <Glass className="h-[350px] flex flex-col p-5 bg-gradient-to-br from-emerald-50 to-blue-50/80">
                <h3 className="text-slate-800 font-black text-sm mb-1">Quick Actions</h3>
                <p className="text-slate-400 font-bold text-[10px] uppercase tracking-widest mb-5">Doctor Toolkit</p>
                
@@ -1321,8 +1321,8 @@ function StaffDashboard() {
   const greeting = hour < 12 ? "Good Morning" : hour < 17 ? "Good Afternoon" : "Good Evening";
 
   // Role-specific gradient
-  const headerGradient = "linear-gradient(135deg, #0f172a 0%, #1e293b 40%, #334155 70%, #475569 100%)";
-  const headerGlow = "rgba(71,85,105,0.3)";
+  const headerGradient = "linear-gradient(135deg, #001a2e 0%, #002D5A 35%, #003d6b 65%, #0070C0 100%)";
+  const headerGlow = "rgba(0,112,192,0.28)";
 
   return (
     <motion.div initial="hidden" animate="visible" variants={stagger}
@@ -1369,7 +1369,7 @@ function StaffDashboard() {
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {canAppts ? (
           <>
-            <KpiCard label="Today's Appointments" value={appointments.length} icon={CalendarDaysIcon} from="#2563eb" to="#1d4ed8" glow="rgba(37,99,235,0.22)" badge="Today" />
+            <KpiCard label="Today's Appointments" value={appointments.length} icon={CalendarDaysIcon} from="#0070C0" to="#002D5A" glow="rgba(0,112,192,0.22)" badge="Today" />
             <KpiCard label="Pending" value={appointments.filter(a => a.status === "pending").length} icon={ClockIcon} from="#d97706" to="#b45309" glow="rgba(217,119,6,0.22)" badge="Action Needed" />
             <KpiCard label="Confirmed" value={appointments.filter(a => a.status === "confirmed").length} icon={CheckCircleIcon} from="#059669" to="#047857" glow="rgba(5,150,105,0.22)" badge="Ready" />
           </>
@@ -1416,7 +1416,7 @@ function StaffDashboard() {
                     options={{
                       chart: { toolbar: { show: false } },
                       labels: ["Confirmed", "Pending", "Completed", "Cancelled"],
-                      colors: ["#2563eb", "#f59e0b", "#10b981", "#ef4444"],
+                      colors: ["#0070C0", "#f59e0b", "#10b981", "#ef4444"],
                       legend: { position: "bottom", fontSize: "11px", fontWeight: 700, fontFamily: "inherit", labels: { colors: "#475569" } },
                       plotOptions: { pie: { donut: { size: "70%", labels: {
                         show: true,

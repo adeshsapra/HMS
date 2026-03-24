@@ -206,27 +206,27 @@ export function DataTable({
         @keyframes row-pulse {
           0% { 
             background-color: transparent;
-            box-shadow: inset 0 0 0 0 rgba(2, 153, 190, 0);
+            box-shadow: inset 0 0 0 0 rgba(0, 112, 192, 0);
             transform: scale(1);
           }
           15% {
-            background-color: rgba(2, 153, 190, 0.08);
-            box-shadow: inset 6px 0 0 0 #0299BE, 0 0 25px rgba(2, 153, 190, 0.1);
+            background-color: rgba(0, 112, 192, 0.08);
+            box-shadow: inset 6px 0 0 0 #0070C0, 0 0 25px rgba(0, 112, 192, 0.1);
             transform: scale(1.005);
           }
           50% { 
-            background-color: rgba(2, 153, 190, 0.12);
-            box-shadow: inset 6px 0 0 0 #0299BE, 0 0 35px rgba(2, 153, 190, 0.15);
+            background-color: rgba(0, 112, 192, 0.12);
+            box-shadow: inset 6px 0 0 0 #0070C0, 0 0 35px rgba(0, 112, 192, 0.15);
             transform: scale(1.008);
           }
           85% {
-            background-color: rgba(2, 153, 190, 0.08);
-            box-shadow: inset 6px 0 0 0 #0299BE, 0 0 25px rgba(2, 153, 190, 0.1);
+            background-color: rgba(0, 112, 192, 0.08);
+            box-shadow: inset 6px 0 0 0 #0070C0, 0 0 25px rgba(0, 112, 192, 0.1);
             transform: scale(1.005);
           }
           100% { 
             background-color: transparent;
-            box-shadow: inset 0 0 0 0 rgba(2, 153, 190, 0);
+            box-shadow: inset 0 0 0 0 rgba(0, 112, 192, 0);
             transform: scale(1);
           }
         }
@@ -240,13 +240,13 @@ export function DataTable({
         }
 
         .highlight-row td {
-          border-bottom-color: rgba(2, 153, 190, 0.2) !important;
-          color: #0299BE !important;
+          border-bottom-color: rgba(0, 112, 192, 0.2) !important;
+          color: #0070C0 !important;
           transition: all 0.3s ease;
         }
 
         .highlight-row td p {
-          color: #0286a6 !important;
+          color: #005a9e !important;
           font-weight: 600 !important;
         }
       `}</style>

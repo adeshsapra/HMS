@@ -103,8 +103,8 @@ const PlanDetails = () => {
         <div className="plan-details-page section" style={{ minHeight: '100vh', paddingTop: '100px', background: '#f8fafc' }}>
             <style>{`
                 :root {
-                    --primary: #0299BE;
-                    --primary-soft: rgba(2, 153, 190, 0.1);
+                    --primary: #0070C0;
+                    --primary-soft: rgba(0, 112, 192, 0.1);
                     --dark-text: #1e293b;
                     --gray-text: #64748b;
                 }
@@ -198,8 +198,8 @@ const PlanDetails = () => {
                     background: white;
                     border-radius: 24px;
                     padding: 2rem;
-                    box-shadow: 0 25px 50px -12px rgba(2, 153, 190, 0.15);
-                    border: 1px solid rgba(2, 153, 190, 0.1);
+                    box-shadow: 0 25px 50px -12px rgba(0, 112, 192, 0.15);
+                    border: 1px solid rgba(0, 112, 192, 0.1);
                     position: sticky;
                     top: 120px;
                 }

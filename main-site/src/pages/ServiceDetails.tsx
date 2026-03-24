@@ -161,7 +161,7 @@ const ServiceDetails = () => {
           padding: 40px;
           color: white;
           margin-bottom: 30px;
-          box-shadow: 0 10px 30px rgba(4, 158, 187, 0.3);
+          box-shadow: 0 10px 30px rgba(0, 112, 192, 0.3);
         }
 
         .service-icon-large {
@@ -215,7 +215,7 @@ const ServiceDetails = () => {
           color: var(--heading-color);
           margin-bottom: 20px;
           padding-bottom: 15px;
-          border-bottom: 2px solid rgba(4, 158, 187, 0.1);
+          border-bottom: 2px solid rgba(0, 112, 192, 0.1);
         }
 
         .info-grid {
@@ -291,7 +291,7 @@ const ServiceDetails = () => {
 
         .related-service-card:hover {
           transform: translateY(-5px);
-          box-shadow: 0 10px 25px rgba(4, 158, 187, 0.15);
+          box-shadow: 0 10px 25px rgba(0, 112, 192, 0.15);
           border-color: var(--accent-color);
         }
 

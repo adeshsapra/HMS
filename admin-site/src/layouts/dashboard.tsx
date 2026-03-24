@@ -19,12 +19,7 @@ export function Dashboard(): JSX.Element {
 
   return (
     <div className="min-h-screen bg-blue-gray-50/50">
-      <Sidenav
-        routes={filteredRoutes}
-        brandImg={
-          sidenavType === "dark" ? "/img/logo-ct.png" : "/img/logo-ct-dark.png"
-        }
-      />
+      <Sidenav routes={filteredRoutes} />
       <div className={`p-4 transition-all duration-300 ${openSidenav
         ? (controller.sidenavCollapsed ? 'xl:ml-24' : 'xl:ml-80')
         : 'xl:ml-4'

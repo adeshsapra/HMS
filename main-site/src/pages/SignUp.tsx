@@ -183,10 +183,7 @@ const SignUp = () => {
 
             {/* Logo */}
             <div className="brand-logo" data-aos="fade-down">
-              <div className="brand-icon">
-                <i className="bi bi-hospital-fill"></i>
-              </div>
-              <span className="brand-text">MediTrust<span className="brand-dot">.</span></span>
+              <img src="/assets/img/arovis-logo.png" alt="Arovis" className="login-brand-logo-img" />
             </div>
 
             <div className="form-header">
@@ -387,9 +384,9 @@ const SignUp = () => {
       <style>{`
         /* --- RESET & VARIABLES --- */
         :root {
-          --primary-color: #0e7490;
-          --primary-hover: #155e75;
-          --accent-color: #06b6d4;
+          --primary-color: #0070C0;
+          --primary-hover: #002D5A;
+          --accent-color: #00D2FF;
           --bg-color: #f8fafc;
           --text-main: #0f172a;
           --text-muted: #64748b;
@@ -437,7 +434,7 @@ const SignUp = () => {
         .visual-overlay {
           position: absolute;
           inset: 0;
-          background: linear-gradient(135deg, rgba(14, 116, 144, 0.9), rgba(6, 182, 212, 0.8));
+          background: linear-gradient(135deg, rgba(0, 112, 192, 0.92), rgba(0, 210, 255, 0.85));
         }
 
         .visual-content {
@@ -532,33 +529,23 @@ const SignUp = () => {
         }
 
         .brand-logo {
-          display: flex;
-          align-items: center;
-          gap: 12px;
           margin-bottom: 24px;
         }
 
-        .brand-icon {
-          width: 40px;
-          height: 40px;
-          background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
-          border-radius: 12px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: white;
-          font-size: 20px;
-          box-shadow: 0 8px 16px rgba(14, 116, 144, 0.2);
+        .login-brand-logo-img {
+          height: auto;
+          width: auto;
+          max-height: 56px;
+          max-width: min(280px, 100%);
+          display: block;
+          object-fit: contain;
         }
-
-        .brand-text {
-          font-size: 22px;
-          font-weight: 700;
-          color: var(--text-main);
-          letter-spacing: -0.5px;
+        @media (max-width: 575px) {
+          .login-brand-logo-img {
+            max-height: 48px;
+            max-width: 100%;
+          }
         }
-        
-        .brand-dot { color: var(--accent-color); }
 
         .form-header h1 {
           font-size: 28px;

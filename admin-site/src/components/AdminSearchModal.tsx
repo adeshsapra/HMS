@@ -500,7 +500,7 @@ const AdminSearchModal: React.FC<AdminSearchModalProps> = ({ isOpen, onClose }) 
                             {/* Footer */}
                             <div className="px-6 py-4 bg-blue-gray-50/50 border-t border-blue-gray-100 flex justify-between items-center text-blue-gray-400">
                                 <div className="flex items-center gap-2">
-                                    <span className="text-[11px] font-bold uppercase tracking-widest">MediTrust Search</span>
+                                    <span className="text-[11px] font-bold uppercase tracking-widest">Arovis Search</span>
                                 </div>
                                 <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-tight">
                                     <span>↑↓ to navigate</span>

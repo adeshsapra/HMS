@@ -9,15 +9,29 @@ import {
 } from "@material-tailwind/react";
 import { useMaterialTailwindController, setOpenSidenav, setSidenavCollapsed } from "@/context";
 import { useFilteredRoutes } from "@/utils/routeFilter";
+import {
+  ADMIN_ICON_SRC,
+  ADMIN_LOGO_ICON_CLASS,
+  ADMIN_LOGO_SRC,
+  ADMIN_LOGO_WORDMARK_CLASS,
+} from "@/constants/adminBrand";
 import { Route, RoutePage } from "@/routes";
 
 export interface SidenavProps {
+  /** Full wordmark (expanded sidebar). */
   brandImg?: string;
+  /** Square mark only (collapsed sidebar). */
+  brandIconImg?: string;
   brandName?: string;
   routes: Route[];
 }
 
-export function Sidenav({ brandImg = "/img/logo-ct.png", brandName = "HMS Admin Panel", routes }: SidenavProps): JSX.Element {
+export function Sidenav({
+  brandImg = ADMIN_LOGO_SRC,
+  brandIconImg = ADMIN_ICON_SRC,
+  brandName = "Arovis",
+  routes,
+}: SidenavProps): JSX.Element {
   const [controller, dispatch] = useMaterialTailwindController();
   const { sidenavColor, sidenavType, openSidenav, sidenavCollapsed } = controller;
 
@@ -68,35 +82,45 @@ export function Sidenav({ brandImg = "/img/logo-ct.png", brandName = "HMS Admin 
           } rounded-xl transition-all duration-300 xl:translate-x-0 border ${sidenavType === "dark" ? "border-white/10" : "border-blue-gray-100"
           } flex flex-col`}
       >
-        {/* Header Section */}
-        <div className={`relative flex-shrink-0 border-b ${sidenavType === "dark" ? "border-white/10" : "border-blue-gray-100"
-          } py-4`}>
-          <div className={`flex items-center ${sidenavCollapsed ? "justify-center px-2" : "justify-between px-4"
-            }`}>
-            {/* Logo */}
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-sm flex-shrink-0">
-              <span className="text-white font-bold text-lg">H</span>
-            </div>
-
-            {/* Brand Name - Only visible when expanded */}
-            {!sidenavCollapsed && (
-              <Link to="/dashboard/home" className="flex-1 ml-2">
-                <Typography
-                  variant="h6"
-                  color={sidenavType === "dark" ? "white" : "blue-gray"}
-                  className="font-semibold text-base"
-                >
-                  {brandName}
-                </Typography>
-              </Link>
-            )}
+        {/* Header: same min-height expanded/collapsed; collapse control centered on this strip */}
+        <div
+          className={`relative flex-shrink-0 border-b leading-none ${sidenavType === "dark" ? "border-white/10" : "border-blue-gray-100"
+            }`}
+        >
+          <div
+            className={`flex min-h-16 items-center py-2 ${sidenavCollapsed ? "justify-center px-2" : "justify-between gap-2 px-3"}`}
+          >
+            <Link
+              to="/dashboard/home"
+              className={`flex min-w-0 items-center leading-none ${sidenavCollapsed ? "flex-1 justify-center" : "mr-1 min-w-0 flex-1"}`}
+            >
+              {sidenavCollapsed ? (
+                <img
+                  src={brandIconImg}
+                  alt={brandName}
+                  width={56}
+                  height={56}
+                  decoding="async"
+                  className={ADMIN_LOGO_ICON_CLASS}
+                />
+              ) : (
+                <img
+                  src={brandImg}
+                  alt={brandName}
+                  width={280}
+                  height={64}
+                  decoding="async"
+                  className={ADMIN_LOGO_WORDMARK_CLASS}
+                />
+              )}
+            </Link>
 
             {/* Close Button - Only for mobile */}
             <IconButton
               variant="text"
               size="sm"
               ripple={false}
-              className={`rounded-lg xl:hidden ${sidenavType === "dark"
+              className={`shrink-0 rounded-lg xl:hidden ${sidenavType === "dark"
                 ? "text-white hover:bg-white/10"
                 : "text-blue-gray-700 hover:bg-blue-gray-100"
                 }`}
@@ -105,15 +129,15 @@ export function Sidenav({ brandImg = "/img/logo-ct.png", brandName = "HMS Admin 
               <XMarkIcon strokeWidth={2.5} className="h-5 w-5" />
             </IconButton>
           </div>
-        </div>
 
-        {/* Expand/Collapse Button - Positioned between sidebar and content */}
-        <div className="absolute -right-3 top-5 z-50 xl:block hidden">
+          {/* Desktop: centered on header row — aligned for both expanded & collapsed */}
           <button
+            type="button"
+            aria-label={sidenavCollapsed ? "Expand sidebar" : "Collapse sidebar"}
             onClick={() => setSidenavCollapsed(dispatch, !sidenavCollapsed)}
-            className={`w-8 h-8 rounded-lg border shadow-md flex items-center justify-center transition-all ${sidenavType === "dark"
-              ? "bg-gray-700 border-gray-600 hover:bg-gray-600 text-white"
-              : "bg-gray-100 border-gray-300 hover:bg-gray-200 text-gray-700"
+            className={`absolute -right-3 top-1/2 z-50 hidden h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg border shadow-md transition-all xl:flex ${sidenavType === "dark"
+              ? "border-gray-600 bg-gray-700 text-white hover:bg-gray-600"
+              : "border-gray-300 bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
           >
             {sidenavCollapsed ? (

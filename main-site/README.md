@@ -1,6 +1,6 @@
-# MediTrust React - Hospital Management System
+# Arovis — Main patient site
 
-A fully functional React clone of the MediTrust Bootstrap Hospital Management System website template.
+A fully functional React implementation of the hospital website (originally derived from a BootstrapMade hospital template).
 
 ## Features
 
@@ -57,7 +57,7 @@ npm run build
 ## Project Structure
 
 ```
-meditrust-react/
+arovis-main-site/
 ├── public/
 │   └── assets/          # All images, fonts, and vendor files
 ├── src/
@@ -89,5 +89,5 @@ meditrust-react/
 
 ## License
 
-This project is a React conversion of the MediTrust Bootstrap template.
+This project is branded as Arovis (Vision of Health).
 

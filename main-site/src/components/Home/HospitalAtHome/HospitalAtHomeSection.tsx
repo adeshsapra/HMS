@@ -173,7 +173,7 @@ const HospitalAtHomeSection: React.FC<HospitalAtHomeSectionProps> = ({
         .swimming-card-wrapper:hover .card-glass {
             border-color: var(--accent-color);
             background: rgba(255, 255, 255, 0.9);
-            box-shadow: 0 15px 40px rgba(4, 158, 187, 0.2);
+            box-shadow: 0 15px 40px rgba(0, 112, 192, 0.2);
         }
 
         .icon-bubble {
@@ -187,7 +187,7 @@ const HospitalAtHomeSection: React.FC<HospitalAtHomeSectionProps> = ({
             color: white;
             font-size: 1.25rem;
             margin-bottom: 1rem;
-            box-shadow: 0 4px 15px rgba(4, 158, 187, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 112, 192, 0.3);
         }
 
         .card-desc {

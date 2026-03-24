@@ -47,9 +47,9 @@ const reportCategories = [
     title: "Revenue & Financial",
     description: "Total billed, collected, and due amounts with trends",
     icon: CurrencyDollarIcon,
-    gradient: "from-green-500 to-teal-600",
+    gradient: "from-green-500 to-arovis-blue",
     bgColor: "bg-green-50/50",
-    iconBg: "bg-gradient-to-r from-green-500 to-teal-600",
+    iconBg: "bg-gradient-to-r from-green-500 to-arovis-blue",
     shadowColor: "shadow-green-500/30",
     reportType: "revenue",
   },
@@ -529,7 +529,7 @@ function PatientsReport({ data }: { data: any }) {
               xaxis: {
                 categories: d.age_distribution.map((item: any) => item.age_group),
               },
-              colors: ["#06b6d4"],
+              colors: ["#0070C0"],
               plotOptions: { bar: { distributed: true } },
             }}
             height={300}
@@ -1051,7 +1051,7 @@ export default function Reports(): JSX.Element {
               </div>
               <div>
                 <Typography variant="h2" color="blue-gray" className="font-black tracking-tight leading-none mb-2">
-                  MediTrust <span className="text-indigo-600">Health Hub</span>
+                  Arovis <span className="text-indigo-600">Health Hub</span>
                 </Typography>
                 <Typography variant="small" className="text-blue-gray-400 font-bold uppercase tracking-[0.2em] text-[10px]">
                   Operational Intelligence & Performance Audit Report
@@ -1731,7 +1731,7 @@ export default function Reports(): JSX.Element {
             </div>
             <div>
               <Typography variant="h4" color="blue-gray" className="font-black tracking-tight leading-none mb-1">
-                MediTrust <span className="text-indigo-600">Health Reports</span>
+                Arovis <span className="text-indigo-600">Health Reports</span>
               </Typography>
               <Typography variant="small" className="text-blue-gray-400 font-bold uppercase tracking-widest text-[9px]">
                 Detailed Analytics: {currentCategory?.title}

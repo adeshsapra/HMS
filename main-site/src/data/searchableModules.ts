@@ -11,7 +11,7 @@ export const searchableModules: SearchableModule[] = [
     {
         id: 'home',
         title: 'Home',
-        description: 'Main landing page of MediTrust Hospital.',
+        description: 'Main landing page of Arovis Hospital.',
         path: '/',
         icon: 'bi-house'
     },

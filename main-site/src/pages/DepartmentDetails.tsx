@@ -233,13 +233,13 @@ const DepartmentDetails = () => {
 
         .dept-tab-btn:hover {
           color: var(--accent-color);
-          background: rgba(4, 158, 187, 0.05);
+          background: rgba(0, 112, 192, 0.05);
         }
 
         .dept-tab-btn.active {
           background: var(--accent-color);
           color: #fff;
-          box-shadow: 0 4px 10px rgba(4, 158, 187, 0.3);
+          box-shadow: 0 4px 10px rgba(0, 112, 192, 0.3);
         }
 
         .content-box {
@@ -289,7 +289,7 @@ const DepartmentDetails = () => {
         .sidebar-icon {
           width: 50px;
           height: 50px;
-          background: rgba(4, 158, 187, 0.1);
+          background: rgba(0, 112, 192, 0.1);
           color: var(--accent-color);
           border-radius: 50%;
           display: flex;
@@ -416,7 +416,7 @@ const DepartmentDetails = () => {
           background: var(--accent-color);
           color: #fff;
           transform: translateY(-2px);
-          box-shadow: 0 5px 15px rgba(4, 158, 187, 0.2);
+          box-shadow: 0 5px 15px rgba(0, 112, 192, 0.2);
         }
       `}</style>
 

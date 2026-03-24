@@ -223,8 +223,8 @@ const WorkflowSection: React.FC = () => {
 
                 .glass-card:hover {
                     box-shadow: 
-                        0 20px 40px -5px rgba(4, 158, 187, 0.15),
-                        0 0 15px rgba(4, 158, 187, 0.1);
+                        0 20px 40px -5px rgba(0, 112, 192, 0.15),
+                        0 0 15px rgba(0, 112, 192, 0.1);
                     border-color: var(--accent-color);
                 }
 
@@ -270,7 +270,7 @@ const WorkflowSection: React.FC = () => {
                     border-radius: 20px;
                     transform: rotate(45deg);
                     transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-                    box-shadow: 0 10px 20px rgba(4, 158, 187, 0.3);
+                    box-shadow: 0 10px 20px rgba(0, 112, 192, 0.3);
                 }
 
                 .glass-card:hover .icon-bg {
@@ -327,7 +327,7 @@ const WorkflowSection: React.FC = () => {
                     border-radius: 50%;
                     transform: translateX(-50%);
                     z-index: 1;
-                    box-shadow: 0 0 0 4px rgba(4, 158, 187, 0.2);
+                    box-shadow: 0 0 0 4px rgba(0, 112, 192, 0.2);
                 }
 
                 .top-anchor { top: -40px; } /* Adjust based on SVG curve */

@@ -91,7 +91,7 @@ export const statisticsCardsData: StatisticsCardData[] = [
     },
   },
   {
-    color: "teal",
+    color: "blue",
     icon: ClockIcon,
     title: "Pending Appointments",
     value: "15",

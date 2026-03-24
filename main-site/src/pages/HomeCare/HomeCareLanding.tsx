@@ -370,7 +370,7 @@ const HomeCareLanding = () => {
           <div className="container">
             <div className="hc-section-title" data-aos="fade-up">
               <h2>
-                {settings.features_title || "Why Choose Meditrust Home Care?"}
+                {settings.features_title || "Why Choose Arovis Home Care?"}
               </h2>
               <p>
                 {settings.features_subtitle ||

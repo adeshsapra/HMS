@@ -377,7 +377,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
               <div className="search-footer">
                 <div className="search-logo">
                   <i className="bi bi-meta"></i>
-                  <span>MediTrust Search</span>
+                  <span>Arovis Search</span>
                 </div>
                 <div className="search-hint">
                   <span><kbd>↑↓</kbd> to navigate</span>
@@ -532,7 +532,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
         }
 
         .search-item:hover, .search-item.active {
-          background: rgba(4, 158, 187, 0.08);
+          background: rgba(0, 112, 192, 0.08);
         }
 
         .item-icon {
@@ -584,7 +584,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
 
         .badge-jump {
           font-size: 11px;
-          background: rgba(4, 158, 187, 0.1);
+          background: rgba(0, 112, 192, 0.1);
           color: var(--accent-color);
           padding: 4px 8px;
           border-radius: 6px;
@@ -645,7 +645,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
         .quick-link-card:hover {
           border-color: var(--accent-color);
           background: white;
-          box-shadow: 0 10px 20px -10px rgba(4, 158, 187, 0.3);
+          box-shadow: 0 10px 20px -10px rgba(0, 112, 192, 0.3);
           transform: translateY(-2px);
         }
 

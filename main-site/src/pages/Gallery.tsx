@@ -114,7 +114,7 @@ const Gallery = () => {
 
       <section className="py-5 bg-white">
         <div className="container py-lg-4">
-          <SectionHeading desc="Take a virtual tour of MediTrust through our curated collection of photos showcasing our infrastructure and heart-warming patient care.">
+          <SectionHeading desc="Take a virtual tour of Arovis through our curated collection of photos showcasing our infrastructure and heart-warming patient care.">
             Hospital <span className="text-gradient">Gallery</span>
           </SectionHeading>
 
@@ -177,7 +177,7 @@ const Gallery = () => {
                           />
                           <div className="item-overlay">
                             <div className="overlay-content">
-                              <span className="cat-label">{img.category?.name || 'MediTrust'}</span>
+                              <span className="cat-label">{img.category?.name || 'Arovis'}</span>
                               <h4 className="title">{img.title}</h4>
                               {img.description && <p className="desc">{img.description}</p>}
                               <a
@@ -229,14 +229,14 @@ const Gallery = () => {
         .btn-category:hover {
           color: var(--accent-color);
           background: white;
-          border-color: rgba(2, 153, 190, 0.2);
+          border-color: rgba(0, 112, 192, 0.2);
           box-shadow: 0 8px 20px rgba(0,0,0,0.08);
         }
         
         .btn-category.active {
           background: var(--accent-color);
           color: white;
-          box-shadow: 0 10px 25px rgba(2, 153, 190, 0.35);
+          box-shadow: 0 10px 25px rgba(0, 112, 192, 0.35);
           transform: translateY(-2px);
         }
 

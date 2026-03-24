@@ -26,8 +26,8 @@ const Privacy = () => {
         .legal-card {
           background: #ffffff;
           border-radius: 24px;
-          box-shadow: 0 20px 50px rgba(24, 68, 76, 0.05);
-          border: 1px solid rgba(4, 158, 187, 0.1);
+          box-shadow: 0 20px 50px rgba(0, 45, 90, 0.05);
+          border: 1px solid rgba(0, 112, 192, 0.1);
           overflow: hidden;
           padding: 60px;
         }
@@ -45,8 +45,8 @@ const Privacy = () => {
           align-items: center;
           gap: 8px;
           padding: 6px 16px;
-          background: rgba(4, 158, 187, 0.1);
-          color: #049ebb;
+          background: rgba(0, 112, 192, 0.1);
+          color: #0070C0;
           border-radius: 50px;
           font-size: 0.85rem;
           font-weight: 700;
@@ -55,7 +55,7 @@ const Privacy = () => {
         }
 
         .legal-title {
-          color: #18444c;
+          color: #002D5A;
           font-weight: 800;
           font-size: 1.75rem;
           margin-bottom: 25px;
@@ -66,7 +66,7 @@ const Privacy = () => {
 
         .legal-title i {
             font-size: 1.5rem;
-            color: #049ebb;
+            color: #0070C0;
         }
 
         .legal-text {
@@ -93,7 +93,7 @@ const Privacy = () => {
           font-family: "bootstrap-icons";
           position: absolute;
           left: 0;
-          color: #049ebb;
+          color: #0070C0;
           font-size: 1.1rem;
         }
 
@@ -113,26 +113,26 @@ const Privacy = () => {
         }
 
         .info-card:hover {
-            border-color: #049ebb;
+            border-color: #0070C0;
             transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(4, 158, 187, 0.1);
+            box-shadow: 0 10px 25px rgba(0, 112, 192, 0.1);
         }
 
         .info-card i {
             font-size: 2rem;
-            color: #049ebb;
+            color: #0070C0;
             margin-bottom: 20px;
             display: block;
         }
 
         .info-card h5 {
-            color: #18444c;
+            color: #002D5A;
             font-weight: 700;
             margin-bottom: 15px;
         }
 
         .contact-box {
-            background: linear-gradient(135deg, #18444c 0%, #049ebb 100%);
+            background: linear-gradient(135deg, #002D5A 0%, #0070C0 100%);
             border-radius: 20px;
             padding: 40px;
             color: white;
@@ -147,7 +147,7 @@ const Privacy = () => {
 
         .btn-contact-legal {
             background: white;
-            color: #049ebb;
+            color: #0070C0;
             padding: 12px 30px;
             border-radius: 50px;
             font-weight: 700;
@@ -160,7 +160,7 @@ const Privacy = () => {
         .btn-contact-legal:hover {
             transform: scale(1.05);
             background: #f8fafc;
-            color: #18444c;
+            color: #002D5A;
         }
 
         @media (max-width: 768px) {
@@ -206,7 +206,7 @@ const Privacy = () => {
 
       <PageHero
         title="Privacy Policy"
-        description="Your health data is sacred. Learn how MediTrust protects your private medical information."
+        description="Your health data is sacred. Learn how Arovis protects your private medical information."
         breadcrumbs={[
           { label: 'Home', path: '/' },
           { label: 'Privacy Policy' }
@@ -224,7 +224,7 @@ const Privacy = () => {
                   <span className="section-badge">Compliance Statement</span>
                   <h3 className="legal-title"><i className="bi bi-shield-lock-fill"></i> Data Protection Commitment</h3>
                   <p className="legal-text">
-                    At MediTrust, we recognize that your health information is deeply personal. Our Privacy Policy is designed to comply with global healthcare standards (including HIPAA and GDPR) to ensure that your Electronic Health Records (EHR) and personal data are managed with the highest level of security and transparency.
+                    At Arovis, we recognize that your health information is deeply personal. Our Privacy Policy is designed to comply with global healthcare standards (including HIPAA and GDPR) to ensure that your Electronic Health Records (EHR) and personal data are managed with the highest level of security and transparency.
                   </p>
                 </div>
 
@@ -285,7 +285,7 @@ const Privacy = () => {
                 <div className="legal-section">
                   <span className="section-badge">Patient Empowerment</span>
                   <h3 className="legal-title"><i className="bi bi-person-check-fill"></i> Your Privacy Rights</h3>
-                  <p className="legal-text">As a patient of MediTrust, you maintain full control over your data:</p>
+                  <p className="legal-text">As a patient of Arovis, you maintain full control over your data:</p>
                   <ul className="legal-list">
                     <li><strong>Right to Access:</strong> Request a digital copy of your entire medical history at any time.</li>
                     <li><strong>Right to Rectification:</strong> Ask us to correct any inaccuracies in your clinical reports.</li>
@@ -299,7 +299,7 @@ const Privacy = () => {
                   <span className="section-badge">Security Hub</span>
                   <h3 className="legal-title"><i className="bi bi-patch-check-fill"></i> Advanced Security Protocols</h3>
                   <p className="legal-text">
-                    MediTrust uses 256-bit AES encryption for all data at rest and TLS 1.3 for data in transit. Our servers are hosted in SOC2-compliant data centers with 24/7 physical and digital monitoring.
+                    Arovis uses 256-bit AES encryption for all data at rest and TLS 1.3 for data in transit. Our servers are hosted in SOC2-compliant data centers with 24/7 physical and digital monitoring.
                   </p>
                 </div>
 

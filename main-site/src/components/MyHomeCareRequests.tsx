@@ -144,7 +144,7 @@ const MyHomeCareRequests = () => {
     };
 
     return (
-        <div className="my-appointments-section subscriptions-container container-fluid py-4" style={{ '--bs-primary': '#0299BE', '--bs-primary-rgb': '2, 153, 190' } as React.CSSProperties}>
+        <div className="my-appointments-section subscriptions-container container-fluid py-4" style={{ '--bs-primary': '#0070C0', '--bs-primary-rgb': '0, 112, 192' } as React.CSSProperties}>
             <style>{`
                 .subscriptions-container {
                     width: 100%;
@@ -231,7 +231,7 @@ const MyHomeCareRequests = () => {
                 <ProfileTabLoader message="Loading your home care requests..." />
             ) : requests.length === 0 ? (
                 <div className="text-center py-5 bg-white rounded-5 shadow-lg position-relative overflow-hidden">
-                    <div className="position-absolute top-0 start-0 w-100 h-100 bg-primary opacity-0" style={{ pointerEvents: 'none', background: 'radial-gradient(circle at 50% 50%, rgba(2, 153, 190, 0.05) 0%, transparent 70%)' }}></div>
+                    <div className="position-absolute top-0 start-0 w-100 h-100 bg-primary opacity-0" style={{ pointerEvents: 'none', background: 'radial-gradient(circle at 50% 50%, rgba(0, 112, 192, 0.05) 0%, transparent 70%)' }}></div>
                     <div className="mb-4">
                         <div className="d-inline-flex bg-primary bg-opacity-10 p-4 rounded-circle mb-3 animate-bounce">
                             <i className="bi bi-clipboard-plus text-primary display-4"></i>

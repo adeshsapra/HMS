@@ -1,11 +1,13 @@
-/* MediTrust Color Variables for Admin Site */
+/* Arovis Color Variables for Admin Site */
 /* Based on the main-site color scheme */
 
+/* Arovis brand: navy #002D5A, blue #0070C0, cyan #00D2FF */
 :root {
     --background-color: #ffffff;
     --default-color: #2c3031;
-    --heading-color: #18444c;
-    --accent-color: #049ebb;
+    --heading-color: #002d5a;
+    --accent-color: #0070c0;
+    --accent-highlight: #00d2ff;
     --surface-color: #ffffff;
     --contrast-color: #ffffff;
 
@@ -22,8 +24,8 @@
     --default-dark: color-mix(in srgb, var(--default-color), black 20%);
 
     /* Background variations */
-    --background-light: #f2f8f9;
-    --background-dark: #021418;
+    --background-light: #f3f8fc;
+    --background-dark: #001a2e;
 
     /* Border colors */
     --border-color: color-mix(in srgb, var(--default-color), transparent 85%);
@@ -34,7 +36,7 @@
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
     --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
     --shadow-lg: 0 8px 25px rgba(0, 0, 0, 0.15);
-    --shadow-hover: 0 10px 30px rgba(4, 158, 187, 0.15);
+    --shadow-hover: 0 10px 30px rgba(0, 112, 192, 0.15);
 
     /* Status colors */
     --success-color: #28a745;
@@ -43,60 +45,60 @@
     --info-color: #17a2b8;
 }
 
-/* Apply MediTrust colors to common elements */
-.meditrust-header {
+/* Apply Arovis colors to common elements */
+.arovis-header {
     background: linear-gradient(135deg, var(--accent-color), var(--heading-color));
     color: var(--contrast-color);
 }
 
-.meditrust-accent {
+.arovis-accent {
     color: var(--accent-color);
 }
 
-.meditrust-bg-accent {
+.arovis-bg-accent {
     background-color: var(--accent-color);
     color: var(--contrast-color);
 }
 
-.meditrust-bg-light {
+.arovis-bg-light {
     background-color: var(--background-light);
 }
 
-.meditrust-text-heading {
+.arovis-text-heading {
     color: var(--heading-color);
 }
 
-.meditrust-text-default {
+.arovis-text-default {
     color: var(--default-color);
 }
 
-/* Button variations using MediTrust colors */
-.btn-meditrust-primary {
+/* Button variations using Arovis colors */
+.btn-arovis-primary {
     background-color: var(--accent-color);
     border-color: var(--accent-color);
     color: var(--contrast-color);
 }
 
-.btn-meditrust-primary:hover {
+.btn-arovis-primary:hover {
     background-color: var(--accent-dark);
     border-color: var(--accent-dark);
     color: var(--contrast-color);
 }
 
-.btn-meditrust-outline {
+.btn-arovis-outline {
     background-color: transparent;
     border-color: var(--accent-color);
     color: var(--accent-color);
 }
 
-.btn-meditrust-outline:hover {
+.btn-arovis-outline:hover {
     background-color: var(--accent-color);
     border-color: var(--accent-color);
     color: var(--contrast-color);
 }
 
-/* Card styles with MediTrust colors */
-.card-meditrust {
+/* Card styles with Arovis colors */
+.card-arovis {
     background: var(--surface-color);
     border: 1px solid var(--border-color);
     border-radius: 12px;
@@ -104,13 +106,13 @@
     transition: all 0.3s ease;
 }
 
-.card-meditrust:hover {
+.card-arovis:hover {
     box-shadow: var(--shadow-hover);
     border-color: var(--border-hover);
 }
 
-/* Form styles with MediTrust colors */
-.form-control-meditrust {
+/* Form styles with Arovis colors */
+.form-control-arovis {
     border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 0.75rem 1rem;
@@ -118,14 +120,14 @@
     transition: all 0.3s ease;
 }
 
-.form-control-meditrust:focus {
+.form-control-arovis:focus {
     border-color: var(--border-focus);
     box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--accent-color), transparent 85%);
     outline: none;
 }
 
 /* Gradient backgrounds */
-.bg-gradient-meditrust {
+.bg-gradient-arovis {
     background: linear-gradient(135deg, var(--accent-color), var(--heading-color));
 }
 
@@ -134,7 +136,7 @@
 }
 
 /* Text gradients */
-.text-gradient-meditrust {
+.text-gradient-arovis {
     background: linear-gradient(135deg, var(--heading-color), var(--accent-color));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -142,7 +144,7 @@
 }
 
 /* Badge styles */
-.badge-meditrust {
+.badge-arovis {
     background-color: var(--accent-light);
     color: var(--accent-color);
     padding: 0.25rem 0.75rem;

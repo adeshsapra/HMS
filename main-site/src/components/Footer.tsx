@@ -1,19 +1,6 @@
 import { Link } from 'react-router-dom';
 
 const Footer = () => {
-  // Brand Logo Icon
-  const LogoIcon = () => (
-    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="32" height="32">
-      <path d="M22 22L2 22" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M17 22V6C17 4.11438 17 3.17157 16.4142 2.58579C15.8284 2 14.8856 2 13 2H11C9.11438 2 8.17157 2 7.58579 2.58579C7 3.17157 7 4.11438 7 6V22" stroke="currentColor" strokeWidth="1.5" />
-      <path opacity="0.5" d="M21 22V8.5C21 7.09554 21 6.39331 20.6629 5.88886C20.517 5.67048 20.3295 5.48298 20.1111 5.33706C19.6067 5 18.9045 5 17.5 5" stroke="currentColor" strokeWidth="1.5" />
-      <path opacity="0.5" d="M3 22V8.5C3 7.09554 3 6.39331 3.33706 5.88886C3.48298 5.67048 3.67048 5.48298 3.88886 5.33706C4.39331 5 5.09554 5 6.5 5" stroke="currentColor" strokeWidth="1.5" />
-      <path d="M12 22V19" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M12 9V5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M14 7L10 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-
   return (
     <div className="footer-wrapper">
 
@@ -59,10 +46,10 @@ const Footer = () => {
             <path id="gentle-wave" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z" />
           </defs>
           <g className="parallax">
-            <use xlinkHref="#gentle-wave" x="48" y="0" fill="rgba(24, 68, 76, 0.3)" />
-            <use xlinkHref="#gentle-wave" x="48" y="3" fill="rgba(24, 68, 76, 0.5)" />
-            <use xlinkHref="#gentle-wave" x="48" y="5" fill="rgba(24, 68, 76, 0.7)" />
-            <use xlinkHref="#gentle-wave" x="48" y="7" fill="#18444c" />
+            <use xlinkHref="#gentle-wave" x="48" y="0" fill="rgba(0, 45, 90, 0.3)" />
+            <use xlinkHref="#gentle-wave" x="48" y="3" fill="rgba(0, 45, 90, 0.5)" />
+            <use xlinkHref="#gentle-wave" x="48" y="5" fill="rgba(0, 45, 90, 0.7)" />
+            <use xlinkHref="#gentle-wave" x="48" y="7" fill="#002D5A" />
           </g>
         </svg>
       </div>
@@ -75,10 +62,7 @@ const Footer = () => {
             <div className="col-lg-3 col-md-6">
               <div className="footer-brand">
                 <Link to="/" className="brand-link">
-                  <div className="brand-logo-box">
-                    <LogoIcon />
-                  </div>
-                  <span className="brand-name">MediTrust</span>
+                  <img src="/assets/img/arovis-logo.png" alt="Arovis" className="footer-brand-logo-img" />
                 </Link>
                 <p className="brand-text">
                   Delivering compassionate, world-class healthcare services. Our medical experts utilize cutting-edge technology to ensure the best patient outcomes.
@@ -121,7 +105,7 @@ const Footer = () => {
               <h5 className="footer-header">Company Info</h5>
               <ul className="footer-list">
                 {[
-                  { name: 'About MediTrust', path: '/about' },
+                  { name: 'About Arovis', path: '/about' },
                   { name: 'Medical Experts', path: '/doctors' },
                   { name: 'Departments', path: '/departments' },
                   { name: 'Patient Reviews', path: '/testimonials' },
@@ -159,7 +143,7 @@ const Footer = () => {
                 </div>
                 <div className="icon-info-item">
                   <i className="bi bi-envelope-fill"></i>
-                  <a href="mailto:support@meditrust.com">support@meditrust.com</a>
+                  <a href="mailto:support@arovis.com">support@arovis.com</a>
                 </div>
                 <div className="icon-info-item">
                   <i className="bi bi-headset"></i>
@@ -180,7 +164,7 @@ const Footer = () => {
           <div className="footer-bottom-bar">
             <div className="row align-items-center">
               <div className="col-md-6 text-center text-md-start mb-3 mb-md-0">
-                &copy; {new Date().getFullYear()} <span className="fw-bold">MediTrust</span> Healthcare Group. All Rights Reserved.
+                &copy; {new Date().getFullYear()} <span className="fw-bold">Arovis</span> Healthcare Group. All Rights Reserved.
               </div>
               <div className="col-md-6 text-center text-md-end footer-legal">
                 <Link to="/privacy">Privacy Policy</Link>
@@ -198,11 +182,10 @@ const Footer = () => {
         :root {
           /* PROVIDED COLOR PALETTE */
           --default-color: #2c3031;
-          --heading-color: #18444c; /* Dark Teal */
-          --accent-color: #049ebb;  /* Bright Cyan/Blue */
-          
-          /* Custom Darker Shade of Accent for Gradient Bottom */
-          --accent-dark: #094b59; 
+          --heading-color: #002D5A; /* Navy */
+          --accent-color: #0070C0;
+          --accent-highlight: #00D2FF;
+          --accent-dark: #001f3f; 
 
           /* DERIVED COLORS */
           --cta-bg-gradient: linear-gradient(180deg, #ffffff 0%, #f2f9fb 100%);
@@ -245,7 +228,7 @@ const Footer = () => {
         .icon-badge {
           width: 64px;
           height: 64px;
-          background: rgba(4, 158, 187, 0.1);
+          background: rgba(0, 112, 192, 0.1);
           color: var(--accent-color);
           border-radius: 16px;
           display: flex;
@@ -289,13 +272,13 @@ const Footer = () => {
           display: inline-flex;
           align-items: center;
           gap: 8px;
-          box-shadow: 0 10px 20px rgba(4, 158, 187, 0.25);
+          box-shadow: 0 10px 20px rgba(0, 112, 192, 0.25);
         }
 
         .btn-shine:hover {
           transform: translateY(-2px);
           color: white;
-          background: #038fa8;
+          background: #002D5A;
         }
 
         .btn-shine::before {
@@ -331,7 +314,7 @@ const Footer = () => {
         .phone-icon-circle {
           width: 40px;
           height: 40px;
-          border: 2px solid rgba(4, 158, 187, 0.2);
+          border: 2px solid rgba(0, 112, 192, 0.2);
           border-radius: 50%;
           display: flex;
           align-items: center;
@@ -387,20 +370,23 @@ const Footer = () => {
           text-decoration: none;
           display: inline-flex;
           align-items: center;
-          gap: 12px;
           margin-bottom: 20px;
         }
-        .brand-logo-box {
-          background: rgba(255,255,255,0.1);
-          padding: 8px;
-          border-radius: 10px;
-          color: var(--white);
-          border: 1px solid rgba(255,255,255,0.1);
+        .footer-brand-logo-img {
+          height: auto;
+          width: auto;
+          max-height: 56px;
+          max-width: min(280px, 88vw);
+          display: block;
+          object-fit: contain;
+          object-position: left center;
+          filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.25));
         }
-        .brand-name {
-          font-size: 1.5rem;
-          font-weight: 700;
-          color: var(--white);
+        @media (max-width: 575px) {
+          .footer-brand-logo-img {
+            max-height: 48px;
+            max-width: min(240px, 90vw);
+          }
         }
         .brand-text {
           line-height: 1.6;

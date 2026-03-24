@@ -94,7 +94,7 @@ const DoctorReviewModal: React.FC<DoctorReviewModalProps> = ({ isOpen, onClose, 
                 }
 
                 .review-modal-header h3 {
-                    color: #18444c;
+                    color: #002D5A;
                     font-weight: 800;
                     margin-bottom: 0.5rem;
                 }

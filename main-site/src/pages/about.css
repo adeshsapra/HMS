@@ -1,9 +1,9 @@
 /* SCOPE ALL ABOUT PAGE STYLES TO PREVENT AFFECTING HOME PAGE */
 .about-page {
     /* REFINED THEME COLORS */
-    --about-primary: #18444C;
-    --about-accent: #0299BE;
-    --about-accent-light: rgba(2, 153, 190, 0.1);
+    --about-primary: #002D5A;
+    --about-accent: #0070C0;
+    --about-accent-light: rgba(0, 112, 192, 0.1);
     --about-secondary: #0f172a;
     --about-bg: #ffffff;
     --about-surface: #f8fbff;
@@ -20,10 +20,10 @@
 }
 
 .about-page .btn-primary:hover {
-    background-color: #038fa8 !important;
-    border-color: #038fa8 !important;
+    background-color: #002D5A !important;
+    border-color: #002D5A !important;
     transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(2, 153, 190, 0.3) !important;
+    box-shadow: 0 10px 20px rgba(0, 112, 192, 0.3) !important;
 }
 
 .about-page .text-primary {
@@ -151,7 +151,7 @@
     border-radius: 24px;
     text-align: center;
     z-index: 4;
-    box-shadow: 0 15px 30px rgba(2, 153, 190, 0.3);
+    box-shadow: 0 15px 30px rgba(0, 112, 192, 0.3);
 }
 
 .about-page .experience-badge .number {
@@ -187,7 +187,7 @@
     top: -50%;
     width: 300px;
     height: 600px;
-    background: radial-gradient(circle, rgba(2, 153, 190, 0.03) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(0, 112, 192, 0.03) 0%, transparent 70%);
     transform: rotate(45deg);
     pointer-events: none;
 }
@@ -222,14 +222,14 @@
     margin-bottom: 0;
     box-shadow: none;
     transition: all 0.3s ease;
-    border: 1px solid rgba(2, 153, 190, 0.1);
+    border: 1px solid rgba(0, 112, 192, 0.1);
 }
 
 .about-page .premium-stat-card:hover .stat-icon {
     background: var(--about-accent);
     color: #fff;
     transform: scale(1.1) rotate(-8deg);
-    box-shadow: 0 10px 20px rgba(2, 153, 190, 0.2);
+    box-shadow: 0 10px 20px rgba(0, 112, 192, 0.2);
 }
 
 .about-page .stat-info {
@@ -322,7 +322,7 @@
     top: 40px;
     width: 2px;
     height: calc(100% - 20px);
-    background: linear-gradient(to bottom, var(--about-accent) 0%, rgba(2, 153, 190, 0.1) 100%);
+    background: linear-gradient(to bottom, var(--about-accent) 0%, rgba(0, 112, 192, 0.1) 100%);
 }
 
 .about-page .journey-item:last-child::before {
@@ -415,7 +415,7 @@
 
 .about-page .hover-lift:hover {
     transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(2, 153, 190, 0.25) !important;
+    box-shadow: 0 10px 25px rgba(0, 112, 192, 0.25) !important;
 }
 
 /* Responsive Overrides Scoped */

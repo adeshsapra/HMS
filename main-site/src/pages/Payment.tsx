@@ -157,7 +157,7 @@ const Payment = () => {
                         contact: ''
                     },
                     theme: {
-                        color: '#049ebb'
+                        color: '#0070C0'
                     }
                 };
 
@@ -259,7 +259,7 @@ const Payment = () => {
                 }
 
                 .summary-header { margin-bottom: 2.5rem; }
-                .summary-eyebrow { color: var(--accent-color, #049ebb); font-size: 0.875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem; }
+                .summary-eyebrow { color: var(--accent-color, #0070C0); font-size: 0.875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem; }
                 .summary-title { font-size: 2rem; color: #1e293b; font-weight: 700; margin: 0; }
 
                 .bill-details-box {
@@ -338,13 +338,13 @@ const Payment = () => {
                 }
 
                 .method-card:hover { border-color: #cbd5e1; }
-                .method-card.selected { border-color: var(--accent-color, #049ebb); background-color: rgba(4, 158, 187, 0.04); }
+                .method-card.selected { border-color: var(--accent-color, #0070C0); background-color: rgba(0, 112, 192, 0.04); }
                 .method-icon { color: #64748b; }
-                .selected .method-icon { color: var(--accent-color, #049ebb); }
+                .selected .method-icon { color: var(--accent-color, #0070C0); }
                 .method-name { font-weight: 600; color: #1e293b; font-size: 1rem; }
 
                 .check-circle { position: absolute; top: 0.75rem; right: 0.75rem; width: 20px; height: 20px; border: 2px solid #edf2f7; border-radius: 50%; }
-                .selected .check-circle { border-color: var(--accent-color, #049ebb); background: var(--accent-color, #049ebb); }
+                .selected .check-circle { border-color: var(--accent-color, #0070C0); background: var(--accent-color, #0070C0); }
                 .selected .check-circle::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 8px; height: 8px; background: white; border-radius: 50%; }
 
                 .paypal-button-container {
@@ -355,7 +355,7 @@ const Payment = () => {
                 .pay-button {
                     margin-top: auto;
                     width: 100%;
-                    background-color: var(--accent-color, #049ebb);
+                    background-color: var(--accent-color, #0070C0);
                     color: white;
                     border: none;
                     padding: 1.25rem;

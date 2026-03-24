@@ -27,9 +27,9 @@ const pulseIconVariant: Variants = {
   pulse: {
     scale: [1, 1.15, 1],
     boxShadow: [
-      "0 0 0px rgba(4, 158, 187, 0)",
-      "0 0 25px rgba(4, 158, 187, 0.5)",
-      "0 0 0px rgba(4, 158, 187, 0)",
+      "0 0 0px rgba(0, 112, 192, 0)",
+      "0 0 25px rgba(0, 112, 192, 0.5)",
+      "0 0 0px rgba(0, 112, 192, 0)",
     ],
     transition: { duration: 2.5, repeat: Infinity, ease: "easeInOut" },
   },
@@ -56,7 +56,7 @@ const CallToActionSection = () => {
           position: relative;
           overflow: hidden;
           background-color: #f4f9fb;
-          background-image: radial-gradient(#049ebb 0.5px, transparent 0.5px), radial-gradient(#049ebb 0.5px, #f4f9fb 0.5px);
+          background-image: radial-gradient(#0070C0 0.5px, transparent 0.5px), radial-gradient(#0070C0 0.5px, #f4f9fb 0.5px);
           background-size: 40px 40px;
           background-position: 0 0, 20px 20px;
           background-attachment: fixed;
@@ -78,7 +78,7 @@ const CallToActionSection = () => {
           right: -10%;
           width: 600px;
           height: 600px;
-          background: #049ebb;
+          background: #0070C0;
         }
 
         .bg-orb-2 {
@@ -91,7 +91,7 @@ const CallToActionSection = () => {
 
         /* Gradient Text Animation */
         .text-gradient-animated {
-          background: linear-gradient(270deg, #049EBB, #00d2ff, #025b6e, #049EBB);
+          background: linear-gradient(270deg, #0070C0, #00d2ff, #025b6e, #0070C0);
           background-size: 300% 300%;
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
@@ -128,14 +128,14 @@ const CallToActionSection = () => {
         }
 
         .btn-premium {
-          background: linear-gradient(135deg, #049EBB 0%, #027187 100%);
+          background: linear-gradient(135deg, #0070C0 0%, #027187 100%);
           color: #ffffff;
-          box-shadow: 0 10px 30px rgba(4, 158, 187, 0.3);
+          box-shadow: 0 10px 30px rgba(0, 112, 192, 0.3);
           border: 1px solid rgba(255,255,255,0.2);
         }
 
         .btn-premium:hover {
-          box-shadow: 0 15px 40px rgba(4, 158, 187, 0.5);
+          box-shadow: 0 15px 40px rgba(0, 112, 192, 0.5);
           color: #ffffff;
         }
 
@@ -149,8 +149,8 @@ const CallToActionSection = () => {
         }
 
         .btn-outline-premium:hover {
-          border-color: #049EBB;
-          color: #049EBB;
+          border-color: #0070C0;
+          color: #0070C0;
         }
 
         /* Premium Feature Cards */
@@ -194,7 +194,7 @@ const CallToActionSection = () => {
           height: 72px;
           border-radius: 20px;
           background: linear-gradient(135deg, #e6f6f9 0%, #ffffff 100%);
-          box-shadow: 8px 8px 16px rgba(4, 158, 187, 0.1), -8px -8px 16px rgba(255, 255, 255, 0.8);
+          box-shadow: 8px 8px 16px rgba(0, 112, 192, 0.1), -8px -8px 16px rgba(255, 255, 255, 0.8);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -203,14 +203,14 @@ const CallToActionSection = () => {
         }
 
         .feature-card:hover .icon-wrapper {
-          background: #049EBB;
+          background: #0070C0;
           transform: translateY(-5px) scale(1.05) rotate(5deg);
-          box-shadow: 10px 15px 25px rgba(4, 158, 187, 0.3);
+          box-shadow: 10px 15px 25px rgba(0, 112, 192, 0.3);
         }
 
         .feature-card .icon-wrapper i {
           font-size: 32px;
-          color: #049EBB;
+          color: #0070C0;
           transition: all 0.3s ease;
         }
 
@@ -238,7 +238,7 @@ const CallToActionSection = () => {
           gap: 8px;
           font-size: 15px;
           font-weight: 700;
-          color: #049EBB;
+          color: #0070C0;
           text-decoration: none;
           text-transform: uppercase;
           letter-spacing: 0.5px;
@@ -247,10 +247,10 @@ const CallToActionSection = () => {
         /* Glassmorphism Emergency Banner */
         .emergency-alert {
           margin-top: 80px;
-          background: linear-gradient(135deg, #023642 0%, #049EBB 100%);
+          background: linear-gradient(135deg, #023642 0%, #0070C0 100%);
           border-radius: 30px;
           padding: 40px 48px;
-          box-shadow: 0 30px 60px rgba(4, 158, 187, 0.2);
+          box-shadow: 0 30px 60px rgba(0, 112, 192, 0.2);
           color: white;
           position: relative;
           overflow: hidden;
@@ -333,7 +333,7 @@ const CallToActionSection = () => {
           background: #f0f9fb;
           transform: translateY(-3px);
           box-shadow: 0 15px 35px rgba(0,0,0,0.25);
-          color: #049EBB;
+          color: #0070C0;
         }
 
         @media (max-width: 991px) {
