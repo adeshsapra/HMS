@@ -184,8 +184,8 @@ const Header = () => {
             src="/assets/img/arovis-logo.png"
             alt="Arovis"
             className="site-logo-img"
-            width={260}
-            height={52}
+            width={220}
+            height={44}
             decoding="async"
           />
         </Link>
@@ -303,11 +303,54 @@ const Header = () => {
         .header.scrolled .header-container {
           background: transparent;
           box-shadow: none;
-          padding: 15px 40px;
+          padding: 8px 32px;
           border-radius: 0;
           max-width: 100% !important;
           width: 100%;
           margin: 0;
+        }
+
+        /* Tighter nav + actions when full-width bar (less vertical bulk) */
+        @media (min-width: 1200px) {
+          .header.scrolled .navmenu > ul > li {
+            padding: 9px 13px;
+          }
+        }
+
+        .header.scrolled .header-auth-buttons .btn-signin {
+          padding: 7px 13px;
+        }
+
+        .header.scrolled .header-auth-buttons .btn-getstarted {
+          padding: 8px 18px;
+        }
+
+        .header.scrolled .btn-search-trigger {
+          height: 38px;
+          padding: 0 14px;
+        }
+
+        @media (max-width: 991px) {
+          .header.scrolled .btn-search-trigger {
+            width: 38px;
+            height: 38px;
+            padding: 0;
+          }
+        }
+
+        @media (max-width: 1199px) {
+          .header.scrolled .header-container {
+            padding: 8px 16px;
+          }
+        }
+
+        @media (max-width: 576px) {
+          .header.scrolled .header-container {
+            padding-top: 8px !important;
+            padding-bottom: 8px !important;
+            padding-left: 14px !important;
+            padding-right: 14px !important;
+          }
         }
 
         /* Keep only nav text white on scrolled/darker glass header */

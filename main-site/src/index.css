@@ -1,8 +1,12 @@
-/* Global Theme Variables */
+/* Global Theme Variables — aligned with public/assets/css/main.css Arovis tokens */
 :root {
   --accent-color: #0070C0;
+  --heading-color: #002d5a;
+  --accent-highlight: #00d2ff;
   --bs-primary: #0070C0;
   --bs-primary-rgb: 0, 112, 192;
+  --accent-rgb: 0, 112, 192;
+  --heading-rgb: 0, 45, 90;
   /* Override Bootstrap Primary */
   --bs-blue: #0070C0;
 }

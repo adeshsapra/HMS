@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import AOS from 'aos'
 import PageHero from '../components/PageHero'
 import { departmentAPI, serviceAPI, doctorAPI } from '../services/api'
+import { AROVIS_AVATAR_BG } from '../constants/arovisBrand'
 
 interface Department {
   id: number
@@ -126,7 +127,7 @@ const DepartmentDetails = () => {
 
   const getDoctorFallbackImage = (firstName?: string, lastName?: string) => {
     const name = `${firstName || ''} ${lastName || ''}`.trim() || 'Doctor';
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0D8ABC&color=fff&size=512&margin=20`;
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=${AROVIS_AVATAR_BG}&color=fff&size=512&margin=20`;
   };
 
   const getImageCandidates = (path: string | null) => {

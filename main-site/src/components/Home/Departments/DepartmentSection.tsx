@@ -98,7 +98,7 @@ const DepartmentSection: React.FC<DepartmentSectionProps> = ({
                     __html: `
             :root {
                 --card-bg: #ffffff;
-                --primary-gradient: linear-gradient(135deg, #002D5A 0%, #0070C0 100%);
+                --primary-gradient: linear-gradient(135deg, var(--heading-color) 0%, var(--accent-color) 100%);
                 --text-dark: #1e293b;
                 --text-light: #64748b;
             }
@@ -328,7 +328,7 @@ const DepartmentSection: React.FC<DepartmentSectionProps> = ({
                 transition: all 0.3s ease;
             }
             .pro-dept-card:hover .btn-explore {
-                color: #0070C0;
+                color: var(--accent-color);
                 border-color: transparent;
                 padding-right: 0.5rem;
             }

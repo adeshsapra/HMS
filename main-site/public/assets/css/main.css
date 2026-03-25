@@ -27,6 +27,23 @@
   --accent-highlight: #00d2ff;
   --surface-color: #ffffff;
   --contrast-color: #ffffff;
+  /* RGB components for rgba(..., opacity) in components */
+  --accent-rgb: 0, 112, 192;
+  --heading-rgb: 0, 45, 90;
+  --accent-highlight-rgb: 0, 210, 255;
+  --background-muted: #f3f8fc;
+  --accent-hover: color-mix(in srgb, var(--accent-color), black 14%);
+  --arovis-gradient-primary: linear-gradient(
+    135deg,
+    var(--accent-color) 0%,
+    color-mix(in srgb, var(--accent-color), var(--heading-color) 25%) 100%
+  );
+  --arovis-gradient-cta: linear-gradient(
+    135deg,
+    var(--heading-color) 0%,
+    var(--accent-color) 55%,
+    var(--accent-highlight) 100%
+  );
 }
 
 :root {
@@ -165,8 +182,8 @@ h6 {
 .header .logo .site-logo-img {
   height: auto;
   width: auto;
-  max-height: 64px;
-  max-width: min(320px, 54vw);
+  max-height: 44px;
+  max-width: min(240px, 54vw);
   display: block;
   margin-right: 0;
   object-fit: contain;
@@ -176,16 +193,16 @@ h6 {
 @media (max-width: 991px) {
   .header .logo img,
   .header .logo .site-logo-img {
-    max-height: 56px;
-    max-width: min(280px, 50vw);
+    max-height: 40px;
+    max-width: min(220px, 50vw);
   }
 }
 
 @media (max-width: 575px) {
   .header .logo img,
   .header .logo .site-logo-img {
-    max-height: 48px;
-    max-width: min(240px, 78vw);
+    max-height: 36px;
+    max-width: min(200px, 78vw);
   }
 }
 

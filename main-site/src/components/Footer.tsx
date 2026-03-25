@@ -365,14 +365,89 @@ const Footer = () => {
           position: relative;
         }
 
-        /* Brand */
+        /* Brand — premium ambient glow (layered blur) + balanced lift for dark-on-dark PNG */
         .brand-link {
+          position: relative;
           text-decoration: none;
           display: inline-flex;
           align-items: center;
           margin-bottom: 20px;
+          isolation: isolate;
+          overflow: visible;
+          border-radius: 4px;
+          transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .brand-link:focus-visible {
+          outline: 2px solid color-mix(in srgb, var(--accent-highlight), transparent 35%);
+          outline-offset: 6px;
+          border-radius: 6px;
+        }
+        .brand-link:hover {
+          transform: translateY(-1px);
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .brand-link {
+            transition: none;
+          }
+          .brand-link:hover {
+            transform: none;
+          }
+        }
+        /* Layer 1: broad moonlight — very soft falloff, matches footer navy */
+        .brand-link::before {
+          content: "";
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          transform: translate(-50%, -50%);
+          width: min(100% + 140px, 380px);
+          height: calc(100% + 64px);
+          z-index: 0;
+          pointer-events: none;
+          background: radial-gradient(
+            ellipse 105% 100% at 44% 48%,
+            rgba(255, 255, 255, 0.32) 0%,
+            rgba(230, 248, 255, 0.18) 22%,
+            rgba(0, 200, 255, 0.09) 48%,
+            rgba(0, 45, 90, 0.06) 68%,
+            transparent 88%
+          );
+          filter: blur(26px);
+          opacity: 0.82;
+          transition: opacity 0.4s ease, filter 0.4s ease;
+        }
+        /* Layer 2: accent toward wordmark — teal highlight aligned with palette */
+        .brand-link::after {
+          content: "";
+          position: absolute;
+          right: -6%;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 56%;
+          min-width: 112px;
+          height: 155%;
+          z-index: 0;
+          pointer-events: none;
+          background: radial-gradient(
+            ellipse 95% 88% at 62% 50%,
+            rgba(255, 255, 255, 0.26) 0%,
+            color-mix(in srgb, var(--accent-highlight), transparent 78%) 40%,
+            color-mix(in srgb, var(--accent-color), transparent 85%) 55%,
+            transparent 76%
+          );
+          filter: blur(18px);
+          opacity: 0.72;
+          transition: opacity 0.4s ease;
+        }
+        .brand-link:hover::before {
+          opacity: 0.92;
+        }
+        .brand-link:hover::after {
+          opacity: 0.85;
         }
         .footer-brand-logo-img {
+          position: relative;
+          z-index: 1;
           height: auto;
           width: auto;
           max-height: 56px;
@@ -380,12 +455,48 @@ const Footer = () => {
           display: block;
           object-fit: contain;
           object-position: left center;
-          filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.25));
+          transition: filter 0.4s ease, transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+          filter:
+            brightness(1.18)
+            contrast(1.07)
+            saturate(1.05)
+            drop-shadow(0 0 0.75px rgba(255, 255, 255, 0.65))
+            drop-shadow(0 0 10px rgba(255, 255, 255, 0.18))
+            drop-shadow(0 0 28px rgba(0, 210, 255, 0.16))
+            drop-shadow(0 0 42px rgba(0, 112, 192, 0.12))
+            drop-shadow(0 5px 14px rgba(0, 0, 0, 0.38));
+        }
+        .brand-link:hover .footer-brand-logo-img {
+          filter:
+            brightness(1.24)
+            contrast(1.08)
+            saturate(1.06)
+            drop-shadow(0 0 0.75px rgba(255, 255, 255, 0.75))
+            drop-shadow(0 0 14px rgba(255, 255, 255, 0.22))
+            drop-shadow(0 0 36px rgba(0, 210, 255, 0.2))
+            drop-shadow(0 0 48px rgba(0, 112, 192, 0.14))
+            drop-shadow(0 6px 16px rgba(0, 0, 0, 0.35));
         }
         @media (max-width: 575px) {
+          .brand-link::before {
+            filter: blur(20px);
+            width: min(100% + 100px, 100vw);
+          }
+          .brand-link::after {
+            filter: blur(14px);
+            opacity: 0.65;
+          }
           .footer-brand-logo-img {
             max-height: 48px;
             max-width: min(240px, 90vw);
+            filter:
+              brightness(1.16)
+              contrast(1.06)
+              saturate(1.04)
+              drop-shadow(0 0 0.75px rgba(255, 255, 255, 0.6))
+              drop-shadow(0 0 8px rgba(255, 255, 255, 0.16))
+              drop-shadow(0 0 24px rgba(0, 210, 255, 0.14))
+              drop-shadow(0 4px 12px rgba(0, 0, 0, 0.35));
           }
         }
         .brand-text {

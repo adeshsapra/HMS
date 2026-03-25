@@ -5,6 +5,7 @@ import PageHero from '../components/PageHero'
 import Pagination from '../components/Pagination'
 import ContentLoader from '../components/ContentLoader'
 import { doctorAPI, departmentAPI } from '../services/api'
+import { AROVIS_AVATAR_BG } from '../constants/arovisBrand'
 
 interface Department {
   id: number;
@@ -161,7 +162,7 @@ const Doctors = () => {
 
   const getFallbackDoctorImage = (firstName?: string, lastName?: string) => {
     const name = `${firstName || ''} ${lastName || ''}`.trim() || 'Doctor';
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0D8ABC&color=fff&size=512&margin=20`;
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=${AROVIS_AVATAR_BG}&color=fff&size=512&margin=20`;
   };
 
   const getImageUrl = (path: string | null, firstName?: string, lastName?: string) => {
@@ -178,9 +179,9 @@ const Doctors = () => {
           background: #ffffff;
           border-radius: 20px;
           padding: 28px 32px;
-          box-shadow: 0 10px 40px rgba(13, 138, 188, 0.06);
+          box-shadow: 0 10px 40px rgba(var(--accent-rgb), 0.06);
           margin-bottom: 45px;
-          border: 1px solid rgba(13, 138, 188, 0.1);
+          border: 1px solid rgba(var(--accent-rgb), 0.1);
         }
 
         .doctor-filter-header {
@@ -188,13 +189,13 @@ const Doctors = () => {
           display: flex;
           align-items: center;
           gap: 10px;
-          color: #1a3353;
+          color: var(--heading-color);
           font-weight: 700;
           font-size: 1.15rem;
         }
 
         .doctor-filter-header i {
-          color: #0d8abc;
+          color: var(--accent-color);
           font-size: 1.3rem;
         }
 
@@ -245,9 +246,9 @@ const Doctors = () => {
         }
 
         .doctor-filter-input:focus, .doctor-filter-select:focus {
-          border-color: #0d8abc;
+          border-color: var(--accent-color);
           background-color: #ffffff;
-          box-shadow: 0 0 0 4px rgba(13, 138, 188, 0.1);
+          box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.1);
           outline: none;
         }
 
@@ -274,7 +275,7 @@ const Doctors = () => {
           width: 20px;
           height: 20px;
           border-radius: 50%;
-          background: #0d8abc;
+          background: var(--accent-color);
           cursor: pointer;
           border: 3px solid #ffffff;
           box-shadow: 0 2px 6px rgba(0,0,0,0.2);
@@ -300,14 +301,14 @@ const Doctors = () => {
 
         .doctor-btn-filter {
           padding: 12px 24px;
-          background: linear-gradient(135deg, #0d8abc 0%, #0a6c94 100%);
+          background: var(--arovis-gradient-primary);
           color: white;
           border: none;
           border-radius: 12px;
           font-weight: 600;
           cursor: pointer;
           transition: all 0.3s;
-          box-shadow: 0 4px 12px rgba(13, 138, 188, 0.25);
+          box-shadow: 0 4px 12px rgba(var(--accent-rgb), 0.25);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -316,7 +317,7 @@ const Doctors = () => {
 
         .doctor-btn-filter:hover {
           transform: translateY(-2px);
-          box-shadow: 0 6px 16px rgba(13, 138, 188, 0.35);
+          box-shadow: 0 6px 16px rgba(var(--accent-rgb), 0.35);
         }
 
         .doctor-btn-clear-filter {
@@ -412,7 +413,7 @@ const Doctors = () => {
         .doctor-name {
           font-size: 1.15rem;
           font-weight: 700;
-          color: #1a3353;
+          color: var(--heading-color);
           margin: 0;
           white-space: nowrap;
           overflow: hidden;
@@ -421,8 +422,8 @@ const Doctors = () => {
         }
 
         .doctor-specialty {
-          color: #0d8abc;
-          background: rgba(13, 138, 188, 0.1);
+          color: var(--accent-color);
+          background: rgba(var(--accent-rgb), 0.1);
           font-weight: 700;
           font-size: 0.75rem;
           padding: 6px 12px;
@@ -451,7 +452,7 @@ const Doctors = () => {
         }
 
         .doctor-experience i {
-          color: #0d8abc;
+          color: var(--accent-color);
         }
 
         .doctor-rating {
@@ -521,8 +522,8 @@ const Doctors = () => {
         .doctor-btn-profile { background: #f1f5f9; color: #1e293b; }
         .doctor-btn-profile:hover { background: #e2e8f0; transform: translateY(-2px); }
 
-        .doctor-btn-appointment { background: #0d8abc; color: white; box-shadow: 0 4px 10px rgba(13, 138, 188, 0.2); }
-        .doctor-btn-appointment:hover { background: #0b7aa8; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(13, 138, 188, 0.3); }
+        .doctor-btn-appointment { background: var(--accent-color); color: white; box-shadow: 0 4px 10px rgba(var(--accent-rgb), 0.2); }
+        .doctor-btn-appointment:hover { background: var(--accent-hover); transform: translateY(-2px); box-shadow: 0 6px 15px rgba(var(--accent-rgb), 0.3); }
 
         /* Mobile specific card tweaks */
         @media (max-width: 576px) {

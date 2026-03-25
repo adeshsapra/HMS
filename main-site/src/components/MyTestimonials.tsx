@@ -109,26 +109,26 @@ const MyTestimonials = () => {
                     border: 1px solid #e0e0e0;
                 }
                 .testimonial-form-container .form-control:focus {
-                    border-color: #0070C0;
-                    box-shadow: 0 0 0 0.2rem rgba(0, 112, 192, 0.15);
+                    border-color: var(--accent-color);
+                    box-shadow: 0 0 0 0.2rem rgba(var(--accent-rgb), 0.15);
                 }
                 .testimonial-submit-btn {
-                    background-color: #0070C0;
-                    border-color: #0070C0;
+                    background-color: var(--accent-color);
+                    border-color: var(--accent-color);
                     color: #fff;
                 }
                 .testimonial-submit-btn:hover:not(:disabled),
                 .testimonial-submit-btn:focus:not(:disabled) {
-                    background-color: #038aa4;
-                    border-color: #038aa4;
+                    background-color: var(--accent-hover);
+                    border-color: var(--accent-hover);
                     color: #fff;
                 }
                 .testimonial-rating-feedback {
                     display: inline-flex;
                     align-items: center;
                     gap: 0.5rem;
-                    background: color-mix(in srgb, #0070C0, transparent 92%);
-                    border: 1px solid color-mix(in srgb, #0070C0, transparent 80%);
+                    background: color-mix(in srgb, var(--accent-color), transparent 92%);
+                    border: 1px solid color-mix(in srgb, var(--accent-color), transparent 80%);
                     border-radius: 999px;
                     padding: 0.3rem 0.8rem;
                     margin-bottom: 0.8rem;
@@ -141,7 +141,7 @@ const MyTestimonials = () => {
                 .testimonial-rating-feedback .label {
                     font-size: 0.85rem;
                     font-weight: 600;
-                    color: #002D5A;
+                    color: var(--heading-color);
                 }
                 .testimonial-star-btn {
                     border: none;

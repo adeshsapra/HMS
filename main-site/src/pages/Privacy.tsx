@@ -27,7 +27,7 @@ const Privacy = () => {
           background: #ffffff;
           border-radius: 24px;
           box-shadow: 0 20px 50px rgba(0, 45, 90, 0.05);
-          border: 1px solid rgba(0, 112, 192, 0.1);
+          border: 1px solid rgba(var(--accent-rgb), 0.1);
           overflow: hidden;
           padding: 60px;
         }
@@ -45,8 +45,8 @@ const Privacy = () => {
           align-items: center;
           gap: 8px;
           padding: 6px 16px;
-          background: rgba(0, 112, 192, 0.1);
-          color: #0070C0;
+          background: rgba(var(--accent-rgb), 0.1);
+          color: var(--accent-color);
           border-radius: 50px;
           font-size: 0.85rem;
           font-weight: 700;
@@ -55,7 +55,7 @@ const Privacy = () => {
         }
 
         .legal-title {
-          color: #002D5A;
+          color: var(--heading-color);
           font-weight: 800;
           font-size: 1.75rem;
           margin-bottom: 25px;
@@ -66,7 +66,7 @@ const Privacy = () => {
 
         .legal-title i {
             font-size: 1.5rem;
-            color: #0070C0;
+            color: var(--accent-color);
         }
 
         .legal-text {
@@ -93,7 +93,7 @@ const Privacy = () => {
           font-family: "bootstrap-icons";
           position: absolute;
           left: 0;
-          color: #0070C0;
+          color: var(--accent-color);
           font-size: 1.1rem;
         }
 
@@ -113,26 +113,26 @@ const Privacy = () => {
         }
 
         .info-card:hover {
-            border-color: #0070C0;
+            border-color: var(--accent-color);
             transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 112, 192, 0.1);
+            box-shadow: 0 10px 25px rgba(var(--accent-rgb), 0.1);
         }
 
         .info-card i {
             font-size: 2rem;
-            color: #0070C0;
+            color: var(--accent-color);
             margin-bottom: 20px;
             display: block;
         }
 
         .info-card h5 {
-            color: #002D5A;
+            color: var(--heading-color);
             font-weight: 700;
             margin-bottom: 15px;
         }
 
         .contact-box {
-            background: linear-gradient(135deg, #002D5A 0%, #0070C0 100%);
+            background: var(--arovis-gradient-cta);
             border-radius: 20px;
             padding: 40px;
             color: white;
@@ -147,7 +147,7 @@ const Privacy = () => {
 
         .btn-contact-legal {
             background: white;
-            color: #0070C0;
+            color: var(--accent-color);
             padding: 12px 30px;
             border-radius: 50px;
             font-weight: 700;
@@ -160,7 +160,7 @@ const Privacy = () => {
         .btn-contact-legal:hover {
             transform: scale(1.05);
             background: #f8fafc;
-            color: #002D5A;
+            color: var(--heading-color);
         }
 
         @media (max-width: 768px) {

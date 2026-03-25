@@ -4,6 +4,7 @@ import "./HomeCare.css";
 import { homeCareAPI } from "../../services/api";
 import PageHero from "../../components/PageHero";
 import ContentLoader from "../../components/ContentLoader";
+import { AROVIS_AVATAR_BG } from "../../constants/arovisBrand";
 
 interface HomeCareService {
   id: number;
@@ -438,7 +439,7 @@ const HomeCareLanding = () => {
                         encodeURIComponent(
                           `${doctor.first_name} ${doctor.last_name}`
                         ) +
-                        "&background=0D8ABC&color=fff&size=256"
+                        `&background=${AROVIS_AVATAR_BG}&color=fff&size=256`
                       );
                     if (path.startsWith("http")) return path;
                     const API_URL =
@@ -502,7 +503,7 @@ const HomeCareLanding = () => {
                                 encodeURIComponent(
                                   `${doctor.first_name} ${doctor.last_name}`
                                 ) +
-                                "&background=0D8ABC&color=fff&size=256";
+                                `&background=${AROVIS_AVATAR_BG}&color=fff&size=256`;
                             }}
                           />
                           <div className="position-absolute bottom-0 start-0 w-100 p-3 bg-gradient-dark text-white">

@@ -23,14 +23,14 @@ const AboutSection = () => {
           position: absolute;
           bottom: 20px;
           left: -20px;
-          background: linear-gradient(135deg, #0070C0 0%, #037a94 100%);
+          background: linear-gradient(135deg, var(--accent-color) 0%, var(--heading-color) 100%);
           color: #ffffff;
           padding: 20px 28px;
           border-radius: 12px;
           display: flex;
           flex-direction: column;
           align-items: center;
-          box-shadow: 0 10px 30px rgba(0, 112, 192, 0.35);
+          box-shadow: 0 10px 30px rgba(var(--accent-rgb), 0.35);
         }
 
         .experience-badge .years {
@@ -83,7 +83,7 @@ const AboutSection = () => {
           width: 50px;
           height: 50px;
           border-radius: 10px;
-          background: linear-gradient(135deg, rgba(0, 112, 192, 0.15) 0%, rgba(0, 112, 192, 0.05) 100%);
+          background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.15) 0%, rgba(var(--accent-rgb), 0.05) 100%);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -92,7 +92,7 @@ const AboutSection = () => {
 
         .about-content .feature-item .icon i {
           font-size: 22px;
-          color: #0070C0;
+          color: var(--accent-color);
         }
 
         .about-content .feature-item h4 {
@@ -125,15 +125,15 @@ const AboutSection = () => {
         }
 
         .cta-wrapper .btn-primary {
-          background: linear-gradient(135deg, #0070C0 0%, #037a94 100%);
+          background: linear-gradient(135deg, var(--accent-color) 0%, var(--heading-color) 100%);
           color: #ffffff;
           border: none;
-          box-shadow: 0 4px 15px rgba(0, 112, 192, 0.3);
+          box-shadow: 0 4px 15px rgba(var(--accent-rgb), 0.3);
         }
 
         .cta-wrapper .btn-primary:hover {
           transform: translateY(-2px);
-          box-shadow: 0 8px 25px rgba(0, 112, 192, 0.4);
+          box-shadow: 0 8px 25px rgba(var(--accent-rgb), 0.4);
         }
 
         .cta-wrapper .btn-outline {
@@ -143,8 +143,8 @@ const AboutSection = () => {
         }
 
         .cta-wrapper .btn-outline:hover {
-          border-color: #0070C0;
-          color: #0070C0;
+          border-color: var(--accent-color);
+          color: var(--accent-color);
         }
 
         .certifications-row {

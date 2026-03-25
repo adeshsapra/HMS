@@ -132,7 +132,7 @@ const FeaturedServicesSection = ({
           height: 70px;
           border-radius: 18px;
           background: rgba(0, 112, 192, 0.06);
-          color: #0070C0;
+          color: var(--accent-color);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -142,7 +142,7 @@ const FeaturedServicesSection = ({
         }
 
         .pro-card:hover .icon-box {
-          background: linear-gradient(135deg, #0070C0, #027a94);
+          background: linear-gradient(135deg, var(--accent-color), var(--accent-highlight));
           color: #ffffff;
           border-radius: 50%;
           transform: rotate(360deg);
@@ -196,7 +196,7 @@ const FeaturedServicesSection = ({
           width: 24px;
           height: 24px;
           border-radius: 50%;
-          background: rgba(0, 112, 192, 0.1);
+          background: rgba(var(--accent-rgb), 0.1);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -206,7 +206,7 @@ const FeaturedServicesSection = ({
 
         .pill-icon {
           font-size: 10px;
-          color: #0070C0;
+          color: var(--accent-color);
           transition: all 0.4s ease;
         }
 
@@ -222,7 +222,7 @@ const FeaturedServicesSection = ({
         
         /* When hovering the card, the Pill fills with Blue Gradient */
         .pro-card:hover .feature-pill {
-          background: linear-gradient(90deg, #0070C0, #037a94);
+          background: linear-gradient(90deg, var(--accent-color), var(--heading-color));
           border-color: transparent;
           transform: translateY(-2px);
           box-shadow: 0 4px 12px rgba(0, 112, 192, 0.2);
@@ -240,7 +240,7 @@ const FeaturedServicesSection = ({
 
         /* The Icon itself turns Blue */
         .pro-card:hover .pill-icon {
-          color: #0070C0;
+          color: var(--accent-color);
         }
 
         /* --- FOOTER BUTTON --- */
@@ -256,20 +256,20 @@ const FeaturedServicesSection = ({
           gap: 10px;
           font-weight: 700;
           font-size: 15px;
-          color: #0070C0;
+          color: var(--accent-color);
           text-decoration: none;
           transition: gap 0.3s ease;
         }
 
         .details-btn:hover {
           gap: 15px;
-          color: #025f73;
+          color: var(--heading-color);
         }
 
         .btn-icon-circle {
           width: 32px;
           height: 32px;
-          background: rgba(0, 112, 192, 0.1);
+          background: rgba(var(--accent-rgb), 0.1);
           border-radius: 50%;
           display: flex;
           align-items: center;
@@ -278,7 +278,7 @@ const FeaturedServicesSection = ({
         }
 
         .details-btn:hover .btn-icon-circle {
-          background: #0070C0;
+          background: var(--accent-color);
           color: #fff;
         }
 

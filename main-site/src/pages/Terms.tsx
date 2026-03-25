@@ -27,7 +27,7 @@ const Terms = () => {
           background: #ffffff;
           border-radius: 24px;
           box-shadow: 0 20px 50px rgba(0, 45, 90, 0.05);
-          border: 1px solid rgba(0, 112, 192, 0.1);
+          border: 1px solid rgba(var(--accent-rgb), 0.1);
           overflow: hidden;
           padding: 60px;
         }
@@ -45,8 +45,8 @@ const Terms = () => {
           align-items: center;
           gap: 8px;
           padding: 6px 16px;
-          background: rgba(0, 112, 192, 0.1);
-          color: #0070C0;
+          background: rgba(var(--accent-rgb), 0.1);
+          color: var(--accent-color);
           border-radius: 50px;
           font-size: 0.85rem;
           font-weight: 700;
@@ -55,7 +55,7 @@ const Terms = () => {
         }
 
         .legal-title {
-          color: #002D5A;
+          color: var(--heading-color);
           font-weight: 800;
           font-size: 1.75rem;
           margin-bottom: 25px;
@@ -66,7 +66,7 @@ const Terms = () => {
 
         .legal-title i {
             font-size: 1.5rem;
-            color: #0070C0;
+            color: var(--accent-color);
         }
 
         .legal-text {
@@ -86,11 +86,11 @@ const Terms = () => {
             background: #f8fbff;
             border-radius: 16px;
             padding: 25px;
-            border-left: 4px solid #0070C0;
+            border-left: 4px solid var(--accent-color);
         }
 
         .term-box h6 {
-            color: #002D5A;
+            color: var(--heading-color);
             font-weight: 700;
             margin-bottom: 10px;
         }
@@ -113,7 +113,7 @@ const Terms = () => {
           font-family: "bootstrap-icons";
           position: absolute;
           left: 0;
-          color: #0070C0;
+          color: var(--accent-color);
           font-size: 1.1rem;
         }
 
@@ -283,7 +283,7 @@ const Terms = () => {
 
                 <div className="footer-cta">
                   <p className="text-muted small">Last Updated: February 01, 2026</p>
-                  <p className="fw-bold mb-0" style={{ color: '#002D5A' }}>Thank you for choosing Arovis for your healthcare journey.</p>
+                  <p className="fw-bold mb-0" style={{ color: 'var(--heading-color)' }}>Thank you for choosing Arovis for your healthcare journey.</p>
                 </div>
 
               </div>

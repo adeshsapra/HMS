@@ -18,8 +18,8 @@ const NotFound = () => {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: radial-gradient(circle at top right, rgba(0, 112, 192, 0.05), transparent),
-                      radial-gradient(circle at bottom left, rgba(0, 45, 90, 0.05), transparent);
+          background: radial-gradient(circle at top right, rgba(var(--accent-rgb), 0.05), transparent),
+                      radial-gradient(circle at bottom left, rgba(var(--heading-rgb), 0.05), transparent);
           padding: 40px 20px;
           position: relative;
           overflow: hidden;
@@ -38,17 +38,17 @@ const NotFound = () => {
           font-weight: 900;
           line-height: 1;
           margin-bottom: 0;
-          background: linear-gradient(135deg, #002D5A 0%, #0070C0 100%);
+          background: linear-gradient(135deg, var(--heading-color) 0%, var(--accent-color) 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
-          filter: drop-shadow(0 20px 30px rgba(0, 112, 192, 0.1));
+          filter: drop-shadow(0 20px 30px rgba(var(--accent-rgb), 0.1));
           letter-spacing: -5px;
         }
 
         .error-title {
           font-size: 2rem;
           font-weight: 800;
-          color: #002D5A;
+          color: var(--heading-color);
           margin-bottom: 15px;
         }
 
@@ -68,7 +68,7 @@ const NotFound = () => {
 
         .btn-home {
           padding: 14px 35px;
-          background: #0070C0;
+          background: var(--accent-color);
           color: white;
           border-radius: 50px;
           font-weight: 700;
@@ -76,21 +76,21 @@ const NotFound = () => {
           display: inline-flex;
           align-items: center;
           gap: 10px;
-          box-shadow: 0 10px 20px rgba(0, 112, 192, 0.2);
+          box-shadow: 0 10px 20px rgba(var(--accent-rgb), 0.2);
           transition: all 0.3s ease;
         }
 
         .btn-home:hover {
-          background: #002D5A;
+          background: var(--heading-color);
           color: white;
           transform: translateY(-3px);
-          box-shadow: 0 15px 30px rgba(0, 45, 90, 0.2);
+          box-shadow: 0 15px 30px rgba(var(--heading-rgb), 0.2);
         }
 
         .btn-secondary-link {
           padding: 14px 30px;
           background: white;
-          color: #002D5A;
+          color: var(--heading-color);
           border-radius: 50px;
           font-weight: 600;
           text-decoration: none;
@@ -100,8 +100,8 @@ const NotFound = () => {
 
         .btn-secondary-link:hover {
           background: #f8fafc;
-          border-color: #0070C0;
-          color: #0070C0;
+          border-color: var(--accent-color);
+          color: var(--accent-color);
         }
 
         .help-links {
@@ -112,7 +112,7 @@ const NotFound = () => {
 
         .help-links h6 {
           font-weight: 700;
-          color: #002D5A;
+          color: var(--heading-color);
           margin-bottom: 20px;
           font-size: 0.9rem;
           text-transform: uppercase;
@@ -135,7 +135,7 @@ const NotFound = () => {
         }
 
         .quick-nav a:hover {
-          color: #0070C0;
+          color: var(--accent-color);
         }
 
         /* Decorative elements */
@@ -143,7 +143,7 @@ const NotFound = () => {
           position: absolute;
           width: 400px;
           height: 400px;
-          background: rgba(0, 112, 192, 0.05);
+          background: rgba(var(--accent-rgb), 0.05);
           filter: blur(100px);
           border-radius: 50%;
           z-index: 1;

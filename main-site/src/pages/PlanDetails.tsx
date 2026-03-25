@@ -102,9 +102,9 @@ const PlanDetails = () => {
     return (
         <div className="plan-details-page section" style={{ minHeight: '100vh', paddingTop: '100px', background: '#f8fafc' }}>
             <style>{`
-                :root {
-                    --primary: #0070C0;
-                    --primary-soft: rgba(0, 112, 192, 0.1);
+                .plan-details-page {
+                    --primary: var(--accent-color);
+                    --primary-soft: rgba(var(--accent-rgb), 0.1);
                     --dark-text: #1e293b;
                     --gray-text: #64748b;
                 }
@@ -117,7 +117,7 @@ const PlanDetails = () => {
                     transition: all 0.3s ease;
                 }
                 .plan-header {
-                    background: linear-gradient(135deg, var(--primary) 0%, #007cc7 100%);
+                    background: linear-gradient(135deg, var(--primary) 0%, var(--accent-highlight) 100%);
                     padding: 3rem 2rem;
                     color: white;
                     position: relative;

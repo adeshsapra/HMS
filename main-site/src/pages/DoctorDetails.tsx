@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import PageHero from '../components/PageHero';
 import CalendarComponent from '../components/CalendarComponent';
 import { doctorAPI } from '../services/api';
+import { AROVIS_AVATAR_BG } from '../constants/arovisBrand';
 
 interface Doctor {
   id: number;
@@ -58,7 +59,7 @@ const DoctorDetails = () => {
 
   const getFallbackDoctorImage = (firstName?: string, lastName?: string) => {
     const name = `${firstName || ''} ${lastName || ''}`.trim() || 'Doctor';
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0D8ABC&color=fff&size=512&margin=20`;
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=${AROVIS_AVATAR_BG}&color=fff&size=512&margin=20`;
   };
 
   const getImageUrl = (path: string | null, firstName?: string, lastName?: string) => {
@@ -103,13 +104,13 @@ const DoctorDetails = () => {
         :root {
           --background-color: #ffffff;
           --default-color: #2c3031;
-          --heading-color: #002D5A;
-          --accent-color: #0070C0;
+          --heading-color: #002d5a;
+          --accent-color: #0070c0;
           --surface-color: #ffffff;
           --contrast-color: #ffffff;
-          --soft-shadow: 0 10px 40px rgba(0, 112, 192, 0.08);
+          --soft-shadow: 0 10px 40px rgba(var(--accent-rgb), 0.08);
           --glass-bg: rgba(255, 255, 255, 0.95);
-          --border-color: rgba(0, 112, 192, 0.15);
+          --border-color: rgba(var(--accent-rgb), 0.15);
         }
 
         .appointment-page {

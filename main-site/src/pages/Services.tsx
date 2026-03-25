@@ -279,8 +279,8 @@ const Services = () => {
         }
 
         .badge-price {
-          background: rgba(40, 167, 69, 0.1);
-          color: #28a745;
+          background: rgba(var(--accent-rgb), 0.1);
+          color: var(--accent-color);
         }
 
         .badge-duration {

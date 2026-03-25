@@ -20,10 +20,14 @@ export function Dashboard(): JSX.Element {
   return (
     <div className="min-h-screen bg-blue-gray-50/50">
       <Sidenav routes={filteredRoutes} />
-      <div className={`p-4 transition-all duration-300 ${openSidenav
-        ? (controller.sidenavCollapsed ? 'xl:ml-24' : 'xl:ml-80')
-        : 'xl:ml-4'
-        }`}>
+      <div
+        className={`p-4 transition-[margin] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${openSidenav
+          ? controller.sidenavCollapsed
+            ? "xl:ml-[5.5rem]"
+            : "xl:ml-[19rem]"
+          : "xl:ml-4"
+          }`}
+      >
         <DashboardNavbar />
         <Routes>
           {/* Use all routes (not filtered) so we can show Access Denied for routes user doesn't have permission for */}

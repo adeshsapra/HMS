@@ -5,6 +5,7 @@ import PageHero from '../components/PageHero';
 import ContentLoader from '../components/ContentLoader';
 import AOS from 'aos';
 import { useToast } from '../context/ToastContext';
+import { AROVIS_AVATAR_BG } from '../constants/arovisBrand';
 
 interface Review {
     id: number;
@@ -118,7 +119,7 @@ const DoctorProfile = () => {
 
     const getFallbackDoctorImage = (firstName?: string, lastName?: string) => {
         const name = `${firstName || ''} ${lastName || ''}`.trim() || 'Doctor';
-        return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0D8ABC&color=fff&size=512&margin=20`;
+        return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=${AROVIS_AVATAR_BG}&color=fff&size=512&margin=20`;
     };
 
     const getImageUrl = (path: string | null, firstName?: string, lastName?: string) => {
@@ -159,11 +160,11 @@ const DoctorProfile = () => {
         <div className="professional-doctor-profile">
             <style>
                 {`
-                :root {
-                    --hospital-blue: #0d8abc;
-                    --hospital-dark: #1a3353;
-                    --hospital-light: #f0f9ff;
-                    --hospital-accent: #17a2b8;
+                .professional-doctor-profile {
+                    --hospital-blue: var(--accent-color);
+                    --hospital-dark: var(--heading-color);
+                    --hospital-light: var(--background-muted);
+                    --hospital-accent: var(--accent-highlight);
                     --glass-white: rgba(255, 255, 255, 0.9);
                     --premium-shadow: 0 20px 40px rgba(0,0,0,0.08);
                 }
@@ -224,7 +225,7 @@ const DoctorProfile = () => {
                     height: 200px;
                     border-radius: 16px;
                     overflow: hidden;
-                    box-shadow: 0 10px 30px rgba(13, 138, 188, 0.15);
+                    box-shadow: 0 10px 30px rgba(var(--accent-rgb), 0.15);
                     border: 4px solid white;
                 }
 
@@ -397,7 +398,7 @@ const DoctorProfile = () => {
 
                 /* Fixed Button Size - Responsive */
                 .btn-instant-appointment {
-                    background: linear-gradient(135deg, #0d8abc 0%, #0c76a1 100%);
+                    background: var(--arovis-gradient-primary);
                     color: white;
                     border: none;
                     width: 100%;
@@ -406,7 +407,7 @@ const DoctorProfile = () => {
                     font-weight: 700;
                     text-transform: uppercase;
                     letter-spacing: 0.5px;
-                    box-shadow: 0 6px 15px rgba(13, 138, 188, 0.25);
+                    box-shadow: 0 6px 15px rgba(var(--accent-rgb), 0.25);
                     transition: all 0.3s ease;
                     margin-top: 1rem;
                     font-size: 0.9rem;
@@ -414,7 +415,7 @@ const DoctorProfile = () => {
 
                 .btn-instant-appointment:hover {
                     transform: translateY(-2px);
-                    box-shadow: 0 10px 25px rgba(13, 138, 188, 0.35);
+                    box-shadow: 0 10px 25px rgba(var(--accent-rgb), 0.35);
                     color: white;
                 }
 
@@ -457,7 +458,7 @@ const DoctorProfile = () => {
                 .form-premium-input:focus {
                     border-color: var(--hospital-blue);
                     outline: none;
-                    box-shadow: 0 0 0 3px rgba(13, 138, 188, 0.1);
+                    box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.1);
                 }
 
                 .btn-submit-review-premium {
@@ -472,7 +473,7 @@ const DoctorProfile = () => {
                 }
 
                 .btn-submit-review-premium:hover {
-                    background: #2d4a77;
+                    background: color-mix(in srgb, var(--heading-color), black 12%);
                 }
 
                 /* Reviews Display */

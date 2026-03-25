@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import SectionHeading from "../SectionHeading";
 import ContentLoader from "../../ContentLoader";
+import { AROVIS_AVATAR_BG } from "../../../constants/arovisBrand";
 
 // --- Advanced Animation Constants ---
 const springTransition = { type: "spring", stiffness: 200, damping: 20 };
@@ -66,7 +67,7 @@ const FindDoctorSection = ({ doctors, loadingDoctors }: FindDoctorSectionProps) 
 
     const getDoctorFallbackImage = useCallback((firstName?: string, lastName?: string) => {
         const name = `${firstName || ""} ${lastName || ""}`.trim() || "Doctor";
-        return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0D8ABC&color=fff&size=512&margin=20`;
+        return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=${AROVIS_AVATAR_BG}&color=fff&size=512&margin=20`;
     }, []);
 
     const getFullImageUrl = useCallback((path: string | null, firstName?: string, lastName?: string) => {

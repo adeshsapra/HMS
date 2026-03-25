@@ -257,7 +257,7 @@ const Home = () => {
     transition: all 0.2s;
   }
   .btn-submit-custom:hover, .btn-submit-custom:active, .btn-submit-custom:focus {
-    background-color: #0070C0!important;
+    background-color: var(--accent-color) !important;
     transform: translateY(-1px);
     box-shadow: 0 10px 15px -3px rgba(0, 112, 192, 0.3);
   }
