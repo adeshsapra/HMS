@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useToast } from "@/context/ToastContext";
 import { DataTable, Column, FormModal, FormField, AdvancedFilter } from "@/components";
 import {
   Card,
@@ -35,6 +36,7 @@ interface Role {
 
 export default function UserRoles(): JSX.Element {
   const { hasPermission } = useAuth();
+  const { showToast } = useToast();
   const [users, setUsers] = useState<User[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -104,11 +106,11 @@ export default function UserRoles(): JSX.Element {
         await loadData(currentPage, filters);
         setSelectedUser(null);
         setSelectedRoleId("");
-        alert("Role assigned successfully!");
+        showToast("Role assigned successfully!", "success");
       }
     } catch (error: any) {
       console.error("Failed to assign role:", error);
-      alert(error.message || "Failed to assign role");
+      showToast(error.message || "Failed to assign role", "error");
     } finally {
       setSaving(false);
     }
@@ -127,11 +129,11 @@ export default function UserRoles(): JSX.Element {
       if (response.status) {
         await loadData(currentPage, filters);
         setOpenCreateModal(false);
-        alert("User created successfully!");
+        showToast("User created successfully!", "success");
       }
     } catch (error: any) {
       console.error("Failed to create user:", error);
-      alert(error.message || "Failed to create user");
+      showToast(error.message || "Failed to create user", "error");
     } finally {
       setCreating(false);
     }

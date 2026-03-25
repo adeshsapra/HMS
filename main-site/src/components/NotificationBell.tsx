@@ -29,11 +29,11 @@ const NotificationBell = () => {
             </button>
             <ul className="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 mt-3 p-0 pb-2 overflow-hidden" aria-labelledby="notificationDropdown" style={{ width: '320px', maxHeight: '420px', zIndex: 1050 }}>
                 <li className="p-3 border-bottom d-flex justify-content-between align-items-center bg-light">
-                    <h6 className="m-0 fw-bold" style={{ color: '#012970' }}>Notifications</h6>
+                    <h6 className="m-0 fw-bold" style={{ color: 'var(--heading-color)' }}>Notifications</h6>
                     {unread > 0 && (
                         <button
                             className="btn btn-link btn-sm p-0 text-decoration-none fw-semibold"
-                            style={{ fontSize: '0.75rem', color: '#049EBB' }}
+                            style={{ fontSize: '0.75rem', color: 'var(--accent-color)' }}
                             onClick={(e) => { e.stopPropagation(); markAllAsRead(); }}
                         >
                             Mark all as read
@@ -77,7 +77,7 @@ const NotificationBell = () => {
                 <li className="p-2 text-center border-top">
                     <button
                         className="btn btn-link btn-sm text-decoration-none fw-bold"
-                        style={{ fontSize: '0.75rem', color: '#049EBB' }}
+                        style={{ fontSize: '0.75rem', color: 'var(--accent-color)' }}
                         onClick={() => navigate('/notifications')}
                     >
                         See all notifications
@@ -88,7 +88,7 @@ const NotificationBell = () => {
                 .no-caret::after { display: none !important; }
                 .notification-item { cursor: pointer; border-left: 3px solid transparent; }
                 .notification-item:hover { background-color: #f8f9fa !important; }
-                .notification-item.bg-info.bg-opacity-10 { border-left-color: #049EBB; }
+                .notification-item.bg-info.bg-opacity-10 { border-left-color: var(--accent-color); }
                 .line-clamp-2 {
                     display: -webkit-box;
                     -webkit-line-clamp: 2;

@@ -95,7 +95,7 @@ const SuccessPayment = () => {
                 }
                 .action-btn {
                     display: inline-block;
-                    background: var(--accent-color, #049ebb);
+                    background: var(--accent-color, #0070C0);
                     color: white;
                     padding: 0.75rem 2rem;
                     border-radius: 12px;

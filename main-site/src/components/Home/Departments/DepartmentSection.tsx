@@ -98,7 +98,7 @@ const DepartmentSection: React.FC<DepartmentSectionProps> = ({
                     __html: `
             :root {
                 --card-bg: #ffffff;
-                --primary-gradient: linear-gradient(135deg, #0299be 0%, #049ebb 100%);
+                --primary-gradient: linear-gradient(135deg, var(--heading-color) 0%, var(--accent-color) 100%);
                 --text-dark: #1e293b;
                 --text-light: #64748b;
             }
@@ -318,7 +318,7 @@ const DepartmentSection: React.FC<DepartmentSectionProps> = ({
             .arrow-circle {
                 width: 24px;
                 height: 24px;
-                background: rgba(2, 153, 190, 0.1);
+                background: rgba(0, 112, 192, 0.1);
                 border-radius: 50%;
                 display: flex;
                 align-items: center;
@@ -328,7 +328,7 @@ const DepartmentSection: React.FC<DepartmentSectionProps> = ({
                 transition: all 0.3s ease;
             }
             .pro-dept-card:hover .btn-explore {
-                color: #0299be;
+                color: var(--accent-color);
                 border-color: transparent;
                 padding-right: 0.5rem;
             }

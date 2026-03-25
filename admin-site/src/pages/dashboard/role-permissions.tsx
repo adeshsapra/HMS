@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useToast } from "@/context/ToastContext";
 import {
   Card,
   CardBody,
@@ -32,8 +33,8 @@ const CustomCheckbox = ({ checked, onChange, label }: { checked: boolean; onChan
     <div className="relative flex items-center justify-center p-1 rounded-full">
       <div
         className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all duration-200 ${checked
-          ? "bg-[#0e7490] border-[#0e7490]"
-          : "bg-white border-blue-gray-200 group-hover:border-[#0e7490]"
+          ? "bg-arovis-blue border-arovis-blue"
+          : "bg-white border-blue-gray-200 group-hover:border-arovis-blue"
           }`}
       >
         {checked && (
@@ -60,6 +61,7 @@ const CustomCheckbox = ({ checked, onChange, label }: { checked: boolean; onChan
 
 export default function RolePermissions(): JSX.Element {
   const { hasPermission } = useAuth();
+  const { showToast } = useToast();
   const [roles, setRoles] = useState<Role[]>([]);
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
@@ -148,11 +150,11 @@ export default function RolePermissions(): JSX.Element {
       );
       if (response.status) {
         await loadData();
-        alert("Permissions updated successfully!");
+        showToast("Permissions updated successfully!", "success");
       }
     } catch (error) {
       console.error("Failed to save permissions:", error);
-      alert("Failed to update permissions");
+      showToast("Failed to update permissions", "error");
     } finally {
       setSaving(false);
     }

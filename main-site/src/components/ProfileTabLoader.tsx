@@ -18,7 +18,7 @@ const ProfileTabLoader = ({ message = 'Loading...' }: ProfileTabLoaderProps) => 
           width: 45px;
           height: 45px;
           border: 4px solid #f3f3f3;
-          border-top: 4px solid #049EBB;
+          border-top: 4px solid var(--accent-color);
           border-radius: 50%;
           animation: profile-tab-spin 1s linear infinite;
         }

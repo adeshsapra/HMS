@@ -212,7 +212,7 @@ export const AdvancedFilter: React.FC<AdvancedFilterProps> = ({
                         group flex items-center gap-2 h-10 px-4 rounded-lg text-sm font-medium
                         transition-all duration-200 border whitespace-nowrap
                         ${hasSelection
-                            ? 'bg-[#0299BE]/10 text-[#0299BE] border-[#0299BE]/30'
+                            ? 'bg-[#0070C0]/10 text-[#0070C0] border-[#0070C0]/30'
                             : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                         }
                     `}
@@ -221,7 +221,7 @@ export const AdvancedFilter: React.FC<AdvancedFilterProps> = ({
                         {hasSelection ? selectedOption?.label : field.label}
                     </span>
                     <ChevronDownIcon
-                        className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''} ${hasSelection ? 'text-[#0299BE]' : 'text-gray-400'}`}
+                        className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''} ${hasSelection ? 'text-[#0070C0]' : 'text-gray-400'}`}
                     />
                 </button>
 
@@ -247,7 +247,7 @@ export const AdvancedFilter: React.FC<AdvancedFilterProps> = ({
                                             w-full flex items-center justify-between px-3 py-2 text-sm
                                             transition-colors duration-100
                                             ${isSelected
-                                                ? 'bg-[#0299BE]/10 text-[#0299BE] font-medium'
+                                                ? 'bg-[#0070C0]/10 text-[#0070C0] font-medium'
                                                 : 'text-gray-700 hover:bg-gray-50'
                                             }
                                         `}
@@ -270,7 +270,7 @@ export const AdvancedFilter: React.FC<AdvancedFilterProps> = ({
     }> = ({ field }) => {
         const value = filters[field.name] || '';
         return (
-            <div className="flex items-center gap-3 px-4 py-2 bg-white rounded-xl border border-gray-100 shadow-sm transition-all hover:border-[#0299BE]/30 group min-w-[200px]">
+            <div className="flex items-center gap-3 px-4 py-2 bg-white rounded-xl border border-gray-100 shadow-sm transition-all hover:border-[#0070C0]/30 group min-w-[200px]">
                 <span className="text-sm font-semibold text-gray-700 whitespace-nowrap">{field.label}:</span>
                 <input
                     type={field.type}
@@ -329,7 +329,7 @@ export const AdvancedFilter: React.FC<AdvancedFilterProps> = ({
                         flex items-center gap-2 h-10 px-4 rounded-lg text-sm font-medium
                         transition-all duration-200 border whitespace-nowrap
                         ${hasSelection
-                            ? 'bg-[#0299BE]/10 text-[#0299BE] border-[#0299BE]/30'
+                            ? 'bg-[#0070C0]/10 text-[#0070C0] border-[#0070C0]/30'
                             : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                         }
                     `}
@@ -357,7 +357,7 @@ export const AdvancedFilter: React.FC<AdvancedFilterProps> = ({
                                         type="date"
                                         value={startValue}
                                         onChange={(e) => handleFilterChange(startKey, e.target.value)}
-                                        className="w-full h-10 px-3 rounded-lg border border-gray-200 text-sm text-gray-700 focus:outline-none focus:border-[#0299BE] focus:ring-1 focus:ring-[#0299BE]/20"
+                                        className="w-full h-10 px-3 rounded-lg border border-gray-200 text-sm text-gray-700 focus:outline-none focus:border-[#0070C0] focus:ring-1 focus:ring-[#0070C0]/20"
                                     />
                                 </div>
                                 {dateField.type === 'daterange' && (
@@ -367,7 +367,7 @@ export const AdvancedFilter: React.FC<AdvancedFilterProps> = ({
                                             type="date"
                                             value={endValue}
                                             onChange={(e) => handleFilterChange(endKey, e.target.value)}
-                                            className="w-full h-10 px-3 rounded-lg border border-gray-200 text-sm text-gray-700 focus:outline-none focus:border-[#0299BE] focus:ring-1 focus:ring-[#0299BE]/20"
+                                            className="w-full h-10 px-3 rounded-lg border border-gray-200 text-sm text-gray-700 focus:outline-none focus:border-[#0070C0] focus:ring-1 focus:ring-[#0070C0]/20"
                                         />
                                     </div>
                                 )}
@@ -383,7 +383,7 @@ export const AdvancedFilter: React.FC<AdvancedFilterProps> = ({
                                     </button>
                                     <button
                                         onClick={() => setActiveDropdown(null)}
-                                        className="flex-1 h-9 rounded-lg text-sm font-medium text-white bg-[#0299BE] hover:bg-[#027a99] transition-colors"
+                                        className="flex-1 h-9 rounded-lg text-sm font-medium text-white bg-[#0070C0] hover:bg-[#002D5A] transition-colors"
                                     >
                                         Done
                                     </button>
@@ -464,7 +464,7 @@ export const AdvancedFilter: React.FC<AdvancedFilterProps> = ({
                                             handleApply();
                                         }
                                     }}
-                                    className="w-full h-10 pl-9 pr-20 rounded-lg bg-gray-50 border-0 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0299BE]/20 focus:bg-white transition-all duration-300"
+                                    className="w-full h-10 pl-9 pr-20 rounded-lg bg-gray-50 border-0 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0070C0]/20 focus:bg-white transition-all duration-300"
                                 />
                                 <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
                                     {filters[searchField.name] && (
@@ -519,7 +519,7 @@ export const AdvancedFilter: React.FC<AdvancedFilterProps> = ({
                             {/* Apply Button */}
                             <button
                                 onClick={handleApply}
-                                className="flex items-center gap-2 h-10 px-5 rounded-lg text-sm font-semibold text-white bg-[#0299BE] hover:bg-[#027a99] transition-all shadow-sm hover:shadow-md"
+                                className="flex items-center gap-2 h-10 px-5 rounded-lg text-sm font-semibold text-white bg-[#0070C0] hover:bg-[#002D5A] transition-all shadow-sm hover:shadow-md"
                             >
                                 Apply
                             </button>
@@ -581,7 +581,7 @@ export const AdvancedFilter: React.FC<AdvancedFilterProps> = ({
                                                                     className={`
                                                                         px-3 py-1 rounded-full text-xs font-medium transition-all
                                                                         ${isSelected
-                                                                            ? 'bg-[#0299BE] text-white shadow-sm'
+                                                                            ? 'bg-[#0070C0] text-white shadow-sm'
                                                                             : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}
                                                                     `}
                                                                 >

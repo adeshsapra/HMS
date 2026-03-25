@@ -653,7 +653,7 @@ export default function Inventory(): JSX.Element {
       { id: "inventory-expiry", label: "Expiry Report", icon: ClipboardDocumentCheckIcon, color: "orange" },
       { id: "inventory-stock-in", label: "Stock In", icon: ArrowDownOnSquareIcon, color: "blue" },
       { id: "inventory-stock-out", label: "Stock Out", icon: ArrowUpOnSquareIcon, color: "indigo" },
-      { id: "inventory-department-usage", label: "Dept Usage", icon: CubeIcon, color: "teal" },
+      { id: "inventory-department-usage", label: "Dept Usage", icon: CubeIcon, color: "blue" },
       { id: "inventory-vendor-summary", label: "Vendor Summary", icon: TruckIcon, color: "blue-gray" },
     ];
 
@@ -1047,8 +1047,8 @@ export default function Inventory(): JSX.Element {
                 <Typography variant="small" color="blue-gray" className="mb-1 font-medium">Categories</Typography>
                 <Typography variant="h5" color="blue-gray" className="font-bold">{stats.totalCategories}</Typography>
               </div>
-              <div className="p-2 bg-teal-50 rounded-lg">
-                <TagIcon className="h-6 w-6 text-teal-500" />
+              <div className="p-2 bg-arovis-blue/10 rounded-lg">
+                <TagIcon className="h-6 w-6 text-arovis-blue" />
               </div>
             </div>
           </CardBody>

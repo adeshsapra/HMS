@@ -94,7 +94,7 @@ const DoctorReviewModal: React.FC<DoctorReviewModalProps> = ({ isOpen, onClose, 
                 }
 
                 .review-modal-header h3 {
-                    color: #18444c;
+                    color: var(--heading-color);
                     font-weight: 800;
                     margin-bottom: 0.5rem;
                 }
@@ -138,13 +138,13 @@ const DoctorReviewModal: React.FC<DoctorReviewModalProps> = ({ isOpen, onClose, 
                 }
 
                 .form-control-custom:focus {
-                    border-color: #0d8abc;
-                    box-shadow: 0 0 0 4px rgba(13, 138, 188, 0.1);
+                    border-color: var(--accent-color);
+                    box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.1);
                     outline: none;
                 }
 
                 .btn-submit-review {
-                    background: linear-gradient(135deg, #0d8abc 0%, #17a2b8 100%);
+                    background: var(--arovis-gradient-cta);
                     color: white;
                     border: none;
                     padding: 15px;
@@ -152,13 +152,13 @@ const DoctorReviewModal: React.FC<DoctorReviewModalProps> = ({ isOpen, onClose, 
                     font-weight: 700;
                     width: 100%;
                     margin-top: 1rem;
-                    box-shadow: 0 10px 20px rgba(13, 138, 188, 0.2);
+                    box-shadow: 0 10px 20px rgba(var(--accent-rgb), 0.2);
                     transition: all 0.3s ease;
                 }
 
                 .btn-submit-review:hover {
                     transform: translateY(-2px);
-                    box-shadow: 0 15px 25px rgba(13, 138, 188, 0.3);
+                    box-shadow: 0 15px 25px rgba(var(--accent-rgb), 0.3);
                 }
 
                 .btn-submit-review:disabled {

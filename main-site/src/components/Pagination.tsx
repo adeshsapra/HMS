@@ -75,7 +75,7 @@ const Pagination: React.FC<PaginationProps> = ({
           align-items: center;
           padding: 30px 0 10px;
           margin-top: 30px;
-          border-top: 2px solid rgba(4, 158, 187, 0.1);
+          border-top: 2px solid rgba(0, 112, 192, 0.1);
         }
         .pagination-controls {
           display: flex;
@@ -124,7 +124,7 @@ const Pagination: React.FC<PaginationProps> = ({
 
         .pagination-btn:hover:not(:disabled) {
           transform: translateY(-3px);
-          box-shadow: 0 6px 20px rgba(4, 158, 187, 0.25);
+          box-shadow: 0 6px 20px rgba(0, 112, 192, 0.25);
           border-color: var(--accent-color);
         }
 
@@ -134,14 +134,14 @@ const Pagination: React.FC<PaginationProps> = ({
 
         .pagination-btn:active:not(:disabled) {
           transform: translateY(-1px);
-          box-shadow: 0 3px 12px rgba(4, 158, 187, 0.2);
+          box-shadow: 0 3px 12px rgba(0, 112, 192, 0.2);
         }
 
         .pagination-btn.active {
           background: var(--accent-color);
           color: white;
           border-color: var(--accent-color);
-          box-shadow: 0 6px 20px rgba(4, 158, 187, 0.35);
+          box-shadow: 0 6px 20px rgba(0, 112, 192, 0.35);
           transform: translateY(-2px);
         }
 

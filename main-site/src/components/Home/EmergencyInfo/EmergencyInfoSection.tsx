@@ -229,7 +229,7 @@ const EmergencyInfoSection = ({ emergencyInfo }: EmergencyInfoSectionProps) => {
         .ei-card:hover {
           transform: translateY(-3px);
           box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-          border-color: #049EBB;
+          border-color: #0070C0;
         }
 
         .ei-card.urgent { border-color: rgba(220,53,69,0.35); }
@@ -248,7 +248,7 @@ const EmergencyInfoSection = ({ emergencyInfo }: EmergencyInfoSectionProps) => {
 
         .ei-card.urgent .ei-card-icon { background: rgba(220,53,69,0.1); }
 
-        .ei-card-icon i { font-size: 18px; color: #049EBB; }
+        .ei-card-icon i { font-size: 18px; color: #0070C0; }
         .ei-card.urgent .ei-card-icon i { color: #dc3545; }
 
         .ei-card-body { flex: 1; min-width: 0; }
@@ -267,7 +267,7 @@ const EmergencyInfoSection = ({ emergencyInfo }: EmergencyInfoSectionProps) => {
           gap: 6px;
           font-size: 14px;
           font-weight: 600;
-          color: #049EBB;
+          color: #0070C0;
           text-decoration: none;
           margin-bottom: 4px;
           white-space: nowrap;
@@ -300,7 +300,7 @@ const EmergencyInfoSection = ({ emergencyInfo }: EmergencyInfoSectionProps) => {
         }
 
         .ei-badge-green { background: #e6f9f0; color: #1a9d5f; }
-        .ei-badge-blue  { background: #e6f5f8; color: #049EBB; }
+        .ei-badge-blue  { background: #e6f5f8; color: #0070C0; }
 
         /* ── BOTTOM ROW ── */
         .ei-bottom {
@@ -347,7 +347,7 @@ const EmergencyInfoSection = ({ emergencyInfo }: EmergencyInfoSectionProps) => {
         }
 
         .ei-tips-list li i {
-          color: #049EBB;
+          color: #0070C0;
           font-size: 14px;
           margin-top: 4px;
           flex-shrink: 0;

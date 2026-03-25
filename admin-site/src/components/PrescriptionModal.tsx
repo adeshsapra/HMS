@@ -28,7 +28,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { apiService } from "@/services/api";
 import { useToast } from "@/context/ToastContext";
-import "@/styles/meditrust-colors.css";
+import "@/styles/arovis-colors.css";
 
 interface PrescriptionModalProps {
     open: boolean;

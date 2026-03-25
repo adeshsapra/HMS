@@ -93,7 +93,7 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
         if ('Notification' in window && Notification.permission === 'granted') {
             const n = new Notification(notif.data.title, {
                 body: notif.data.message,
-                icon: '/favicon.ico',
+                icon: '/assets/img/icon_2.png',
             });
             n.onclick = () => {
                 window.focus();

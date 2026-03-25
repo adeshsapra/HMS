@@ -198,13 +198,13 @@ const CalendarComponent = ({ doctor, onDateSelect }: CalendarComponentProps) => 
         :root {
           --background-color: #ffffff;
           --default-color: #2c3031;
-          --heading-color: #18444c;
-          --accent-color: #049ebb;
+          --heading-color: #002D5A;
+          --accent-color: #0070C0;
           --surface-color: #ffffff;
           --contrast-color: #ffffff;
-          --soft-shadow: 0 10px 40px rgba(4, 158, 187, 0.08);
+          --soft-shadow: 0 10px 40px rgba(0, 112, 192, 0.08);
           --glass-bg: rgba(255, 255, 255, 0.95);
-          --border-color: rgba(4, 158, 187, 0.15);
+          --border-color: rgba(0, 112, 192, 0.15);
         }
 
         .appointment-calendar-section {
@@ -303,7 +303,7 @@ const CalendarComponent = ({ doctor, onDateSelect }: CalendarComponentProps) => 
           background: var(--accent-color);
           color: white;
           transform: scale(1.05);
-          box-shadow: 0 10px 20px rgba(4, 158, 187, 0.3);
+          box-shadow: 0 10px 20px rgba(0, 112, 192, 0.3);
         }
 
         .appointment-date-box.appointment-disabled {
@@ -343,7 +343,7 @@ const CalendarComponent = ({ doctor, onDateSelect }: CalendarComponentProps) => 
           left: 0;
           width: 100%;
           height: 100%;
-          background: rgba(24, 68, 76, 0.6);
+          background: rgba(0, 45, 90, 0.6);
           backdrop-filter: blur(5px);
           z-index: 1050;
           display: flex;
@@ -406,7 +406,7 @@ const CalendarComponent = ({ doctor, onDateSelect }: CalendarComponentProps) => 
         }
 
         .appointment-form-control:focus {
-            box-shadow: 0 0 0 3px rgba(4, 158, 187, 0.2);
+            box-shadow: 0 0 0 3px rgba(0, 112, 192, 0.2);
             border-color: var(--accent-color);
             outline: none;
         }
@@ -489,7 +489,7 @@ const CalendarComponent = ({ doctor, onDateSelect }: CalendarComponentProps) => 
             background: var(--accent-color);
             color: white;
             border-color: var(--accent-color);
-            box-shadow: 0 4px 10px rgba(4, 158, 187, 0.3);
+            box-shadow: 0 4px 10px rgba(0, 112, 192, 0.3);
         }
 
         .appointment-btn-confirm {
@@ -566,15 +566,15 @@ const CalendarComponent = ({ doctor, onDateSelect }: CalendarComponentProps) => 
         }
         .appointment-service-card.appointment-service-selected {
             border-color: var(--accent-color);
-            background: rgba(4, 158, 187, 0.08);
-            box-shadow: 0 0 0 2px rgba(4, 158, 187, 0.2);
+            background: rgba(0, 112, 192, 0.08);
+            box-shadow: 0 0 0 2px rgba(0, 112, 192, 0.2);
         }
         .appointment-service-name { font-weight: 700; color: var(--heading-color); font-size: 1rem; }
         .appointment-service-meta { font-size: 0.85rem; color: #666; margin-top: 4px; }
         .appointment-service-desc { font-size: 0.8rem; color: #888; margin-top: 6px; line-height: 1.4; }
         .appointment-summary-line {
             background: #f0fbfc;
-            border: 1px solid rgba(4, 158, 187, 0.2);
+            border: 1px solid rgba(0, 112, 192, 0.2);
             border-radius: 10px;
             padding: 12px 16px;
             margin-bottom: 16px;

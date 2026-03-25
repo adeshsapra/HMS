@@ -315,8 +315,8 @@ const MyAppointments = ({ onNavigateToTestimonials, focusAppointmentId }: MyAppo
                 .profile-appointment-container {
                     --pa-bg-color: #ffffff;
                     --pa-default-color: #2c3031;
-                    --pa-heading-color: #18444c;
-                    --pa-accent-color: #049ebb;
+                    --pa-heading-color: #002D5A;
+                    --pa-accent-color: #0070C0;
                     --pa-surface-color: #ffffff;
                     --pa-contrast-color: #ffffff;
                     
@@ -895,7 +895,7 @@ const MyAppointments = ({ onNavigateToTestimonials, focusAppointmentId }: MyAppo
                     background: var(--pa-accent-color);
                     color: white;
                     border-color: var(--pa-accent-color);
-                    box-shadow: 0 4px 10px rgba(4, 158, 187, 0.3);
+                    box-shadow: 0 4px 10px rgba(0, 112, 192, 0.3);
                 }
 
                 /* Responsive */

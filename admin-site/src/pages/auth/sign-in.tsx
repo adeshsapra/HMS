@@ -6,9 +6,10 @@ import {
   Alert,
 } from "@material-tailwind/react";
 import { useNavigate } from "react-router-dom";
-import { HeartIcon, LockClosedIcon, EnvelopeIcon, ShieldCheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { LockClosedIcon, EnvelopeIcon, ShieldCheckIcon, XMarkIcon, HeartIcon } from "@heroicons/react/24/outline";
 import { useAuth } from "@/context/AuthContext";
 import { getFirstAccessiblePage } from "@/utils/getFirstAccessiblePage";
+import { ADMIN_LOGO_AUTH_CLASS, ADMIN_LOGO_SRC } from "@/constants/adminBrand";
 
 export function SignIn(): JSX.Element {
   const [email, setEmail] = useState("");
@@ -36,19 +37,26 @@ export function SignIn(): JSX.Element {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-50 via-white to-cyan-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-sky-50 flex items-center justify-center p-4">
       <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-8 items-center">
         {/* Left Side - Form */}
         <div className="bg-white rounded-2xl shadow-xl p-8 lg:p-12">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-full mb-4">
-              <HeartIcon className="h-8 w-8 text-white" />
+            <div className="mb-4 flex justify-center px-1">
+              <img
+                src={ADMIN_LOGO_SRC}
+                alt="Arovis"
+                width={280}
+                height={64}
+                decoding="async"
+                className={ADMIN_LOGO_AUTH_CLASS}
+              />
             </div>
             <Typography variant="h3" className="font-bold text-gray-800 mb-2">
               Welcome Back
             </Typography>
             <Typography variant="paragraph" color="gray" className="text-base">
-              Sign in to access your HMS Admin Panel
+              Sign in to Arovis Admin
             </Typography>
           </div>
 
@@ -88,7 +96,7 @@ export function SignIn(): JSX.Element {
                   type="email"
                   size="lg"
                   placeholder="admin@hospital.com"
-                  className="!border-gray-300 focus:!border-teal-500 pl-10"
+                  className="!border-gray-300 focus:!border-arovis-blue pl-10"
                   labelProps={{
                     className: "hidden",
                   }}
@@ -110,7 +118,7 @@ export function SignIn(): JSX.Element {
                   type="password"
                   size="lg"
                   placeholder="Enter your password"
-                  className="!border-gray-300 focus:!border-teal-500 pl-10"
+                  className="!border-gray-300 focus:!border-arovis-blue pl-10"
                   labelProps={{
                     className: "hidden",
                   }}
@@ -127,20 +135,20 @@ export function SignIn(): JSX.Element {
                 <input
                   type="checkbox"
                   id="remember"
-                  className="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500"
+                  className="w-4 h-4 text-arovis-blue border-gray-300 rounded focus:ring-arovis-blue"
                 />
                 <label htmlFor="remember" className="ml-2 text-sm text-gray-600">
                   Remember me
                 </label>
               </div>
-              <button type="button" className="text-sm text-teal-600 hover:text-teal-700 font-medium">
+              <button type="button" className="text-sm text-arovis-blue hover:text-arovis-navy font-medium">
                 Forgot Password?
               </button>
             </div>
 
             <Button
               type="submit"
-              className="w-full bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white font-semibold py-3 rounded-lg shadow-md transition-all duration-200"
+              className="w-full bg-gradient-to-r from-arovis-blue to-arovis-cyan hover:from-arovis-navy hover:to-arovis-blue text-white font-semibold py-3 rounded-lg shadow-md transition-all duration-200"
               fullWidth
               disabled={loading}
             >
@@ -152,12 +160,12 @@ export function SignIn(): JSX.Element {
         {/* Right Side - Image/Info */}
         <div className="hidden lg:block">
           <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-teal-400 to-cyan-500 rounded-3xl transform rotate-3"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-arovis-blue to-arovis-cyan rounded-3xl transform rotate-3"></div>
             <div className="relative bg-white rounded-3xl p-8 shadow-2xl">
               <div className="space-y-6">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center">
-                    <HeartIcon className="h-6 w-6 text-teal-600" />
+                  <div className="w-12 h-12 bg-arovis-blue/10 rounded-full flex items-center justify-center">
+                    <HeartIcon className="h-6 w-6 text-arovis-blue" />
                   </div>
                   <div>
                     <h3 className="font-bold text-gray-800">Secure Access</h3>
@@ -165,8 +173,8 @@ export function SignIn(): JSX.Element {
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-cyan-100 rounded-full flex items-center justify-center">
-                    <LockClosedIcon className="h-6 w-6 text-cyan-600" />
+                  <div className="w-12 h-12 bg-arovis-cyan/15 rounded-full flex items-center justify-center">
+                    <LockClosedIcon className="h-6 w-6 text-arovis-blue" />
                   </div>
                   <div>
                     <h3 className="font-bold text-gray-800">24/7 Support</h3>
@@ -174,8 +182,8 @@ export function SignIn(): JSX.Element {
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center">
-                    <svg className="h-6 w-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-12 h-12 bg-arovis-blue/10 rounded-full flex items-center justify-center">
+                    <svg className="h-6 w-6 text-arovis-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>

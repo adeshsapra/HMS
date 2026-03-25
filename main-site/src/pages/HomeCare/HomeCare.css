@@ -5,9 +5,9 @@
   background-color: var(--background-color);
 
   /* Brand Theme Override */
-  --accent-color: #0299BE;
-  --bs-primary: #0299BE;
-  --bs-primary-rgb: 2, 153, 190;
+  --accent-color: #0070C0;
+  --bs-primary: #0070C0;
+  --bs-primary-rgb: 0, 112, 192;
 }
 
 /* Hero Section */

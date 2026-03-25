@@ -19,6 +19,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { ToastProvider } from "@/context/ToastContext";
 import { NotificationProvider } from "@/context/NotificationContext";
 import "../public/css/tailwind.css";
+import "./styles/arovis-colors.css";
 import "./styles/forms.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(

@@ -38,6 +38,7 @@ import { ReportTable } from "@/components/reports/ReportTable";
 import { ReportExport } from "@/components/reports/ReportExport";
 import { useReportData } from "@/hooks/useReportData";
 import apiService from "@/services/api";
+import { useToast } from "@/context/ToastContext";
 
 // ——— Report Category definitions ———
 const reportCategories = [
@@ -46,9 +47,9 @@ const reportCategories = [
     title: "Revenue & Financial",
     description: "Total billed, collected, and due amounts with trends",
     icon: CurrencyDollarIcon,
-    gradient: "from-green-500 to-teal-600",
+    gradient: "from-green-500 to-arovis-blue",
     bgColor: "bg-green-50/50",
-    iconBg: "bg-gradient-to-r from-green-500 to-teal-600",
+    iconBg: "bg-gradient-to-r from-green-500 to-arovis-blue",
     shadowColor: "shadow-green-500/30",
     reportType: "revenue",
   },
@@ -528,7 +529,7 @@ function PatientsReport({ data }: { data: any }) {
               xaxis: {
                 categories: d.age_distribution.map((item: any) => item.age_group),
               },
-              colors: ["#06b6d4"],
+              colors: ["#0070C0"],
               plotOptions: { bar: { distributed: true } },
             }}
             height={300}
@@ -939,6 +940,7 @@ function InventoryReport({ data, subType, onSubTypeChange }: { data: any; subTyp
 // ══════════════════════════════════════════
 
 export default function Reports(): JSX.Element {
+  const { showToast } = useToast();
   const [activeView, setActiveView] = useState<'dashboard' | 'module'>('dashboard');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [currentPeriod, setCurrentPeriod] = useState<'daily' | 'weekly' | 'month' | 'custom'>('month');
@@ -1049,7 +1051,7 @@ export default function Reports(): JSX.Element {
               </div>
               <div>
                 <Typography variant="h2" color="blue-gray" className="font-black tracking-tight leading-none mb-2">
-                  MediTrust <span className="text-indigo-600">Health Hub</span>
+                  Arovis <span className="text-indigo-600">Health Hub</span>
                 </Typography>
                 <Typography variant="small" className="text-blue-gray-400 font-bold uppercase tracking-[0.2em] text-[10px]">
                   Operational Intelligence & Performance Audit Report
@@ -1339,7 +1341,7 @@ export default function Reports(): JSX.Element {
                     variant="text"
                     size="sm"
                     className="rounded-xl flex items-center gap-2 text-[11px] font-bold text-indigo-600 hover:bg-white hover:shadow-sm transition-all px-4"
-                    onClick={() => alert("Report Scheduling Service will be integrated in the next update.")}
+                    onClick={() => showToast("Report Scheduling Service will be integrated in the next update.", "info")}
                   >
                     <CalendarDaysIcon className="h-4 w-4" />
                     Schedule Email
@@ -1729,7 +1731,7 @@ export default function Reports(): JSX.Element {
             </div>
             <div>
               <Typography variant="h4" color="blue-gray" className="font-black tracking-tight leading-none mb-1">
-                MediTrust <span className="text-indigo-600">Health Reports</span>
+                Arovis <span className="text-indigo-600">Health Reports</span>
               </Typography>
               <Typography variant="small" className="text-blue-gray-400 font-bold uppercase tracking-widest text-[9px]">
                 Detailed Analytics: {currentCategory?.title}

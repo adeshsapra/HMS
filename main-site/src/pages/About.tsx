@@ -212,7 +212,7 @@ const About = () => {
                       className="img-fluid w-100 h-100 object-fit-cover"
                     />
                     <div className="position-absolute bottom-0 start-0 p-4 w-100 text-white" style={{ background: 'linear-gradient(transparent, rgba(0,0,0,0.8))' }}>
-                      <p className="mb-0 fw-light">MediTrust Research & Development Center</p>
+                      <p className="mb-0 fw-light">Arovis Research & Development Center</p>
                     </div>
                   </div>
                   <div className="p-5 bg-white">

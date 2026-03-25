@@ -161,7 +161,7 @@ const ServiceDetails = () => {
           padding: 40px;
           color: white;
           margin-bottom: 30px;
-          box-shadow: 0 10px 30px rgba(4, 158, 187, 0.3);
+          box-shadow: 0 10px 30px rgba(0, 112, 192, 0.3);
         }
 
         .service-icon-large {
@@ -215,7 +215,7 @@ const ServiceDetails = () => {
           color: var(--heading-color);
           margin-bottom: 20px;
           padding-bottom: 15px;
-          border-bottom: 2px solid rgba(4, 158, 187, 0.1);
+          border-bottom: 2px solid rgba(0, 112, 192, 0.1);
         }
 
         .info-grid {
@@ -246,7 +246,7 @@ const ServiceDetails = () => {
         }
 
         .cta-box {
-          background: linear-gradient(135deg, #28a745, #20c997);
+          background: var(--arovis-gradient-cta);
           border-radius: 12px;
           padding: 30px;
           color: white;
@@ -261,7 +261,7 @@ const ServiceDetails = () => {
 
         .btn-book {
           background: white;
-          color: #28a745;
+          color: var(--accent-color);
           padding: 12px 35px;
           border-radius: 50px;
           font-weight: 700;
@@ -276,7 +276,7 @@ const ServiceDetails = () => {
         .btn-book:hover {
           transform: scale(1.05);
           box-shadow: 0 5px 20px rgba(255,255,255,0.3);
-          color: #28a745;
+          color: var(--heading-color);
         }
 
         .related-service-card {
@@ -291,7 +291,7 @@ const ServiceDetails = () => {
 
         .related-service-card:hover {
           transform: translateY(-5px);
-          box-shadow: 0 10px 25px rgba(4, 158, 187, 0.15);
+          box-shadow: 0 10px 25px rgba(0, 112, 192, 0.15);
           border-color: var(--accent-color);
         }
 
@@ -316,7 +316,7 @@ const ServiceDetails = () => {
         }
 
         .related-price {
-          color: #28a745;
+          color: var(--accent-color);
           font-weight: 700;
           font-size: 1.2rem;
         }

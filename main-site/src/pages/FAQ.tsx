@@ -122,7 +122,7 @@ const FAQ = () => {
         .search-input:focus {
           outline: none;
           border-color: var(--accent-color);
-          box-shadow: 0 0 0 4px rgba(4, 158, 187, 0.1);
+          box-shadow: 0 0 0 4px rgba(0, 112, 192, 0.1);
         }
 
         .search-clear {
@@ -164,7 +164,7 @@ const FAQ = () => {
         .category-tab.active {
           background: var(--accent-color);
           color: white;
-          box-shadow: 0 4px 12px rgba(4, 158, 187, 0.2);
+          box-shadow: 0 4px 12px rgba(0, 112, 192, 0.2);
         }
 
         /* --- FAQ Items --- */
@@ -213,7 +213,7 @@ const FAQ = () => {
         .faq-icon {
           width: 45px;
           height: 45px;
-          background: rgba(4, 158, 187, 0.1);
+          background: rgba(0, 112, 192, 0.1);
           color: var(--accent-color);
           border-radius: 12px;
           display: flex;
@@ -508,7 +508,7 @@ const FAQ = () => {
                     <i className="bi bi-envelope"></i>
                     <div>
                       <strong>Email Support</strong>
-                      <span>support@meditrust.com</span>
+                      <span>support@arovis.com</span>
                     </div>
                   </div>
                   <div className="contact-option">

@@ -257,9 +257,9 @@ const Home = () => {
     transition: all 0.2s;
   }
   .btn-submit-custom:hover, .btn-submit-custom:active, .btn-submit-custom:focus {
-    background-color: #049EBB!important;
+    background-color: var(--accent-color) !important;
     transform: translateY(-1px);
-    box-shadow: 0 10px 15px -3px rgba(4, 158, 187, 0.3);
+    box-shadow: 0 10px 15px -3px rgba(0, 112, 192, 0.3);
   }
 
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }

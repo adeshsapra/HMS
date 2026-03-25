@@ -127,8 +127,8 @@ const PageHero = ({
                     height: 100%;
                     /* A gradient from your Heading Color to dark transparency */
                     background: linear-gradient(180deg, 
-                        rgba(24, 68, 76, 0.85) 0%, 
-                        rgba(4, 158, 187, 0.6) 100%);
+                        rgba(0, 45, 90, 0.85) 0%, 
+                        rgba(0, 112, 192, 0.6) 100%);
                     z-index: 1;
                 }
 

@@ -39,7 +39,7 @@ const ContentLoader: React.FC<ContentLoaderProps> = ({
                     width: 80px;
                     height: 80px;
                     border-radius: 50%;
-                    background: rgba(13, 138, 188, 0.1);
+                    background: rgba(var(--accent-rgb), 0.1);
                     animation: circlePulse 2s infinite ease-in-out;
                 }
 
@@ -53,7 +53,7 @@ const ContentLoader: React.FC<ContentLoaderProps> = ({
                     left: 50%;
                     transform: translate(-50%, -50%);
                     z-index: 2;
-                    color: #0d8abc;
+                    color: var(--accent-color);
                     font-size: 2.5rem;
                     animation: heartbeat 1.5s infinite cubic-bezier(0.215, 0.61, 0.355, 1);
                 }
@@ -70,7 +70,7 @@ const ContentLoader: React.FC<ContentLoaderProps> = ({
                 .loading-text-premium {
                     font-size: 0.9rem;
                     font-weight: 700;
-                    color: #1a3353;
+                    color: var(--heading-color);
                     letter-spacing: 3px;
                     text-transform: uppercase;
                     margin-top: 10px;
@@ -99,7 +99,7 @@ const ContentLoader: React.FC<ContentLoaderProps> = ({
                     left: -100%;
                     width: 100%;
                     height: 100%;
-                    background: linear-gradient(90deg, transparent, #0d8abc, transparent);
+                    background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
                     animation: shimmerMove 1.5s infinite linear;
                 }
 

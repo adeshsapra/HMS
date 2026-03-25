@@ -90,7 +90,7 @@ export default function Rooms(): JSX.Element {
     { title: "Total Rooms", value: 0, icon: <HomeModernIcon className="w-6 h-6" />, color: "blue" },
     { title: "Total Beds", value: 0, icon: <ArchiveBoxIcon className="w-6 h-6" />, color: "green" },
     { title: "Active Admissions", value: 0, icon: <UserGroupIcon className="w-6 h-6" />, color: "orange" },
-    { title: "Available Beds", value: 0, icon: <ClipboardDocumentCheckIcon className="w-6 h-6" />, color: "teal" },
+    { title: "Available Beds", value: 0, icon: <ClipboardDocumentCheckIcon className="w-6 h-6" />, color: "blue" },
   ]);
 
   // Modal States
@@ -149,7 +149,7 @@ export default function Rooms(): JSX.Element {
         { title: "Total Rooms", value: totalRooms, icon: <HomeModernIcon className="w-6 h-6" />, color: "blue" },
         { title: "Total Beds", value: totalBeds, icon: <ArchiveBoxIcon className="w-6 h-6" />, color: "green" },
         { title: "Active Admissions", value: activeAdmissions, icon: <UserGroupIcon className="w-6 h-6" />, color: "orange" },
-        { title: "Available Beds", value: availableBeds, icon: <ClipboardDocumentCheckIcon className="w-6 h-6" />, color: "teal" },
+        { title: "Available Beds", value: availableBeds, icon: <ClipboardDocumentCheckIcon className="w-6 h-6" />, color: "blue" },
       ]);
 
     } catch (error) {

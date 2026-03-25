@@ -38,13 +38,13 @@ const Appointment = () => {
         :root {
           --background-color: #ffffff;
           --default-color: #2c3031;
-          --heading-color: #18444c;
-          --accent-color: #049ebb;
+          --heading-color: #002D5A;
+          --accent-color: #0070C0;
           --surface-color: #ffffff;
           --contrast-color: #ffffff;
-          --soft-shadow: 0 10px 40px rgba(4, 158, 187, 0.08);
+          --soft-shadow: 0 10px 40px rgba(0, 112, 192, 0.08);
           --glass-bg: rgba(255, 255, 255, 0.95);
-          --border-color: rgba(4, 158, 187, 0.15);
+          --border-color: rgba(0, 112, 192, 0.15);
         }
 
         .appointment-page {
@@ -271,7 +271,7 @@ const Appointment = () => {
           background: var(--accent-color);
           color: white;
           transform: scale(1.05);
-          box-shadow: 0 10px 20px rgba(4, 158, 187, 0.3);
+          box-shadow: 0 10px 20px rgba(0, 112, 192, 0.3);
         }
 
         .appointment-date-box.appointment-disabled {

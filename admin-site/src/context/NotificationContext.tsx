@@ -114,8 +114,8 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
         if (Notification.permission === 'granted') {
             const notif = new Notification(notification.data.title, {
                 body: notification.data.message,
-                icon: '/favicon.ico',
-                badge: '/favicon.ico',
+                icon: '/img/icon_2.png',
+                badge: '/img/icon_2.png',
                 tag: notification.id,
                 requireInteraction: notification.data.priority === 'high',
             });

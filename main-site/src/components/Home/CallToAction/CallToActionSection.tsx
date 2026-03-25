@@ -27,9 +27,9 @@ const pulseIconVariant: Variants = {
   pulse: {
     scale: [1, 1.15, 1],
     boxShadow: [
-      "0 0 0px rgba(4, 158, 187, 0)",
-      "0 0 25px rgba(4, 158, 187, 0.5)",
-      "0 0 0px rgba(4, 158, 187, 0)",
+      "0 0 0px rgba(0, 112, 192, 0)",
+      "0 0 25px rgba(0, 112, 192, 0.5)",
+      "0 0 0px rgba(0, 112, 192, 0)",
     ],
     transition: { duration: 2.5, repeat: Infinity, ease: "easeInOut" },
   },
@@ -55,8 +55,8 @@ const CallToActionSection = () => {
         .call-to-action {
           position: relative;
           overflow: hidden;
-          background-color: #f4f9fb;
-          background-image: radial-gradient(#049ebb 0.5px, transparent 0.5px), radial-gradient(#049ebb 0.5px, #f4f9fb 0.5px);
+          background-color: var(--background-muted);
+          background-image: radial-gradient(var(--accent-color) 0.5px, transparent 0.5px), radial-gradient(var(--accent-color) 0.5px, var(--background-muted) 0.5px);
           background-size: 40px 40px;
           background-position: 0 0, 20px 20px;
           background-attachment: fixed;
@@ -78,7 +78,7 @@ const CallToActionSection = () => {
           right: -10%;
           width: 600px;
           height: 600px;
-          background: #049ebb;
+          background: var(--accent-color);
         }
 
         .bg-orb-2 {
@@ -86,12 +86,12 @@ const CallToActionSection = () => {
           left: -10%;
           width: 500px;
           height: 500px;
-          background: #00d2ff;
+          background: var(--accent-highlight);
         }
 
         /* Gradient Text Animation */
         .text-gradient-animated {
-          background: linear-gradient(270deg, #049EBB, #00d2ff, #025b6e, #049EBB);
+          background: linear-gradient(270deg, var(--accent-color), var(--accent-highlight), var(--heading-color), var(--accent-color));
           background-size: 300% 300%;
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
@@ -128,29 +128,29 @@ const CallToActionSection = () => {
         }
 
         .btn-premium {
-          background: linear-gradient(135deg, #049EBB 0%, #027187 100%);
+          background: linear-gradient(135deg, var(--accent-color) 0%, var(--heading-color) 100%);
           color: #ffffff;
-          box-shadow: 0 10px 30px rgba(4, 158, 187, 0.3);
+          box-shadow: 0 10px 30px rgba(var(--accent-rgb), 0.3);
           border: 1px solid rgba(255,255,255,0.2);
         }
 
         .btn-premium:hover {
-          box-shadow: 0 15px 40px rgba(4, 158, 187, 0.5);
+          box-shadow: 0 15px 40px rgba(var(--accent-rgb), 0.5);
           color: #ffffff;
         }
 
         .btn-outline-premium {
           background: rgba(255, 255, 255, 0.8);
           backdrop-filter: blur(10px);
-          color: #025b6e;
+          color: var(--heading-color);
           border: 2px solid transparent;
           background-clip: padding-box;
           box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
         }
 
         .btn-outline-premium:hover {
-          border-color: #049EBB;
-          color: #049EBB;
+          border-color: var(--accent-color);
+          color: var(--accent-color);
         }
 
         /* Premium Feature Cards */
@@ -177,7 +177,7 @@ const CallToActionSection = () => {
           inset: 0;
           border-radius: 24px;
           padding: 2px;
-          background: linear-gradient(135deg, rgba(4,158,187,0.5), transparent, transparent);
+          background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.45), transparent, transparent);
           -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
           -webkit-mask-composite: xor;
           mask-composite: exclude;
@@ -194,7 +194,7 @@ const CallToActionSection = () => {
           height: 72px;
           border-radius: 20px;
           background: linear-gradient(135deg, #e6f6f9 0%, #ffffff 100%);
-          box-shadow: 8px 8px 16px rgba(4, 158, 187, 0.1), -8px -8px 16px rgba(255, 255, 255, 0.8);
+          box-shadow: 8px 8px 16px rgba(var(--accent-rgb), 0.1), -8px -8px 16px rgba(255, 255, 255, 0.8);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -203,14 +203,14 @@ const CallToActionSection = () => {
         }
 
         .feature-card:hover .icon-wrapper {
-          background: #049EBB;
+          background: var(--accent-color);
           transform: translateY(-5px) scale(1.05) rotate(5deg);
-          box-shadow: 10px 15px 25px rgba(4, 158, 187, 0.3);
+          box-shadow: 10px 15px 25px rgba(var(--accent-rgb), 0.3);
         }
 
         .feature-card .icon-wrapper i {
           font-size: 32px;
-          color: #049EBB;
+          color: var(--accent-color);
           transition: all 0.3s ease;
         }
 
@@ -221,7 +221,7 @@ const CallToActionSection = () => {
         .feature-card h5 {
           font-size: 22px;
           font-weight: 800;
-          color: #1a2b3c;
+          color: var(--heading-color);
           margin-bottom: 14px;
         }
 
@@ -238,7 +238,7 @@ const CallToActionSection = () => {
           gap: 8px;
           font-size: 15px;
           font-weight: 700;
-          color: #049EBB;
+          color: var(--accent-color);
           text-decoration: none;
           text-transform: uppercase;
           letter-spacing: 0.5px;
@@ -247,10 +247,10 @@ const CallToActionSection = () => {
         /* Glassmorphism Emergency Banner */
         .emergency-alert {
           margin-top: 80px;
-          background: linear-gradient(135deg, #023642 0%, #049EBB 100%);
+          background: linear-gradient(135deg, var(--heading-color) 0%, var(--accent-color) 100%);
           border-radius: 30px;
           padding: 40px 48px;
-          box-shadow: 0 30px 60px rgba(4, 158, 187, 0.2);
+          box-shadow: 0 30px 60px rgba(var(--accent-rgb), 0.2);
           color: white;
           position: relative;
           overflow: hidden;
@@ -318,7 +318,7 @@ const CallToActionSection = () => {
           gap: 12px;
           padding: 18px 36px;
           background: #ffffff;
-          color: #023642;
+          color: var(--heading-color);
           font-size: 18px;
           font-weight: 800;
           border-radius: 50px;
@@ -330,10 +330,10 @@ const CallToActionSection = () => {
         }
 
         .emergency-btn:hover {
-          background: #f0f9fb;
+          background: var(--background-muted);
           transform: translateY(-3px);
           box-shadow: 0 15px 35px rgba(0,0,0,0.25);
-          color: #049EBB;
+          color: var(--accent-color);
         }
 
         @media (max-width: 991px) {

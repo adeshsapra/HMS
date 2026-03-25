@@ -14,7 +14,7 @@ export interface FooterProps {
 }
 
 export function Footer({ 
-  brandName = "Akdex Code", 
+  brandName = "Arovis", 
   brandLink = "#"
 }: FooterProps): JSX.Element {
   const year = new Date().getFullYear();
@@ -34,7 +34,7 @@ export function Footer({
             </a>
           </Typography>
           <Typography variant="small" className="text-xs font-medium text-blue-gray-500">
-            HMS Admin Panel | Secure Operations Dashboard
+            Arovis Admin | Secure Operations Dashboard
           </Typography>
         </div>
         <Typography variant="small" className="text-xs font-medium text-blue-gray-500">

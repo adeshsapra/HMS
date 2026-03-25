@@ -116,13 +116,13 @@ export default function EmailTemplates(): JSX.Element {
             name: "cc",
             label: "CC",
             type: "text",
-            placeholder: "e.g., support@meditrust.com",
+            placeholder: "e.g., support@arovis.com",
         },
         {
             name: "bcc",
             label: "BCC",
             type: "text",
-            placeholder: "e.g., admin@meditrust.com",
+            placeholder: "e.g., admin@arovis.com",
         },
         {
             name: "subject",

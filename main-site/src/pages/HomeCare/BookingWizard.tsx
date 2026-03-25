@@ -467,9 +467,9 @@ const BookingWizard = () => {
         
         <div class="receipt-body">
             <div class="company-info">
-                <h2>MediTrust Hospital</h2>
+                <h2>Arovis Hospital</h2>
                 <p>Professional Home Care Services</p>
-                <p style="margin-top: 5px; font-size: 12px;">Email: support@meditrust.com | Phone: +1 234 567 890</p>
+                <p style="margin-top: 5px; font-size: 12px;">Email: support@arovis.com | Phone: +1 234 567 890</p>
             </div>
 
             <div class="info-grid">
@@ -605,10 +605,10 @@ const BookingWizard = () => {
         </div>
 
         <div class="receipt-footer">
-            <p><strong>Thank you for choosing MediTrust Home Care Services!</strong></p>
+            <p><strong>Thank you for choosing Arovis Home Care Services!</strong></p>
             <p style="margin-top: 10px;">Our senior medical coordinator will contact you shortly to confirm the clinical protocol & therapist dispatch.</p>
             <p style="margin-top: 15px; font-size: 11px;">This is an automated receipt. A copy has been sent to your registered email and phone number.</p>
-            <p style="margin-top: 10px; font-size: 11px;">For any queries, please contact us at support@meditrust.com or call +1 234 567 890</p>
+            <p style="margin-top: 10px; font-size: 11px;">For any queries, please contact us at support@arovis.com or call +1 234 567 890</p>
         </div>
     </div>
 </body>

@@ -1,9 +1,8 @@
 /**
-* Template Name: MediTrust
-* Template URL: https://bootstrapmade.com/meditrust-bootstrap-hospital-website-template/
+* Site: Arovis (based on BootstrapMade hospital template)
+* License: https://bootstrapmade.com/license/
 * Updated: Jul 04 2025 with Bootstrap v5.3.7
 * Author: BootstrapMade.com
-* License: https://bootstrapmade.com/license/
 */
 
 (function() {

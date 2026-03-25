@@ -26,8 +26,8 @@ const Terms = () => {
         .legal-card {
           background: #ffffff;
           border-radius: 24px;
-          box-shadow: 0 20px 50px rgba(24, 68, 76, 0.05);
-          border: 1px solid rgba(4, 158, 187, 0.1);
+          box-shadow: 0 20px 50px rgba(0, 45, 90, 0.05);
+          border: 1px solid rgba(var(--accent-rgb), 0.1);
           overflow: hidden;
           padding: 60px;
         }
@@ -45,8 +45,8 @@ const Terms = () => {
           align-items: center;
           gap: 8px;
           padding: 6px 16px;
-          background: rgba(4, 158, 187, 0.1);
-          color: #049ebb;
+          background: rgba(var(--accent-rgb), 0.1);
+          color: var(--accent-color);
           border-radius: 50px;
           font-size: 0.85rem;
           font-weight: 700;
@@ -55,7 +55,7 @@ const Terms = () => {
         }
 
         .legal-title {
-          color: #18444c;
+          color: var(--heading-color);
           font-weight: 800;
           font-size: 1.75rem;
           margin-bottom: 25px;
@@ -66,7 +66,7 @@ const Terms = () => {
 
         .legal-title i {
             font-size: 1.5rem;
-            color: #049ebb;
+            color: var(--accent-color);
         }
 
         .legal-text {
@@ -86,11 +86,11 @@ const Terms = () => {
             background: #f8fbff;
             border-radius: 16px;
             padding: 25px;
-            border-left: 4px solid #049ebb;
+            border-left: 4px solid var(--accent-color);
         }
 
         .term-box h6 {
-            color: #18444c;
+            color: var(--heading-color);
             font-weight: 700;
             margin-bottom: 10px;
         }
@@ -113,7 +113,7 @@ const Terms = () => {
           font-family: "bootstrap-icons";
           position: absolute;
           left: 0;
-          color: #049ebb;
+          color: var(--accent-color);
           font-size: 1.1rem;
         }
 
@@ -188,7 +188,7 @@ const Terms = () => {
 
       <PageHero
         title="Terms of Service"
-        description="Guidelines and agreements for patients using the MediTrust Hospital Management System."
+        description="Guidelines and agreements for patients using the Arovis Hospital Management System."
         breadcrumbs={[
           { label: 'Home', path: '/' },
           { label: 'Terms' }
@@ -206,7 +206,7 @@ const Terms = () => {
                   <span className="section-badge">Service Agreement</span>
                   <h3 className="legal-title"><i className="bi bi-file-earmark-check-fill"></i> Acceptance of Terms</h3>
                   <p className="legal-text">
-                    By accessing or using the MediTrust platform, you agree to be bound by these Terms of Service. If you are using our services on behalf of a minor or dependent, you represent that you have the legal authority to bind them to these terms.
+                    By accessing or using the Arovis platform, you agree to be bound by these Terms of Service. If you are using our services on behalf of a minor or dependent, you represent that you have the legal authority to bind them to these terms.
                   </p>
                 </div>
 
@@ -236,7 +236,7 @@ const Terms = () => {
                   <span className="section-badge">Critical Notice</span>
                   <h3 className="legal-title"><i className="bi bi-exclamation-triangle-fill"></i> Medical Disclaimer</h3>
                   <p className="legal-text">
-                    The informational content provided on the MediTrust website, including health tips and portal descriptions, is for educational purposes only.
+                    The informational content provided on the Arovis website, including health tips and portal descriptions, is for educational purposes only.
                   </p>
                   <div className="important-note">
                     <h5><i className="bi bi-lightning-charge-fill"></i> EMERGENCY WARNING</h5>
@@ -249,7 +249,7 @@ const Terms = () => {
                   <span className="section-badge">Financial Terms</span>
                   <h3 className="legal-title"><i className="bi bi-cash-stack"></i> Billing & Insurance</h3>
                   <p className="legal-text">
-                    MediTrust provides integrated billing solutions for patient convenience:
+                    Arovis provides integrated billing solutions for patient convenience:
                   </p>
                   <ul className="legal-list">
                     <li>Copayments and non-insured portions are due at the time of service.</li>
@@ -283,7 +283,7 @@ const Terms = () => {
 
                 <div className="footer-cta">
                   <p className="text-muted small">Last Updated: February 01, 2026</p>
-                  <p className="fw-bold mb-0" style={{ color: '#18444c' }}>Thank you for choosing MediTrust for your healthcare journey.</p>
+                  <p className="fw-bold mb-0" style={{ color: 'var(--heading-color)' }}>Thank you for choosing Arovis for your healthcare journey.</p>
                 </div>
 
               </div>

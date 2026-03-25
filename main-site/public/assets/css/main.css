@@ -1,9 +1,8 @@
 /**
-* Template Name: MediTrust
-* Template URL: https://bootstrapmade.com/meditrust-bootstrap-hospital-website-template/
+* Site: Arovis (based on BootstrapMade hospital template)
+* License: https://bootstrapmade.com/license/
 * Updated: Jul 04 2025 with Bootstrap v5.3.7
 * Author: BootstrapMade.com
-* License: https://bootstrapmade.com/license/
 */
 
 @charset "UTF-8";
@@ -19,34 +18,53 @@
   --nav-font: "Lato", sans-serif;
 }
 
+/* Arovis brand (from logo): navy #002D5A, blue #0070C0, cyan #00D2FF */
 :root {
   --background-color: #ffffff;
   --default-color: #2c3031;
-  --heading-color: #18444c;
-  --accent-color: #049ebb;
+  --heading-color: #002d5a;
+  --accent-color: #0070c0;
+  --accent-highlight: #00d2ff;
   --surface-color: #ffffff;
   --contrast-color: #ffffff;
+  /* RGB components for rgba(..., opacity) in components */
+  --accent-rgb: 0, 112, 192;
+  --heading-rgb: 0, 45, 90;
+  --accent-highlight-rgb: 0, 210, 255;
+  --background-muted: #f3f8fc;
+  --accent-hover: color-mix(in srgb, var(--accent-color), black 14%);
+  --arovis-gradient-primary: linear-gradient(
+    135deg,
+    var(--accent-color) 0%,
+    color-mix(in srgb, var(--accent-color), var(--heading-color) 25%) 100%
+  );
+  --arovis-gradient-cta: linear-gradient(
+    135deg,
+    var(--heading-color) 0%,
+    var(--accent-color) 55%,
+    var(--accent-highlight) 100%
+  );
 }
 
 :root {
-  --nav-color: #496268;
-  --nav-hover-color: #049ebb;
+  --nav-color: #3d5a73;
+  --nav-hover-color: #0070c0;
   --nav-mobile-background-color: #ffffff;
   --nav-dropdown-background-color: #ffffff;
-  --nav-dropdown-color: #496268;
-  --nav-dropdown-hover-color: #049ebb;
+  --nav-dropdown-color: #3d5a73;
+  --nav-dropdown-hover-color: #0070c0;
 }
 
 .light-background {
-  --background-color: #f2f8f9;
+  --background-color: #f3f8fc;
   --surface-color: #ffffff;
 }
 
 .dark-background {
-  --background-color: #021418;
+  --background-color: #001a2e;
   --default-color: #ffffff;
   --heading-color: #ffffff;
-  --surface-color: #11262a;
+  --surface-color: #0a2540;
   --contrast-color: #ffffff;
 }
 
@@ -144,7 +162,7 @@ h6 {
   --background-color: rgba(255, 255, 255, 0);
   color: var(--default-color);
   background-color: var(--background-color);
-  padding: 20px 0;
+  padding: 8px 0;
   transition: all 0.5s;
   z-index: 997;
 }
@@ -152,7 +170,7 @@ h6 {
 .header .header-container {
   background: var(--surface-color);
   border-radius: 50px;
-  padding: 5px 25px;
+  padding: 0 18px;
   box-shadow: 0px 2px 15px rgba(0, 0, 0, 0.1);
 }
 
@@ -160,9 +178,32 @@ h6 {
   line-height: 1;
 }
 
-.header .logo img {
-  max-height: 36px;
-  margin-right: 8px;
+.header .logo img,
+.header .logo .site-logo-img {
+  height: auto;
+  width: auto;
+  max-height: 44px;
+  max-width: min(240px, 54vw);
+  display: block;
+  margin-right: 0;
+  object-fit: contain;
+  object-position: left center;
+}
+
+@media (max-width: 991px) {
+  .header .logo img,
+  .header .logo .site-logo-img {
+    max-height: 40px;
+    max-width: min(220px, 50vw);
+  }
+}
+
+@media (max-width: 575px) {
+  .header .logo img,
+  .header .logo .site-logo-img {
+    max-height: 36px;
+    max-width: min(200px, 78vw);
+  }
 }
 
 .header .logo svg {
@@ -207,13 +248,13 @@ h6 {
 
 @media (max-width: 1200px) {
   .header {
-    padding-top: 10px;
+    padding-top: 8px;
   }
 
   .header .header-container {
     margin-left: 10px;
     margin-right: 10px;
-    padding: 10px 5px 10px 15px;
+    padding: 0 10px 0 12px;
   }
 
   .header .logo {
@@ -6577,7 +6618,7 @@ section,
   border: 2px solid var(--accent-color);
   transform: scale(1.05);
   z-index: 2;
-  box-shadow: 0 10px 40px rgba(4, 158, 187, 0.2);
+  box-shadow: 0 10px 40px rgba(0, 112, 192, 0.2);
 }
 
 .packages .popular-badge {
@@ -6674,7 +6715,7 @@ section,
   border: 2px solid var(--accent-color);
   color: var(--accent-color);
   background: transparent;
-  box-shadow: 0 5px 15px rgba(4, 158, 187, 0.4);
+  box-shadow: 0 5px 15px rgba(0, 112, 192, 0.4);
 }
 
 .packages .btn-package.filled:hover {
@@ -6854,7 +6895,7 @@ section,
 
 .review-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 15px 30px rgba(4, 158, 187, 0.1);
+  box-shadow: 0 15px 30px rgba(0, 112, 192, 0.1);
   border-color: var(--accent-light);
 }
 
