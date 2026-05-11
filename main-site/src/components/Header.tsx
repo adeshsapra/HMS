@@ -508,8 +508,11 @@ const Header = () => {
             justify-content: center;
             width: 40px;
             height: 40px;
-            border-radius: 8px;
-            background: rgba(0, 112, 192, 0.1);
+            border-radius: 50%;
+            background: transparent !important;
+            border: none;
+            box-shadow: none;
+            color: var(--accent-color);
             transition: all 0.3s ease;
             position: relative; 
             z-index: 9999;      
@@ -517,26 +520,28 @@ const Header = () => {
           }
 
           .mobile-nav-toggle:hover {
-            background: rgba(0, 112, 192, 0.2);
+            background: transparent !important;
+            color: color-mix(in srgb, var(--accent-color) 85%, black 15%);
           }
 
           .header.scrolled.dark-underlay .mobile-nav-toggle {
-            background: #ffffff;
-            color: var(--accent-color);
+            background: transparent !important;
+            color: #ffffff;
           }
 
           .header.scrolled.dark-underlay .mobile-nav-toggle:hover {
-            background: #ffffff;
-            color: var(--accent-color);
+            background: transparent !important;
+            color: #ffffff;
           }
 
           .navmenu.mobile-nav-active .mobile-nav-toggle {
-            background: rgba(255, 255, 255, 0.2);
+            background: transparent !important;
             color: white;
           }
 
           .navmenu.mobile-nav-active .mobile-nav-toggle:hover {
-            background: rgba(255, 255, 255, 0.3);
+            background: transparent !important;
+            color: white;
           }
 
           .navmenu ul {
